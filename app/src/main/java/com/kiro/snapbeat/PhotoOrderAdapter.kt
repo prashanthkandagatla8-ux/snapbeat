@@ -1,6 +1,5 @@
 package com.kiro.snapbeat
 
-import android.content.Context
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -12,8 +11,7 @@ import com.bumptech.glide.Glide
 import java.util.Collections
 
 class PhotoOrderAdapter(
-    private var photos: MutableList<Uri>,
-    private val context: Context
+    private var photos: MutableList<Uri>
 ) : RecyclerView.Adapter<PhotoOrderAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -29,10 +27,12 @@ class PhotoOrderAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val uri = photos[position]
-        Glide.with(context)
+        // Fix: Use holder.itemView.context instead of storing Activity reference
+        Glide.with(holder.itemView.context)
             .load(uri)
             .override(160, 160)
             .centerCrop()
+            .error(android.R.drawable.ic_menu_gallery)
             .into(holder.ivThumb)
             
         holder.tvIndex.text = (position + 1).toString()
@@ -41,6 +41,10 @@ class PhotoOrderAdapter(
     override fun getItemCount() = photos.size
 
     fun moveItem(from: Int, to: Int) {
+        // Fix: Bounds check to prevent IndexOutOfBoundsException
+        if (from < 0 || to < 0 || from >= photos.size || to >= photos.size) return
+        if (from == to) return
+
         if (from < to) {
             for (i in from until to) {
                 Collections.swap(photos, i, i + 1)

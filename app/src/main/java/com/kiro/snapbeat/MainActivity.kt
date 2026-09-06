@@ -1,6 +1,5 @@
 package com.kiro.snapbeat
 
-import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
@@ -11,7 +10,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.kiro.snapbeat.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +33,9 @@ class MainActivity : AppCompatActivity() {
     private var selectedMusicUri: Uri? = null
     private var selectedPhotos = mutableListOf<Uri>()
     private lateinit var photoOrderAdapter: PhotoOrderAdapter
+
+    // Single ItemTouchHelper instance — attached once, never duplicated
+    private var itemTouchHelper: ItemTouchHelper? = null
     
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.MINUTES)
@@ -55,7 +56,7 @@ class MainActivity : AppCompatActivity() {
             selectedPhotos.addAll(uris.take(60))
             binding.tvPhotosStatus.text = "${selectedPhotos.size} photos loaded (Max 60)"
             if (!binding.switchMode.isChecked) {
-                setupPhotoOrderRecyclerView()
+                refreshPhotoOrder()
             }
         }
     }
@@ -66,19 +67,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val templates = arrayOf("Pendulum", "Glide", "Sway", "Punch", "Mosaic Reveal", "Spin", "Pulse", "Whip", "Slow Drift", "Auto (Beat Cut)")
-        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, templates)
+        val adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, templates)
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         binding.spinnerTemplate.adapter = adapter
+
+        // Set up the RecyclerView + ItemTouchHelper ONCE in onCreate
+        setupPhotoOrderRecyclerView()
 
         binding.switchMode.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 binding.switchMode.text = "BASIC"
-                binding.proModeContainer.visibility = android.view.View.GONE
-                binding.rvPhotoOrder.visibility = android.view.View.GONE
+                binding.proModeContainer.visibility = View.GONE
+                binding.rvPhotoOrder.visibility = View.GONE
             } else {
                 binding.switchMode.text = "PRO"
-                binding.proModeContainer.visibility = android.view.View.VISIBLE
+                binding.proModeContainer.visibility = View.VISIBLE
                 if (selectedPhotos.isNotEmpty()) {
-                    setupPhotoOrderRecyclerView()
+                    binding.rvPhotoOrder.visibility = View.VISIBLE
                 }
             }
         }
@@ -100,15 +105,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Called ONCE in onCreate. Creates the adapter and attaches a single ItemTouchHelper.
+     * When photos change, call refreshPhotoOrder() instead of re-creating everything.
+     */
     private fun setupPhotoOrderRecyclerView() {
-        photoOrderAdapter = PhotoOrderAdapter(selectedPhotos, this)
+        photoOrderAdapter = PhotoOrderAdapter(selectedPhotos)
         binding.rvPhotoOrder.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.rvPhotoOrder.adapter = photoOrderAdapter
-        binding.rvPhotoOrder.visibility = View.VISIBLE
 
         val callback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT, 0) {
             override fun onMove(rv: RecyclerView, source: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                photoOrderAdapter.moveItem(source.adapterPosition, target.adapterPosition)
+                val from = source.bindingAdapterPosition
+                val to = target.bindingAdapterPosition
+                if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
+                photoOrderAdapter.moveItem(from, to)
                 return true
             }
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {}
@@ -127,7 +138,14 @@ class MainActivity : AppCompatActivity() {
                 photoOrderAdapter.notifyDataSetChanged()
             }
         }
-        ItemTouchHelper(callback).attachToRecyclerView(binding.rvPhotoOrder)
+        itemTouchHelper = ItemTouchHelper(callback)
+        itemTouchHelper!!.attachToRecyclerView(binding.rvPhotoOrder)
+    }
+
+    /** Notify the existing adapter that the photo list changed — no re-creation needed. */
+    private fun refreshPhotoOrder() {
+        photoOrderAdapter.notifyDataSetChanged()
+        binding.rvPhotoOrder.visibility = View.VISIBLE
     }
 
     private fun getFileFromUri(uri: Uri, prefix: String): File? {
@@ -135,10 +153,12 @@ class MainActivity : AppCompatActivity() {
             val inputStream = contentResolver.openInputStream(uri) ?: return null
             val ext = if (prefix.startsWith("music")) ".mp3" else ".jpg"
             val file = File(cacheDir, "${prefix}_${System.currentTimeMillis()}${ext}")
-            val outputStream = FileOutputStream(file)
-            inputStream.copyTo(outputStream)
-            inputStream.close()
-            outputStream.close()
+            // Fix: use .use{} to guarantee streams close even on exception
+            inputStream.use { input ->
+                FileOutputStream(file).use { output ->
+                    input.copyTo(output)
+                }
+            }
             file
         } catch (e: Exception) {
             null
@@ -163,7 +183,9 @@ class MainActivity : AppCompatActivity() {
             try {
                 val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
 
-                val musicFile = getFileFromUri(selectedMusicUri!!, "music") 
+                val musicUri = selectedMusicUri
+                    ?: throw IOException("No music selected")
+                val musicFile = getFileFromUri(musicUri, "music") 
                     ?: throw IOException("Could not read music file")
                 builder.addFormDataPart("audio", musicFile.name, musicFile.asRequestBody("audio/*".toMediaTypeOrNull()))
 
@@ -180,7 +202,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (!binding.switchMode.isChecked) {
-                    val selection = binding.spinnerTemplate.selectedItem.toString()
+                    val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "simple"
                     val templateName = when(selection) {
                         "Pendulum" -> "pendulum"
                         "Glide" -> "glide-pan"
@@ -209,9 +231,10 @@ class MainActivity : AppCompatActivity() {
 
                 var jobId: Int = -1
                 client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("Upload failed: $response")
-                    val bodyString = response.body?.string() ?: ""
+                    if (!response.isSuccessful) throw IOException("Upload failed: ${response.code}")
+                    val bodyString = response.body?.string() ?: "{}"
                     val json = JSONObject(bodyString)
+                    if (!json.has("job_id")) throw IOException("Server error: $bodyString")
                     jobId = json.getInt("job_id")
                 }
                 
@@ -252,11 +275,11 @@ class MainActivity : AppCompatActivity() {
 
                 client.newCall(statusRequest).execute().use { response ->
                     if (!response.isSuccessful) return@use
-                    val bodyString = response.body?.string() ?: ""
+                    val bodyString = response.body?.string() ?: "{}"
                     val json = JSONObject(bodyString)
-                    val status = json.getString("status")
-                    val stage = json.getString("stage")
-                    val progress = json.getInt("progress")
+                    val status = json.optString("status", "")
+                    val stage = json.optString("stage", "processing")
+                    val progress = json.optInt("progress", 0)
 
                     withContext(Dispatchers.Main) {
                         binding.tvStatus.text = "${stage.uppercase()} - $progress%"
@@ -267,10 +290,16 @@ class MainActivity : AppCompatActivity() {
                         isDone = true
                     } else if (status == "failed" || status == "cancelled") {
                         val errorMsg = json.optString("error", "Unknown error")
-                        throw IOException("Server Render Failed: $errorMsg")
+                        // Fix: Use a custom exception so the catch block below
+                        // does NOT swallow explicit server failures
+                        throw RuntimeException("Render failed: $errorMsg")
                     }
                 }
+            } catch (e: RuntimeException) {
+                // Server explicitly said "failed" — surface immediately, don't retry
+                throw e
             } catch (e: IOException) {
+                // Transient network error — retry up to 3 in a row before giving up
                 if (pollCount % 3 != 0) continue else throw e
             }
         }
@@ -294,20 +323,30 @@ class MainActivity : AppCompatActivity() {
             val values = ContentValues().apply {
                 put(MediaStore.Video.Media.DISPLAY_NAME, "SnapBeat_${jobId}.mp4")
                 put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/SnapBeat")
+                // Fix: RELATIVE_PATH only exists on API 29+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/SnapBeat")
                     put(MediaStore.Video.Media.IS_PENDING, 1)
                 }
             }
             
             val uri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
                 ?: throw IOException("Failed to create MediaStore entry")
-                
-            contentResolver.openOutputStream(uri)?.use { out ->
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    out.write(buffer, 0, bytesRead)
+
+            var downloadSuccess = false
+            try {
+                contentResolver.openOutputStream(uri)?.use { out ->
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                        out.write(buffer, 0, bytesRead)
+                    }
+                }
+                downloadSuccess = true
+            } finally {
+                if (!downloadSuccess) {
+                    // Clean up partial MediaStore entry on failure
+                    contentResolver.delete(uri, null, null)
                 }
             }
             
@@ -326,7 +365,11 @@ class MainActivity : AppCompatActivity() {
                     setDataAndType(uri, "video/mp4")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                try { startActivity(intent) } catch (e: Exception) {}
+                try {
+                    startActivity(intent)
+                } catch (_: Exception) {
+                    Toast.makeText(this@MainActivity, "No video player found", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
