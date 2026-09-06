@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val templates = arrayOf("Pendulum", "Glide", "Spin")
+        val templates = arrayOf("Pendulum", "Glide", "Sway", "Punch", "Mosaic Reveal", "Spin", "Pulse", "Whip", "Slow Drift", "Auto (Beat Cut)")
         val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, templates)
         binding.spinnerTemplate.adapter = adapter
 
@@ -184,7 +184,14 @@ class MainActivity : AppCompatActivity() {
                     val templateName = when(selection) {
                         "Pendulum" -> "pendulum"
                         "Glide" -> "glide-pan"
+                        "Sway" -> "sway-ballad"
+                        "Punch" -> "punch-cut"
+                        "Mosaic Reveal" -> "reveal-tiles"
                         "Spin" -> "beat-spin"
+                        "Pulse" -> "beat-pulse"
+                        "Whip" -> "beat-whip"
+                        "Slow Drift" -> "slow-drift"
+                        "Auto (Beat Cut)" -> "beat-cut"
                         else -> "simple"
                     }
                     builder.addFormDataPart("template", templateName)
