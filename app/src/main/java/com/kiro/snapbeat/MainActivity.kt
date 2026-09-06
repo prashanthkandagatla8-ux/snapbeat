@@ -85,7 +85,8 @@ class MainActivity : AppCompatActivity() {
     private fun getFileFromUri(uri: Uri, prefix: String): File? {
         return try {
             val inputStream = contentResolver.openInputStream(uri) ?: return null
-            val file = File(cacheDir, "${prefix}_${System.currentTimeMillis()}")
+            val ext = if (prefix.startsWith("music")) ".mp3" else ".jpg"
+            val file = File(cacheDir, "${prefix}_${System.currentTimeMillis()}${ext}")
             val outputStream = FileOutputStream(file)
             inputStream.copyTo(outputStream)
             inputStream.close()
@@ -126,7 +127,7 @@ class MainActivity : AppCompatActivity() {
 
                 val requestBody = builder.build()
                 val request = Request.Builder()
-                    .url("http://192.168.68.104:8772/api/render/mobile") 
+                    .url(BuildConfig.SERVER_URL + "/api/render/mobile") 
                     .post(requestBody)
                     .build()
 
@@ -173,7 +174,7 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 val statusRequest = Request.Builder()
-                    .url("http://192.168.68.104:8772/api/render/status/$jobId")
+                    .url(BuildConfig.SERVER_URL + "/api/render/status/$jobId")
                     .get()
                     .build()
 
@@ -198,7 +199,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: IOException) {
-                if (pollCount % 3 == 0) continue else throw e
+                if (pollCount % 3 != 0) continue else throw e
             }
         }
 
@@ -210,7 +211,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val downloadRequest = Request.Builder()
-            .url("http://192.168.68.104:8772/api/render/download/$jobId")
+            .url(BuildConfig.SERVER_URL + "/api/render/download/$jobId")
             .get()
             .build()
 

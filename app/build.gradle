@@ -13,10 +13,12 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
+        buildConfigField "String", "SERVER_URL", '"http://192.168.68.104:8772"'
     }
     
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 
     compileOptions {
@@ -39,7 +41,5 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
     // Networking
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+            implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 }
