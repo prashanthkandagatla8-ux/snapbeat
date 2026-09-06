@@ -58,10 +58,17 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val templates = arrayOf("Auto (Beat Cut)", "Simple", "Pendulum")
+        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, templates)
+        binding.spinnerTemplate.adapter = adapter
+
         binding.switchMode.setOnCheckedChangeListener { _, isChecked ->
-            if (!isChecked) {
-                Toast.makeText(this, "Pro Mode coming soon!", Toast.LENGTH_SHORT).show()
-                binding.switchMode.isChecked = true
+            if (isChecked) {
+                binding.switchMode.text = "BASIC"
+                binding.proModeContainer.visibility = android.view.View.GONE
+            } else {
+                binding.switchMode.text = "PRO"
+                binding.proModeContainer.visibility = android.view.View.VISIBLE
             }
         }
 
@@ -123,6 +130,16 @@ class MainActivity : AppCompatActivity() {
                     val photoFile = getFileFromUri(uri, "photo_$index") 
                         ?: throw IOException("Could not read photo $index")
                     builder.addFormDataPart("photos", photoFile.name, photoFile.asRequestBody("image/*".toMediaTypeOrNull()))
+                }
+
+                if (!binding.switchMode.isChecked) {
+                    val selection = binding.spinnerTemplate.selectedItem.toString()
+                    val templateName = when(selection) {
+                        "Simple" -> "simple"
+                        "Pendulum" -> "pendulum"
+                        else -> "beat-cut"
+                    }
+                    builder.addFormDataPart("template", templateName)
                 }
 
                 val requestBody = builder.build()
