@@ -217,6 +217,11 @@ class MainActivity : AppCompatActivity() {
                         else -> "simple"
                     }
                     builder.addFormDataPart("template", templateName)
+
+                    // Send drop_it flag if enabled
+                    if (binding.switchDropIt.isChecked) {
+                        builder.addFormDataPart("drop_it", "true")
+                    }
                 }
 
                 val requestBody = builder.build()

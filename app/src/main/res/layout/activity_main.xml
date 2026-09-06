@@ -86,6 +86,51 @@
                 android:layout_height="48dp"
                 android:background="@drawable/spinner_retro"
                 android:popupBackground="#2A2A2A" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#333333"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💥 DROP IT"
+                        android:textStyle="bold"
+                        android:textColor="#FF4D8D"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif-black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="burst montage on bass drops"
+                        android:textColor="#FFFCF5"
+                        android:alpha="0.5"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchDropIt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:thumbTint="#FF4D8D"
+                    app:trackTint="#333333" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- ═══════════════ MUSIC SECTION ═══════════════ -->
