@@ -25,12 +25,16 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.ItemTouchHelper
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var selectedMusicUri: Uri? = null
     private var selectedPhotos = mutableListOf<Uri>()
+    private lateinit var photoOrderAdapter: PhotoOrderAdapter
     
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.MINUTES)
@@ -50,6 +54,9 @@ class MainActivity : AppCompatActivity() {
             selectedPhotos.clear()
             selectedPhotos.addAll(uris.take(60))
             binding.tvPhotosStatus.text = "${selectedPhotos.size} photos loaded (Max 60)"
+            if (!binding.switchMode.isChecked) {
+                setupPhotoOrderRecyclerView()
+            }
         }
     }
 
@@ -66,9 +73,13 @@ class MainActivity : AppCompatActivity() {
             if (isChecked) {
                 binding.switchMode.text = "BASIC"
                 binding.proModeContainer.visibility = android.view.View.GONE
+                binding.rvPhotoOrder.visibility = android.view.View.GONE
             } else {
                 binding.switchMode.text = "PRO"
                 binding.proModeContainer.visibility = android.view.View.VISIBLE
+                if (selectedPhotos.isNotEmpty()) {
+                    setupPhotoOrderRecyclerView()
+                }
             }
         }
 
@@ -87,6 +98,36 @@ class MainActivity : AppCompatActivity() {
             }
             uploadAndRender()
         }
+    }
+
+    private fun setupPhotoOrderRecyclerView() {
+        photoOrderAdapter = PhotoOrderAdapter(selectedPhotos, this)
+        binding.rvPhotoOrder.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvPhotoOrder.adapter = photoOrderAdapter
+        binding.rvPhotoOrder.visibility = View.VISIBLE
+
+        val callback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT, 0) {
+            override fun onMove(rv: RecyclerView, source: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+                photoOrderAdapter.moveItem(source.adapterPosition, target.adapterPosition)
+                return true
+            }
+            override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {}
+            override fun isLongPressDragEnabled() = true
+
+            override fun onSelectedChanged(vh: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(vh, actionState)
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                    vh?.itemView?.animate()?.scaleX(1.05f)?.scaleY(1.05f)?.translationZ(8f)?.setDuration(150)?.start()
+                }
+            }
+            override fun clearView(rv: RecyclerView, vh: RecyclerView.ViewHolder) {
+                super.clearView(rv, vh)
+                vh.itemView.animate().scaleX(1f).scaleY(1f).translationZ(0f).setDuration(150).start()
+                // Refresh badges after drop
+                photoOrderAdapter.notifyDataSetChanged()
+            }
+        }
+        ItemTouchHelper(callback).attachToRecyclerView(binding.rvPhotoOrder)
     }
 
     private fun getFileFromUri(uri: Uri, prefix: String): File? {
@@ -126,7 +167,13 @@ class MainActivity : AppCompatActivity() {
                     ?: throw IOException("Could not read music file")
                 builder.addFormDataPart("audio", musicFile.name, musicFile.asRequestBody("audio/*".toMediaTypeOrNull()))
 
-                selectedPhotos.forEachIndexed { index, uri ->
+                val photosToUpload = if (!binding.switchMode.isChecked && ::photoOrderAdapter.isInitialized) {
+                    photoOrderAdapter.getOrderedPhotos()
+                } else {
+                    selectedPhotos
+                }
+
+                photosToUpload.forEachIndexed { index, uri ->
                     val photoFile = getFileFromUri(uri, "photo_$index") 
                         ?: throw IOException("Could not read photo $index")
                     builder.addFormDataPart("photos", photoFile.name, photoFile.asRequestBody("image/*".toMediaTypeOrNull()))
