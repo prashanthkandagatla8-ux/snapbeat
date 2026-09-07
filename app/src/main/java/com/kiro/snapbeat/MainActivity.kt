@@ -171,6 +171,20 @@ class MainActivity : AppCompatActivity() {
             binding.btnRetry.visibility = View.GONE
             uploadAndRender()
         }
+
+        // Title background mode - show/hide color input
+        binding.rgTitleBg.setOnCheckedChangeListener { _, checkedId ->
+            binding.etTitleBgColor.visibility = if (checkedId == R.id.rbBgColor) View.VISIBLE else View.GONE
+        }
+
+        // Title duration slider
+        binding.seekTitleDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                binding.tvTitleDuration.text = "${progress}s"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
     }
 
     private fun formatTime(seconds: Int): String {
@@ -325,8 +339,17 @@ class MainActivity : AppCompatActivity() {
                     val titleText = binding.etTitleText.text.toString().trim()
                     if (titleText.isNotEmpty()) {
                         builder.addFormDataPart("title_text", titleText)
-                        val titleMode = if (binding.rbWithinTrack.isChecked) "within" else "outside"
-                        builder.addFormDataPart("title_mode", titleMode)
+                        // Background mode
+                        val titleBg = when (binding.rgTitleBg.checkedRadioButtonId) {
+                            R.id.rbBgBlack -> "black"
+                            R.id.rbBgColor -> binding.etTitleBgColor.text.toString().trim().ifEmpty { "#000000" }
+                            R.id.rbBgVideo -> "video"
+                            else -> "black"
+                        }
+                        builder.addFormDataPart("title_bg", titleBg)
+                        // Duration
+                        val titleDuration = binding.seekTitleDuration.progress.coerceIn(1, 5)
+                        builder.addFormDataPart("title_duration", titleDuration.toString())
                     }
                 }
 

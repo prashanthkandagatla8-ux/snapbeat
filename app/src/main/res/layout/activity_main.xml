@@ -191,35 +191,108 @@
                 android:inputType="text"
                 android:imeOptions="actionDone" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Background"
+                android:textColor="#999999"
+                android:textSize="11sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp" />
+
             <RadioGroup
-                android:id="@+id/rgTitleMode"
+                android:id="@+id/rgTitleBg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                android:orientation="horizontal">
 
                 <RadioButton
-                    android:id="@+id/rbOutsideTrack"
+                    android:id="@+id/rbBgBlack"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Outside Track"
+                    android:text="Black"
                     android:textColor="#FFFCF5"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:buttonTint="#FFE14D"
                     android:checked="true" />
 
                 <RadioButton
-                    android:id="@+id/rbWithinTrack"
+                    android:id="@+id/rbBgColor"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Within Track"
+                    android:text="Color"
                     android:textColor="#FFFCF5"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
+                    android:buttonTint="#FFE14D" />
+
+                <RadioButton
+                    android:id="@+id/rbBgVideo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Over Video"
+                    android:textColor="#FFFCF5"
+                    android:textSize="11sp"
                     android:buttonTint="#FFE14D" />
 
             </RadioGroup>
+
+            <EditText
+                android:id="@+id/etTitleBgColor"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:hint="Hex color e.g. #FF4D8D"
+                android:textColor="#FFFCF5"
+                android:textColorHint="#666666"
+                android:textSize="12sp"
+                android:background="@drawable/spinner_retro"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:singleLine="true"
+                android:maxLength="7"
+                android:inputType="text"
+                android:visibility="gone"
+                android:layout_marginTop="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Duration"
+                android:textColor="#999999"
+                android:textSize="11sp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <SeekBar
+                    android:id="@+id/seekTitleDuration"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:min="1"
+                    android:max="5"
+                    android:progress="2"
+                    android:progressTint="#FFE14D"
+                    android:thumbTint="#FFE14D" />
+
+                <TextView
+                    android:id="@+id/tvTitleDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2s"
+                    android:textColor="#FFE14D"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
         </LinearLayout>
 
         <!-- ═══════════════ MUSIC SECTION ═══════════════ -->
