@@ -66,10 +66,16 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val templates = arrayOf("Pendulum", "Glide", "Sway", "Punch", "Mosaic Reveal", "Spin", "Pulse", "Whip", "Slow Drift", "Auto (Beat Cut)")
+        val templates = arrayOf("Beat Cut", "Bounce", "Cine Zoom", "Fade", "Glide", "Mosaic Flow", "Mosaic Pulse", "Pendulum", "Pendulum OG", "Pulse", "Punch", "Reveal Bounce", "Reveal Boxes", "Reveal Circles", "Reveal Grid", "Reveal Spiral", "Slide", "Slow Drift", "Spin", "Sway", "Whip", "Zoom Out")
         val adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, templates)
         adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         binding.spinnerTemplate.adapter = adapter
+
+        // Aspect ratio spinner setup
+        val aspectRatios = arrayOf("Portrait (9:16)", "Landscape (16:9)", "Square (1:1)")
+        binding.spinnerAspectRatio.adapter = android.widget.ArrayAdapter(
+            this, R.layout.spinner_item, aspectRatios
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
 
         // Set up the RecyclerView + ItemTouchHelper ONCE in onCreate
         setupPhotoOrderRecyclerView()
@@ -116,8 +122,8 @@ class MainActivity : AppCompatActivity() {
 
         val callback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT, 0) {
             override fun onMove(rv: RecyclerView, source: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                val from = source.bindingAdapterPosition
-                val to = target.bindingAdapterPosition
+                val from = source.adapterPosition
+                val to = target.adapterPosition
                 if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
                 photoOrderAdapter.moveItem(from, to)
                 return true
@@ -204,16 +210,28 @@ class MainActivity : AppCompatActivity() {
                 if (!binding.switchMode.isChecked) {
                     val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "simple"
                     val templateName = when(selection) {
-                        "Pendulum" -> "pendulum"
+                        "Beat Cut" -> "beat-cut"
+                        "Bounce" -> "beat-bounce"
+                        "Cine Zoom" -> "cinematic-zoom"
+                        "Fade" -> "beat-fade"
                         "Glide" -> "glide-pan"
-                        "Sway" -> "sway-ballad"
-                        "Punch" -> "punch-cut"
-                        "Mosaic Reveal" -> "reveal-tiles"
-                        "Spin" -> "beat-spin"
+                        "Mosaic Flow" -> "mosaic-flow"
+                        "Mosaic Pulse" -> "aesthetic-beat-mosaic"
+                        "Pendulum" -> "pendulum"
+                        "Pendulum OG" -> "beat-pendulum"
                         "Pulse" -> "beat-pulse"
-                        "Whip" -> "beat-whip"
+                        "Punch" -> "punch-cut"
+                        "Reveal Bounce" -> "reveal-tiles-bounce"
+                        "Reveal Boxes" -> "reveal-tiles"
+                        "Reveal Circles" -> "reveal-circles"
+                        "Reveal Grid" -> "reveal-tiles-fine"
+                        "Reveal Spiral" -> "reveal-spiral"
+                        "Slide" -> "beat-slide"
                         "Slow Drift" -> "slow-drift"
-                        "Auto (Beat Cut)" -> "beat-cut"
+                        "Spin" -> "beat-spin"
+                        "Sway" -> "sway-ballad"
+                        "Whip" -> "beat-whip"
+                        "Zoom Out" -> "zoom-out-reveal"
                         else -> "simple"
                     }
                     builder.addFormDataPart("template", templateName)
@@ -222,6 +240,15 @@ class MainActivity : AppCompatActivity() {
                     if (binding.switchDropIt.isChecked) {
                         builder.addFormDataPart("drop_it", "true")
                     }
+
+                    // Send aspect ratio
+                    val frameValue = when(binding.spinnerAspectRatio.selectedItemPosition) {
+                        0 -> "portrait"
+                        1 -> "landscape"
+                        2 -> "square"
+                        else -> "portrait"
+                    }
+                    builder.addFormDataPart("frame", frameValue)
                 }
 
                 val requestBody = builder.build()

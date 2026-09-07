@@ -131,6 +131,31 @@
                     app:thumbTint="#FF4D8D"
                     app:trackTint="#333333" />
             </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#333333"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📐 ASPECT RATIO"
+                android:textStyle="bold"
+                android:textColor="#3DD4FF"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerAspectRatio"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_retro"
+                android:popupBackground="#2A2A2A" />
         </LinearLayout>
 
         <!-- ═══════════════ MUSIC SECTION ═══════════════ -->
