@@ -8,6 +8,9 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.Toast
+import android.widget.MediaController
+import android.media.MediaMetadataRetriever
+import android.widget.SeekBar
 import com.google.android.material.snackbar.Snackbar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -34,6 +37,9 @@ class MainActivity : AppCompatActivity() {
     private var selectedMusicUri: Uri? = null
     private var selectedPhotos = mutableListOf<Uri>()
     private lateinit var photoOrderAdapter: PhotoOrderAdapter
+    private var lastVideoUri: android.net.Uri? = null
+    private var audioDurationSeconds: Int = 0
+    private var audioStartSeconds: Int = 0
 
     // Single ItemTouchHelper instance — attached once, never duplicated
     private var itemTouchHelper: ItemTouchHelper? = null
@@ -48,6 +54,24 @@ class MainActivity : AppCompatActivity() {
         uri?.let {
             selectedMusicUri = it
             binding.tvMusicStatus.text = "1 tape selected"
+            
+            // Get audio duration and show trim slider
+            try {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(this@MainActivity, selectedMusicUri)
+                val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                retriever.release()
+                audioDurationSeconds = (durationMs / 1000).toInt()
+                if (audioDurationSeconds > 10) {
+                    binding.audioTrimContainer.visibility = View.VISIBLE
+                    binding.seekAudioStart.max = maxOf(0, audioDurationSeconds - 10)
+                    binding.seekAudioStart.progress = 0
+                    audioStartSeconds = 0
+                    binding.tvAudioStart.text = "Start: 0:00 / ${formatTime(audioDurationSeconds)}"
+                }
+            } catch (e: Exception) {
+                // If metadata fails, just skip the trim UI
+            }
         }
     }
 
@@ -103,6 +127,15 @@ class MainActivity : AppCompatActivity() {
             photosPicker.launch("image/*")
         }
 
+        binding.seekAudioStart.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                audioStartSeconds = progress
+                binding.tvAudioStart.text = "Start: ${formatTime(progress)} / ${formatTime(audioDurationSeconds)}"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
         binding.btnRender.setOnClickListener {
             if (selectedMusicUri == null || selectedPhotos.isEmpty()) {
                 Toast.makeText(this, "Please pick actual music and photos first!", Toast.LENGTH_LONG).show()
@@ -110,6 +143,40 @@ class MainActivity : AppCompatActivity() {
             }
             uploadAndRender()
         }
+
+        binding.btnNewVideo.setOnClickListener {
+            binding.videoPreview.stopPlayback()
+            binding.videoPreview.visibility = View.GONE
+            binding.previewActions.visibility = View.GONE
+            binding.tvStatus.text = ""
+            lastVideoUri = null
+        }
+
+        binding.btnShareVideo.setOnClickListener {
+            lastVideoUri?.let { uri ->
+                try {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "video/mp4"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    startActivity(Intent.createChooser(shareIntent, "Share your SnapBeat"))
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Could not share video", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        binding.btnRetry.setOnClickListener {
+            binding.btnRetry.visibility = View.GONE
+            uploadAndRender()
+        }
+    }
+
+    private fun formatTime(seconds: Int): String {
+        val m = seconds / 60
+        val s = seconds % 60
+        return "$m:${s.toString().padStart(2, '0')}"
     }
 
     /**
@@ -181,6 +248,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun uploadAndRender() {
+        binding.btnRetry.visibility = View.GONE
+        binding.videoPreview.visibility = View.GONE
+        binding.previewActions.visibility = View.GONE
         binding.progressBar.visibility = View.VISIBLE
         binding.progressBar.isIndeterminate = true
         binding.tvStatus.text = "Uploading to SnapBeat Lab..."
@@ -252,6 +322,11 @@ class MainActivity : AppCompatActivity() {
                     builder.addFormDataPart("frame", frameValue)
                 }
 
+                // Send audio start time (works in both basic and pro modes)
+                if (audioStartSeconds > 0) {
+                    builder.addFormDataPart("audio_start", audioStartSeconds.toString())
+                }
+
                 val requestBody = builder.build()
                 val request = Request.Builder()
                     .url(BuildConfig.SERVER_URL + "/api/render/mobile") 
@@ -280,6 +355,7 @@ class MainActivity : AppCompatActivity() {
                     binding.progressBar.visibility = View.GONE
                     binding.tvStatus.text = "Error: ${e.message}"
                     binding.btnRender.isEnabled = true
+                    binding.btnRetry.visibility = View.VISIBLE
                 }
                 clearCache()
             }
@@ -393,28 +469,16 @@ class MainActivity : AppCompatActivity() {
                 binding.progressBar.visibility = View.GONE
                 binding.tvStatus.text = "Done! Video saved \uD83C\uDFAC"
                 binding.btnRender.isEnabled = true
-                
-                // Show Snackbar with SHARE action
-                val snackbar = Snackbar.make(
-                    binding.root,
-                    "Video saved to gallery!",
-                    Snackbar.LENGTH_LONG
-                )
-                snackbar.setAction("SHARE") {
-                    try {
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "video/mp4"
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        startActivity(Intent.createChooser(shareIntent, "Share your SnapBeat"))
-                    } catch (e: Exception) {
-                        Toast.makeText(this@MainActivity, "Could not share video", Toast.LENGTH_SHORT).show()
-                    }
-                }
-                snackbar.setActionTextColor(android.graphics.Color.parseColor("#FFE14D"))
-                snackbar.view.setBackgroundColor(android.graphics.Color.parseColor("#2A2A2A"))
-                snackbar.show()
+                lastVideoUri = uri
+
+                // Show embedded video preview
+                binding.videoPreview.visibility = View.VISIBLE
+                binding.previewActions.visibility = View.VISIBLE
+                binding.videoPreview.setVideoURI(uri)
+                val mediaController = MediaController(this@MainActivity)
+                mediaController.setAnchorView(binding.videoPreview)
+                binding.videoPreview.setMediaController(mediaController)
+                binding.videoPreview.start()
             }
         }
     }
