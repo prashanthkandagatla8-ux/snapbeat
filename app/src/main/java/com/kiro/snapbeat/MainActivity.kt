@@ -198,11 +198,15 @@ class MainActivity : AppCompatActivity() {
 
         binding.switchMode.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                binding.switchMode.text = "BASIC"
-                binding.proModeContainer.visibility = View.GONE
-            } else {
-                binding.switchMode.text = "PRO"
+                // Right position = PRO
+                binding.tvModeBasic.setTextColor(android.graphics.Color.parseColor("#666666"))
+                binding.tvModePro.setTextColor(android.graphics.Color.parseColor("#FFE14D"))
                 binding.proModeContainer.visibility = View.VISIBLE
+            } else {
+                // Left position = BASIC
+                binding.tvModeBasic.setTextColor(android.graphics.Color.parseColor("#FFE14D"))
+                binding.tvModePro.setTextColor(android.graphics.Color.parseColor("#666666"))
+                binding.proModeContainer.visibility = View.GONE
             }
             if (selectedPhotos.isNotEmpty()) {
                 binding.rvPhotoOrder.visibility = View.VISIBLE
@@ -469,7 +473,7 @@ class MainActivity : AppCompatActivity() {
                     builder.addFormDataPart("photos", photoFile.name, photoFile.asRequestBody("image/*".toMediaTypeOrNull()))
                 }
 
-                if (!binding.switchMode.isChecked) {
+                if (binding.switchMode.isChecked) {
                     val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "simple"
                     val templateName = when(selection) {
                         "Beat Cut" -> "beat-cut"

@@ -35,16 +35,42 @@
                 android:shadowDy="3"
                 android:shadowRadius="0" />
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchMode"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="BASIC"
-                android:textStyle="bold"
-                android:textColor="#FFFCF5"
-                android:checked="true"
-                app:thumbTint="#FFE14D"
-                app:trackTint="#333333" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvModeBasic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="BASIC"
+                    android:textStyle="bold"
+                    android:textColor="#FFE14D"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-black"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    app:thumbTint="#FFE14D"
+                    app:trackTint="#333333" />
+
+                <TextView
+                    android:id="@+id/tvModePro"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PRO"
+                    android:textStyle="bold"
+                    android:textColor="#666666"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-black"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
         </LinearLayout>
 
         <TextView
