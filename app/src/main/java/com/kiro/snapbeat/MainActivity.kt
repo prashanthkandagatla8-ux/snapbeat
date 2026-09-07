@@ -144,29 +144,6 @@ class MainActivity : AppCompatActivity() {
             uploadAndRender()
         }
 
-        binding.btnNewVideo.setOnClickListener {
-            binding.videoPreview.stopPlayback()
-            binding.videoPreview.visibility = View.GONE
-            binding.previewActions.visibility = View.GONE
-            binding.tvStatus.text = ""
-            lastVideoUri = null
-        }
-
-        binding.btnShareVideo.setOnClickListener {
-            lastVideoUri?.let { uri ->
-                try {
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "video/mp4"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    startActivity(Intent.createChooser(shareIntent, "Share your SnapBeat"))
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Could not share video", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
         binding.btnRetry.setOnClickListener {
             binding.btnRetry.visibility = View.GONE
             uploadAndRender()
@@ -263,8 +240,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun uploadAndRender() {
         binding.btnRetry.visibility = View.GONE
-        binding.videoPreview.visibility = View.GONE
-        binding.previewActions.visibility = View.GONE
         binding.progressBar.visibility = View.VISIBLE
         binding.progressBar.isIndeterminate = true
         binding.tvStatus.text = "Uploading to SnapBeat Lab..."
@@ -502,14 +477,11 @@ class MainActivity : AppCompatActivity() {
                 binding.btnRender.isEnabled = true
                 lastVideoUri = uri
 
-                // Show embedded video preview
-                binding.videoPreview.visibility = View.VISIBLE
-                binding.previewActions.visibility = View.VISIBLE
-                binding.videoPreview.setVideoURI(uri)
-                val mediaController = MediaController(this@MainActivity)
-                mediaController.setAnchorView(binding.videoPreview)
-                binding.videoPreview.setMediaController(mediaController)
-                binding.videoPreview.start()
+                // Launch dedicated Preview screen
+                val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
+                    putExtra(PreviewActivity.EXTRA_VIDEO_URI, uri.toString())
+                }
+                startActivity(intent)
             }
         }
     }

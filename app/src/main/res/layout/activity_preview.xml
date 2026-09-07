@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1A1A1A"
+    android:padding="16dp">
+
+    <!-- Top Navigation Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="14dp">
+
+        <TextView
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← BACK"
+            android:textColor="#FFE14D"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="PREVIEW"
+            android:textColor="#FFE14D"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="0.08"
+            android:gravity="center"
+            android:layout_marginEnd="40dp" />
+
+    </LinearLayout>
+
+    <!-- Video Player Container -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#000000"
+        android:layout_marginBottom="14dp">
+
+        <VideoView
+            android:id="@+id/previewVideoView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
+
+        <ImageView
+            android:id="@+id/ivPlayOverlay"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_media_play"
+            app:tint="#FFE14D"
+            android:background="#99000000"
+            android:padding="12dp"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- Saved Status Indicator -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/card_dark"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:layout_marginBottom="14dp">
+
+        <TextView
+            android:id="@+id/tvSavedBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✓ Saved to Gallery (Movies/SnapBeat)"
+            android:textColor="#3DD4FF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="4dp">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnNewVideo"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="NEW EDIT"
+            android:textColor="#1A1A1A"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:background="@drawable/btn_retro_yellow"
+            android:layout_marginEnd="6dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnShareVideo"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="SHARE"
+            android:textColor="#1A1A1A"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:background="@drawable/btn_retro_pink"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

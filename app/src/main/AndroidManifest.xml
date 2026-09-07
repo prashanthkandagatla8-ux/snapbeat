@@ -28,6 +28,10 @@
             android:name=".MainActivity"
             android:exported="false"
             android:theme="@style/Theme.SnapBeat" />
+        <activity
+            android:name=".PreviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SnapBeat" />
             <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
