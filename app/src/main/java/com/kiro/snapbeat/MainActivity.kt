@@ -159,6 +159,7 @@ class MainActivity : AppCompatActivity() {
                 binding.tvTitleDuration.text = "${progress}s"
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
     }
 
