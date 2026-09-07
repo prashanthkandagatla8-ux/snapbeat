@@ -11,7 +11,8 @@ import android.widget.Toast
 import android.widget.MediaController
 import android.media.MediaMetadataRetriever
 import android.widget.SeekBar
-import com.google.android.material.snackbar.Snackbar
+import android.content.Context
+import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -162,6 +163,59 @@ class MainActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+        // Server URL settings
+        binding.tvCurrentServerUrl.text = "Server: ${getServerUrl()}"
+        binding.btnServerSettings.setOnClickListener {
+            showServerSettingsDialog()
+        }
+    }
+
+    private fun getServerUrl(): String {
+        val prefs = getSharedPreferences("snapbeat_prefs", Context.MODE_PRIVATE)
+        val custom = prefs.getString("custom_server_url", null)
+        return if (!custom.isNullOrBlank()) custom.trimEnd('/') else BuildConfig.SERVER_URL.trimEnd('/')
+    }
+
+    private fun showServerSettingsDialog() {
+        val input = android.widget.EditText(this).apply {
+            setText(getServerUrl())
+            setSingleLine()
+            setTextColor(android.graphics.Color.WHITE)
+            setHintTextColor(android.graphics.Color.GRAY)
+            hint = "http://192.168.68.106:8772"
+            setPadding(40, 30, 40, 30)
+            background = null
+        }
+        val container = android.widget.FrameLayout(this).apply {
+            setPadding(40, 20, 40, 10)
+            addView(input)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Set Server URL")
+            .setMessage("Enter the IP or address of your server (e.g. http://192.168.68.106:8772 or VPS URL):")
+            .setView(container)
+            .setPositiveButton("Save") { _, _ ->
+                val url = input.text.toString().trim()
+                if (url.isNotEmpty()) {
+                    getSharedPreferences("snapbeat_prefs", Context.MODE_PRIVATE)
+                        .edit()
+                        .putString("custom_server_url", url)
+                        .apply()
+                    binding.tvCurrentServerUrl.text = "Server: ${getServerUrl()}"
+                    Toast.makeText(this, "Server URL updated!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNeutralButton("Reset Default") { _, _ ->
+                getSharedPreferences("snapbeat_prefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .remove("custom_server_url")
+                    .apply()
+                binding.tvCurrentServerUrl.text = "Server: ${getServerUrl()}"
+                Toast.makeText(this, "Reset to default (${BuildConfig.SERVER_URL})", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun formatTime(seconds: Int): String {
@@ -335,7 +389,7 @@ class MainActivity : AppCompatActivity() {
 
                 val requestBody = builder.build()
                 val request = Request.Builder()
-                    .url(BuildConfig.SERVER_URL + "/api/render/mobile") 
+                    .url("${getServerUrl()}/api/render/mobile") 
                     .post(requestBody)
                     .build()
 
@@ -384,7 +438,7 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 val statusRequest = Request.Builder()
-                    .url(BuildConfig.SERVER_URL + "/api/render/status/$jobId")
+                    .url("${getServerUrl()}/api/render/status/$jobId")
                     .get()
                     .build()
 
@@ -427,7 +481,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val downloadRequest = Request.Builder()
-            .url(BuildConfig.SERVER_URL + "/api/render/download/$jobId")
+            .url("${getServerUrl()}/api/render/download/$jobId")
             .get()
             .build()
 
