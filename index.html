@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapBeat — Music-Synced Video Generator</title>
+  <meta name="description" content="Generate beat-synced rhythm videos from your photos and music in seconds." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&family=Work+Sans:wght@400;600;800&family=Courier+Prime:wght@700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ═══════════════ HEADER ═══════════════ -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="logo-title">SNAPBEAT</h1>
+        <p class="logo-subtitle">let the music decide your edit.</p>
+      </div>
+
+      <div class="header-right">
+        <!-- Mode Switch (BASIC / PRO) -->
+        <div class="switch-row">
+          <span id="labelBasic" class="switch-label active">BASIC</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchMode" />
+            <span class="slider round"></span>
+          </label>
+          <span id="labelPro" class="switch-label dimmed">PRO</span>
+        </div>
+
+        <!-- Theme Switch (DARK / LIGHT) -->
+        <div class="switch-row">
+          <span id="labelDark" class="switch-label active">🌙 DARK</span>
+          <label class="toggle-switch theme-toggle">
+            <input type="checkbox" id="switchTheme" />
+            <span class="slider round"></span>
+          </label>
+          <span id="labelLight" class="switch-label dimmed">☀️ LIGHT</span>
+        </div>
+
+        <!-- Server Settings Link -->
+        <button id="btnOpenSettings" class="btn-settings" title="Configure Server URL">
+          <span class="status-dot online" id="statusDot"></span>
+          <span id="lblServerStatus">Server Config</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+    <main class="main-content">
+
+      <!-- ═══════════════ PRO MODE OPTIONS ═══════════════ -->
+      <section id="cardPro" class="card pro-card hidden">
+        <h2 class="card-header yellow-header">⚡ PRO TEMPLATE</h2>
+        
+        <div class="form-group">
+          <label for="selectTemplate" class="form-label">Animation Preset</label>
+          <select id="selectTemplate" class="retro-select">
+            <option value="simple">Simple (Beat Flash)</option>
+            <option value="beat-cut">Beat Cut</option>
+            <option value="beat-bounce">Bounce</option>
+            <option value="cinematic-zoom">Cine Zoom</option>
+            <option value="beat-fade">Fade</option>
+            <option value="glide-pan">Glide</option>
+            <option value="mosaic-flow">Mosaic Flow</option>
+            <option value="aesthetic-beat-mosaic">Mosaic Pulse</option>
+            <option value="pendulum">Pendulum</option>
+            <option value="beat-pendulum">Pendulum OG</option>
+            <option value="beat-pulse">Pulse</option>
+            <option value="punch-cut">Punch</option>
+            <option value="reveal-tiles-bounce">Reveal Bounce</option>
+            <option value="reveal-tiles">Reveal Boxes</option>
+            <option value="reveal-circles">Reveal Circles</option>
+            <option value="reveal-tiles-fine">Reveal Grid</option>
+            <option value="reveal-spiral">Reveal Spiral</option>
+            <option value="beat-slide">Slide</option>
+            <option value="slow-drift">Slow Drift</option>
+            <option value="beat-spin">Spin</option>
+            <option value="sway-ballad">Sway</option>
+            <option value="beat-whip">Whip</option>
+            <option value="zoom-out-reveal">Zoom Out</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Drop It Toggle -->
+        <div class="toggle-row">
+          <div>
+            <h3 class="toggle-title pink-text">💥 DROP IT</h3>
+            <p class="toggle-desc">burst montage on bass drops</p>
+          </div>
+          <label class="toggle-switch pink-switch">
+            <input type="checkbox" id="switchDropIt" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Aspect Ratio -->
+        <div class="form-group">
+          <label for="selectAspectRatio" class="form-label blue-text">📐 ASPECT RATIO</label>
+          <select id="selectAspectRatio" class="retro-select">
+            <option value="portrait">Portrait (9:16) — Shorts / Reels / TikTok</option>
+            <option value="landscape">Landscape (16:9) — YouTube / Desktop</option>
+            <option value="square">Square (1:1) — Instagram Feed</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Title Card Designer -->
+        <div class="title-card-designer">
+          <h2 class="card-header yellow-header">🎬 TITLE CARD DESIGNER</h2>
+
+          <div class="form-group">
+            <input type="text" id="inputTitleText" class="retro-input" placeholder="Enter title text (optional)" maxlength="50" />
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="selectTitleFont" class="form-label">Font Typography</label>
+              <select id="selectTitleFont" class="retro-select">
+                <option value="impact">Bold Blockbuster (Impact)</option>
+                <option value="serif">Elegant Serif (Georgia)</option>
+                <option value="clean">Modern Minimal (Clean)</option>
+                <option value="typewriter">Vintage Typewriter</option>
+                <option value="playful">Casual Retro (Playful)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="selectTitleStyle" class="form-label">Visual Style</label>
+              <select id="selectTitleStyle" class="retro-select">
+                <option value="classic">Classic Yellow Drop-Shadow</option>
+                <option value="neon">Neon Glow (Electric Cyan)</option>
+                <option value="3d_retro">3D Retro Arcade Extrusion</option>
+                <option value="cinematic">Cinematic All-Caps</option>
+                <option value="badge">Badge Tag Container</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="selectTitleFrame" class="form-label">Decorative Frame</label>
+              <select id="selectTitleFrame" class="retro-select">
+                <option value="none">None (Borderless)</option>
+                <option value="box">Cinematic Box Border</option>
+                <option value="viewfinder">Viewfinder Camera Corners</option>
+                <option value="double_line">Retro Double Border</option>
+                <option value="film_bars">Film Letterbox Bars</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Background</label>
+              <div class="radio-pill-group">
+                <label class="radio-pill">
+                  <input type="radio" name="titleBg" value="black" checked />
+                  <span>Black</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="titleBg" value="color" />
+                  <span>Color</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="titleBg" value="video" />
+                  <span>Over Video</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="colorPickerContainer" class="form-group hidden">
+            <label class="form-label">Custom Background Color</label>
+            <div class="color-picker-row">
+              <input type="color" id="titleColorPicker" value="#FF4D8D" class="color-swatch" />
+              <input type="text" id="titleColorHex" value="#FF4D8D" class="retro-input color-input" maxlength="7" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="slider-header">
+              <label class="form-label">Duration</label>
+              <span id="lblTitleDuration" class="slider-value">2s</span>
+            </div>
+            <input type="range" id="seekTitleDuration" min="1" max="5" value="2" class="retro-range" />
+          </div>
+
+          <!-- Live Title Card Preview Canvas -->
+          <div class="preview-box-container">
+            <span class="preview-badge">LIVE TITLE PREVIEW</span>
+            <div class="canvas-wrapper">
+              <canvas id="canvasTitlePreview" width="640" height="360"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ═══════════════ MUSIC CARD ═══════════════ -->
+      <section class="card music-card">
+        <h2 class="card-header pink-header">🎵 MUSIC</h2>
+        
+        <div class="btn-stack">
+          <label class="btn btn-retro-pink file-btn">
+            PICK A TAPE
+            <input type="file" id="inputMusicFile" accept="audio/*" hidden />
+          </label>
+          <button id="btnSampleMusic" class="btn btn-retro-yellow">
+            ✨ USE SAMPLE TAPE (Funk Party)
+          </button>
+        </div>
+
+        <div class="status-box">
+          <p id="tvMusicStatus" class="status-text">no tape selected</p>
+          <audio id="audioPlayer" controls class="hidden mini-audio-player"></audio>
+        </div>
+
+        <!-- Trimming Controls -->
+        <div id="audioTrimSection" class="trim-section hidden">
+          <div class="divider"></div>
+
+          <div class="radio-row">
+            <label class="radio-label">
+              <input type="radio" name="audioLengthMode" value="full" checked id="rbAudioFull" />
+              <span>Full Track</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="audioLengthMode" value="trim" id="rbAudioTrim" />
+              <span>Trim Section</span>
+            </label>
+          </div>
+
+          <div id="trimSlidersContainer" class="trim-sliders-box hidden">
+            <div class="range-summary">
+              <span id="lblTrimSummary" class="pink-text bold">Start: 0:00 | End: 0:00 (Duration: 0:00)</span>
+            </div>
+
+            <div class="range-item">
+              <div class="slider-header">
+                <span id="lblAudioStart" class="form-label">Start Time: 0:00</span>
+              </div>
+              <input type="range" id="seekAudioStart" min="0" max="100" value="0" class="retro-range pink-range" />
+            </div>
+
+            <div class="range-item">
+              <div class="slider-header">
+                <span id="lblAudioEnd" class="form-label">End Time: 0:00</span>
+              </div>
+              <input type="range" id="seekAudioEnd" min="0" max="100" value="100" class="retro-range yellow-range" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════ PHOTOS CARD ═══════════════ -->
+      <section class="card photos-card">
+        <h2 class="card-header blue-header">📸 PHOTOS</h2>
+
+        <div class="drop-zone" id="photoDropZone">
+          <label class="btn btn-retro-blue file-btn">
+            POLAROID STACK
+            <input type="file" id="inputPhotoFiles" accept="image/*" multiple hidden />
+          </label>
+          <p class="drop-hint">or drop 1 to 60 photos here</p>
+        </div>
+
+        <div class="status-box">
+          <p id="tvPhotosStatus" class="status-text">0 photos (tap to load)</p>
+        </div>
+
+        <!-- Photo Stack List -->
+        <div id="photoStackList" class="photo-stack hidden"></div>
+      </section>
+
+      <!-- ═══════════════ RENDER & PREVIEW CARD ═══════════════ -->
+      <section class="card render-card">
+        <!-- Render Button -->
+        <button id="btnRender" class="btn btn-retro-yellow btn-render" disabled>
+          ▶ RENDER VIDEO
+        </button>
+
+        <!-- Progress Bar & Status -->
+        <div id="renderProgressContainer" class="progress-box hidden">
+          <div class="progress-track">
+            <div id="progressBar" class="progress-fill" style="width: 0%;"></div>
+          </div>
+          <p id="tvRenderStatus" class="render-status-text">Preparing...</p>
+        </div>
+
+        <!-- Retry Button -->
+        <button id="btnRetry" class="btn btn-retro-yellow hidden">
+          🔁 RETRY
+        </button>
+
+        <!-- Video Player Preview -->
+        <div id="videoPreviewContainer" class="video-preview-box hidden">
+          <video id="videoPreview" controls class="rendered-video"></video>
+
+          <div class="preview-actions">
+            <a id="btnDownloadVideo" class="btn btn-retro-yellow action-btn" download="snapbeat.mp4">
+              ⬇️ DOWNLOAD VIDEO
+            </a>
+            <button id="btnNewVideo" class="btn btn-retro-pink action-btn">
+              🔄 NEW VIDEO
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer class="footer">
+      <p>SnapBeat &bull; Standalone Web Edition</p>
+    </footer>
+
+  </div>
+
+  <!-- ═══════════════ SETTINGS MODAL ═══════════════ -->
+  <div id="modalSettings" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h3 class="yellow-header">⚙️ Server Connection</h3>
+        <button id="btnCloseSettings" class="modal-close-btn">&times;</button>
+      </div>
+      <p class="modal-desc">Configure the backend render server or gateway URL.</p>
+      
+      <div class="form-group">
+        <label for="inputServerUrl" class="form-label">Server / Gateway URL</label>
+        <input type="text" id="inputServerUrl" class="retro-input" value="http://localhost:8772" />
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnTestConnection" class="btn btn-retro-blue modal-action-btn">Test Connection</button>
+        <button id="btnSaveServerUrl" class="btn btn-retro-yellow modal-action-btn">Save</button>
+      </div>
+
+      <div id="serverTestFeedback" class="test-feedback hidden"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
