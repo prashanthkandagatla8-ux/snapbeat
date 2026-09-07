@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.Toast
+import com.google.android.material.snackbar.Snackbar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -390,18 +391,30 @@ class MainActivity : AppCompatActivity() {
             
             withContext(Dispatchers.Main) {
                 binding.progressBar.visibility = View.GONE
-                binding.tvStatus.text = "VIDEO EXPORTED! Check your gallery."
+                binding.tvStatus.text = "Done! Video saved \uD83C\uDFAC"
                 binding.btnRender.isEnabled = true
                 
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "video/mp4")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                // Show Snackbar with SHARE action
+                val snackbar = Snackbar.make(
+                    binding.root,
+                    "Video saved to gallery!",
+                    Snackbar.LENGTH_LONG
+                )
+                snackbar.setAction("SHARE") {
+                    try {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "video/mp4"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        startActivity(Intent.createChooser(shareIntent, "Share your SnapBeat"))
+                    } catch (e: Exception) {
+                        Toast.makeText(this@MainActivity, "Could not share video", Toast.LENGTH_SHORT).show()
+                    }
                 }
-                try {
-                    startActivity(intent)
-                } catch (_: Exception) {
-                    Toast.makeText(this@MainActivity, "No video player found", Toast.LENGTH_SHORT).show()
-                }
+                snackbar.setActionTextColor(android.graphics.Color.parseColor("#FFE14D"))
+                snackbar.view.setBackgroundColor(android.graphics.Color.parseColor("#2A2A2A"))
+                snackbar.show()
             }
         }
     }
