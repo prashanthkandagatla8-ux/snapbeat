@@ -167,7 +167,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="\uD83C\uDFAC TITLE CARD"
+                android:text="🎬 TITLE CARD DESIGNER"
                 android:textStyle="bold"
                 android:textColor="#FFE14D"
                 android:textSize="13sp"
@@ -179,7 +179,7 @@
                 android:id="@+id/etTitleText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:hint="Enter title (optional)"
+                android:hint="Enter title text (optional)"
                 android:textColor="#FFFCF5"
                 android:textColorHint="#666666"
                 android:textSize="14sp"
@@ -190,6 +190,60 @@
                 android:maxLength="50"
                 android:inputType="text"
                 android:imeOptions="actionDone" />
+
+            <!-- Font Selector -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Font Typography"
+                android:textColor="#999999"
+                android:textSize="11sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp" />
+
+            <Spinner
+                android:id="@+id/spinnerTitleFont"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_retro"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
+
+            <!-- Visual Style Selector -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Visual Style"
+                android:textColor="#999999"
+                android:textSize="11sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp" />
+
+            <Spinner
+                android:id="@+id/spinnerTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_retro"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
+
+            <!-- Decorative Frame Selector -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Decorative Frame"
+                android:textColor="#999999"
+                android:textSize="11sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp" />
+
+            <Spinner
+                android:id="@+id/spinnerTitleFrame"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_retro"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -293,6 +347,37 @@
                     android:layout_marginStart="8dp" />
 
             </LinearLayout>
+
+            <!-- Live Title Preview Card -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LIVE PREVIEW"
+                android:textColor="#FFE14D"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="4dp" />
+
+            <FrameLayout
+                android:id="@+id/cardTitlePreview"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:background="#000000"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/tvLiveTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="TITLE CARD PREVIEW"
+                    android:textColor="#FFE14D"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-black" />
+            </FrameLayout>
         </LinearLayout>
 
         <!-- ═══════════════ MUSIC SECTION ═══════════════ -->
@@ -327,6 +412,19 @@
                 android:fontFamily="sans-serif-black"
                 android:stateListAnimator="@null" />
 
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnSampleMusic"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:background="@drawable/btn_retro_yellow"
+                android:text="✨ USE SAMPLE TAPE (Funk Party)"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A1A"
+                android:fontFamily="sans-serif-black"
+                android:layout_marginTop="8dp"
+                android:stateListAnimator="@null" />
+
             <TextView
                 android:id="@+id/tvMusicStatus"
                 android:layout_width="wrap_content"
@@ -347,23 +445,103 @@
                 android:visibility="gone"
                 android:layout_marginTop="10dp">
 
-                <TextView
-                    android:id="@+id/tvAudioStart"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Start: 0:00"
-                    android:textColor="#FFFCF5"
-                    android:textSize="12sp"
-                    android:layout_marginBottom="4dp" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#2E2E2E"
+                    android:layout_marginBottom="8dp" />
 
-                <SeekBar
-                    android:id="@+id/seekAudioStart"
+                <!-- RadioGroup: Full Track vs Custom Trim -->
+                <RadioGroup
+                    android:id="@+id/rgAudioLength"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:max="100"
-                    android:progress="0"
-                    android:progressTint="#FF4D8D"
-                    android:thumbTint="#FF4D8D" />
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <RadioButton
+                        android:id="@+id/rbAudioFull"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Full Track"
+                        android:textColor="#FFFCF5"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:buttonTint="#FF4D8D"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/rbAudioTrim"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Trim Section"
+                        android:textColor="#FFFCF5"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:buttonTint="#FF4D8D" />
+                </RadioGroup>
+
+                <LinearLayout
+                    android:id="@+id/layoutTrimSliders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <!-- Duration Range Summary -->
+                    <TextView
+                        android:id="@+id/tvAudioRange"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Start: 0:00  |  End: 0:00  (Duration: 0:00)"
+                        android:textColor="#FF4D8D"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="6dp" />
+
+                    <!-- Start Slider -->
+                    <TextView
+                        android:id="@+id/tvAudioStart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Start Time: 0:00"
+                        android:textColor="#FFFCF5"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="2dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekAudioStart"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="0"
+                        android:progressTint="#FF4D8D"
+                        android:thumbTint="#FF4D8D" />
+
+                    <!-- End Slider -->
+                    <TextView
+                        android:id="@+id/tvAudioEnd"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="End Time: 0:00"
+                        android:textColor="#FFFCF5"
+                        android:textSize="11sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="2dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekAudioEnd"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="100"
+                        android:progressTint="#FFE14D"
+                        android:thumbTint="#FFE14D" />
+
+                </LinearLayout>
 
             </LinearLayout>
         </LinearLayout>
@@ -415,7 +593,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvPhotoOrder"
                 android:layout_width="match_parent"
-                android:layout_height="96dp"
+                android:layout_height="106dp"
                 android:layout_marginTop="10dp"
                 android:clipToPadding="false"
                 android:paddingStart="2dp"

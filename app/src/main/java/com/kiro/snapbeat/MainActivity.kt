@@ -26,6 +26,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -39,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private var lastVideoUri: android.net.Uri? = null
     private var audioDurationSeconds: Int = 0
     private var audioStartSeconds: Int = 0
+    private var audioEndSeconds: Int = 0
+    private var isFullTrack: Boolean = true
 
     // Single ItemTouchHelper instance — attached once, never duplicated
     private var itemTouchHelper: ItemTouchHelper? = null
@@ -61,15 +66,25 @@ class MainActivity : AppCompatActivity() {
                 val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
                 retriever.release()
                 audioDurationSeconds = (durationMs / 1000).toInt()
-                if (audioDurationSeconds > 10) {
+                audioStartSeconds = 0
+                audioEndSeconds = audioDurationSeconds
+                isFullTrack = true
+
+                if (audioDurationSeconds > 3) {
                     binding.audioTrimContainer.visibility = View.VISIBLE
-                    binding.seekAudioStart.max = maxOf(0, audioDurationSeconds - 10)
+                    binding.rbAudioFull.isChecked = true
+                    binding.layoutTrimSliders.visibility = View.GONE
+
+                    binding.seekAudioStart.max = audioDurationSeconds
                     binding.seekAudioStart.progress = 0
-                    audioStartSeconds = 0
-                    binding.tvAudioStart.text = "Start: 0:00 / ${formatTime(audioDurationSeconds)}"
+
+                    binding.seekAudioEnd.max = audioDurationSeconds
+                    binding.seekAudioEnd.progress = audioDurationSeconds
+
+                    updateAudioTrimLabels()
                 }
             } catch (e: Exception) {
-                // If metadata fails, just skip the trim UI
+                // If metadata fails, skip trim UI
             }
         }
     }
@@ -79,9 +94,7 @@ class MainActivity : AppCompatActivity() {
             selectedPhotos.clear()
             selectedPhotos.addAll(uris.take(60))
             binding.tvPhotosStatus.text = "${selectedPhotos.size} photos loaded (Max 60)"
-            if (!binding.switchMode.isChecked) {
-                refreshPhotoOrder()
-            }
+            refreshPhotoOrder()
         }
     }
 
@@ -101,6 +114,85 @@ class MainActivity : AppCompatActivity() {
             this, R.layout.spinner_item, aspectRatios
         ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
 
+        // Title Card Designer Spinners
+        val titleFonts = arrayOf("Bold Blockbuster (Impact)", "Elegant Serif (Georgia)", "Modern Minimal (Clean)", "Vintage Typewriter", "Casual Retro (Playful)")
+        binding.spinnerTitleFont.adapter = android.widget.ArrayAdapter(
+            this, R.layout.spinner_item, titleFonts
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
+
+        val titleStyles = arrayOf("Classic Yellow Drop-Shadow", "Neon Glow (Electric Cyan)", "3D Retro Arcade Extrusion", "Cinematic All-Caps", "Badge Tag Container")
+        binding.spinnerTitleStyle.adapter = android.widget.ArrayAdapter(
+            this, R.layout.spinner_item, titleStyles
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
+
+        val titleFrames = arrayOf("None (Borderless)", "Cinematic Box Border", "Viewfinder Camera Corners", "Retro Double Border", "Film Letterbox Bars")
+        binding.spinnerTitleFrame.adapter = android.widget.ArrayAdapter(
+            this, R.layout.spinner_item, titleFrames
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
+
+        // Live preview listeners
+        val previewWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateLiveTitlePreview()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        }
+        binding.etTitleText.addTextChangedListener(previewWatcher)
+        binding.etTitleBgColor.addTextChangedListener(previewWatcher)
+
+        val spinnerListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateLiveTitlePreview()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+        binding.spinnerTitleFont.onItemSelectedListener = spinnerListener
+        binding.spinnerTitleStyle.onItemSelectedListener = spinnerListener
+        binding.spinnerTitleFrame.onItemSelectedListener = spinnerListener
+
+        // Audio Trim controls
+        binding.rgAudioLength.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId == R.id.rbAudioFull) {
+                isFullTrack = true
+                binding.layoutTrimSliders.visibility = View.GONE
+            } else {
+                isFullTrack = false
+                binding.layoutTrimSliders.visibility = View.VISIBLE
+                updateAudioTrimLabels()
+            }
+        }
+
+        binding.seekAudioStart.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    audioStartSeconds = progress
+                    if (audioStartSeconds >= audioEndSeconds - 2) {
+                        audioEndSeconds = minOf(audioDurationSeconds, audioStartSeconds + 3)
+                        binding.seekAudioEnd.progress = audioEndSeconds
+                    }
+                    updateAudioTrimLabels()
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        binding.seekAudioEnd.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    audioEndSeconds = progress
+                    if (audioEndSeconds <= audioStartSeconds + 2) {
+                        audioStartSeconds = maxOf(0, audioEndSeconds - 3)
+                        binding.seekAudioStart.progress = audioStartSeconds
+                    }
+                    updateAudioTrimLabels()
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
         // Set up the RecyclerView + ItemTouchHelper ONCE in onCreate
         setupPhotoOrderRecyclerView()
 
@@ -108,13 +200,12 @@ class MainActivity : AppCompatActivity() {
             if (isChecked) {
                 binding.switchMode.text = "BASIC"
                 binding.proModeContainer.visibility = View.GONE
-                binding.rvPhotoOrder.visibility = View.GONE
             } else {
                 binding.switchMode.text = "PRO"
                 binding.proModeContainer.visibility = View.VISIBLE
-                if (selectedPhotos.isNotEmpty()) {
-                    binding.rvPhotoOrder.visibility = View.VISIBLE
-                }
+            }
+            if (selectedPhotos.isNotEmpty()) {
+                binding.rvPhotoOrder.visibility = View.VISIBLE
             }
         }
 
@@ -122,18 +213,13 @@ class MainActivity : AppCompatActivity() {
             musicPicker.launch("audio/*")
         }
 
+        binding.btnSampleMusic.setOnClickListener {
+            loadSampleMusicTrack()
+        }
+
         binding.btnSelectPhotos.setOnClickListener {
             photosPicker.launch("image/*")
         }
-
-        binding.seekAudioStart.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                audioStartSeconds = progress
-                binding.tvAudioStart.text = "Start: ${formatTime(progress)} / ${formatTime(audioDurationSeconds)}"
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
 
         binding.btnRender.setOnClickListener {
             if (selectedMusicUri == null || selectedPhotos.isEmpty()) {
@@ -151,6 +237,7 @@ class MainActivity : AppCompatActivity() {
         // Title background mode - show/hide color input
         binding.rgTitleBg.setOnCheckedChangeListener { _, checkedId ->
             binding.etTitleBgColor.visibility = if (checkedId == R.id.rbBgColor) View.VISIBLE else View.GONE
+            updateLiveTitlePreview()
         }
 
         // Title duration slider
@@ -161,6 +248,71 @@ class MainActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+
+        updateLiveTitlePreview()
+    }
+
+    private fun updateAudioTrimLabels() {
+        binding.tvAudioStart.text = "Start Time: ${formatTime(audioStartSeconds)}"
+        binding.tvAudioEnd.text = "End Time: ${formatTime(audioEndSeconds)}"
+        val duration = maxOf(0, audioEndSeconds - audioStartSeconds)
+        binding.tvAudioRange.text = "Start: ${formatTime(audioStartSeconds)}  |  End: ${formatTime(audioEndSeconds)}  (Duration: ${formatTime(duration)})"
+    }
+
+    private fun updateLiveTitlePreview() {
+        val title = binding.etTitleText.text.toString().trim()
+        binding.tvLiveTitle.text = if (title.isEmpty()) "TITLE CARD PREVIEW" else title
+
+        // Font
+        val fontPos = binding.spinnerTitleFont.selectedItemPosition
+        binding.tvLiveTitle.typeface = when (fontPos) {
+            1 -> android.graphics.Typeface.SERIF
+            2 -> android.graphics.Typeface.SANS_SERIF
+            3 -> android.graphics.Typeface.MONOSPACE
+            else -> android.graphics.Typeface.DEFAULT_BOLD
+        }
+
+        // Style
+        when (binding.spinnerTitleStyle.selectedItemPosition) {
+            1 -> { // Neon
+                binding.tvLiveTitle.setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
+                binding.tvLiveTitle.setShadowLayer(8f, 0f, 0f, android.graphics.Color.parseColor("#00F0FF"))
+            }
+            2 -> { // 3D Retro
+                binding.tvLiveTitle.setTextColor(android.graphics.Color.parseColor("#FFE14D"))
+                binding.tvLiveTitle.setShadowLayer(6f, 4f, 4f, android.graphics.Color.parseColor("#FF4D8D"))
+            }
+            3 -> { // Cinematic
+                binding.tvLiveTitle.setTextColor(android.graphics.Color.parseColor("#F8F9FA"))
+                binding.tvLiveTitle.letterSpacing = 0.15f
+                binding.tvLiveTitle.setShadowLayer(4f, 2f, 2f, android.graphics.Color.parseColor("#000000"))
+            }
+            4 -> { // Badge
+                binding.tvLiveTitle.setTextColor(android.graphics.Color.parseColor("#1A1A1A"))
+                binding.tvLiveTitle.setBackgroundColor(android.graphics.Color.parseColor("#FFE14D"))
+                binding.tvLiveTitle.setShadowLayer(0f, 0f, 0f, 0)
+            }
+            else -> { // Classic
+                binding.tvLiveTitle.setTextColor(android.graphics.Color.parseColor("#FFE14D"))
+                binding.tvLiveTitle.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                binding.tvLiveTitle.letterSpacing = 0.05f
+                binding.tvLiveTitle.setShadowLayer(4f, 2f, 2f, android.graphics.Color.parseColor("#000000"))
+            }
+        }
+
+        // Background
+        when (binding.rgTitleBg.checkedRadioButtonId) {
+            R.id.rbBgBlack -> binding.cardTitlePreview.setBackgroundColor(android.graphics.Color.parseColor("#000000"))
+            R.id.rbBgVideo -> binding.cardTitlePreview.setBackgroundColor(android.graphics.Color.parseColor("#222233"))
+            R.id.rbBgColor -> {
+                val hex = binding.etTitleBgColor.text.toString().trim()
+                try {
+                    if (hex.startsWith("#") && (hex.length == 7 || hex.length == 9)) {
+                        binding.cardTitlePreview.setBackgroundColor(android.graphics.Color.parseColor(hex))
+                    }
+                } catch (_: Exception) {}
+            }
+        }
     }
 
     private fun formatTime(seconds: Int): String {
@@ -177,6 +329,11 @@ class MainActivity : AppCompatActivity() {
         photoOrderAdapter = PhotoOrderAdapter(selectedPhotos)
         binding.rvPhotoOrder.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.rvPhotoOrder.adapter = photoOrderAdapter
+
+        binding.rvPhotoOrder.setOnTouchListener { v, event ->
+            v.parent?.requestDisallowInterceptTouchEvent(true)
+            false
+        }
 
         val callback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT, 0) {
             override fun onMove(rv: RecyclerView, source: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
@@ -212,8 +369,54 @@ class MainActivity : AppCompatActivity() {
         binding.rvPhotoOrder.visibility = View.VISIBLE
     }
 
+    private fun loadSampleMusicTrack() {
+        try {
+            val sampleFile = File(cacheDir, "sample_funk_smooth_party.mp3")
+            if (!sampleFile.exists() || sampleFile.length() == 0L) {
+                resources.openRawResource(R.raw.funk_smooth_party).use { input ->
+                    FileOutputStream(sampleFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+            val uri = Uri.fromFile(sampleFile)
+            selectedMusicUri = uri
+            binding.tvMusicStatus.text = "🎵 Sample: Funk Smooth Party (Pixabay)"
+
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(sampleFile.absolutePath)
+            val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            retriever.release()
+            audioDurationSeconds = (durationMs / 1000).toInt()
+            audioStartSeconds = 0
+            audioEndSeconds = audioDurationSeconds
+            isFullTrack = true
+
+            if (audioDurationSeconds > 3) {
+                binding.audioTrimContainer.visibility = View.VISIBLE
+                binding.rbAudioFull.isChecked = true
+                binding.layoutTrimSliders.visibility = View.GONE
+
+                binding.seekAudioStart.max = audioDurationSeconds
+                binding.seekAudioStart.progress = 0
+
+                binding.seekAudioEnd.max = audioDurationSeconds
+                binding.seekAudioEnd.progress = audioDurationSeconds
+
+                updateAudioTrimLabels()
+            }
+            Toast.makeText(this, "Loaded Funk Smooth Party sample track! 🎶", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Could not load sample track: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun getFileFromUri(uri: Uri, prefix: String): File? {
         return try {
+            if (uri.scheme == "file" && uri.path != null) {
+                val f = File(uri.path!!)
+                if (f.exists() && f.length() > 0) return f
+            }
             val inputStream = contentResolver.openInputStream(uri) ?: return null
             val ext = if (prefix.startsWith("music")) ".mp3" else ".jpg"
             val file = File(cacheDir, "${prefix}_${System.currentTimeMillis()}${ext}")
@@ -231,7 +434,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearCache() {
         cacheDir.listFiles()?.forEach { file ->
-            if (file.name.startsWith("music_") || file.name.startsWith("photo_")) {
+            if ((file.name.startsWith("music_") || file.name.startsWith("photo_")) && !file.name.startsWith("sample_")) {
                 file.delete()
             }
         }
@@ -254,7 +457,7 @@ class MainActivity : AppCompatActivity() {
                     ?: throw IOException("Could not read music file")
                 builder.addFormDataPart("audio", musicFile.name, musicFile.asRequestBody("audio/*".toMediaTypeOrNull()))
 
-                val photosToUpload = if (!binding.switchMode.isChecked && ::photoOrderAdapter.isInitialized) {
+                val photosToUpload = if (::photoOrderAdapter.isInitialized) {
                     photoOrderAdapter.getOrderedPhotos()
                 } else {
                     selectedPhotos
@@ -324,12 +527,51 @@ class MainActivity : AppCompatActivity() {
                         // Duration
                         val titleDuration = binding.seekTitleDuration.progress.coerceIn(1, 5)
                         builder.addFormDataPart("title_duration", titleDuration.toString())
+
+                        // Title font
+                        val fontVal = when (binding.spinnerTitleFont.selectedItemPosition) {
+                            0 -> "impact"
+                            1 -> "serif"
+                            2 -> "clean"
+                            3 -> "typewriter"
+                            4 -> "playful"
+                            else -> "impact"
+                        }
+                        builder.addFormDataPart("title_font", fontVal)
+
+                        // Title style
+                        val styleVal = when (binding.spinnerTitleStyle.selectedItemPosition) {
+                            0 -> "classic"
+                            1 -> "neon"
+                            2 -> "3d_retro"
+                            3 -> "cinematic"
+                            4 -> "badge"
+                            else -> "classic"
+                        }
+                        builder.addFormDataPart("title_style", styleVal)
+
+                        // Title frame
+                        val frameVal = when (binding.spinnerTitleFrame.selectedItemPosition) {
+                            0 -> "none"
+                            1 -> "box"
+                            2 -> "viewfinder"
+                            3 -> "double_line"
+                            4 -> "film_bars"
+                            else -> "none"
+                        }
+                        builder.addFormDataPart("title_frame", frameVal)
                     }
                 }
 
-                // Send audio start time (works in both basic and pro modes)
-                if (audioStartSeconds > 0) {
+                // Send audio duration and trimming (works in both basic and pro modes)
+                if (isFullTrack) {
+                    builder.addFormDataPart("full_track", "true")
+                    builder.addFormDataPart("audio_start", "0")
+                    builder.addFormDataPart("audio_end", "0")
+                } else {
+                    builder.addFormDataPart("full_track", "false")
                     builder.addFormDataPart("audio_start", audioStartSeconds.toString())
+                    builder.addFormDataPart("audio_end", audioEndSeconds.toString())
                 }
 
                 val requestBody = builder.build()
