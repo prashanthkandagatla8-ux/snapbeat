@@ -56,51 +56,7 @@
             android:textSize="14sp"
             android:fontFamily="casual"
             android:alpha="0.7"
-            android:layout_marginBottom="12dp" />
-
-        <!-- ═══════════════ SERVER URL SETTINGS ═══════════════ -->
-        <LinearLayout
-            android:id="@+id/btnServerSettings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/card_dark"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="7dp"
-            android:paddingBottom="7dp"
-            android:layout_marginBottom="16dp"
-            android:clickable="true"
-            android:focusable="true">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🌐"
-                android:textSize="13sp"
-                android:layout_marginEnd="8dp" />
-
-            <TextView
-                android:id="@+id/tvCurrentServerUrl"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Server: http://192.168.68.106:8772"
-                android:textColor="#3DD4FF"
-                android:textSize="11sp"
-                android:fontFamily="sans-serif-medium" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="EDIT"
-                android:textColor="#FFE14D"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-black" />
-
-        </LinearLayout>
+            android:layout_marginBottom="20dp" />
 
         <!-- ═══════════════ PRO MODE TEMPLATE ═══════════════ -->
         <LinearLayout
