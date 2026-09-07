@@ -234,13 +234,13 @@ class MainActivity : AppCompatActivity() {
                     binding.tvStatus.text = "Uploading..." 
                 }
 
-                var jobId: Int = -1
+                var jobId: String = ""
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) throw IOException("Upload failed: ${response.code}")
                     val bodyString = response.body?.string() ?: "{}"
                     val json = JSONObject(bodyString)
                     if (!json.has("job_id")) throw IOException("Server error: $bodyString")
-                    jobId = json.getInt("job_id")
+                    jobId = json.get("job_id").toString()
                 }
                 
                 clearCache()
@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun pollStatusAndDownload(jobId: Int) {
+    private suspend fun pollStatusAndDownload(jobId: String) {
         withContext(Dispatchers.Main) {
             binding.progressBar.isIndeterminate = false
             binding.progressBar.progress = 0
