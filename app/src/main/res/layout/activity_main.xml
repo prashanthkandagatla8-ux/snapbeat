@@ -156,6 +156,70 @@
                 android:layout_height="48dp"
                 android:background="@drawable/spinner_retro"
                 android:popupBackground="#2A2A2A" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#333333"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\uD83C\uDFAC TITLE CARD"
+                android:textStyle="bold"
+                android:textColor="#FFE14D"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etTitleText"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:hint="Enter title (optional)"
+                android:textColor="#FFFCF5"
+                android:textColorHint="#666666"
+                android:textSize="14sp"
+                android:background="@drawable/spinner_retro"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:singleLine="true"
+                android:maxLength="50"
+                android:inputType="text"
+                android:imeOptions="actionDone" />
+
+            <RadioGroup
+                android:id="@+id/rgTitleMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/rbOutsideTrack"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Outside Track"
+                    android:textColor="#FFFCF5"
+                    android:textSize="12sp"
+                    android:buttonTint="#FFE14D"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rbWithinTrack"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Within Track"
+                    android:textColor="#FFFCF5"
+                    android:textSize="12sp"
+                    android:buttonTint="#FFE14D" />
+
+            </RadioGroup>
         </LinearLayout>
 
         <!-- ═══════════════ MUSIC SECTION ═══════════════ -->

@@ -320,6 +320,14 @@ class MainActivity : AppCompatActivity() {
                         else -> "portrait"
                     }
                     builder.addFormDataPart("frame", frameValue)
+
+                    // Send title if provided
+                    val titleText = binding.etTitleText.text.toString().trim()
+                    if (titleText.isNotEmpty()) {
+                        builder.addFormDataPart("title_text", titleText)
+                        val titleMode = if (binding.rbWithinTrack.isChecked) "within" else "outside"
+                        builder.addFormDataPart("title_mode", titleMode)
+                    }
                 }
 
                 // Send audio start time (works in both basic and pro modes)
