@@ -32,6 +32,11 @@ import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.ItemTouchHelper
+import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +49,15 @@ class MainActivity : AppCompatActivity() {
     private var audioStartSeconds: Int = 0
     private var audioEndSeconds: Int = 0
     private var isFullTrack: Boolean = true
+    private var isDarkMode: Boolean = true
+    private val PREFS_NAME = "snapbeat_prefs"
+    private val KEY_DARK_MODE = "is_dark_mode"
+
+    private val templates = arrayOf("Beat Cut", "Bounce", "Cine Zoom", "Fade", "Glide", "Mosaic Flow", "Mosaic Pulse", "Pendulum", "Pendulum OG", "Pulse", "Punch", "Reveal Bounce", "Reveal Boxes", "Reveal Circles", "Reveal Grid", "Reveal Spiral", "Slide", "Slow Drift", "Spin", "Sway", "Whip", "Zoom Out")
+    private val aspectRatios = arrayOf("Portrait (9:16)", "Landscape (16:9)", "Square (1:1)")
+    private val titleFonts = arrayOf("Bold Blockbuster (Impact)", "Elegant Serif (Georgia)", "Modern Minimal (Clean)", "Vintage Typewriter", "Casual Retro (Playful)")
+    private val titleStyles = arrayOf("Classic Yellow Drop-Shadow", "Neon Glow (Electric Cyan)", "3D Retro Arcade Extrusion", "Cinematic All-Caps", "Badge Tag Container")
+    private val titleFrames = arrayOf("None (Borderless)", "Cinematic Box Border", "Viewfinder Camera Corners", "Retro Double Border", "Film Letterbox Bars")
 
     // Single ItemTouchHelper instance — attached once, never duplicated
     private var itemTouchHelper: ItemTouchHelper? = null
@@ -103,43 +117,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val templates = arrayOf("Beat Cut", "Bounce", "Cine Zoom", "Fade", "Glide", "Mosaic Flow", "Mosaic Pulse", "Pendulum", "Pendulum OG", "Pulse", "Punch", "Reveal Bounce", "Reveal Boxes", "Reveal Circles", "Reveal Grid", "Reveal Spiral", "Slide", "Slow Drift", "Spin", "Sway", "Whip", "Zoom Out")
-        val adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, templates)
-        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        binding.spinnerTemplate.adapter = adapter
-
-        // Aspect ratio spinner setup
-        val aspectRatios = arrayOf("Portrait (9:16)", "Landscape (16:9)", "Square (1:1)")
-        binding.spinnerAspectRatio.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, aspectRatios
-        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
-
-        // Title Card Designer Spinners
-        val titleFonts = arrayOf("Bold Blockbuster (Impact)", "Elegant Serif (Georgia)", "Modern Minimal (Clean)", "Vintage Typewriter", "Casual Retro (Playful)")
-        binding.spinnerTitleFont.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, titleFonts
-        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
-
-        val titleStyles = arrayOf("Classic Yellow Drop-Shadow", "Neon Glow (Electric Cyan)", "3D Retro Arcade Extrusion", "Cinematic All-Caps", "Badge Tag Container")
-        binding.spinnerTitleStyle.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, titleStyles
-        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
-
-        val titleFrames = arrayOf("None (Borderless)", "Cinematic Box Border", "Viewfinder Camera Corners", "Retro Double Border", "Film Letterbox Bars")
-        binding.spinnerTitleFrame.adapter = android.widget.ArrayAdapter(
-            this, R.layout.spinner_item, titleFrames
-        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
-
-        // Live preview listeners
-        val previewWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                updateLiveTitlePreview()
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        }
-        binding.etTitleText.addTextChangedListener(previewWatcher)
-        binding.etTitleBgColor.addTextChangedListener(previewWatcher)
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        isDarkMode = prefs.getBoolean(KEY_DARK_MODE, true)
 
         val spinnerListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -150,6 +129,26 @@ class MainActivity : AppCompatActivity() {
         binding.spinnerTitleFont.onItemSelectedListener = spinnerListener
         binding.spinnerTitleStyle.onItemSelectedListener = spinnerListener
         binding.spinnerTitleFrame.onItemSelectedListener = spinnerListener
+
+        val previewWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateLiveTitlePreview()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        }
+        binding.etTitleText.addTextChangedListener(previewWatcher)
+        binding.etTitleBgColor.addTextChangedListener(previewWatcher)
+
+        // Initial theme setup & listener
+        binding.switchTheme.isChecked = !isDarkMode
+        applyTheme(isDarkMode)
+
+        binding.switchTheme.setOnCheckedChangeListener { _, isChecked ->
+            isDarkMode = !isChecked
+            prefs.edit().putBoolean(KEY_DARK_MODE, isDarkMode).apply()
+            applyTheme(isDarkMode)
+        }
 
         // Audio Trim controls
         binding.rgAudioLength.setOnCheckedChangeListener { _, checkedId ->
@@ -197,15 +196,10 @@ class MainActivity : AppCompatActivity() {
         setupPhotoOrderRecyclerView()
 
         binding.switchMode.setOnCheckedChangeListener { _, isChecked ->
+            updateModeSwitchLabels()
             if (isChecked) {
-                // Right position = PRO
-                binding.tvModeBasic.setTextColor(android.graphics.Color.parseColor("#666666"))
-                binding.tvModePro.setTextColor(android.graphics.Color.parseColor("#FFE14D"))
                 binding.proModeContainer.visibility = View.VISIBLE
             } else {
-                // Left position = BASIC
-                binding.tvModeBasic.setTextColor(android.graphics.Color.parseColor("#FFE14D"))
-                binding.tvModePro.setTextColor(android.graphics.Color.parseColor("#666666"))
                 binding.proModeContainer.visibility = View.GONE
             }
             if (selectedPhotos.isNotEmpty()) {
@@ -728,6 +722,220 @@ class MainActivity : AppCompatActivity() {
                 }
                 startActivity(intent)
             }
+        }
+    }
+
+    private fun setupSpinners(isDark: Boolean) {
+        val templatePos = binding.spinnerTemplate.selectedItemPosition.coerceAtLeast(0)
+        val aspectPos = binding.spinnerAspectRatio.selectedItemPosition.coerceAtLeast(0)
+        val fontPos = binding.spinnerTitleFont.selectedItemPosition.coerceAtLeast(0)
+        val stylePos = binding.spinnerTitleStyle.selectedItemPosition.coerceAtLeast(0)
+        val framePos = binding.spinnerTitleFrame.selectedItemPosition.coerceAtLeast(0)
+
+        val itemRes = if (isDark) R.layout.spinner_item else R.layout.spinner_item_light
+        val dropRes = if (isDark) R.layout.spinner_dropdown_item else R.layout.spinner_dropdown_item_light
+
+        binding.spinnerTemplate.adapter = android.widget.ArrayAdapter(this, itemRes, templates).apply {
+            setDropDownViewResource(dropRes)
+        }
+        binding.spinnerTemplate.setSelection(templatePos)
+
+        binding.spinnerAspectRatio.adapter = android.widget.ArrayAdapter(this, itemRes, aspectRatios).apply {
+            setDropDownViewResource(dropRes)
+        }
+        binding.spinnerAspectRatio.setSelection(aspectPos)
+
+        binding.spinnerTitleFont.adapter = android.widget.ArrayAdapter(this, itemRes, titleFonts).apply {
+            setDropDownViewResource(dropRes)
+        }
+        binding.spinnerTitleFont.setSelection(fontPos)
+
+        binding.spinnerTitleStyle.adapter = android.widget.ArrayAdapter(this, itemRes, titleStyles).apply {
+            setDropDownViewResource(dropRes)
+        }
+        binding.spinnerTitleStyle.setSelection(stylePos)
+
+        binding.spinnerTitleFrame.adapter = android.widget.ArrayAdapter(this, itemRes, titleFrames).apply {
+            setDropDownViewResource(dropRes)
+        }
+        binding.spinnerTitleFrame.setSelection(framePos)
+
+        val popupBg = android.graphics.drawable.ColorDrawable(Color.parseColor(if (isDark) "#2A2A2A" else "#FFFFFF"))
+        binding.spinnerTemplate.setPopupBackgroundDrawable(popupBg)
+        binding.spinnerAspectRatio.setPopupBackgroundDrawable(popupBg)
+        binding.spinnerTitleFont.setPopupBackgroundDrawable(popupBg)
+        binding.spinnerTitleStyle.setPopupBackgroundDrawable(popupBg)
+        binding.spinnerTitleFrame.setPopupBackgroundDrawable(popupBg)
+    }
+
+    private fun applyTheme(isDark: Boolean) {
+        // 1. Theme switch indicators
+        if (isDark) {
+            binding.tvThemeDark.setTextColor(Color.parseColor("#FFE14D"))
+            binding.tvThemeLight.setTextColor(Color.parseColor("#666666"))
+            binding.switchTheme.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
+            binding.switchTheme.trackTintList = ColorStateList.valueOf(Color.parseColor("#333333"))
+        } else {
+            binding.tvThemeDark.setTextColor(Color.parseColor("#888888"))
+            binding.tvThemeLight.setTextColor(Color.parseColor("#FF4D8D"))
+            binding.switchTheme.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FF4D8D"))
+            binding.switchTheme.trackTintList = ColorStateList.valueOf(Color.parseColor("#CCCCCC"))
+        }
+
+        // 2. Mode switch indicators (BASIC / PRO)
+        updateModeSwitchLabels()
+
+        // 3. Root Background & System Status/Navigation Bars
+        val rootBg = if (isDark) Color.parseColor("#1A1A1A") else Color.parseColor("#F4F4F6")
+        binding.rootScrollView.setBackgroundColor(rootBg)
+        window.statusBarColor = rootBg
+        window.navigationBarColor = rootBg
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isDark
+
+        // 4. Header title & subtitle
+        if (isDark) {
+            binding.tvTitle.setTextColor(Color.parseColor("#FFE14D"))
+            binding.tvTitle.setShadowLayer(0f, 3f, 3f, Color.parseColor("#000000"))
+            binding.tvSubtitle.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvSubtitle.alpha = 0.7f
+        } else {
+            binding.tvTitle.setTextColor(Color.parseColor("#1A1A1A"))
+            binding.tvTitle.setShadowLayer(0f, 3f, 3f, Color.parseColor("#FFE14D"))
+            binding.tvSubtitle.setTextColor(Color.parseColor("#666666"))
+            binding.tvSubtitle.alpha = 0.9f
+        }
+
+        // 5. Card Backgrounds
+        val cardDrawable = if (isDark) R.drawable.card_dark else R.drawable.card_light
+        binding.proModeContainer.setBackgroundResource(cardDrawable)
+        binding.cardMusic.setBackgroundResource(cardDrawable)
+        binding.cardPhotos.setBackgroundResource(cardDrawable)
+
+        // 6. Section Headers & Text inside Cards
+        if (isDark) {
+            binding.tvMusicHeader.setTextColor(Color.parseColor("#FF4D8D"))
+            binding.tvMusicStatus.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvMusicStatus.alpha = 0.7f
+            binding.rbAudioFull.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.rbAudioTrim.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvAudioStart.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvAudioEnd.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.divTrim1.setBackgroundColor(Color.parseColor("#2E2E2E"))
+
+            binding.tvPhotosHeader.setTextColor(Color.parseColor("#3DD4FF"))
+            binding.tvPhotosStatus.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvPhotosStatus.alpha = 0.6f
+
+            binding.tvStatus.setTextColor(Color.parseColor("#FFFCF5"))
+
+            // Pro container elements
+            binding.tvProTemplateHeader.setTextColor(Color.parseColor("#FFE14D"))
+            binding.divPro1.setBackgroundColor(Color.parseColor("#333333"))
+            binding.tvDropItDesc.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvDropItDesc.alpha = 0.5f
+            binding.divPro2.setBackgroundColor(Color.parseColor("#333333"))
+            binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#3DD4FF"))
+            binding.divPro3.setBackgroundColor(Color.parseColor("#333333"))
+            binding.tvTitleCardHeader.setTextColor(Color.parseColor("#FFE14D"))
+            binding.tvTitleFontLabel.setTextColor(Color.parseColor("#999999"))
+            binding.tvTitleStyleLabel.setTextColor(Color.parseColor("#999999"))
+            binding.tvTitleFrameLabel.setTextColor(Color.parseColor("#999999"))
+            binding.tvTitleBgLabel.setTextColor(Color.parseColor("#999999"))
+            binding.rbBgBlack.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.rbBgColor.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.rbBgVideo.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#999999"))
+            binding.tvTitleDuration.setTextColor(Color.parseColor("#FFE14D"))
+
+            // Inputs & Spinners
+            binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro)
+            binding.etTitleText.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.etTitleText.setHintTextColor(Color.parseColor("#666666"))
+            binding.etTitleBgColor.setBackgroundResource(R.drawable.spinner_retro)
+            binding.etTitleBgColor.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.etTitleBgColor.setHintTextColor(Color.parseColor("#666666"))
+
+            binding.spinnerTemplate.setBackgroundResource(R.drawable.spinner_retro)
+            binding.spinnerAspectRatio.setBackgroundResource(R.drawable.spinner_retro)
+            binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro)
+            binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro)
+            binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro)
+        } else {
+            binding.tvMusicHeader.setTextColor(Color.parseColor("#D81B60"))
+            binding.tvMusicStatus.setTextColor(Color.parseColor("#333333"))
+            binding.tvMusicStatus.alpha = 0.9f
+            binding.rbAudioFull.setTextColor(Color.parseColor("#222222"))
+            binding.rbAudioTrim.setTextColor(Color.parseColor("#222222"))
+            binding.tvAudioStart.setTextColor(Color.parseColor("#333333"))
+            binding.tvAudioEnd.setTextColor(Color.parseColor("#333333"))
+            binding.divTrim1.setBackgroundColor(Color.parseColor("#E5E5E5"))
+
+            binding.tvPhotosHeader.setTextColor(Color.parseColor("#0288D1"))
+            binding.tvPhotosStatus.setTextColor(Color.parseColor("#444444"))
+            binding.tvPhotosStatus.alpha = 0.9f
+
+            binding.tvStatus.setTextColor(Color.parseColor("#1A1A1A"))
+
+            // Pro container elements
+            binding.tvProTemplateHeader.setTextColor(Color.parseColor("#1A1A1A"))
+            binding.divPro1.setBackgroundColor(Color.parseColor("#E0E0E0"))
+            binding.tvDropItDesc.setTextColor(Color.parseColor("#555555"))
+            binding.tvDropItDesc.alpha = 0.8f
+            binding.divPro2.setBackgroundColor(Color.parseColor("#E0E0E0"))
+            binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#0288D1"))
+            binding.divPro3.setBackgroundColor(Color.parseColor("#E0E0E0"))
+            binding.tvTitleCardHeader.setTextColor(Color.parseColor("#1A1A1A"))
+            binding.tvTitleFontLabel.setTextColor(Color.parseColor("#555555"))
+            binding.tvTitleStyleLabel.setTextColor(Color.parseColor("#555555"))
+            binding.tvTitleFrameLabel.setTextColor(Color.parseColor("#555555"))
+            binding.tvTitleBgLabel.setTextColor(Color.parseColor("#555555"))
+            binding.rbBgBlack.setTextColor(Color.parseColor("#222222"))
+            binding.rbBgColor.setTextColor(Color.parseColor("#222222"))
+            binding.rbBgVideo.setTextColor(Color.parseColor("#222222"))
+            binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#555555"))
+            binding.tvTitleDuration.setTextColor(Color.parseColor("#1A1A1A"))
+
+            // Inputs & Spinners
+            binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro_light)
+            binding.etTitleText.setTextColor(Color.parseColor("#1A1A1A"))
+            binding.etTitleText.setHintTextColor(Color.parseColor("#999999"))
+            binding.etTitleBgColor.setBackgroundResource(R.drawable.spinner_retro_light)
+            binding.etTitleBgColor.setTextColor(Color.parseColor("#1A1A1A"))
+            binding.etTitleBgColor.setHintTextColor(Color.parseColor("#999999"))
+
+            binding.spinnerTemplate.setBackgroundResource(R.drawable.spinner_retro_light)
+            binding.spinnerAspectRatio.setBackgroundResource(R.drawable.spinner_retro_light)
+            binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro_light)
+            binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro_light)
+            binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro_light)
+        }
+
+        // 7. Rebind spinners with dark/light item resources
+        setupSpinners(isDark)
+    }
+
+    private fun updateModeSwitchLabels() {
+        val isPro = binding.switchMode.isChecked
+        if (isDarkMode) {
+            if (isPro) {
+                binding.tvModeBasic.setTextColor(Color.parseColor("#666666"))
+                binding.tvModePro.setTextColor(Color.parseColor("#FFE14D"))
+            } else {
+                binding.tvModeBasic.setTextColor(Color.parseColor("#FFE14D"))
+                binding.tvModePro.setTextColor(Color.parseColor("#666666"))
+            }
+            binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
+            binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#333333"))
+        } else {
+            if (isPro) {
+                binding.tvModeBasic.setTextColor(Color.parseColor("#999999"))
+                binding.tvModePro.setTextColor(Color.parseColor("#1A1A1A"))
+            } else {
+                binding.tvModeBasic.setTextColor(Color.parseColor("#1A1A1A"))
+                binding.tvModePro.setTextColor(Color.parseColor("#999999"))
+            }
+            binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#1A1A1A"))
+            binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#CCCCCC"))
         }
     }
 }
