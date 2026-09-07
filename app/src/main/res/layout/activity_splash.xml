@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#1A1A1A"
+    android:id="@+id/splashRoot">
+
+    <ImageView
+        android:id="@+id/ivSplashIcon"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@mipmap/ic_launcher"
+        android:alpha="0" />
+
+    <TextView
+        android:id="@+id/tvSplashTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SNAPBEAT"
+        android:textColor="#FFE14D"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-black"
+        android:letterSpacing="0.15"
+        android:layout_marginTop="16dp"
+        android:alpha="0" />
+
+    <TextView
+        android:id="@+id/tvSplashTagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="let the music decide your edit."
+        android:textColor="#FFFCF5"
+        android:textSize="13sp"
+        android:alpha="0"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>
