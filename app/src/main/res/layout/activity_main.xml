@@ -79,59 +79,6 @@
                         android:fontFamily="sans-serif-black"
                         android:layout_marginStart="6dp" />
                 </LinearLayout>
-
-                <!-- Segmented 3-Way Theme Selector Bar -->
-                <LinearLayout
-                    android:id="@+id/layoutThemeBar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_theme_bar"
-                    android:layout_marginTop="3dp">
-
-                    <TextView
-                        android:id="@+id/btnThemeDark"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:paddingStart="9dp"
-                        android:paddingEnd="9dp"
-                        android:text="🌙 DARK"
-                        android:textColor="#111111"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-black"
-                        android:background="@drawable/bg_theme_pill_active_dark" />
-
-                    <TextView
-                        android:id="@+id/btnThemeLight"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:paddingStart="9dp"
-                        android:paddingEnd="9dp"
-                        android:text="☀️ LIGHT"
-                        android:textColor="#888888"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-black"
-                        android:background="@drawable/bg_theme_pill_inactive" />
-
-                    <TextView
-                        android:id="@+id/btnThemeY2K"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:paddingStart="9dp"
-                        android:paddingEnd="9dp"
-                        android:text="📼 Y2K"
-                        android:textColor="#888888"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-black"
-                        android:background="@drawable/bg_theme_pill_inactive" />
-                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -358,221 +305,261 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="10dp" />
 
-            <TextView
-                android:id="@+id/tvTitleCardHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🎬 TITLE CARD DESIGNER"
-                android:textStyle="bold"
-                android:textColor="#FFE14D"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-black"
-                android:letterSpacing="0.05"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etTitleText"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:gravity="center_vertical"
-                android:hint="Enter title text (optional)"
-                android:textColor="#FFFCF5"
-                android:textColorHint="#666666"
-                android:textSize="14sp"
-                android:background="@drawable/edit_retro"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:singleLine="true"
-                android:maxLength="50"
-                android:inputType="text"
-                android:imeOptions="actionDone" />
-
-            <!-- Font Selector -->
-            <TextView
-                android:id="@+id/tvTitleFontLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Font Typography"
-                android:textColor="#999999"
-                android:textSize="11sp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="4dp" />
-
-            <Spinner
-                android:id="@+id/spinnerTitleFont"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="@drawable/spinner_retro" />
-
-            <!-- Visual Style Selector -->
-            <TextView
-                android:id="@+id/tvTitleStyleLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Visual Style"
-                android:textColor="#999999"
-                android:textSize="11sp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="4dp" />
-
-            <Spinner
-                android:id="@+id/spinnerTitleStyle"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="@drawable/spinner_retro" />
-
-            <!-- Decorative Frame Selector -->
-            <TextView
-                android:id="@+id/tvTitleFrameLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Decorative Frame"
-                android:textColor="#999999"
-                android:textSize="11sp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="4dp" />
-
-            <Spinner
-                android:id="@+id/spinnerTitleFrame"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="@drawable/spinner_retro" />
-
-            <TextView
-                android:id="@+id/tvTitleBgLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Background"
-                android:textColor="#999999"
-                android:textSize="11sp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="4dp" />
-
-            <RadioGroup
-                android:id="@+id/rgTitleBg"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/rbBgBlack"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Black"
-                    android:textColor="#FFFCF5"
-                    android:textSize="11sp"
-                    android:buttonTint="#FFE14D"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/rbBgColor"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Color"
-                    android:textColor="#FFFCF5"
-                    android:textSize="11sp"
-                    android:buttonTint="#FFE14D" />
-
-                <RadioButton
-                    android:id="@+id/rbBgVideo"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Over Video"
-                    android:textColor="#FFFCF5"
-                    android:textSize="11sp"
-                    android:buttonTint="#FFE14D" />
-
-            </RadioGroup>
-
-            <EditText
-                android:id="@+id/etTitleBgColor"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:hint="Hex color e.g. #FF4D8D"
-                android:textColor="#FFFCF5"
-                android:textColorHint="#666666"
-                android:textSize="12sp"
-                android:background="@drawable/edit_retro"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:singleLine="true"
-                android:maxLength="7"
-                android:inputType="text"
-                android:visibility="gone"
-                android:layout_marginTop="6dp" />
-
-            <TextView
-                android:id="@+id/tvTitleDurationLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Duration"
-                android:textColor="#999999"
-                android:textSize="11sp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="4dp" />
-
+            <!-- Title Card Toggle Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <SeekBar
-                    android:id="@+id/seekTitleDuration"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:min="1"
-                    android:max="5"
-                    android:progress="2"
-                    android:progressTint="#FFE14D"
-                    android:thumbTint="#FFE14D" />
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvTitleDuration"
+                    <TextView
+                        android:id="@+id/tvTitleCardHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎬 TITLE CARD (OPTIONAL)"
+                        android:textStyle="bold"
+                        android:textColor="#FFE14D"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif-black"
+                        android:letterSpacing="0.05" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="add custom animated text overlay"
+                        android:textColor="#FFFCF5"
+                        android:alpha="0.5"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchEnableTitleCard"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="2s"
-                    android:textColor="#FFE14D"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="8dp" />
-
+                    android:checked="false"
+                    app:thumbTint="#FFE14D"
+                    app:trackTint="#333333" />
             </LinearLayout>
 
-            <!-- Live Title Preview Card -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="LIVE PREVIEW"
-                android:textColor="#FFE14D"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.08"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="4dp" />
-
-            <FrameLayout
-                android:id="@+id/cardTitlePreview"
+            <!-- Collapsible Title Designer Controls (Default GONE) -->
+            <LinearLayout
+                android:id="@+id/layoutTitleCardControls"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="#000000"
-                android:padding="8dp">
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="10dp">
+
+                <EditText
+                    android:id="@+id/etTitleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:gravity="center_vertical"
+                    android:hint="Enter title text"
+                    android:textColor="#FFFCF5"
+                    android:textColorHint="#666666"
+                    android:textSize="14sp"
+                    android:background="@drawable/edit_retro"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:singleLine="true"
+                    android:maxLength="50"
+                    android:inputType="text"
+                    android:imeOptions="actionDone" />
+
+                <!-- Font Selector -->
+                <TextView
+                    android:id="@+id/tvTitleFontLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Font Typography"
+                    android:textColor="#999999"
+                    android:textSize="11sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerTitleFont"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/spinner_retro" />
+
+                <!-- Visual Style Selector -->
+                <TextView
+                    android:id="@+id/tvTitleStyleLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Visual Style"
+                    android:textColor="#999999"
+                    android:textSize="11sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerTitleStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/spinner_retro" />
+
+                <!-- Decorative Frame Selector -->
+                <TextView
+                    android:id="@+id/tvTitleFrameLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Decorative Frame"
+                    android:textColor="#999999"
+                    android:textSize="11sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerTitleFrame"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/spinner_retro" />
 
                 <TextView
-                    android:id="@+id/tvLiveTitle"
+                    android:id="@+id/tvTitleBgLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Background"
+                    android:textColor="#999999"
+                    android:textSize="11sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="4dp" />
+
+                <RadioGroup
+                    android:id="@+id/rgTitleBg"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="TITLE CARD PREVIEW"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbBgBlack"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Black"
+                        android:textColor="#FFFCF5"
+                        android:textSize="11sp"
+                        android:buttonTint="#FFE14D"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/rbBgColor"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Color"
+                        android:textColor="#FFFCF5"
+                        android:textSize="11sp"
+                        android:buttonTint="#FFE14D" />
+
+                    <RadioButton
+                        android:id="@+id/rbBgVideo"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Over Video"
+                        android:textColor="#FFFCF5"
+                        android:textSize="11sp"
+                        android:buttonTint="#FFE14D" />
+
+                </RadioGroup>
+
+                <EditText
+                    android:id="@+id/etTitleBgColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:hint="Hex color e.g. #FF4D8D"
+                    android:textColor="#FFFCF5"
+                    android:textColorHint="#666666"
+                    android:textSize="12sp"
+                    android:background="@drawable/edit_retro"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:singleLine="true"
+                    android:maxLength="7"
+                    android:inputType="text"
+                    android:visibility="gone"
+                    android:layout_marginTop="6dp" />
+
+                <TextView
+                    android:id="@+id/tvTitleDurationLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Duration"
+                    android:textColor="#999999"
+                    android:textSize="11sp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="4dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <SeekBar
+                        android:id="@+id/seekTitleDuration"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:min="1"
+                        android:max="5"
+                        android:progress="2"
+                        android:progressTint="#FFE14D"
+                        android:thumbTint="#FFE14D" />
+
+                    <TextView
+                        android:id="@+id/tvTitleDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2s"
+                        android:textColor="#FFE14D"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+                <!-- Live Title Preview Card -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LIVE PREVIEW"
                     android:textColor="#FFE14D"
-                    android:textSize="16sp"
+                    android:textSize="10sp"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-black" />
-            </FrameLayout>
+                    android:letterSpacing="0.08"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="4dp" />
+
+                <FrameLayout
+                    android:id="@+id/cardTitlePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="#000000"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:id="@+id/tvLiveTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="TITLE CARD PREVIEW"
+                        android:textColor="#FFE14D"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black" />
+                </FrameLayout>
+            </LinearLayout>
         </LinearLayout>
 
         <!-- ═══════════════ MUSIC SECTION ═══════════════ -->
@@ -925,42 +912,73 @@
                 android:textSize="14sp"
                 android:layout_marginBottom="16dp" />
 
+            <!-- Segmented Render Mode Switcher -->
+            <LinearLayout
+                android:id="@+id/layoutRenderModeToggle"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_credit_meter"
+                android:padding="3dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:id="@+id/tabModeInstant"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="⚡ INSTANT"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.05"
+                    android:background="@drawable/btn_retro_yellow"
+                    android:textColor="#000000"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/tabModeQueue"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="📥 FREE QUEUE"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.05"
+                    android:textColor="#888888"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- Single Unified Primary Render Button -->
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnRender"
+                android:id="@+id/btnUnifiedRender"
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
                 android:background="@drawable/btn_retro_yellow"
-                android:text="⚡  INSTANT RENDER"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#000000"
-                android:fontFamily="sans-serif-black"
-                android:stateListAnimator="@null"
-                android:layout_marginBottom="10dp" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnQueue"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:background="@drawable/btn_retro_blue"
-                android:text="📥  FREE QUEUE (UNLIMITED)"
-                android:textSize="15sp"
+                android:text="⚡  RENDER INSTANT (1 CREDIT)"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:textColor="#000000"
                 android:fontFamily="sans-serif-black"
                 android:stateListAnimator="@null"
                 android:layout_marginBottom="8dp" />
 
+            <!-- Descriptive Subtitle Below Button -->
             <TextView
-                android:id="@+id/tvRenderModesHelper"
+                android:id="@+id/tvRenderModeDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="⚡ Instant: Zero wait • No watermark • No ads\n📥 Free Queue: Always free on VPS (Sponsor ad on download)"
+                android:text="⚡ Instant Cloud Run • Zero wait • Watermark-free"
                 android:textAlignment="center"
-                android:textColor="#A8A398"
+                android:textColor="#FFE14D"
                 android:textSize="11sp"
-                android:lineSpacingExtra="2dp"
-                android:layout_marginBottom="12dp" />
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="14dp" />
 
             <!-- Watermark status pill (Tap to open Pro Pass) -->
             <LinearLayout
