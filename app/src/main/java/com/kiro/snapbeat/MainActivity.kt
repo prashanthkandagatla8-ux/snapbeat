@@ -37,6 +37,13 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -143,6 +150,17 @@ class MainActivity : AppCompatActivity() {
             selectedPhotos.addAll(uris.take(60))
             binding.tvPhotosStatus.text = "${selectedPhotos.size} photos loaded (Max 60)"
             refreshPhotoOrder()
+        }
+    }
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startBackgroundRenderQueue()
+        } else {
+            Toast.makeText(this, "Notification permission needed for alerts", Toast.LENGTH_SHORT).show()
+            startBackgroundRenderQueue()
         }
     }
 
@@ -262,6 +280,12 @@ class MainActivity : AppCompatActivity() {
             }
             uploadAndRender()
         }
+
+        binding.btnQueue.setOnClickListener {
+            queueBackgroundRender()
+        }
+
+        setupQueueObserver()
 
         binding.btnRetry.setOnClickListener {
             binding.btnRetry.visibility = View.GONE
@@ -595,6 +619,12 @@ class MainActivity : AppCompatActivity() {
                         }
                         builder.addFormDataPart("title_frame", frameVal)
                     }
+
+                    // Video quality selection in Pro mode
+                    val qualityVal = if (binding.rbQualityMaster.isChecked) "master" else "fast"
+                    builder.addFormDataPart("quality", qualityVal)
+                } else {
+                    builder.addFormDataPart("quality", "fast")
                 }
 
                 // Send audio duration and trimming (works in both basic and pro modes)
@@ -680,16 +710,12 @@ class MainActivity : AppCompatActivity() {
                         isDone = true
                     } else if (status == "failed" || status == "cancelled") {
                         val errorMsg = json.optString("error", "Unknown error")
-                        // Fix: Use a custom exception so the catch block below
-                        // does NOT swallow explicit server failures
                         throw RuntimeException("Render failed: $errorMsg")
                     }
                 }
             } catch (e: RuntimeException) {
-                // Server explicitly said "failed" — surface immediately, don't retry
                 throw e
             } catch (e: IOException) {
-                // Transient network error — retry up to 3 in a row before giving up
                 if (pollCount % 3 != 0) continue else throw e
             }
         }
@@ -697,23 +723,25 @@ class MainActivity : AppCompatActivity() {
         if (pollCount >= maxPolls) throw IOException("Render timed out")
 
         withContext(Dispatchers.Main) {
-            binding.progressBar.isIndeterminate = true
-            binding.tvStatus.text = "DOWNLOADING VIDEO..."
+            binding.progressBar.isIndeterminate = false
+            binding.progressBar.progress = 0
+            binding.tvStatus.text = "DOWNLOADING: 0%..."
         }
 
         val downloadRequest = Request.Builder()
-            .url(getServerUrl() + "/api/render/download/$jobId")
+            .url(getServerUrl() + "/api/render/download/$jobId?delete_after=true")
             .get()
             .build()
 
         client.newCall(downloadRequest).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Download failed")
-            val inputStream = response.body?.byteStream() ?: throw IOException("Empty response")
+            val body = response.body ?: throw IOException("Empty response")
+            val totalBytes = body.contentLength()
+            val inputStream = body.byteStream()
             
             val values = ContentValues().apply {
                 put(MediaStore.Video.Media.DISPLAY_NAME, "SnapBeat_${jobId}.mp4")
                 put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                // Fix: RELATIVE_PATH only exists on API 29+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/SnapBeat")
                     put(MediaStore.Video.Media.IS_PENDING, 1)
@@ -728,14 +756,29 @@ class MainActivity : AppCompatActivity() {
                 contentResolver.openOutputStream(uri)?.use { out ->
                     val buffer = ByteArray(8192)
                     var bytesRead: Int
+                    var downloadedBytes = 0L
+                    var lastReportedPct = -1
                     while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                         out.write(buffer, 0, bytesRead)
+                        downloadedBytes += bytesRead
+                        if (totalBytes > 0) {
+                            val pct = ((downloadedBytes * 100) / totalBytes).toInt().coerceIn(0, 100)
+                            if (pct != lastReportedPct) {
+                                lastReportedPct = pct
+                                val currentMB = downloadedBytes / (1024.0 * 1024.0)
+                                val totalMB = totalBytes / (1024.0 * 1024.0)
+                                withContext(Dispatchers.Main) {
+                                    binding.progressBar.isIndeterminate = false
+                                    binding.progressBar.progress = pct
+                                    binding.tvStatus.text = String.format("DOWNLOADING: %d%% (%.1f MB / %.1f MB)", pct, currentMB, totalMB)
+                                }
+                            }
+                        }
                     }
                 }
                 downloadSuccess = true
             } finally {
                 if (!downloadSuccess) {
-                    // Clean up partial MediaStore entry on failure
                     contentResolver.delete(uri, null, null)
                 }
             }
@@ -759,6 +802,261 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+    }
+
+    private fun queueBackgroundRender() {
+        if (selectedMusicUri == null || selectedPhotos.isEmpty()) {
+            Toast.makeText(this, "Please pick actual music and photos first!", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+
+        startBackgroundRenderQueue()
+    }
+
+    private fun startBackgroundRenderQueue() {
+        binding.cardQueueTray.visibility = View.VISIBLE
+        binding.queueProgressBar.visibility = View.VISIBLE
+        binding.queueProgressBar.isIndeterminate = true
+        binding.tvQueueBadge.text = "QUEUED"
+        binding.tvQueueBadge.setTextColor(Color.parseColor("#FFE14D"))
+        binding.tvQueueStatus.text = "Preparing bundle for background worker..."
+        binding.btnViewQueueVideo.visibility = View.GONE
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val timestamp = System.currentTimeMillis()
+                val jobDir = File(cacheDir, "queue_jobs/job_$timestamp")
+                jobDir.mkdirs()
+
+                // Copy music
+                val musicUri = selectedMusicUri ?: throw IOException("No music selected")
+                val musicDst = File(jobDir, "music_${timestamp}.mp3")
+                contentResolver.openInputStream(musicUri)?.use { input ->
+                    FileOutputStream(musicDst).use { output ->
+                        input.copyTo(output)
+                    }
+                } ?: throw IOException("Failed to copy music to queue bundle")
+
+                // Copy photos in current order
+                val photosToQueue = if (::photoOrderAdapter.isInitialized) {
+                    photoOrderAdapter.getOrderedPhotos()
+                } else {
+                    selectedPhotos
+                }
+
+                photosToQueue.forEachIndexed { index, uri ->
+                    val photoDst = File(jobDir, "photo_${index}.jpg")
+                    contentResolver.openInputStream(uri)?.use { input ->
+                        FileOutputStream(photoDst).use { output ->
+                            input.copyTo(output)
+                        }
+                    } ?: throw IOException("Failed to copy photo $index to queue bundle")
+                }
+
+                // Determine options
+                val isPro = binding.switchMode.isChecked
+                val quality = if (isPro && binding.rbQualityMaster.isChecked) "master" else "fast"
+
+                val templateName = if (isPro) {
+                    val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "simple"
+                    when (selection) {
+                        "Beat Cut" -> "beat-cut"
+                        "Bounce" -> "beat-bounce"
+                        "Cine Zoom" -> "cinematic-zoom"
+                        "Fade" -> "beat-fade"
+                        "Glide" -> "glide-pan"
+                        "Mosaic Flow" -> "mosaic-flow"
+                        "Mosaic Pulse" -> "aesthetic-beat-mosaic"
+                        "Pendulum" -> "pendulum"
+                        "Pendulum OG" -> "beat-pendulum"
+                        "Pulse" -> "beat-pulse"
+                        "Punch" -> "punch-cut"
+                        "Reveal Bounce" -> "reveal-tiles-bounce"
+                        "Reveal Boxes" -> "reveal-tiles"
+                        "Reveal Circles" -> "reveal-circles"
+                        "Reveal Grid" -> "reveal-tiles-fine"
+                        "Reveal Spiral" -> "reveal-spiral"
+                        "Slide" -> "beat-slide"
+                        "Slow Drift" -> "slow-drift"
+                        "Spin" -> "beat-spin"
+                        "Sway" -> "sway-ballad"
+                        "Whip" -> "beat-whip"
+                        "Zoom Out" -> "zoom-out-reveal"
+                        else -> "simple"
+                    }
+                } else {
+                    "simple"
+                }
+
+                val frameValue = if (isPro) {
+                    when (binding.spinnerAspectRatio.selectedItemPosition) {
+                        0 -> "portrait"
+                        1 -> "landscape"
+                        2 -> "square"
+                        else -> "portrait"
+                    }
+                } else {
+                    "portrait"
+                }
+
+                val titleText = if (isPro) binding.etTitleText.text.toString().trim() else ""
+                val titleBg = if (isPro) {
+                    when (binding.rgTitleBg.checkedRadioButtonId) {
+                        R.id.rbBgBlack -> "black"
+                        R.id.rbBgColor -> binding.etTitleBgColor.text.toString().trim().ifEmpty { "#000000" }
+                        R.id.rbBgVideo -> "video"
+                        else -> "black"
+                    }
+                } else "black"
+
+                val titleDuration = if (isPro) binding.seekTitleDuration.progress.coerceIn(1, 5).toString() else "2"
+                val titleFont = if (isPro) {
+                    when (binding.spinnerTitleFont.selectedItemPosition) {
+                        0 -> "impact"
+                        1 -> "serif"
+                        2 -> "clean"
+                        3 -> "typewriter"
+                        4 -> "playful"
+                        else -> "impact"
+                    }
+                } else "impact"
+
+                val titleStyle = if (isPro) {
+                    when (binding.spinnerTitleStyle.selectedItemPosition) {
+                        0 -> "classic"
+                        1 -> "neon"
+                        2 -> "3d_retro"
+                        3 -> "cinematic"
+                        4 -> "badge"
+                        else -> "classic"
+                    }
+                } else "classic"
+
+                val titleFrame = if (isPro) {
+                    when (binding.spinnerTitleFrame.selectedItemPosition) {
+                        0 -> "none"
+                        1 -> "box"
+                        2 -> "viewfinder"
+                        3 -> "double_line"
+                        4 -> "film_bars"
+                        else -> "none"
+                    }
+                } else "none"
+
+                val data = Data.Builder()
+                    .putString(RenderQueueWorker.KEY_JOB_DIR, jobDir.absolutePath)
+                    .putString(RenderQueueWorker.KEY_SERVER_URL, getServerUrl())
+                    .putString(RenderQueueWorker.KEY_QUALITY, quality)
+                    .putString(RenderQueueWorker.KEY_TEMPLATE, templateName)
+                    .putBoolean(RenderQueueWorker.KEY_DROP_IT, isPro && binding.switchDropIt.isChecked)
+                    .putString(RenderQueueWorker.KEY_FRAME, frameValue)
+                    .putString(RenderQueueWorker.KEY_TITLE_TEXT, titleText)
+                    .putString(RenderQueueWorker.KEY_TITLE_BG, titleBg)
+                    .putString(RenderQueueWorker.KEY_TITLE_DURATION, titleDuration)
+                    .putString(RenderQueueWorker.KEY_TITLE_FONT, titleFont)
+                    .putString(RenderQueueWorker.KEY_TITLE_STYLE, titleStyle)
+                    .putString(RenderQueueWorker.KEY_TITLE_FRAME, titleFrame)
+                    .putBoolean(RenderQueueWorker.KEY_FULL_TRACK, isFullTrack)
+                    .putInt(RenderQueueWorker.KEY_AUDIO_START, audioStartSeconds)
+                    .putInt(RenderQueueWorker.KEY_AUDIO_END, audioEndSeconds)
+                    .build()
+
+                val workRequest = OneTimeWorkRequestBuilder<RenderQueueWorker>()
+                    .addTag(RenderQueueWorker.TAG)
+                    .setInputData(data)
+                    .build()
+
+                WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+                    "snapbeat_active_render",
+                    ExistingWorkPolicy.REPLACE,
+                    workRequest
+                )
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "🎬 Added to render queue! You can safely close or minimize the app.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    binding.tvQueueBadge.text = "ERROR"
+                    binding.tvQueueBadge.setTextColor(Color.parseColor("#FF4D8D"))
+                    binding.tvQueueStatus.text = "Failed to queue job: ${e.message}"
+                }
+            }
+        }
+    }
+
+    private fun setupQueueObserver() {
+        WorkManager.getInstance(applicationContext)
+            .getWorkInfosByTagLiveData(RenderQueueWorker.TAG)
+            .observe(this) { workInfoList ->
+                if (workInfoList.isNullOrEmpty()) return@observe
+                val info = workInfoList.maxByOrNull { it.generation } ?: workInfoList.last()
+                when (info.state) {
+                    WorkInfo.State.ENQUEUED -> {
+                        binding.cardQueueTray.visibility = View.VISIBLE
+                        binding.queueProgressBar.visibility = View.VISIBLE
+                        binding.queueProgressBar.isIndeterminate = true
+                        binding.tvQueueBadge.text = "QUEUED"
+                        binding.tvQueueBadge.setTextColor(Color.parseColor("#FFE14D"))
+                        binding.tvQueueStatus.text = "Waiting to run in background • Safe to close app"
+                        binding.btnViewQueueVideo.visibility = View.GONE
+                    }
+                    WorkInfo.State.RUNNING -> {
+                        binding.cardQueueTray.visibility = View.VISIBLE
+                        binding.queueProgressBar.visibility = View.VISIBLE
+                        binding.tvQueueBadge.text = "RUNNING"
+                        binding.tvQueueBadge.setTextColor(Color.parseColor("#FFE14D"))
+                        val stage = info.progress.getString("stage") ?: "Processing in background..."
+                        val progress = info.progress.getInt("progress", 0)
+                        binding.queueProgressBar.isIndeterminate = (progress <= 0)
+                        binding.queueProgressBar.progress = progress
+                        binding.tvQueueStatus.text = "$stage • Safe to close app"
+                        binding.btnViewQueueVideo.visibility = View.GONE
+                    }
+                    WorkInfo.State.SUCCEEDED -> {
+                        binding.cardQueueTray.visibility = View.VISIBLE
+                        binding.queueProgressBar.visibility = View.GONE
+                        binding.tvQueueBadge.text = "COMPLETE ✓"
+                        binding.tvQueueBadge.setTextColor(Color.parseColor("#3DD4FF"))
+                        binding.tvQueueStatus.text = "Video rendered & saved to your Gallery! 🎬"
+                        val videoUriStr = info.outputData.getString(RenderQueueWorker.OUTPUT_VIDEO_URI)
+                        if (!videoUriStr.isNullOrEmpty()) {
+                            binding.btnViewQueueVideo.visibility = View.VISIBLE
+                            binding.btnViewQueueVideo.setOnClickListener {
+                                val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
+                                    putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
+                                }
+                                startActivity(intent)
+                            }
+                        }
+                    }
+                    WorkInfo.State.FAILED -> {
+                        binding.cardQueueTray.visibility = View.VISIBLE
+                        binding.queueProgressBar.visibility = View.GONE
+                        binding.tvQueueBadge.text = "FAILED ⚠️"
+                        binding.tvQueueBadge.setTextColor(Color.parseColor("#FF4D8D"))
+                        val error = info.outputData.getString("error") ?: "Background render failed"
+                        binding.tvQueueStatus.text = error
+                        binding.btnViewQueueVideo.visibility = View.GONE
+                    }
+                    WorkInfo.State.CANCELLED -> {
+                        binding.cardQueueTray.visibility = View.GONE
+                    }
+                    else -> {}
+                }
+            }
     }
 
     private fun setupSpinners(isDark: Boolean) {
@@ -871,6 +1169,10 @@ class MainActivity : AppCompatActivity() {
             binding.tvDropItDesc.alpha = 0.5f
             binding.divPro2.setBackgroundColor(Color.parseColor("#333333"))
             binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#3DD4FF"))
+            binding.divProQuality.setBackgroundColor(Color.parseColor("#333333"))
+            binding.tvQualityHeader.setTextColor(Color.parseColor("#3DD4FF"))
+            binding.rbQualityFast.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.rbQualityMaster.setTextColor(Color.parseColor("#FFFCF5"))
             binding.divPro3.setBackgroundColor(Color.parseColor("#333333"))
             binding.tvTitleCardHeader.setTextColor(Color.parseColor("#FFE14D"))
             binding.tvTitleFontLabel.setTextColor(Color.parseColor("#999999"))
@@ -882,6 +1184,11 @@ class MainActivity : AppCompatActivity() {
             binding.rbBgVideo.setTextColor(Color.parseColor("#FFFCF5"))
             binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#999999"))
             binding.tvTitleDuration.setTextColor(Color.parseColor("#FFE14D"))
+
+            // Queue tray styling
+            binding.cardQueueTray.setBackgroundResource(R.drawable.card_dark)
+            binding.tvQueueTitle.setTextColor(Color.parseColor("#3DD4FF"))
+            binding.tvQueueStatus.setTextColor(Color.parseColor("#FFFCF5"))
 
             // Inputs & Spinners
             binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro)
@@ -919,6 +1226,10 @@ class MainActivity : AppCompatActivity() {
             binding.tvDropItDesc.alpha = 0.8f
             binding.divPro2.setBackgroundColor(Color.parseColor("#E0E0E0"))
             binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#0288D1"))
+            binding.divProQuality.setBackgroundColor(Color.parseColor("#E0E0E0"))
+            binding.tvQualityHeader.setTextColor(Color.parseColor("#0288D1"))
+            binding.rbQualityFast.setTextColor(Color.parseColor("#222222"))
+            binding.rbQualityMaster.setTextColor(Color.parseColor("#222222"))
             binding.divPro3.setBackgroundColor(Color.parseColor("#E0E0E0"))
             binding.tvTitleCardHeader.setTextColor(Color.parseColor("#1A1A1A"))
             binding.tvTitleFontLabel.setTextColor(Color.parseColor("#555555"))
@@ -930,6 +1241,11 @@ class MainActivity : AppCompatActivity() {
             binding.rbBgVideo.setTextColor(Color.parseColor("#222222"))
             binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#555555"))
             binding.tvTitleDuration.setTextColor(Color.parseColor("#1A1A1A"))
+
+            // Queue tray styling
+            binding.cardQueueTray.setBackgroundResource(R.drawable.card_light)
+            binding.tvQueueTitle.setTextColor(Color.parseColor("#0288D1"))
+            binding.tvQueueStatus.setTextColor(Color.parseColor("#333333"))
 
             // Inputs & Spinners
             binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro_light)

@@ -237,6 +237,54 @@
                 android:popupBackground="#2A2A2A" />
 
             <View
+                android:id="@+id/divProQuality"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#333333"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/tvQualityHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚡ VIDEO QUALITY"
+                android:textStyle="bold"
+                android:textColor="#3DD4FF"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="8dp" />
+
+            <RadioGroup
+                android:id="@+id/rgVideoQuality"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbQualityFast"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Optimized (Fast Download ~5 MB)"
+                    android:textColor="#FFFCF5"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:buttonTint="#3DD4FF"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rbQualityMaster"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Master Quality (Full Bitrate ~20 MB)"
+                    android:textColor="#FFFCF5"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:buttonTint="#3DD4FF" />
+            </RadioGroup>
+
+            <View
                 android:id="@+id/divPro3"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -724,15 +772,99 @@
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnRender"
                 android:layout_width="match_parent"
-                android:layout_height="68dp"
+                android:layout_height="64dp"
                 android:background="@drawable/btn_retro_yellow"
-                android:text="▶  RENDER VIDEO"
-                android:textSize="20sp"
+                android:text="⚡  INSTANT RENDER"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="#000000"
                 android:fontFamily="sans-serif-black"
                 android:stateListAnimator="@null"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="10dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnQueue"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:background="@drawable/btn_retro_blue"
+                android:text="📥  ADD TO QUEUE (BACKGROUND)"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:fontFamily="sans-serif-black"
+                android:stateListAnimator="@null"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:id="@+id/cardQueueTray"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_dark"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvQueueTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📥 BACKGROUND QUEUE"
+                        android:textStyle="bold"
+                        android:textColor="#3DD4FF"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-black" />
+
+                    <TextView
+                        android:id="@+id/tvQueueBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="QUEUED"
+                        android:textStyle="bold"
+                        android:textColor="#FFE14D"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-black" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/queueProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:max="100"
+                    android:progressDrawable="@drawable/progress_retro"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:id="@+id/tvQueueStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Processing in background • Safe to close app"
+                    android:textColor="#FFFCF5"
+                    android:alpha="0.85"
+                    android:textSize="11sp" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnViewQueueVideo"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/btn_retro_pink"
+                    android:text="🎬 VIEW RENDERED VIDEO"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:fontFamily="sans-serif-black"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnRetry"
@@ -744,7 +876,7 @@
                 android:textStyle="bold"
                 android:background="@drawable/btn_retro_yellow"
                 android:visibility="gone"
-                android:layout_marginTop="8dp" />
+                android:layout_marginBottom="16dp" />
         </LinearLayout>
 
     </LinearLayout>
