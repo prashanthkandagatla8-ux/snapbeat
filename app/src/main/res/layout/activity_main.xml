@@ -80,21 +80,58 @@
                         android:layout_marginStart="6dp" />
                 </LinearLayout>
 
-                <!-- Theme Selector Button -->
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btnThemeSelect"
+                <!-- Segmented 3-Way Theme Selector Bar -->
+                <LinearLayout
+                    android:id="@+id/layoutThemeBar"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="🎨 THEME: DARK ▾"
-                    android:textColor="#FFE14D"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-black"
-                    android:background="@drawable/badge_circle"
-                    android:stateListAnimator="@null"
-                    android:layout_marginTop="3dp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_theme_bar"
+                    android:layout_marginTop="3dp">
+
+                    <TextView
+                        android:id="@+id/btnThemeDark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:paddingStart="9dp"
+                        android:paddingEnd="9dp"
+                        android:text="🌙 DARK"
+                        android:textColor="#111111"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black"
+                        android:background="@drawable/bg_theme_pill_active_dark" />
+
+                    <TextView
+                        android:id="@+id/btnThemeLight"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:paddingStart="9dp"
+                        android:paddingEnd="9dp"
+                        android:text="☀️ LIGHT"
+                        android:textColor="#888888"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black"
+                        android:background="@drawable/bg_theme_pill_inactive" />
+
+                    <TextView
+                        android:id="@+id/btnThemeY2K"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:paddingStart="9dp"
+                        android:paddingEnd="9dp"
+                        android:text="📼 Y2K"
+                        android:textColor="#888888"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black"
+                        android:background="@drawable/bg_theme_pill_inactive" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -135,7 +172,7 @@
             <Spinner
                 android:id="@+id/spinnerTemplate"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:background="@drawable/spinner_retro"
                 android:popupBackground="#2A2A2A" />
 
@@ -209,7 +246,7 @@
             <Spinner
                 android:id="@+id/spinnerAspectRatio"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:background="@drawable/spinner_retro"
                 android:popupBackground="#2A2A2A" />
 
@@ -261,53 +298,6 @@
                     android:buttonTint="#3DD4FF" />
             </RadioGroup>
 
-            <View
-                android:id="@+id/divProArrangement"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#333333"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="10dp" />
-
-            <TextView
-                android:id="@+id/tvArrangementHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✨ PHOTO ARRANGEMENT"
-                android:textStyle="bold"
-                android:textColor="#FFE14D"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-black"
-                android:letterSpacing="0.05"
-                android:layout_marginBottom="8dp" />
-
-            <RadioGroup
-                android:id="@+id/rgArrangement"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <RadioButton
-                    android:id="@+id/rbArrangeAuto"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="🤖 AI Smart Arrange (Gemini Beat-Sync)"
-                    android:textColor="#FFFCF5"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:buttonTint="#FFE14D"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/rbArrangeManual"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="✋ Manual (Drag &amp; Drop Custom Order)"
-                    android:textColor="#FFFCF5"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:buttonTint="#FFE14D" />
-            </RadioGroup>
 
             <View
                 android:id="@+id/divPro3"
@@ -332,12 +322,13 @@
             <EditText
                 android:id="@+id/etTitleText"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
+                android:gravity="center_vertical"
                 android:hint="Enter title text (optional)"
                 android:textColor="#FFFCF5"
                 android:textColorHint="#666666"
                 android:textSize="14sp"
-                android:background="@drawable/spinner_retro"
+                android:background="@drawable/edit_retro"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:singleLine="true"
@@ -359,10 +350,8 @@
             <Spinner
                 android:id="@+id/spinnerTitleFont"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/spinner_retro"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp" />
+                android:layout_height="52dp"
+                android:background="@drawable/spinner_retro" />
 
             <!-- Visual Style Selector -->
             <TextView
@@ -378,10 +367,8 @@
             <Spinner
                 android:id="@+id/spinnerTitleStyle"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/spinner_retro"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp" />
+                android:layout_height="52dp"
+                android:background="@drawable/spinner_retro" />
 
             <!-- Decorative Frame Selector -->
             <TextView
@@ -397,10 +384,8 @@
             <Spinner
                 android:id="@+id/spinnerTitleFrame"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/spinner_retro"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp" />
+                android:layout_height="52dp"
+                android:background="@drawable/spinner_retro" />
 
             <TextView
                 android:id="@+id/tvTitleBgLabel"
@@ -459,7 +444,7 @@
                 android:textColor="#FFFCF5"
                 android:textColorHint="#666666"
                 android:textSize="12sp"
-                android:background="@drawable/spinner_retro"
+                android:background="@drawable/edit_retro"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:singleLine="true"
@@ -753,6 +738,66 @@
                 android:fontFamily="casual"
                 android:textSize="12sp"
                 android:textStyle="bold" />
+
+            <!-- Photo Arrangement Selector (Near Photo Selection) -->
+            <View
+                android:id="@+id/divPhotoArrange"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#2E2E2E"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/layoutArrangementSelector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvArrangementHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✨ PHOTO ARRANGEMENT"
+                    android:textStyle="bold"
+                    android:textColor="#3DD4FF"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.08"
+                    android:layout_marginBottom="4dp" />
+
+                <RadioGroup
+                    android:id="@+id/rgArrangement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbArrangeAuto"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🤖 Auto (Gemini AI)"
+                        android:textColor="#FFFCF5"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:buttonTint="#FFE14D"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/rbArrangeManual"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="✋ Manual (Drag &amp; Drop)"
+                        android:textColor="#FFFCF5"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:buttonTint="#FFE14D" />
+                </RadioGroup>
+            </LinearLayout>
+
+
 
             <!-- AI Auto Arrange Indicator Badge -->
             <LinearLayout

@@ -11,13 +11,7 @@
             <solid android:color="#FFF9ED" />
             <stroke android:width="2dp" android:color="#2B2A27" />
             <corners android:radius="10dp" />
+            <padding android:left="14dp" android:top="0dp" android:right="14dp" android:bottom="0dp" />
         </shape>
     </item>
-    <item
-        android:drawable="@drawable/ic_dropdown_arrow_amber"
-        android:gravity="end|center_vertical"
-        android:right="16dp"
-        android:bottom="2dp"
-        android:width="12dp"
-        android:height="8dp" />
 </layer-list>
