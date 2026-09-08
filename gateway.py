@@ -213,13 +213,13 @@ async def render_status(composite_id: str):
 
 
 @app.get("/api/render/download/{composite_id}")
-async def render_download(composite_id: str):
+async def render_download(composite_id: str, delete_after: bool = False):
     """Proxy the video download from the correct backend."""
     backend_url, local_id = _resolve_job_id(composite_id)
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             resp = await client.get(
-                f"{backend_url}/api/render/download/{local_id}",
+                f"{backend_url}/api/render/download/{local_id}?delete_after={'true' if delete_after else 'false'}",
             )
         if resp.status_code != 200:
             raise HTTPException(status_code=resp.status_code, detail="download failed")
@@ -227,9 +227,26 @@ async def render_download(composite_id: str):
             content=resp.content,
             media_type="video/mp4",
             headers={
-                "content-disposition": f'attachment; filename="snapbeat_{composite_id}.mp4"'
+                "content-disposition": f'attachment; filename="snapbeat_{composite_id}.mp4"',
+                "content-length": str(len(resp.content)),
             },
         )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"backend error: {exc}")
+
+
+@app.post("/api/render/cleanup/{composite_id}")
+async def render_cleanup(composite_id: str):
+    """Forward cleanup request to the backend that processed this job."""
+    backend_url, local_id = _resolve_job_id(composite_id)
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(f"{backend_url}/api/render/cleanup/{local_id}")
+        if resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail="cleanup failed")
+        return resp.json()
     except HTTPException:
         raise
     except Exception as exc:
