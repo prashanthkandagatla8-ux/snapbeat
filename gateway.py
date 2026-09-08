@@ -21,7 +21,8 @@ import httpx
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, JSONResponse
+from fastapi.responses import Response, JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="SnapBeat Gateway", version="1.0.0")
 
@@ -58,12 +59,19 @@ def _poll_health():
             try:
                 r = httpx.get(f"{url}/api/health", timeout=5.0)
                 data = r.json()
+                is_ok = data.get("ok", False) or data.get("status") == "ok"
+                if "available" in data:
+                    avail = data["available"]
+                elif is_ok:
+                    avail = 4 if data.get("worker_job") is None else 1
+                else:
+                    avail = 0
                 with _health_lock:
                     _backend_health[url] = {
-                        "available": data.get("available", 0),
-                        "active_jobs": data.get("active_jobs", 0),
+                        "available": avail,
+                        "active_jobs": data.get("active_jobs", 1 if data.get("worker_job") else 0),
                         "max_workers": data.get("max_workers", 4),
-                        "status": "ok",
+                        "status": "ok" if is_ok else "down",
                         "last_check": time.time(),
                     }
             except Exception:
@@ -136,10 +144,20 @@ def _resolve_job_id(composite_id: str) -> tuple[str, int]:
             raise HTTPException(status_code=400, detail="invalid backend index")
 
 
+# -- Web Static Mounting -----------------------------------------------------
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+if not WEB_DIR.is_dir():
+    WEB_DIR = Path(__file__).resolve().parent / "web"
+
+if WEB_DIR.is_dir():
+    app.mount("/web", StaticFiles(directory=str(WEB_DIR), html=True), name="web")
+
 # -- Endpoints ---------------------------------------------------------------
 
 @app.get("/")
 def gateway_index():
+    if WEB_DIR.is_dir():
+        return RedirectResponse(url="/web/")
     return {
         "service": "SnapBeat Gateway",
         "status": "online",
@@ -173,6 +191,8 @@ async def render_mobile(request: Request):
                 content=body,
                 headers={"content-type": content_type},
             )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail=f"backend error: {resp.text}")
         data = resp.json()
         local_id = data.get("job_id")
         return {"job_id": f"{prefix}_{local_id}"}
