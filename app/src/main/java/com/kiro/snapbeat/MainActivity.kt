@@ -60,11 +60,14 @@ class MainActivity : AppCompatActivity() {
     private var audioStartSeconds: Int = 0
     private var audioEndSeconds: Int = 0
     private var isFullTrack: Boolean = true
-    enum class RenderMode {
-        INSTANT,
-        FREE_QUEUE
+    enum class NavPage {
+        AUTO,
+        PRO,
+        QUEUE
     }
-    private var currentRenderMode: RenderMode = RenderMode.INSTANT
+    private var currentNavPage: NavPage = NavPage.AUTO
+    private var isDarkMode: Boolean = true
+    private val KEY_DARK_MODE = "is_dark_mode_enabled"
     private val PREFS_NAME = "snapbeat_prefs"
     private val KEY_PRIVACY_ACCEPTED = "privacy_policy_accepted_v1"
     private val PRIVACY_POLICY_URL = "https://github.com/prashanthkandagatla8-ux/snapbeat/blob/android/PRIVACY_POLICY.md"
@@ -117,7 +120,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val templates = arrayOf("Beat Cut", "Bounce", "Cine Zoom", "Fade", "Glide", "Mosaic Flow", "Mosaic Pulse", "Pendulum", "Pendulum OG", "Pulse", "Punch", "Reveal Bounce", "Reveal Boxes", "Reveal Circles", "Reveal Grid", "Reveal Spiral", "Slide", "Slow Drift", "Spin", "Sway", "Whip", "Zoom Out")
+    private val templates = arrayOf(
+        "Beat Cut",
+        "Bounce",
+        "Cine Zoom",
+        "Fade",
+        "Glide",
+        "Pendulum",
+        "Pulse",
+        "Punch",
+        "Reveal Boxes",
+        "Slide",
+        "Slow Drift",
+        "Sway",
+        "Whip",
+        "Zoom Out"
+    )
     private val aspectRatios = arrayOf("Portrait (9:16)", "Landscape (16:9)", "Square (1:1)")
     private val titleFonts = arrayOf("Bold Blockbuster (Impact)", "Elegant Serif (Georgia)", "Modern Minimal (Clean)", "Vintage Typewriter", "Casual Retro (Playful)")
     private val titleStyles = arrayOf("Classic Yellow Drop-Shadow", "Neon Glow (Electric Cyan)", "3D Retro Arcade Extrusion", "Cinematic All-Caps", "Badge Tag Container")
@@ -197,8 +215,28 @@ class MainActivity : AppCompatActivity() {
         fetchRemoteConfig()
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        setupSpinners()
-        updateModeSwitchLabels()
+
+        // Theme toggle setup (Light / Dark mode)
+        isDarkMode = prefs.getBoolean(KEY_DARK_MODE, true)
+        applyTheme(isDarkMode)
+
+        binding.layoutThemeToggle.setOnClickListener {
+            isDarkMode = !isDarkMode
+            prefs.edit().putBoolean(KEY_DARK_MODE, isDarkMode).apply()
+            applyTheme(isDarkMode)
+        }
+
+        // 3-Mode Segmented Navigation Bar (AUTO, PRO, QUEUE)
+        binding.tabNavAuto.setOnClickListener {
+            switchNavPage(NavPage.AUTO)
+        }
+        binding.tabNavPro.setOnClickListener {
+            switchNavPage(NavPage.PRO)
+        }
+        binding.tabNavQueue.setOnClickListener {
+            switchNavPage(NavPage.QUEUE)
+        }
+        switchNavPage(NavPage.AUTO)
 
         val spinnerListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -226,6 +264,12 @@ class MainActivity : AppCompatActivity() {
             if (isChecked) {
                 updateLiveTitlePreview()
             }
+        }
+
+        // Custom aspect ratio toggle (default off, 9:16 portrait)
+        binding.switchCustomAspectRatio.setOnCheckedChangeListener { _, isChecked ->
+            binding.spinnerAspectRatio.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding.tvAspectRatioDesc.text = if (isChecked) "Custom ratio active" else "Default: 9:16 Portrait (Reels/Shorts/TikTok)"
         }
 
         binding.tvPrivacyPolicyLink.setOnClickListener {
@@ -283,16 +327,6 @@ class MainActivity : AppCompatActivity() {
         // Set up the RecyclerView + ItemTouchHelper ONCE in onCreate
         setupPhotoOrderRecyclerView()
 
-        binding.switchMode.setOnCheckedChangeListener { _, isChecked ->
-            updateModeSwitchLabels()
-            if (isChecked) {
-                binding.proModeContainer.visibility = View.VISIBLE
-            } else {
-                binding.proModeContainer.visibility = View.GONE
-            }
-            updatePhotoArrangementVisibility()
-        }
-
         binding.rgArrangement.setOnCheckedChangeListener { _, _ ->
             updatePhotoArrangementVisibility()
         }
@@ -324,22 +358,7 @@ class MainActivity : AppCompatActivity() {
             showCreditStoreDialog(getRequiredCredits())
         }
 
-        binding.layoutWatermarkPill.setOnClickListener {
-            showCreditStoreDialog()
-        }
-
         binding.rgVideoQuality.setOnCheckedChangeListener { _, _ ->
-            updateDynamicRenderCost()
-        }
-
-        // Render Mode Tabs (Instant vs Free Queue)
-        binding.tabModeInstant.setOnClickListener {
-            currentRenderMode = RenderMode.INSTANT
-            updateDynamicRenderCost()
-        }
-
-        binding.tabModeQueue.setOnClickListener {
-            currentRenderMode = RenderMode.FREE_QUEUE
             updateDynamicRenderCost()
         }
 
@@ -349,19 +368,11 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please pick actual music and photos first!", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            when (currentRenderMode) {
-                RenderMode.INSTANT -> {
-                    val required = getRequiredCredits()
-                    if (creditManager.getCredits() < required) {
-                        showCreditStoreDialog(required)
-                        return@setOnClickListener
-                    }
-                    uploadAndRender()
-                }
-                RenderMode.FREE_QUEUE -> {
-                    queueBackgroundRender()
-                }
-            }
+            showRenderChoiceDialog()
+        }
+
+        binding.btnQueueNewVideo.setOnClickListener {
+            switchNavPage(NavPage.AUTO)
         }
 
         setupQueueObserver()
@@ -402,51 +413,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateDynamicRenderCost() {
         if (!::creditManager.isInitialized) return
-        val cost = getRequiredCredits()
-        val creditText = if (cost == 1) "1 CREDIT" else "$cost CREDITS"
-
-        when (currentRenderMode) {
-            RenderMode.INSTANT -> {
-                binding.tabModeInstant.setBackgroundResource(R.drawable.btn_retro_yellow)
-                binding.tabModeInstant.setTextColor(Color.parseColor("#000000"))
-                binding.tabModeQueue.setBackgroundColor(Color.TRANSPARENT)
-                binding.tabModeQueue.setTextColor(Color.parseColor("#888888"))
-
-                binding.btnUnifiedRender.setBackgroundResource(R.drawable.btn_retro_yellow)
-                binding.btnUnifiedRender.setTextColor(Color.parseColor("#000000"))
-                binding.btnUnifiedRender.text = "⚡  RENDER INSTANT ($creditText)"
-
-                binding.tvRenderModeDescription.text = "⚡ Instant Cloud Run • Zero wait • Watermark-free"
-                binding.tvRenderModeDescription.setTextColor(Color.parseColor("#FFE14D"))
-            }
-            RenderMode.FREE_QUEUE -> {
-                binding.tabModeInstant.setBackgroundColor(Color.TRANSPARENT)
-                binding.tabModeInstant.setTextColor(Color.parseColor("#888888"))
-                binding.tabModeQueue.setBackgroundResource(R.drawable.btn_retro_blue)
-                binding.tabModeQueue.setTextColor(Color.parseColor("#000000"))
-
-                binding.btnUnifiedRender.setBackgroundResource(R.drawable.btn_retro_blue)
-                binding.btnUnifiedRender.setTextColor(Color.parseColor("#000000"))
-                binding.btnUnifiedRender.text = "📥  FREE QUEUE (UNLIMITED)"
-
-                binding.tvRenderModeDescription.text = "📥 100% Free on VPS • Safe to close app • Free watermark"
-                binding.tvRenderModeDescription.setTextColor(Color.parseColor("#3DD4FF"))
-            }
-        }
-        updateWatermarkUI()
+        val count = creditManager.getCredits()
+        val label = if (count == 1) "CREDIT" else "CREDITS"
+        binding.tvCreditBalance.text = "$count $label"
     }
 
     private fun updateWatermarkUI() {
-        if (!::creditManager.isInitialized) return
-        if (creditManager.isProSubscriber()) {
-            binding.tvWatermarkStatus.text = "👑 Pro Active: Watermark Removed!"
-            binding.tvWatermarkStatus.setTextColor(Color.parseColor("#FFE14D"))
-            binding.tvWatermarkAction.visibility = View.GONE
-        } else {
-            binding.tvWatermarkStatus.text = "🚫 Watermark: ON (Free Queue)"
-            binding.tvWatermarkAction.visibility = View.VISIBLE
-            binding.tvWatermarkAction.text = "REMOVE (PRO ₹199/MO) ❯"
-        }
+        // Status handled in render dialog and queue
     }
 
     private fun updateCreditBalanceUI() {
@@ -454,7 +427,6 @@ class MainActivity : AppCompatActivity() {
         val count = creditManager.getCredits()
         val label = if (count == 1) "CREDIT" else "CREDITS"
         binding.tvCreditBalance.text = "$count $label"
-        updateDynamicRenderCost()
     }
 
     private fun showCreditStoreDialog(requiredCredits: Int = 0) {
@@ -789,32 +761,25 @@ class MainActivity : AppCompatActivity() {
                     builder.addFormDataPart("photos", photoFile.name, photoFile.asRequestBody("image/*".toMediaTypeOrNull()))
                 }
 
-                if (binding.switchMode.isChecked) {
-                    val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "simple"
+                val isPro = (currentNavPage == NavPage.PRO)
+                if (isPro) {
+                    val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "Beat Cut"
                     val templateName = when(selection) {
                         "Beat Cut" -> "beat-cut"
                         "Bounce" -> "beat-bounce"
                         "Cine Zoom" -> "cinematic-zoom"
                         "Fade" -> "beat-fade"
                         "Glide" -> "glide-pan"
-                        "Mosaic Flow" -> "mosaic-flow"
-                        "Mosaic Pulse" -> "aesthetic-beat-mosaic"
                         "Pendulum" -> "pendulum"
-                        "Pendulum OG" -> "beat-pendulum"
                         "Pulse" -> "beat-pulse"
                         "Punch" -> "punch-cut"
-                        "Reveal Bounce" -> "reveal-tiles-bounce"
                         "Reveal Boxes" -> "reveal-tiles"
-                        "Reveal Circles" -> "reveal-circles"
-                        "Reveal Grid" -> "reveal-tiles-fine"
-                        "Reveal Spiral" -> "reveal-spiral"
                         "Slide" -> "beat-slide"
                         "Slow Drift" -> "slow-drift"
-                        "Spin" -> "beat-spin"
                         "Sway" -> "sway-ballad"
                         "Whip" -> "beat-whip"
                         "Zoom Out" -> "zoom-out-reveal"
-                        else -> "simple"
+                        else -> "beat-cut"
                     }
                     builder.addFormDataPart("template", templateName)
 
@@ -823,12 +788,16 @@ class MainActivity : AppCompatActivity() {
                         builder.addFormDataPart("drop_it", "true")
                     }
 
-                    // Send aspect ratio
-                    val frameValue = when(binding.spinnerAspectRatio.selectedItemPosition) {
-                        0 -> "portrait"
-                        1 -> "landscape"
-                        2 -> "square"
-                        else -> "portrait"
+                    // Send aspect ratio if custom toggle is enabled
+                    val frameValue = if (binding.switchCustomAspectRatio.isChecked) {
+                        when(binding.spinnerAspectRatio.selectedItemPosition) {
+                            0 -> "portrait"
+                            1 -> "landscape"
+                            2 -> "square"
+                            else -> "portrait"
+                        }
+                    } else {
+                        "portrait"
                     }
                     builder.addFormDataPart("frame", frameValue)
 
@@ -890,7 +859,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Photo arrangement: auto (Gemini / smart) vs manual
-                val isPro = binding.switchMode.isChecked
                 val autoArrange = if (binding.rbArrangeAuto.isChecked) "auto" else "manual"
                 builder.addFormDataPart("auto_arrange", autoArrange)
 
@@ -1129,41 +1097,33 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Determine options
-                val isPro = binding.switchMode.isChecked
+                val isPro = (currentNavPage == NavPage.PRO)
                 val quality = if (isPro && binding.rbQualityMaster.isChecked) "master" else "fast"
 
                 val templateName = if (isPro) {
-                    val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "simple"
+                    val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "Beat Cut"
                     when (selection) {
                         "Beat Cut" -> "beat-cut"
                         "Bounce" -> "beat-bounce"
                         "Cine Zoom" -> "cinematic-zoom"
                         "Fade" -> "beat-fade"
                         "Glide" -> "glide-pan"
-                        "Mosaic Flow" -> "mosaic-flow"
-                        "Mosaic Pulse" -> "aesthetic-beat-mosaic"
                         "Pendulum" -> "pendulum"
-                        "Pendulum OG" -> "beat-pendulum"
                         "Pulse" -> "beat-pulse"
                         "Punch" -> "punch-cut"
-                        "Reveal Bounce" -> "reveal-tiles-bounce"
                         "Reveal Boxes" -> "reveal-tiles"
-                        "Reveal Circles" -> "reveal-circles"
-                        "Reveal Grid" -> "reveal-tiles-fine"
-                        "Reveal Spiral" -> "reveal-spiral"
                         "Slide" -> "beat-slide"
                         "Slow Drift" -> "slow-drift"
-                        "Spin" -> "beat-spin"
                         "Sway" -> "sway-ballad"
                         "Whip" -> "beat-whip"
                         "Zoom Out" -> "zoom-out-reveal"
-                        else -> "simple"
+                        else -> "beat-cut"
                     }
                 } else {
-                    "simple"
+                    "beat-cut"
                 }
 
-                val frameValue = if (isPro) {
+                val frameValue = if (isPro && binding.switchCustomAspectRatio.isChecked) {
                     when (binding.spinnerAspectRatio.selectedItemPosition) {
                         0 -> "portrait"
                         1 -> "landscape"
@@ -1288,6 +1248,7 @@ class MainActivity : AppCompatActivity() {
                         binding.tvQueueBadge.text = "QUEUED"
                         binding.tvQueueBadge.setTextColor(Color.parseColor("#FFE14D"))
                         binding.tvQueueStatus.text = "Waiting to run in background • Safe to close app"
+                        binding.layoutQueueResultCard.visibility = View.GONE
                         binding.btnViewQueueVideo.visibility = View.GONE
                     }
                     WorkInfo.State.RUNNING -> {
@@ -1300,6 +1261,7 @@ class MainActivity : AppCompatActivity() {
                         binding.queueProgressBar.isIndeterminate = (progress <= 0)
                         binding.queueProgressBar.progress = progress
                         binding.tvQueueStatus.text = "$stage • Safe to close app"
+                        binding.layoutQueueResultCard.visibility = View.GONE
                         binding.btnViewQueueVideo.visibility = View.GONE
                     }
                     WorkInfo.State.SUCCEEDED -> {
@@ -1310,15 +1272,32 @@ class MainActivity : AppCompatActivity() {
                         binding.tvQueueStatus.text = "Video rendered & ready! 🎬"
                         val videoUriStr = info.outputData.getString(RenderQueueWorker.OUTPUT_VIDEO_URI)
                         if (!videoUriStr.isNullOrEmpty()) {
+                            binding.layoutQueueResultCard.visibility = View.VISIBLE
                             binding.btnViewQueueVideo.visibility = View.VISIBLE
                             binding.btnViewQueueVideo.setOnClickListener {
-                                if (unlockedVideoUris.contains(videoUriStr) || !creditManager.shouldShowAd(isInstant = false)) {
+                                if (unlockedVideoUris.contains(videoUriStr) || creditManager.isProSubscriber()) {
                                     val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
                                         putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
                                     }
                                     startActivity(intent)
                                 } else {
-                                    showSponsorUnlockDialog(videoUriStr)
+                                    binding.btnViewQueueVideo.isEnabled = false
+                                    Toast.makeText(this@MainActivity, "Loading sponsor message to unlock video...", Toast.LENGTH_SHORT).show()
+                                    rewardedAdManager.showRewardedAd(
+                                        activity = this@MainActivity,
+                                        onUnlocked = {
+                                            binding.btnViewQueueVideo.isEnabled = true
+                                            unlockedVideoUris.add(videoUriStr)
+                                            val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
+                                                putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
+                                            }
+                                            startActivity(intent)
+                                        },
+                                        onIncompleteOrFailed = { reason ->
+                                            binding.btnViewQueueVideo.isEnabled = true
+                                            Toast.makeText(this@MainActivity, reason, Toast.LENGTH_LONG).show()
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -1330,10 +1309,12 @@ class MainActivity : AppCompatActivity() {
                         binding.tvQueueBadge.setTextColor(Color.parseColor("#FF4D8D"))
                         val error = info.outputData.getString("error") ?: "Background render failed"
                         binding.tvQueueStatus.text = error
+                        binding.layoutQueueResultCard.visibility = View.GONE
                         binding.btnViewQueueVideo.visibility = View.GONE
                     }
                     WorkInfo.State.CANCELLED -> {
                         binding.cardQueueTray.visibility = View.GONE
+                        binding.layoutQueueResultCard.visibility = View.GONE
                     }
                     else -> {}
                 }
@@ -1342,15 +1323,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun updatePhotoArrangementVisibility() {
         if (binding.rbArrangeManual.isChecked) {
-            binding.layoutAutoArrangeBadge.visibility = View.GONE
             binding.rvPhotoOrder.visibility = if (selectedPhotos.isNotEmpty()) View.VISIBLE else View.GONE
         } else {
             binding.rvPhotoOrder.visibility = View.GONE
-            binding.layoutAutoArrangeBadge.visibility = View.VISIBLE
-            binding.tvAutoArrangeBadge.text = "AI SMART ARRANGE (GEMINI BEAT-SYNC)"
         }
     }
-
 
     private fun showProminentPrivacyDisclosureDialog() {
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
@@ -1409,56 +1386,210 @@ class MainActivity : AppCompatActivity() {
         }
         builder.show()
     }
-    private fun setupSpinners() {
+
+    private fun showRenderChoiceDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_render_choice, null)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val btnInstant = dialogView.findViewById<android.widget.Button>(R.id.btnChooseInstant)
+        val btnQueue = dialogView.findViewById<android.widget.Button>(R.id.btnChooseQueue)
+        val btnCancel = dialogView.findViewById<android.widget.Button>(R.id.btnCancelChoice)
+
+        val required = getRequiredCredits()
+        val creditText = if (required == 1) "1 CREDIT" else "$required CREDITS"
+        btnInstant.text = "⚡ RENDER INSTANT ($creditText)"
+
+        btnInstant.setOnClickListener {
+            dialog.dismiss()
+            if (creditManager.getCredits() < required) {
+                showCreditStoreDialog(required)
+            } else {
+                uploadAndRender()
+            }
+        }
+
+        btnQueue.setOnClickListener {
+            dialog.dismiss()
+            if (creditManager.isProSubscriber()) {
+                queueBackgroundRender()
+                switchNavPage(NavPage.QUEUE)
+            } else {
+                showWatermarkChoiceDialog()
+            }
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun showWatermarkChoiceDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("🎬 Free Queue Render")
+            .setMessage("Free renders process on our VPS engine and include a subtle SnapBeat watermark.\n\nWould you like to render with watermark, or remove it with Credits / Pro Pass?")
+            .setPositiveButton("Render with Watermark") { d, _ ->
+                d.dismiss()
+                queueBackgroundRender()
+                switchNavPage(NavPage.QUEUE)
+            }
+            .setNeutralButton("Remove Watermark") { d, _ ->
+                d.dismiss()
+                showCreditStoreDialog(getRequiredCredits())
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun applyTheme(darkMode: Boolean) {
+        if (darkMode) {
+            binding.tvThemeIcon.text = "🌙"
+            binding.tvThemeLabel.text = "DARK"
+            binding.tvThemeLabel.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.rootScrollView.setBackgroundColor(Color.parseColor("#1A1A1A"))
+            window.statusBarColor = Color.parseColor("#1A1A1A")
+            window.navigationBarColor = Color.parseColor("#1A1A1A")
+            WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+            binding.cardMusic.setBackgroundResource(R.drawable.card_dark)
+            binding.cardPhotos.setBackgroundResource(R.drawable.card_dark)
+            binding.proModeContainer.setBackgroundResource(R.drawable.card_dark)
+            binding.cardQueueTray.setBackgroundResource(R.drawable.card_dark)
+
+            binding.layoutNavToggle.setBackgroundResource(R.drawable.bg_credit_meter)
+            binding.layoutThemeToggle.setBackgroundResource(R.drawable.bg_credit_meter)
+            binding.layoutCreditMeter.setBackgroundResource(R.drawable.bg_credit_meter)
+
+            binding.tvSubtitle.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvStatus.setTextColor(Color.parseColor("#FFFCF5"))
+            binding.tvPrivacyPolicyLink.setTextColor(Color.parseColor("#888888"))
+            binding.tvAppVersion.setTextColor(Color.parseColor("#555555"))
+
+            setupSpinners(isDark = true)
+        } else {
+            binding.tvThemeIcon.text = "☀️"
+            binding.tvThemeLabel.text = "LIGHT"
+            binding.tvThemeLabel.setTextColor(Color.parseColor("#1A1A1A"))
+            binding.rootScrollView.setBackgroundColor(Color.parseColor("#F4F4F6"))
+            window.statusBarColor = Color.parseColor("#F4F4F6")
+            window.navigationBarColor = Color.parseColor("#F4F4F6")
+            WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+
+            binding.cardMusic.setBackgroundResource(R.drawable.card_light)
+            binding.cardPhotos.setBackgroundResource(R.drawable.card_light)
+            binding.proModeContainer.setBackgroundResource(R.drawable.card_light)
+            binding.cardQueueTray.setBackgroundResource(R.drawable.card_light)
+
+            binding.layoutNavToggle.setBackgroundResource(R.drawable.bg_credit_meter_light)
+            binding.layoutThemeToggle.setBackgroundResource(R.drawable.bg_credit_meter_light)
+            binding.layoutCreditMeter.setBackgroundResource(R.drawable.bg_credit_meter_light)
+
+            binding.tvSubtitle.setTextColor(Color.parseColor("#222222"))
+            binding.tvStatus.setTextColor(Color.parseColor("#1A1A1A"))
+            binding.tvPrivacyPolicyLink.setTextColor(Color.parseColor("#555555"))
+            binding.tvAppVersion.setTextColor(Color.parseColor("#777777"))
+
+            setupSpinners(isDark = false)
+        }
+        switchNavPage(currentNavPage)
+    }
+
+    private fun setupSpinners(isDark: Boolean = true) {
         val templatePos = binding.spinnerTemplate.selectedItemPosition.coerceAtLeast(0)
         val aspectPos = binding.spinnerAspectRatio.selectedItemPosition.coerceAtLeast(0)
         val fontPos = binding.spinnerTitleFont.selectedItemPosition.coerceAtLeast(0)
         val stylePos = binding.spinnerTitleStyle.selectedItemPosition.coerceAtLeast(0)
         val framePos = binding.spinnerTitleFrame.selectedItemPosition.coerceAtLeast(0)
 
-        binding.spinnerTemplate.adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, templates).apply {
-            setDropDownViewResource(R.layout.spinner_dropdown_item)
+        val itemRes = if (isDark) R.layout.spinner_item else R.layout.spinner_item_light
+        val dropRes = if (isDark) R.layout.spinner_dropdown_item else R.layout.spinner_dropdown_item_light
+        val popupBg = android.graphics.drawable.ColorDrawable(Color.parseColor(if (isDark) "#2A2A2A" else "#FFFFFF"))
+
+        binding.spinnerTemplate.adapter = android.widget.ArrayAdapter(this, itemRes, templates).apply {
+            setDropDownViewResource(dropRes)
         }
         binding.spinnerTemplate.setSelection(templatePos)
 
-        binding.spinnerAspectRatio.adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, aspectRatios).apply {
-            setDropDownViewResource(R.layout.spinner_dropdown_item)
+        binding.spinnerAspectRatio.adapter = android.widget.ArrayAdapter(this, itemRes, aspectRatios).apply {
+            setDropDownViewResource(dropRes)
         }
         binding.spinnerAspectRatio.setSelection(aspectPos)
 
-        binding.spinnerTitleFont.adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, titleFonts).apply {
-            setDropDownViewResource(R.layout.spinner_dropdown_item)
+        binding.spinnerTitleFont.adapter = android.widget.ArrayAdapter(this, itemRes, titleFonts).apply {
+            setDropDownViewResource(dropRes)
         }
         binding.spinnerTitleFont.setSelection(fontPos)
 
-        binding.spinnerTitleStyle.adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, titleStyles).apply {
-            setDropDownViewResource(R.layout.spinner_dropdown_item)
+        binding.spinnerTitleStyle.adapter = android.widget.ArrayAdapter(this, itemRes, titleStyles).apply {
+            setDropDownViewResource(dropRes)
         }
         binding.spinnerTitleStyle.setSelection(stylePos)
 
-        binding.spinnerTitleFrame.adapter = android.widget.ArrayAdapter(this, R.layout.spinner_item, titleFrames).apply {
-            setDropDownViewResource(R.layout.spinner_dropdown_item)
+        binding.spinnerTitleFrame.adapter = android.widget.ArrayAdapter(this, itemRes, titleFrames).apply {
+            setDropDownViewResource(dropRes)
         }
         binding.spinnerTitleFrame.setSelection(framePos)
 
-        val popupBg = android.graphics.drawable.ColorDrawable(Color.parseColor("#2A2A2A"))
         binding.spinnerTemplate.setPopupBackgroundDrawable(popupBg)
         binding.spinnerAspectRatio.setPopupBackgroundDrawable(popupBg)
         binding.spinnerTitleFont.setPopupBackgroundDrawable(popupBg)
         binding.spinnerTitleStyle.setPopupBackgroundDrawable(popupBg)
         binding.spinnerTitleFrame.setPopupBackgroundDrawable(popupBg)
+
+        val spinnerBgRes = if (isDark) R.drawable.spinner_retro else R.drawable.spinner_retro_light
+        binding.spinnerTemplate.setBackgroundResource(spinnerBgRes)
+        binding.spinnerAspectRatio.setBackgroundResource(spinnerBgRes)
+        binding.spinnerTitleFont.setBackgroundResource(spinnerBgRes)
+        binding.spinnerTitleStyle.setBackgroundResource(spinnerBgRes)
+        binding.spinnerTitleFrame.setBackgroundResource(spinnerBgRes)
+
+        val editBgRes = if (isDark) R.drawable.edit_retro else R.drawable.edit_retro_light
+        binding.etTitleText.setBackgroundResource(editBgRes)
+        binding.etTitleBgColor.setBackgroundResource(editBgRes)
     }
 
-    private fun updateModeSwitchLabels() {
-        val isPro = binding.switchMode.isChecked
-        if (isPro) {
-            binding.tvModeAuto.setTextColor(Color.parseColor("#666666"))
-            binding.tvModePro.setTextColor(Color.parseColor("#FFE14D"))
-        } else {
-            binding.tvModeAuto.setTextColor(Color.parseColor("#FFE14D"))
-            binding.tvModePro.setTextColor(Color.parseColor("#666666"))
+    private fun switchNavPage(page: NavPage) {
+        currentNavPage = page
+        when (page) {
+            NavPage.AUTO -> {
+                binding.containerCreation.visibility = View.VISIBLE
+                binding.proModeContainer.visibility = View.GONE
+                binding.containerQueuePage.visibility = View.GONE
+
+                binding.tabNavAuto.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.tabNavAuto.setTextColor(Color.parseColor("#000000"))
+                binding.tabNavPro.setBackgroundColor(Color.TRANSPARENT)
+                binding.tabNavPro.setTextColor(Color.parseColor("#888888"))
+                binding.tabNavQueue.setBackgroundColor(Color.TRANSPARENT)
+                binding.tabNavQueue.setTextColor(Color.parseColor("#888888"))
+            }
+            NavPage.PRO -> {
+                binding.containerCreation.visibility = View.VISIBLE
+                binding.proModeContainer.visibility = View.VISIBLE
+                binding.containerQueuePage.visibility = View.GONE
+
+                binding.tabNavAuto.setBackgroundColor(Color.TRANSPARENT)
+                binding.tabNavAuto.setTextColor(Color.parseColor("#888888"))
+                binding.tabNavPro.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.tabNavPro.setTextColor(Color.parseColor("#000000"))
+                binding.tabNavQueue.setBackgroundColor(Color.TRANSPARENT)
+                binding.tabNavQueue.setTextColor(Color.parseColor("#888888"))
+            }
+            NavPage.QUEUE -> {
+                binding.containerCreation.visibility = View.GONE
+                binding.containerQueuePage.visibility = View.VISIBLE
+
+                binding.tabNavAuto.setBackgroundColor(Color.TRANSPARENT)
+                binding.tabNavAuto.setTextColor(Color.parseColor("#888888"))
+                binding.tabNavPro.setBackgroundColor(Color.TRANSPARENT)
+                binding.tabNavPro.setTextColor(Color.parseColor("#888888"))
+                binding.tabNavQueue.setBackgroundResource(R.drawable.btn_retro_blue)
+                binding.tabNavQueue.setTextColor(Color.parseColor("#000000"))
+            }
         }
-        binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
-        binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#333333"))
+        updatePhotoArrangementVisibility()
     }
 }

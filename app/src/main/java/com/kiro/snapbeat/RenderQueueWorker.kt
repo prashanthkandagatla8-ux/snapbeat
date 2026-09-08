@@ -36,6 +36,7 @@ class RenderQueueWorker(
     companion object {
         const val TAG = "snapbeat_render"
         const val CHANNEL_ID = "snapbeat_render_channel"
+        const val CHANNEL_COMPLETE_ID = "snapbeat_complete_channel"
         const val NOTIFICATION_ID = 2026
         const val NOTIFICATION_COMPLETE_ID = 2027
 
@@ -357,14 +358,26 @@ class RenderQueueWorker(
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val progressChannel = NotificationChannel(
                 CHANNEL_ID,
                 "SnapBeat Background Renders",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Shows progress of background video rendering and downloading"
             }
-            notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(progressChannel)
+
+            val completeChannel = NotificationChannel(
+                CHANNEL_COMPLETE_ID,
+                "SnapBeat Video Completed",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifies when your rendered video is ready and saved"
+                enableVibration(true)
+                enableLights(true)
+                vibrationPattern = longArrayOf(0, 300, 200, 300)
+            }
+            notificationManager.createNotificationChannel(completeChannel)
         }
     }
 
@@ -412,13 +425,14 @@ class RenderQueueWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
         )
 
-        val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(appContext, CHANNEL_COMPLETE_ID)
             .setContentTitle("SnapBeat Video Ready! 🎬")
             .setContentText("Your video has been saved to your Gallery. Tap to watch!")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .build()
 
         notificationManager.notify(NOTIFICATION_COMPLETE_ID, notification)
@@ -426,11 +440,12 @@ class RenderQueueWorker(
 
     private fun showErrorNotification(errorMsg: String) {
         notificationManager.cancel(NOTIFICATION_ID)
-        val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(appContext, CHANNEL_COMPLETE_ID)
             .setContentTitle("SnapBeat: Render Failed ⚠️")
             .setContentText(errorMsg)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
         notificationManager.notify(NOTIFICATION_COMPLETE_ID, notification)
