@@ -54,6 +54,7 @@ class RenderQueueWorker(
         const val KEY_FULL_TRACK = "full_track"
         const val KEY_AUDIO_START = "audio_start"
         const val KEY_AUDIO_END = "audio_end"
+        const val KEY_AUTO_ARRANGE = "auto_arrange"
 
         const val OUTPUT_VIDEO_URI = "output_video_uri"
         const val OUTPUT_JOB_ID = "output_job_id"
@@ -126,6 +127,9 @@ class RenderQueueWorker(
             // Options
             val quality = inputData.getString(KEY_QUALITY) ?: "fast"
             builder.addFormDataPart("quality", quality)
+
+            val autoArrange = inputData.getString(KEY_AUTO_ARRANGE) ?: "auto"
+            builder.addFormDataPart("auto_arrange", autoArrange)
 
             val template = inputData.getString(KEY_TEMPLATE)
             if (!template.isNullOrEmpty()) {

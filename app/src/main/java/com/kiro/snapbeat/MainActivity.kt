@@ -59,6 +59,15 @@ class MainActivity : AppCompatActivity() {
     private var isDarkMode: Boolean = true
     private val PREFS_NAME = "snapbeat_prefs"
     private val KEY_DARK_MODE = "is_dark_mode"
+    enum class AppTheme(val id: String, val displayName: String) {
+        RETRO_DARK("dark", "🌙 Retro Dark"),
+        RETRO_LIGHT("light", "☀️ Retro Light"),
+        VINTAGE_Y2K("vintage_y2k", "📼 Vintage Y2K Boombox")
+    }
+
+    private var currentTheme: AppTheme = AppTheme.RETRO_DARK
+    private val KEY_CURRENT_THEME = "current_theme_v2"
+
     private val KEY_CACHED_SERVER_URL = "cached_server_url"
     private val REMOTE_CONFIG_URL = "https://raw.githubusercontent.com/prashanthkandagatla8-ux/snapbeat/main/config.json"
 
@@ -148,8 +157,14 @@ class MainActivity : AppCompatActivity() {
         if (uris.isNotEmpty()) {
             selectedPhotos.clear()
             selectedPhotos.addAll(uris.take(60))
-            binding.tvPhotosStatus.text = "${selectedPhotos.size} photos loaded (Max 60)"
+            val count = selectedPhotos.size
+            binding.tvPhotosStatus.text = if (currentTheme == AppTheme.VINTAGE_Y2K) {
+                "$count polaroids in stack (Max 60)"
+            } else {
+                "$count photos loaded (Max 60)"
+            }
             refreshPhotoOrder()
+            updatePhotoArrangementVisibility()
         }
     }
 
@@ -195,13 +210,17 @@ class MainActivity : AppCompatActivity() {
         binding.etTitleBgColor.addTextChangedListener(previewWatcher)
 
         // Initial theme setup & listener
-        binding.switchTheme.isChecked = !isDarkMode
-        applyTheme(isDarkMode)
+        val savedThemeStr = prefs.getString(KEY_CURRENT_THEME, null)
+        currentTheme = if (savedThemeStr != null) {
+            AppTheme.values().find { it.id == savedThemeStr } ?: AppTheme.RETRO_DARK
+        } else {
+            if (prefs.getBoolean(KEY_DARK_MODE, true)) AppTheme.RETRO_DARK else AppTheme.RETRO_LIGHT
+        }
+        isDarkMode = (currentTheme == AppTheme.RETRO_DARK)
+        applyTheme(currentTheme)
 
-        binding.switchTheme.setOnCheckedChangeListener { _, isChecked ->
-            isDarkMode = !isChecked
-            prefs.edit().putBoolean(KEY_DARK_MODE, isDarkMode).apply()
-            applyTheme(isDarkMode)
+        binding.btnThemeSelect.setOnClickListener {
+            showThemeSelectionDialog()
         }
 
         // Audio Trim controls
@@ -256,9 +275,11 @@ class MainActivity : AppCompatActivity() {
             } else {
                 binding.proModeContainer.visibility = View.GONE
             }
-            if (selectedPhotos.isNotEmpty()) {
-                binding.rvPhotoOrder.visibility = View.VISIBLE
-            }
+            updatePhotoArrangementVisibility()
+        }
+
+        binding.rgArrangement.setOnCheckedChangeListener { _, _ ->
+            updatePhotoArrangementVisibility()
         }
 
         binding.btnSelectMusic.setOnClickListener {
@@ -627,6 +648,11 @@ class MainActivity : AppCompatActivity() {
                     builder.addFormDataPart("quality", "fast")
                 }
 
+                // Photo arrangement: auto (Gemini / smart) vs manual
+                val isPro = binding.switchMode.isChecked
+                val autoArrange = if (!isPro || binding.rbArrangeAuto.isChecked) "auto" else "manual"
+                builder.addFormDataPart("auto_arrange", autoArrange)
+
                 // Send audio duration and trimming (works in both basic and pro modes)
                 if (isFullTrack) {
                     builder.addFormDataPart("full_track", "true")
@@ -950,8 +976,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 } else "none"
 
+                val autoArrange = if (!isPro || binding.rbArrangeAuto.isChecked) "auto" else "manual"
+
                 val data = Data.Builder()
                     .putString(RenderQueueWorker.KEY_JOB_DIR, jobDir.absolutePath)
+                    .putString(RenderQueueWorker.KEY_AUTO_ARRANGE, autoArrange)
                     .putString(RenderQueueWorker.KEY_SERVER_URL, getServerUrl())
                     .putString(RenderQueueWorker.KEY_QUALITY, quality)
                     .putString(RenderQueueWorker.KEY_TEMPLATE, templateName)
@@ -1059,15 +1088,58 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun setupSpinners(isDark: Boolean) {
+    private fun updatePhotoArrangementVisibility() {
+        val isPro = binding.switchMode.isChecked
+        if (!isPro) {
+            binding.rvPhotoOrder.visibility = View.GONE
+            binding.layoutAutoArrangeBadge.visibility = View.VISIBLE
+            binding.tvAutoArrangeBadge.text = "AI SMART ARRANGE (GEMINI BEAT-SYNC)"
+        } else {
+            if (binding.rbArrangeManual.isChecked) {
+                binding.layoutAutoArrangeBadge.visibility = View.GONE
+                binding.rvPhotoOrder.visibility = if (selectedPhotos.isNotEmpty()) View.VISIBLE else View.GONE
+            } else {
+                binding.rvPhotoOrder.visibility = View.GONE
+                binding.layoutAutoArrangeBadge.visibility = View.VISIBLE
+                binding.tvAutoArrangeBadge.text = "AI SMART ARRANGE (GEMINI BEAT-SYNC)"
+            }
+        }
+    }
+
+    private fun showThemeSelectionDialog() {
+        val themes = AppTheme.values()
+        val names = themes.map { it.displayName }.toTypedArray()
+        val currentIdx = themes.indexOf(currentTheme)
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Select App Theme")
+            .setSingleChoiceItems(names, currentIdx) { dialog, which ->
+                currentTheme = themes[which]
+                isDarkMode = (currentTheme == AppTheme.RETRO_DARK)
+                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_CURRENT_THEME, currentTheme.id)
+                    .putBoolean(KEY_DARK_MODE, isDarkMode)
+                    .apply()
+                applyTheme(currentTheme)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun setupSpinners(theme: AppTheme) {
         val templatePos = binding.spinnerTemplate.selectedItemPosition.coerceAtLeast(0)
         val aspectPos = binding.spinnerAspectRatio.selectedItemPosition.coerceAtLeast(0)
         val fontPos = binding.spinnerTitleFont.selectedItemPosition.coerceAtLeast(0)
         val stylePos = binding.spinnerTitleStyle.selectedItemPosition.coerceAtLeast(0)
         val framePos = binding.spinnerTitleFrame.selectedItemPosition.coerceAtLeast(0)
 
-        val itemRes = if (isDark) R.layout.spinner_item else R.layout.spinner_item_light
-        val dropRes = if (isDark) R.layout.spinner_dropdown_item else R.layout.spinner_dropdown_item_light
+        val (itemRes, dropRes, popupBgColor) = when (theme) {
+            AppTheme.RETRO_DARK -> Triple(R.layout.spinner_item, R.layout.spinner_dropdown_item, "#2A2A2A")
+            AppTheme.RETRO_LIGHT -> Triple(R.layout.spinner_item_light, R.layout.spinner_dropdown_item_light, "#FFFFFF")
+            AppTheme.VINTAGE_Y2K -> Triple(R.layout.spinner_item_y2k, R.layout.spinner_dropdown_item_y2k, "#FFFDF9")
+        }
 
         binding.spinnerTemplate.adapter = android.widget.ArrayAdapter(this, itemRes, templates).apply {
             setDropDownViewResource(dropRes)
@@ -1094,7 +1166,7 @@ class MainActivity : AppCompatActivity() {
         }
         binding.spinnerTitleFrame.setSelection(framePos)
 
-        val popupBg = android.graphics.drawable.ColorDrawable(Color.parseColor(if (isDark) "#2A2A2A" else "#FFFFFF"))
+        val popupBg = android.graphics.drawable.ColorDrawable(Color.parseColor(popupBgColor))
         binding.spinnerTemplate.setPopupBackgroundDrawable(popupBg)
         binding.spinnerAspectRatio.setPopupBackgroundDrawable(popupBg)
         binding.spinnerTitleFont.setPopupBackgroundDrawable(popupBg)
@@ -1102,192 +1174,386 @@ class MainActivity : AppCompatActivity() {
         binding.spinnerTitleFrame.setPopupBackgroundDrawable(popupBg)
     }
 
-    private fun applyTheme(isDark: Boolean) {
-        // 1. Theme switch indicators
-        if (isDark) {
-            binding.tvThemeDark.setTextColor(Color.parseColor("#FFE14D"))
-            binding.tvThemeLight.setTextColor(Color.parseColor("#666666"))
-            binding.switchTheme.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
-            binding.switchTheme.trackTintList = ColorStateList.valueOf(Color.parseColor("#333333"))
-        } else {
-            binding.tvThemeDark.setTextColor(Color.parseColor("#888888"))
-            binding.tvThemeLight.setTextColor(Color.parseColor("#FF4D8D"))
-            binding.switchTheme.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FF4D8D"))
-            binding.switchTheme.trackTintList = ColorStateList.valueOf(Color.parseColor("#CCCCCC"))
+    private fun applyTheme(theme: AppTheme) {
+        // 1. Theme indicator button text
+        binding.btnThemeSelect.text = when (theme) {
+            AppTheme.RETRO_DARK -> "🎨 THEME: DARK ▾"
+            AppTheme.RETRO_LIGHT -> "🎨 THEME: LIGHT ▾"
+            AppTheme.VINTAGE_Y2K -> "🎨 THEME: Y2K ▾"
         }
 
-        // 2. Mode switch indicators (BASIC / PRO)
+        // 2. Mode switch indicators (AUTO / PRO)
         updateModeSwitchLabels()
 
-        // 3. Root Background & System Status/Navigation Bars
-        val rootBg = if (isDark) Color.parseColor("#1A1A1A") else Color.parseColor("#F4F4F6")
-        binding.rootScrollView.setBackgroundColor(rootBg)
-        window.statusBarColor = rootBg
-        window.navigationBarColor = rootBg
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isDark
+        when (theme) {
+            AppTheme.RETRO_DARK -> {
+                // Root Background & Bars
+                val rootBg = Color.parseColor("#1A1A1A")
+                binding.rootScrollView.setBackgroundColor(rootBg)
+                window.statusBarColor = rootBg
+                window.navigationBarColor = rootBg
+                WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
-        // 4. Header title & subtitle
-        if (isDark) {
-            binding.tvTitle.setTextColor(Color.parseColor("#FFE14D"))
-            binding.tvTitle.setShadowLayer(0f, 3f, 3f, Color.parseColor("#000000"))
-            binding.tvSubtitle.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.tvSubtitle.alpha = 0.7f
-        } else {
-            binding.tvTitle.setTextColor(Color.parseColor("#1A1A1A"))
-            binding.tvTitle.setShadowLayer(0f, 3f, 3f, Color.parseColor("#FFE14D"))
-            binding.tvSubtitle.setTextColor(Color.parseColor("#666666"))
-            binding.tvSubtitle.alpha = 0.9f
+                // Header
+                binding.tvTitle.text = "SNAPBEAT"
+                binding.tvTitle.setTextColor(Color.parseColor("#FFE14D"))
+                binding.tvTitle.setShadowLayer(0f, 3f, 3f, Color.parseColor("#000000"))
+                binding.tvSubtitle.text = "let the music decide your edit."
+                binding.tvSubtitle.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.tvSubtitle.alpha = 0.7f
+
+                // Cards
+                binding.proModeContainer.setBackgroundResource(R.drawable.card_dark)
+                binding.cardMusic.setBackgroundResource(R.drawable.card_dark)
+                binding.cardPhotos.setBackgroundResource(R.drawable.card_dark)
+                binding.cardQueueTray.setBackgroundResource(R.drawable.card_dark)
+
+                // Buttons
+                binding.btnSelectMusic.setBackgroundResource(R.drawable.btn_retro_pink)
+                binding.btnSelectMusic.text = "PICK A TAPE"
+                binding.btnSampleMusic.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.btnSampleMusic.text = "✨ USE SAMPLE TAPE (Funk Party)"
+                binding.btnSelectPhotos.setBackgroundResource(R.drawable.btn_retro_blue)
+                binding.btnSelectPhotos.text = "POLAROID STACK"
+                binding.btnRender.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.btnRender.text = "RENDER VIDEO"
+                binding.btnQueue.setBackgroundResource(R.drawable.btn_retro_pink)
+                binding.btnRetry.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.btnThemeSelect.setTextColor(Color.parseColor("#FFE14D"))
+
+                // Headers & Labels
+                binding.tvMusicHeader.text = "🎵 MUSIC"
+                binding.tvMusicHeader.setTextColor(Color.parseColor("#FF4D8D"))
+                binding.tvMusicStatus.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.tvMusicStatus.alpha = 0.7f
+                binding.rbAudioFull.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.rbAudioTrim.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.tvAudioStart.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.tvAudioEnd.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.divTrim1.setBackgroundColor(Color.parseColor("#2E2E2E"))
+
+                binding.tvPhotosHeader.text = "📸 PHOTOS"
+                binding.tvPhotosHeader.setTextColor(Color.parseColor("#3DD4FF"))
+                binding.tvPhotosStatus.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.tvPhotosStatus.alpha = 0.6f
+
+                // Auto arrange badge
+                binding.layoutAutoArrangeBadge.setBackgroundResource(R.drawable.badge_circle)
+                binding.tvAutoArrangeIcon.text = "✨"
+                binding.tvAutoArrangeBadge.setTextColor(Color.parseColor("#FFE14D"))
+
+                binding.tvStatus.setTextColor(Color.parseColor("#FFFCF5"))
+
+                // Pro container
+                binding.tvProTemplateHeader.text = "⚡ PRO TEMPLATE"
+                binding.tvProTemplateHeader.setTextColor(Color.parseColor("#FFE14D"))
+                binding.divPro1.setBackgroundColor(Color.parseColor("#333333"))
+                binding.tvDropItDesc.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.tvDropItDesc.alpha = 0.5f
+                binding.divPro2.setBackgroundColor(Color.parseColor("#333333"))
+                binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#3DD4FF"))
+                binding.divProQuality.setBackgroundColor(Color.parseColor("#333333"))
+                binding.tvQualityHeader.setTextColor(Color.parseColor("#3DD4FF"))
+                binding.rbQualityFast.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.rbQualityMaster.setTextColor(Color.parseColor("#FFFCF5"))
+
+                // Arrangement in Pro
+                binding.divProArrangement.setBackgroundColor(Color.parseColor("#333333"))
+                binding.tvArrangementHeader.setTextColor(Color.parseColor("#FFE14D"))
+                binding.rbArrangeAuto.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.rbArrangeManual.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.rbArrangeAuto.buttonTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
+                binding.rbArrangeManual.buttonTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
+
+                binding.divPro3.setBackgroundColor(Color.parseColor("#333333"))
+                binding.tvTitleCardHeader.setTextColor(Color.parseColor("#FFE14D"))
+                binding.tvTitleFontLabel.setTextColor(Color.parseColor("#999999"))
+                binding.tvTitleStyleLabel.setTextColor(Color.parseColor("#999999"))
+                binding.tvTitleFrameLabel.setTextColor(Color.parseColor("#999999"))
+                binding.tvTitleBgLabel.setTextColor(Color.parseColor("#999999"))
+                binding.rbBgBlack.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.rbBgColor.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.rbBgVideo.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#999999"))
+                binding.tvTitleDuration.setTextColor(Color.parseColor("#FFE14D"))
+
+                binding.tvQueueTitle.setTextColor(Color.parseColor("#3DD4FF"))
+                binding.tvQueueStatus.setTextColor(Color.parseColor("#FFFCF5"))
+
+                // Spinners & Inputs
+                binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro)
+                binding.etTitleText.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.etTitleText.setHintTextColor(Color.parseColor("#666666"))
+                binding.etTitleBgColor.setBackgroundResource(R.drawable.spinner_retro)
+                binding.etTitleBgColor.setTextColor(Color.parseColor("#FFFCF5"))
+                binding.etTitleBgColor.setHintTextColor(Color.parseColor("#666666"))
+
+                binding.spinnerTemplate.setBackgroundResource(R.drawable.spinner_retro)
+                binding.spinnerAspectRatio.setBackgroundResource(R.drawable.spinner_retro)
+                binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro)
+                binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro)
+                binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro)
+            }
+
+            AppTheme.RETRO_LIGHT -> {
+                // Root Background & Bars
+                val rootBg = Color.parseColor("#F4F4F6")
+                binding.rootScrollView.setBackgroundColor(rootBg)
+                window.statusBarColor = rootBg
+                window.navigationBarColor = rootBg
+                WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+
+                // Header
+                binding.tvTitle.text = "SNAPBEAT"
+                binding.tvTitle.setTextColor(Color.parseColor("#1A1A1A"))
+                binding.tvTitle.setShadowLayer(0f, 3f, 3f, Color.parseColor("#FFE14D"))
+                binding.tvSubtitle.text = "let the music decide your edit."
+                binding.tvSubtitle.setTextColor(Color.parseColor("#666666"))
+                binding.tvSubtitle.alpha = 0.9f
+
+                // Cards
+                binding.proModeContainer.setBackgroundResource(R.drawable.card_light)
+                binding.cardMusic.setBackgroundResource(R.drawable.card_light)
+                binding.cardPhotos.setBackgroundResource(R.drawable.card_light)
+                binding.cardQueueTray.setBackgroundResource(R.drawable.card_light)
+
+                // Buttons
+                binding.btnSelectMusic.setBackgroundResource(R.drawable.btn_retro_pink)
+                binding.btnSelectMusic.text = "PICK A TAPE"
+                binding.btnSampleMusic.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.btnSampleMusic.text = "✨ USE SAMPLE TAPE (Funk Party)"
+                binding.btnSelectPhotos.setBackgroundResource(R.drawable.btn_retro_blue)
+                binding.btnSelectPhotos.text = "POLAROID STACK"
+                binding.btnRender.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.btnRender.text = "RENDER VIDEO"
+                binding.btnQueue.setBackgroundResource(R.drawable.btn_retro_pink)
+                binding.btnRetry.setBackgroundResource(R.drawable.btn_retro_yellow)
+                binding.btnThemeSelect.setTextColor(Color.parseColor("#1A1A1A"))
+
+                // Headers & Labels
+                binding.tvMusicHeader.text = "🎵 MUSIC"
+                binding.tvMusicHeader.setTextColor(Color.parseColor("#D81B60"))
+                binding.tvMusicStatus.setTextColor(Color.parseColor("#333333"))
+                binding.tvMusicStatus.alpha = 0.9f
+                binding.rbAudioFull.setTextColor(Color.parseColor("#222222"))
+                binding.rbAudioTrim.setTextColor(Color.parseColor("#222222"))
+                binding.tvAudioStart.setTextColor(Color.parseColor("#333333"))
+                binding.tvAudioEnd.setTextColor(Color.parseColor("#333333"))
+                binding.divTrim1.setBackgroundColor(Color.parseColor("#E5E5E5"))
+
+                binding.tvPhotosHeader.text = "📸 PHOTOS"
+                binding.tvPhotosHeader.setTextColor(Color.parseColor("#0288D1"))
+                binding.tvPhotosStatus.setTextColor(Color.parseColor("#444444"))
+                binding.tvPhotosStatus.alpha = 0.9f
+
+                // Auto arrange badge
+                binding.layoutAutoArrangeBadge.setBackgroundResource(R.drawable.badge_circle)
+                binding.tvAutoArrangeIcon.text = "✨"
+                binding.tvAutoArrangeBadge.setTextColor(Color.parseColor("#0288D1"))
+
+                binding.tvStatus.setTextColor(Color.parseColor("#1A1A1A"))
+
+                // Pro container
+                binding.tvProTemplateHeader.text = "⚡ PRO TEMPLATE"
+                binding.tvProTemplateHeader.setTextColor(Color.parseColor("#1A1A1A"))
+                binding.divPro1.setBackgroundColor(Color.parseColor("#E0E0E0"))
+                binding.tvDropItDesc.setTextColor(Color.parseColor("#555555"))
+                binding.tvDropItDesc.alpha = 0.8f
+                binding.divPro2.setBackgroundColor(Color.parseColor("#E0E0E0"))
+                binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#0288D1"))
+                binding.divProQuality.setBackgroundColor(Color.parseColor("#E0E0E0"))
+                binding.tvQualityHeader.setTextColor(Color.parseColor("#0288D1"))
+                binding.rbQualityFast.setTextColor(Color.parseColor("#222222"))
+                binding.rbQualityMaster.setTextColor(Color.parseColor("#222222"))
+
+                // Arrangement in Pro
+                binding.divProArrangement.setBackgroundColor(Color.parseColor("#E0E0E0"))
+                binding.tvArrangementHeader.setTextColor(Color.parseColor("#0288D1"))
+                binding.rbArrangeAuto.setTextColor(Color.parseColor("#222222"))
+                binding.rbArrangeManual.setTextColor(Color.parseColor("#222222"))
+                binding.rbArrangeAuto.buttonTintList = ColorStateList.valueOf(Color.parseColor("#0288D1"))
+                binding.rbArrangeManual.buttonTintList = ColorStateList.valueOf(Color.parseColor("#0288D1"))
+
+                binding.divPro3.setBackgroundColor(Color.parseColor("#E0E0E0"))
+                binding.tvTitleCardHeader.setTextColor(Color.parseColor("#1A1A1A"))
+                binding.tvTitleFontLabel.setTextColor(Color.parseColor("#555555"))
+                binding.tvTitleStyleLabel.setTextColor(Color.parseColor("#555555"))
+                binding.tvTitleFrameLabel.setTextColor(Color.parseColor("#555555"))
+                binding.tvTitleBgLabel.setTextColor(Color.parseColor("#555555"))
+                binding.rbBgBlack.setTextColor(Color.parseColor("#222222"))
+                binding.rbBgColor.setTextColor(Color.parseColor("#222222"))
+                binding.rbBgVideo.setTextColor(Color.parseColor("#222222"))
+                binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#555555"))
+                binding.tvTitleDuration.setTextColor(Color.parseColor("#1A1A1A"))
+
+                binding.tvQueueTitle.setTextColor(Color.parseColor("#0288D1"))
+                binding.tvQueueStatus.setTextColor(Color.parseColor("#333333"))
+
+                // Spinners & Inputs
+                binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro_light)
+                binding.etTitleText.setTextColor(Color.parseColor("#1A1A1A"))
+                binding.etTitleText.setHintTextColor(Color.parseColor("#999999"))
+                binding.etTitleBgColor.setBackgroundResource(R.drawable.spinner_retro_light)
+                binding.etTitleBgColor.setTextColor(Color.parseColor("#1A1A1A"))
+                binding.etTitleBgColor.setHintTextColor(Color.parseColor("#999999"))
+
+                binding.spinnerTemplate.setBackgroundResource(R.drawable.spinner_retro_light)
+                binding.spinnerAspectRatio.setBackgroundResource(R.drawable.spinner_retro_light)
+                binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro_light)
+                binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro_light)
+                binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro_light)
+            }
+
+            AppTheme.VINTAGE_Y2K -> {
+                // Root Background & Bars (Warm paper cream)
+                val rootBg = Color.parseColor("#F6F3EC")
+                binding.rootScrollView.setBackgroundColor(rootBg)
+                window.statusBarColor = rootBg
+                window.navigationBarColor = rootBg
+                WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+
+                // Header
+                binding.tvTitle.text = "SNAPBEAT 📼"
+                binding.tvTitle.setTextColor(Color.parseColor("#2B2A27"))
+                binding.tvTitle.setShadowLayer(0f, 3f, 3f, Color.parseColor("#FF9F1C"))
+                binding.tvSubtitle.text = "let the tape roll & the music decide your edit."
+                binding.tvSubtitle.setTextColor(Color.parseColor("#7A756C"))
+                binding.tvSubtitle.alpha = 0.95f
+
+                // Cards (Warm Polaroid Cream with 3D Charcoal borders)
+                binding.proModeContainer.setBackgroundResource(R.drawable.card_y2k)
+                binding.cardMusic.setBackgroundResource(R.drawable.card_y2k)
+                binding.cardPhotos.setBackgroundResource(R.drawable.card_y2k)
+                binding.cardQueueTray.setBackgroundResource(R.drawable.card_y2k)
+
+                // Buttons (Cassette deck styling)
+                binding.btnSelectMusic.setBackgroundResource(R.drawable.btn_y2k_pink)
+                binding.btnSelectMusic.text = "📼 LOAD CASSETTE TAPE"
+                binding.btnSampleMusic.setBackgroundResource(R.drawable.btn_y2k_amber)
+                binding.btnSampleMusic.text = "✨ DEMO TAPE (Funk Party)"
+                binding.btnSelectPhotos.setBackgroundResource(R.drawable.btn_y2k_amber)
+                binding.btnSelectPhotos.text = "📸 SHUFFLE POLAROIDS"
+                binding.btnRender.setBackgroundResource(R.drawable.btn_y2k_black)
+                binding.btnRender.text = "● REC / RENDER VIDEO"
+                binding.btnQueue.setBackgroundResource(R.drawable.btn_y2k_pink)
+                binding.btnRetry.setBackgroundResource(R.drawable.btn_y2k_amber)
+                binding.btnThemeSelect.setTextColor(Color.parseColor("#FF9F1C"))
+
+                // Headers & Labels
+                binding.tvMusicHeader.text = "📼 CASSETTE DECK / TAPE"
+                binding.tvMusicHeader.setTextColor(Color.parseColor("#FF4D8D"))
+                binding.tvMusicStatus.setTextColor(Color.parseColor("#4A463F"))
+                binding.tvMusicStatus.alpha = 0.9f
+                binding.rbAudioFull.setTextColor(Color.parseColor("#2B2A27"))
+                binding.rbAudioTrim.setTextColor(Color.parseColor("#2B2A27"))
+                binding.tvAudioStart.setTextColor(Color.parseColor("#4A463F"))
+                binding.tvAudioEnd.setTextColor(Color.parseColor("#4A463F"))
+                binding.divTrim1.setBackgroundColor(Color.parseColor("#DED9CE"))
+
+                binding.tvPhotosHeader.text = "📸 POLAROID PHOTO ROLL"
+                binding.tvPhotosHeader.setTextColor(Color.parseColor("#FF9F1C"))
+                binding.tvPhotosStatus.setTextColor(Color.parseColor("#4A463F"))
+                binding.tvPhotosStatus.alpha = 0.9f
+
+                // Auto arrange badge
+                binding.layoutAutoArrangeBadge.setBackgroundResource(R.drawable.badge_y2k)
+                binding.tvAutoArrangeIcon.text = "📼"
+                binding.tvAutoArrangeBadge.setTextColor(Color.parseColor("#FF9F1C"))
+
+                binding.tvStatus.setTextColor(Color.parseColor("#2B2A27"))
+
+                // Pro container
+                binding.tvProTemplateHeader.text = "⚡ BOOMBOX TEMPLATE"
+                binding.tvProTemplateHeader.setTextColor(Color.parseColor("#2B2A27"))
+                binding.divPro1.setBackgroundColor(Color.parseColor("#DED9CE"))
+                binding.tvDropItDesc.setTextColor(Color.parseColor("#7A756C"))
+                binding.tvDropItDesc.alpha = 0.9f
+                binding.divPro2.setBackgroundColor(Color.parseColor("#DED9CE"))
+                binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#FF9F1C"))
+                binding.divProQuality.setBackgroundColor(Color.parseColor("#DED9CE"))
+                binding.tvQualityHeader.setTextColor(Color.parseColor("#FF9F1C"))
+                binding.rbQualityFast.setTextColor(Color.parseColor("#2B2A27"))
+                binding.rbQualityMaster.setTextColor(Color.parseColor("#2B2A27"))
+
+                // Arrangement in Pro
+                binding.divProArrangement.setBackgroundColor(Color.parseColor("#DED9CE"))
+                binding.tvArrangementHeader.setTextColor(Color.parseColor("#FF9F1C"))
+                binding.rbArrangeAuto.setTextColor(Color.parseColor("#2B2A27"))
+                binding.rbArrangeManual.setTextColor(Color.parseColor("#2B2A27"))
+                binding.rbArrangeAuto.buttonTintList = ColorStateList.valueOf(Color.parseColor("#FF9F1C"))
+                binding.rbArrangeManual.buttonTintList = ColorStateList.valueOf(Color.parseColor("#FF9F1C"))
+
+                binding.divPro3.setBackgroundColor(Color.parseColor("#DED9CE"))
+                binding.tvTitleCardHeader.setTextColor(Color.parseColor("#2B2A27"))
+                binding.tvTitleFontLabel.setTextColor(Color.parseColor("#7A756C"))
+                binding.tvTitleStyleLabel.setTextColor(Color.parseColor("#7A756C"))
+                binding.tvTitleFrameLabel.setTextColor(Color.parseColor("#7A756C"))
+                binding.tvTitleBgLabel.setTextColor(Color.parseColor("#7A756C"))
+                binding.rbBgBlack.setTextColor(Color.parseColor("#2B2A27"))
+                binding.rbBgColor.setTextColor(Color.parseColor("#2B2A27"))
+                binding.rbBgVideo.setTextColor(Color.parseColor("#2B2A27"))
+                binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#7A756C"))
+                binding.tvTitleDuration.setTextColor(Color.parseColor("#FF9F1C"))
+
+                binding.tvQueueTitle.setTextColor(Color.parseColor("#FF9F1C"))
+                binding.tvQueueStatus.setTextColor(Color.parseColor("#4A463F"))
+
+                // Spinners & Inputs
+                binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro_y2k)
+                binding.etTitleText.setTextColor(Color.parseColor("#2B2A27"))
+                binding.etTitleText.setHintTextColor(Color.parseColor("#8A857C"))
+                binding.etTitleBgColor.setBackgroundResource(R.drawable.spinner_retro_y2k)
+                binding.etTitleBgColor.setTextColor(Color.parseColor("#2B2A27"))
+                binding.etTitleBgColor.setHintTextColor(Color.parseColor("#8A857C"))
+
+                binding.spinnerTemplate.setBackgroundResource(R.drawable.spinner_retro_y2k)
+                binding.spinnerAspectRatio.setBackgroundResource(R.drawable.spinner_retro_y2k)
+                binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro_y2k)
+                binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro_y2k)
+                binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro_y2k)
+            }
         }
 
-        // 5. Card Backgrounds
-        val cardDrawable = if (isDark) R.drawable.card_dark else R.drawable.card_light
-        binding.proModeContainer.setBackgroundResource(cardDrawable)
-        binding.cardMusic.setBackgroundResource(cardDrawable)
-        binding.cardPhotos.setBackgroundResource(cardDrawable)
-
-        // 6. Section Headers & Text inside Cards
-        if (isDark) {
-            binding.tvMusicHeader.setTextColor(Color.parseColor("#FF4D8D"))
-            binding.tvMusicStatus.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.tvMusicStatus.alpha = 0.7f
-            binding.rbAudioFull.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.rbAudioTrim.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.tvAudioStart.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.tvAudioEnd.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.divTrim1.setBackgroundColor(Color.parseColor("#2E2E2E"))
-
-            binding.tvPhotosHeader.setTextColor(Color.parseColor("#3DD4FF"))
-            binding.tvPhotosStatus.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.tvPhotosStatus.alpha = 0.6f
-
-            binding.tvStatus.setTextColor(Color.parseColor("#FFFCF5"))
-
-            // Pro container elements
-            binding.tvProTemplateHeader.setTextColor(Color.parseColor("#FFE14D"))
-            binding.divPro1.setBackgroundColor(Color.parseColor("#333333"))
-            binding.tvDropItDesc.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.tvDropItDesc.alpha = 0.5f
-            binding.divPro2.setBackgroundColor(Color.parseColor("#333333"))
-            binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#3DD4FF"))
-            binding.divProQuality.setBackgroundColor(Color.parseColor("#333333"))
-            binding.tvQualityHeader.setTextColor(Color.parseColor("#3DD4FF"))
-            binding.rbQualityFast.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.rbQualityMaster.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.divPro3.setBackgroundColor(Color.parseColor("#333333"))
-            binding.tvTitleCardHeader.setTextColor(Color.parseColor("#FFE14D"))
-            binding.tvTitleFontLabel.setTextColor(Color.parseColor("#999999"))
-            binding.tvTitleStyleLabel.setTextColor(Color.parseColor("#999999"))
-            binding.tvTitleFrameLabel.setTextColor(Color.parseColor("#999999"))
-            binding.tvTitleBgLabel.setTextColor(Color.parseColor("#999999"))
-            binding.rbBgBlack.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.rbBgColor.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.rbBgVideo.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#999999"))
-            binding.tvTitleDuration.setTextColor(Color.parseColor("#FFE14D"))
-
-            // Queue tray styling
-            binding.cardQueueTray.setBackgroundResource(R.drawable.card_dark)
-            binding.tvQueueTitle.setTextColor(Color.parseColor("#3DD4FF"))
-            binding.tvQueueStatus.setTextColor(Color.parseColor("#FFFCF5"))
-
-            // Inputs & Spinners
-            binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro)
-            binding.etTitleText.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.etTitleText.setHintTextColor(Color.parseColor("#666666"))
-            binding.etTitleBgColor.setBackgroundResource(R.drawable.spinner_retro)
-            binding.etTitleBgColor.setTextColor(Color.parseColor("#FFFCF5"))
-            binding.etTitleBgColor.setHintTextColor(Color.parseColor("#666666"))
-
-            binding.spinnerTemplate.setBackgroundResource(R.drawable.spinner_retro)
-            binding.spinnerAspectRatio.setBackgroundResource(R.drawable.spinner_retro)
-            binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro)
-            binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro)
-            binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro)
-        } else {
-            binding.tvMusicHeader.setTextColor(Color.parseColor("#D81B60"))
-            binding.tvMusicStatus.setTextColor(Color.parseColor("#333333"))
-            binding.tvMusicStatus.alpha = 0.9f
-            binding.rbAudioFull.setTextColor(Color.parseColor("#222222"))
-            binding.rbAudioTrim.setTextColor(Color.parseColor("#222222"))
-            binding.tvAudioStart.setTextColor(Color.parseColor("#333333"))
-            binding.tvAudioEnd.setTextColor(Color.parseColor("#333333"))
-            binding.divTrim1.setBackgroundColor(Color.parseColor("#E5E5E5"))
-
-            binding.tvPhotosHeader.setTextColor(Color.parseColor("#0288D1"))
-            binding.tvPhotosStatus.setTextColor(Color.parseColor("#444444"))
-            binding.tvPhotosStatus.alpha = 0.9f
-
-            binding.tvStatus.setTextColor(Color.parseColor("#1A1A1A"))
-
-            // Pro container elements
-            binding.tvProTemplateHeader.setTextColor(Color.parseColor("#1A1A1A"))
-            binding.divPro1.setBackgroundColor(Color.parseColor("#E0E0E0"))
-            binding.tvDropItDesc.setTextColor(Color.parseColor("#555555"))
-            binding.tvDropItDesc.alpha = 0.8f
-            binding.divPro2.setBackgroundColor(Color.parseColor("#E0E0E0"))
-            binding.tvAspectRatioHeader.setTextColor(Color.parseColor("#0288D1"))
-            binding.divProQuality.setBackgroundColor(Color.parseColor("#E0E0E0"))
-            binding.tvQualityHeader.setTextColor(Color.parseColor("#0288D1"))
-            binding.rbQualityFast.setTextColor(Color.parseColor("#222222"))
-            binding.rbQualityMaster.setTextColor(Color.parseColor("#222222"))
-            binding.divPro3.setBackgroundColor(Color.parseColor("#E0E0E0"))
-            binding.tvTitleCardHeader.setTextColor(Color.parseColor("#1A1A1A"))
-            binding.tvTitleFontLabel.setTextColor(Color.parseColor("#555555"))
-            binding.tvTitleStyleLabel.setTextColor(Color.parseColor("#555555"))
-            binding.tvTitleFrameLabel.setTextColor(Color.parseColor("#555555"))
-            binding.tvTitleBgLabel.setTextColor(Color.parseColor("#555555"))
-            binding.rbBgBlack.setTextColor(Color.parseColor("#222222"))
-            binding.rbBgColor.setTextColor(Color.parseColor("#222222"))
-            binding.rbBgVideo.setTextColor(Color.parseColor("#222222"))
-            binding.tvTitleDurationLabel.setTextColor(Color.parseColor("#555555"))
-            binding.tvTitleDuration.setTextColor(Color.parseColor("#1A1A1A"))
-
-            // Queue tray styling
-            binding.cardQueueTray.setBackgroundResource(R.drawable.card_light)
-            binding.tvQueueTitle.setTextColor(Color.parseColor("#0288D1"))
-            binding.tvQueueStatus.setTextColor(Color.parseColor("#333333"))
-
-            // Inputs & Spinners
-            binding.etTitleText.setBackgroundResource(R.drawable.spinner_retro_light)
-            binding.etTitleText.setTextColor(Color.parseColor("#1A1A1A"))
-            binding.etTitleText.setHintTextColor(Color.parseColor("#999999"))
-            binding.etTitleBgColor.setBackgroundResource(R.drawable.spinner_retro_light)
-            binding.etTitleBgColor.setTextColor(Color.parseColor("#1A1A1A"))
-            binding.etTitleBgColor.setHintTextColor(Color.parseColor("#999999"))
-
-            binding.spinnerTemplate.setBackgroundResource(R.drawable.spinner_retro_light)
-            binding.spinnerAspectRatio.setBackgroundResource(R.drawable.spinner_retro_light)
-            binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro_light)
-            binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro_light)
-            binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro_light)
-        }
-
-        // 7. Rebind spinners with dark/light item resources
-        setupSpinners(isDark)
+        // Rebind spinners with current theme layout resources
+        setupSpinners(theme)
     }
 
     private fun updateModeSwitchLabels() {
         val isPro = binding.switchMode.isChecked
-        if (isDarkMode) {
-            if (isPro) {
-                binding.tvModeBasic.setTextColor(Color.parseColor("#666666"))
-                binding.tvModePro.setTextColor(Color.parseColor("#FFE14D"))
-            } else {
-                binding.tvModeBasic.setTextColor(Color.parseColor("#FFE14D"))
-                binding.tvModePro.setTextColor(Color.parseColor("#666666"))
+        when (currentTheme) {
+            AppTheme.RETRO_DARK -> {
+                if (isPro) {
+                    binding.tvModeAuto.setTextColor(Color.parseColor("#666666"))
+                    binding.tvModePro.setTextColor(Color.parseColor("#FFE14D"))
+                } else {
+                    binding.tvModeAuto.setTextColor(Color.parseColor("#FFE14D"))
+                    binding.tvModePro.setTextColor(Color.parseColor("#666666"))
+                }
+                binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
+                binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#333333"))
             }
-            binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FFE14D"))
-            binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#333333"))
-        } else {
-            if (isPro) {
-                binding.tvModeBasic.setTextColor(Color.parseColor("#999999"))
-                binding.tvModePro.setTextColor(Color.parseColor("#1A1A1A"))
-            } else {
-                binding.tvModeBasic.setTextColor(Color.parseColor("#1A1A1A"))
-                binding.tvModePro.setTextColor(Color.parseColor("#999999"))
+            AppTheme.RETRO_LIGHT -> {
+                if (isPro) {
+                    binding.tvModeAuto.setTextColor(Color.parseColor("#999999"))
+                    binding.tvModePro.setTextColor(Color.parseColor("#1A1A1A"))
+                } else {
+                    binding.tvModeAuto.setTextColor(Color.parseColor("#1A1A1A"))
+                    binding.tvModePro.setTextColor(Color.parseColor("#999999"))
+                }
+                binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#1A1A1A"))
+                binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#CCCCCC"))
             }
-            binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#1A1A1A"))
-            binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#CCCCCC"))
+            AppTheme.VINTAGE_Y2K -> {
+                if (isPro) {
+                    binding.tvModeAuto.setTextColor(Color.parseColor("#8A857C"))
+                    binding.tvModePro.setTextColor(Color.parseColor("#FF9F1C"))
+                } else {
+                    binding.tvModeAuto.setTextColor(Color.parseColor("#FF9F1C"))
+                    binding.tvModePro.setTextColor(Color.parseColor("#8A857C"))
+                }
+                binding.switchMode.thumbTintList = ColorStateList.valueOf(Color.parseColor("#FF9F1C"))
+                binding.switchMode.trackTintList = ColorStateList.valueOf(Color.parseColor("#DED9CE"))
+            }
         }
     }
 }
