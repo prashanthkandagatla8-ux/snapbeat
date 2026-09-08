@@ -7,7 +7,7 @@
 (() => {
   // ─── State ──────────────────────────────────────────────────────────
   const state = {
-    serverUrl: localStorage.getItem('snapbeat_server_url') || 'http://localhost:8772',
+    serverUrl: localStorage.getItem('snapbeat_server_url') || (window.location.protocol.startsWith('http') ? window.location.origin : 'http://localhost:8000'),
     isDarkMode: localStorage.getItem('snapbeat_theme') !== 'light',
     isProMode: false,
     musicFile: null,
