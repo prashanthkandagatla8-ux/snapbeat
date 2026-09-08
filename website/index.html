@@ -1,472 +1,413 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapBeat - Turn Photos Into Beat-Perfect Videos</title>
-    <meta name="description" content="SnapBeat uses AI-powered audio analysis to automatically create stunning, beat-synced photo montage videos. No timeline. No editing skills. Just magic.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --bg: #0a0a0f;
-            --card: #12121a;
-            --accent: #7c3aed;
-            --accent-glow: #a855f7;
-            --text: #e4e4e7;
-            --muted: #71717a;
-            --white: #fafafa;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            overflow-x: hidden;
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 24px;
-            position: relative;
-            background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.15) 0%, transparent 60%);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid rgba(124,58,237,0.4);
-            background: rgba(124,58,237,0.1);
-            color: var(--accent-glow);
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 28px;
-        }
-
-        .hero h1 {
-            font-size: clamp(40px, 7vw, 72px);
-            font-weight: 900;
-            color: var(--white);
-            line-height: 1.1;
-            margin-bottom: 24px;
-            max-width: 700px;
-        }
-
-        .hero h1 span {
-            background: linear-gradient(135deg, var(--accent), #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: clamp(16px, 2.5vw, 20px);
-            color: var(--muted);
-            max-width: 540px;
-            line-height: 1.6;
-            margin-bottom: 40px;
-        }
-
-        .cta-group {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #9333ea);
-            color: white;
-            box-shadow: 0 4px 24px rgba(124,58,237,0.4);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(124,58,237,0.6);
-        }
-
-        .btn-secondary {
-            background: rgba(255,255,255,0.06);
-            color: var(--text);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-2px);
-        }
-
-        /* How It Works */
-        .section {
-            padding: 100px 24px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .section-title h2 {
-            font-size: clamp(28px, 4vw, 42px);
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: 16px;
-        }
-
-        .section-title p {
-            color: var(--muted);
-            font-size: 17px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
-        }
-
-        .step-card {
-            background: var(--card);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px;
-            padding: 36px 28px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .step-card:hover {
-            border-color: rgba(124,58,237,0.3);
-            transform: translateY(-4px);
-        }
-
-        .step-num {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, var(--accent), #9333ea);
-            color: white;
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-
-        .step-card h3 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: 12px;
-        }
-
-        .step-card p {
-            color: var(--muted);
-            line-height: 1.6;
-            font-size: 15px;
-        }
-
-        /* Features */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-
-        .feature {
-            background: var(--card);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 16px;
-            padding: 28px 24px;
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
-            transition: all 0.3s ease;
-        }
-
-        .feature:hover {
-            border-color: rgba(124,58,237,0.3);
-        }
-
-        .feature-icon {
-            font-size: 28px;
-            flex-shrink: 0;
-        }
-
-        .feature h4 {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: 6px;
-        }
-
-        .feature p {
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* Pricing */
-        .pricing-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 24px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .price-card {
-            background: var(--card);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px;
-            padding: 36px 28px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .price-card.popular {
-            border-color: var(--accent);
-            position: relative;
-            box-shadow: 0 0 40px rgba(124,58,237,0.15);
-        }
-
-        .popular-tag {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--accent), #ec4899);
-            color: white;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 4px 16px;
-            border-radius: 20px;
-            letter-spacing: 0.5px;
-        }
-
-        .price-card h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: 8px;
-        }
-
-        .price-amount {
-            font-size: 42px;
-            font-weight: 900;
-            color: var(--white);
-            margin-bottom: 4px;
-        }
-
-        .price-amount span {
-            font-size: 16px;
-            font-weight: 400;
-            color: var(--muted);
-        }
-
-        .price-detail {
-            color: var(--muted);
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .price-card .btn {
-            width: 100%;
-            display: block;
-        }
-
-        /* CTA Bottom */
-        .cta-section {
-            text-align: center;
-            padding: 100px 24px;
-            background: radial-gradient(ellipse at 50% 100%, rgba(124,58,237,0.1) 0%, transparent 60%);
-        }
-
-        .cta-section h2 {
-            font-size: clamp(28px, 4vw, 42px);
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: 16px;
-        }
-
-        .cta-section p {
-            color: var(--muted);
-            font-size: 17px;
-            margin-bottom: 32px;
-            max-width: 480px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 40px 24px;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        footer a {
-            color: var(--accent-glow);
-            text-decoration: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapBeat — Music-Synced Video Generator</title>
+  <meta name="description" content="Generate beat-synced rhythm videos from your photos and music in seconds." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&family=Work+Sans:wght@400;600;800&family=Courier+Prime:wght@700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Hero -->
-    <section class="hero">
-        <div class="badge">AI-Powered Beat Sync Engine</div>
-        <h1>Turn Photos Into <span>Beat-Perfect</span> Videos</h1>
-        <p>Drop your photos, pick a song, and let SnapBeat's AI choreograph a stunning music video in seconds. No timeline. No editing skills. Just magic.</p>
-        <div class="cta-group">
-            <a href="#" class="btn btn-primary">Download on Google Play</a>
-            <a href="#features" class="btn btn-secondary">See How It Works</a>
-        </div>
-    </section>
+  <div class="app-container">
 
-    <!-- How It Works -->
-    <section class="section" id="features">
-        <div class="section-title">
-            <h2>Three Taps. That's It.</h2>
-            <p>Professional music videos used to take hours. Now they take seconds.</p>
-        </div>
-        <div class="steps">
-            <div class="step-card">
-                <div class="step-num">1</div>
-                <h3>Pick Photos</h3>
-                <p>Select any number of photos from your gallery. 5 or 50, SnapBeat handles it all.</p>
-            </div>
-            <div class="step-card">
-                <div class="step-num">2</div>
-                <h3>Choose Music</h3>
-                <p>Upload your own track or pick from our built-in library of trending sounds.</p>
-            </div>
-            <div class="step-card">
-                <div class="step-num">3</div>
-                <h3>Tap Make</h3>
-                <p>Our AI analyzes 160 frequency bands to cut, zoom, and transition exactly on the beat.</p>
-            </div>
-        </div>
-    </section>
+    <!-- ═══════════════ HEADER ═══════════════ -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="logo-title">SNAPBEAT</h1>
+        <p class="logo-subtitle">let the music decide your edit.</p>
+      </div>
 
-    <!-- Features -->
-    <section class="section">
-        <div class="section-title">
-            <h2>Why Creators Love SnapBeat</h2>
-            <p>Built different from every other video maker on the market.</p>
+      <div class="header-right">
+        <!-- Mode Switch (BASIC / PRO) -->
+        <div class="switch-row">
+          <span id="labelAuto" class="switch-label active">AUTO</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="switchMode" />
+            <span class="slider round"></span>
+          </label>
+          <span id="labelPro" class="switch-label dimmed">PRO</span>
         </div>
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">🎯</div>
-                <div>
-                    <h4>Frame-Perfect Beat Sync</h4>
-                    <p>Our engine cuts 55ms before each beat so your brain perceives perfect sync. No other app does this.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔥</div>
-                <div>
-                    <h4>Bass Drop Detection</h4>
-                    <p>When the music drops, your video explodes with dramatic zoom bursts and flash montages.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🧠</div>
-                <div>
-                    <h4>AI Mood Matching</h4>
-                    <p>Sad song? Cool blue tones. Hype track? High contrast punchy edits. The vibe always matches.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">👤</div>
-                <div>
-                    <h4>Face Priority</h4>
-                    <p>Smart cropping that never cuts off faces. Your people always stay in frame.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📱</div>
-                <div>
-                    <h4>Made for Reels & TikTok</h4>
-                    <p>Exports in crisp 1080x1920 HD, perfectly sized for Instagram Reels, TikTok, and Shorts.</p>
-                </div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <div>
-                    <h4>Zero Learning Curve</h4>
-                    <p>No timelines. No keyframes. No 47 buttons. Just photos + music = masterpiece.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Pricing -->
-    <section class="section">
-        <div class="section-title">
-            <h2>Simple, Honest Pricing</h2>
-            <p>No sneaky subscriptions. No weekly charges. Pay only when you export.</p>
+        <!-- Theme Selector (DARK / LIGHT / Y2K) -->
+        <div class="theme-pills">
+          <button type="button" class="theme-pill active" data-theme-val="dark">🌙 Dark</button>
+          <button type="button" class="theme-pill" data-theme-val="light">☀️ Light</button>
+          <button type="button" class="theme-pill" data-theme-val="y2k">📼 Y2K</button>
         </div>
-        <div class="pricing-cards">
-            <div class="price-card">
-                <h3>Starter</h3>
-                <div class="price-amount">&#8377;99 <span></span></div>
-                <div class="price-detail">10 HD exports / No watermark</div>
-                <a href="#" class="btn btn-secondary">Get Started</a>
-            </div>
-            <div class="price-card popular">
-                <div class="popular-tag">MOST POPULAR</div>
-                <h3>Creator</h3>
-                <div class="price-amount">&#8377;249 <span></span></div>
-                <div class="price-detail">30 HD exports / No watermark</div>
-                <a href="#" class="btn btn-primary">Get Creator</a>
-            </div>
-            <div class="price-card">
-                <h3>Pro</h3>
-                <div class="price-amount">&#8377;499 <span></span></div>
-                <div class="price-detail">100 HD exports / No watermark</div>
-                <a href="#" class="btn btn-secondary">Go Pro</a>
-            </div>
+
+        <!-- Server Settings Link -->
+        <button id="btnOpenSettings" class="btn-settings" title="Configure Server URL">
+          <span class="status-dot online" id="statusDot"></span>
+          <span id="lblServerStatus">Server Config</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+    <main class="main-content">
+
+      <!-- ═══════════════ PRO MODE OPTIONS ═══════════════ -->
+      <section id="cardPro" class="card pro-card hidden">
+        <h2 class="card-header yellow-header">⚡ PRO TEMPLATE</h2>
+        
+        <div class="form-group">
+          <label for="selectTemplate" class="form-label">Animation Preset</label>
+          <select id="selectTemplate" class="retro-select">
+            <option value="simple">Simple (Beat Flash)</option>
+            <option value="beat-cut">Beat Cut</option>
+            <option value="beat-bounce">Bounce</option>
+            <option value="cinematic-zoom">Cine Zoom</option>
+            <option value="beat-fade">Fade</option>
+            <option value="glide-pan">Glide</option>
+            <option value="mosaic-flow">Mosaic Flow</option>
+            <option value="aesthetic-beat-mosaic">Mosaic Pulse</option>
+            <option value="pendulum">Pendulum</option>
+            <option value="beat-pendulum">Pendulum OG</option>
+            <option value="beat-pulse">Pulse</option>
+            <option value="punch-cut">Punch</option>
+            <option value="reveal-tiles-bounce">Reveal Bounce</option>
+            <option value="reveal-tiles">Reveal Boxes</option>
+            <option value="reveal-circles">Reveal Circles</option>
+            <option value="reveal-tiles-fine">Reveal Grid</option>
+            <option value="reveal-spiral">Reveal Spiral</option>
+            <option value="beat-slide">Slide</option>
+            <option value="slow-drift">Slow Drift</option>
+            <option value="beat-spin">Spin</option>
+            <option value="sway-ballad">Sway</option>
+            <option value="beat-whip">Whip</option>
+            <option value="zoom-out-reveal">Zoom Out</option>
+          </select>
         </div>
-    </section>
 
-    <!-- Bottom CTA -->
-    <section class="cta-section">
-        <h2>Ready to Make Magic?</h2>
-        <p>Join thousands of creators making stunning beat-synced videos with zero effort.</p>
-        <a href="#" class="btn btn-primary">Download SnapBeat Free</a>
-    </section>
+        <div class="divider"></div>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 SnapBeat. All rights reserved. | <a href="mailto:hello@snapbeat.app">hello@snapbeat.app</a></p>
+                <!-- Video Quality & Photo Arrangement -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label blue-text">⚡ VIDEO QUALITY</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="videoQuality" value="fast" checked />
+                <span>Fast (~5 MB)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="videoQuality" value="master" />
+                <span>Master (~20 MB)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label yellow-text">✨ PHOTO ARRANGEMENT</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="photoArrangeMode" value="auto" checked id="rbArrangeAuto" />
+                <span>🤖 AI Smart (Gemini)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="photoArrangeMode" value="manual" id="rbArrangeManual" />
+                <span>✋ Manual Order</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <!-- Drop It Toggle -->
+        <div class="toggle-row">
+          <div>
+            <h3 class="toggle-title pink-text">💥 DROP IT</h3>
+            <p class="toggle-desc">burst montage on bass drops</p>
+          </div>
+          <label class="toggle-switch pink-switch">
+            <input type="checkbox" id="switchDropIt" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Aspect Ratio -->
+        <div class="form-group">
+          <label for="selectAspectRatio" class="form-label blue-text">📐 ASPECT RATIO</label>
+          <select id="selectAspectRatio" class="retro-select">
+            <option value="portrait">Portrait (9:16) — Shorts / Reels / TikTok</option>
+            <option value="landscape">Landscape (16:9) — YouTube / Desktop</option>
+            <option value="square">Square (1:1) — Instagram Feed</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Title Card Designer -->
+        <div class="title-card-designer">
+          <h2 class="card-header yellow-header">🎬 TITLE CARD DESIGNER</h2>
+
+          <div class="form-group">
+            <input type="text" id="inputTitleText" class="retro-input" placeholder="Enter title text (optional)" maxlength="50" />
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="selectTitleFont" class="form-label">Font Typography</label>
+              <select id="selectTitleFont" class="retro-select">
+                <option value="impact">Bold Blockbuster (Impact)</option>
+                <option value="serif">Elegant Serif (Georgia)</option>
+                <option value="clean">Modern Minimal (Clean)</option>
+                <option value="typewriter">Vintage Typewriter</option>
+                <option value="playful">Casual Retro (Playful)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="selectTitleStyle" class="form-label">Visual Style</label>
+              <select id="selectTitleStyle" class="retro-select">
+                <option value="classic">Classic Yellow Drop-Shadow</option>
+                <option value="neon">Neon Glow (Electric Cyan)</option>
+                <option value="3d_retro">3D Retro Arcade Extrusion</option>
+                <option value="cinematic">Cinematic All-Caps</option>
+                <option value="badge">Badge Tag Container</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="selectTitleFrame" class="form-label">Decorative Frame</label>
+              <select id="selectTitleFrame" class="retro-select">
+                <option value="none">None (Borderless)</option>
+                <option value="box">Cinematic Box Border</option>
+                <option value="viewfinder">Viewfinder Camera Corners</option>
+                <option value="double_line">Retro Double Border</option>
+                <option value="film_bars">Film Letterbox Bars</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Background</label>
+              <div class="radio-pill-group">
+                <label class="radio-pill">
+                  <input type="radio" name="titleBg" value="black" checked />
+                  <span>Black</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="titleBg" value="color" />
+                  <span>Color</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="titleBg" value="video" />
+                  <span>Over Video</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="colorPickerContainer" class="form-group hidden">
+            <label class="form-label">Custom Background Color</label>
+            <div class="color-picker-row">
+              <input type="color" id="titleColorPicker" value="#FF4D8D" class="color-swatch" />
+              <input type="text" id="titleColorHex" value="#FF4D8D" class="retro-input color-input" maxlength="7" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="slider-header">
+              <label class="form-label">Duration</label>
+              <span id="lblTitleDuration" class="slider-value">2s</span>
+            </div>
+            <input type="range" id="seekTitleDuration" min="1" max="5" value="2" class="retro-range" />
+          </div>
+
+          <!-- Live Title Card Preview Canvas -->
+          <div class="preview-box-container">
+            <span class="preview-badge">LIVE TITLE PREVIEW</span>
+            <div class="canvas-wrapper">
+              <canvas id="canvasTitlePreview" width="640" height="360"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ═══════════════ MUSIC CARD ═══════════════ -->
+      <section class="card music-card">
+        <h2 class="card-header pink-header">🎵 MUSIC</h2>
+        
+        <div class="btn-stack">
+          <label class="btn btn-retro-pink file-btn">
+            PICK A TAPE
+            <input type="file" id="inputMusicFile" accept="audio/*" hidden />
+          </label>
+          <button id="btnSampleMusic" class="btn btn-retro-yellow">
+            ✨ USE SAMPLE TAPE (Funk Party)
+          </button>
+        </div>
+
+        <div class="status-box">
+          <p id="tvMusicStatus" class="status-text">no tape selected</p>
+          <audio id="audioPlayer" controls class="hidden mini-audio-player"></audio>
+        </div>
+
+        <!-- Trimming Controls -->
+        <div id="audioTrimSection" class="trim-section hidden">
+          <div class="divider"></div>
+
+          <div class="radio-row">
+            <label class="radio-label">
+              <input type="radio" name="audioLengthMode" value="full" checked id="rbAudioFull" />
+              <span>Full Track</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="audioLengthMode" value="trim" id="rbAudioTrim" />
+              <span>Trim Section</span>
+            </label>
+          </div>
+
+          <div id="trimSlidersContainer" class="trim-sliders-box hidden">
+            <div class="range-summary">
+              <span id="lblTrimSummary" class="pink-text bold">Start: 0:00 | End: 0:00 (Duration: 0:00)</span>
+            </div>
+
+            <div class="range-item">
+              <div class="slider-header">
+                <span id="lblAudioStart" class="form-label">Start Time: 0:00</span>
+              </div>
+              <input type="range" id="seekAudioStart" min="0" max="100" value="0" class="retro-range pink-range" />
+            </div>
+
+            <div class="range-item">
+              <div class="slider-header">
+                <span id="lblAudioEnd" class="form-label">End Time: 0:00</span>
+              </div>
+              <input type="range" id="seekAudioEnd" min="0" max="100" value="100" class="retro-range yellow-range" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════ PHOTOS CARD ═══════════════ -->
+      <section class="card photos-card">
+        <h2 class="card-header blue-header">📸 PHOTOS</h2>
+
+        <div class="drop-zone" id="photoDropZone">
+          <label class="btn btn-retro-blue file-btn">
+            POLAROID STACK
+            <input type="file" id="inputPhotoFiles" accept="image/*" multiple hidden />
+          </label>
+          <p class="drop-hint">or drop 1 to 60 photos here</p>
+        </div>
+
+                <!-- AI Auto Arrange Indicator Badge -->
+        <div id="badgeAutoArrange" class="auto-arrange-badge">
+          <span>✨ AI SMART ARRANGE ACTIVE (GEMINI BEAT-SYNC)</span>
+        </div>
+
+        <div class="status-box">
+          <p id="tvPhotosStatus" class="status-text">0 photos (tap to load)</p>
+        </div>
+
+        <!-- Photo Stack List -->
+        <div id="photoStackList" class="photo-stack hidden"></div>
+      </section>
+
+      <!-- ═══════════════ RENDER & PREVIEW CARD ═══════════════ -->
+      <section class="card render-card">
+        <!-- Render Button -->
+        <button id="btnRender" class="btn btn-retro-yellow btn-render" disabled>
+          ▶ RENDER VIDEO
+        </button>
+
+        <!-- Progress Bar & Status -->
+        <div id="renderProgressContainer" class="progress-box hidden">
+          <div class="progress-track">
+            <div id="progressBar" class="progress-fill" style="width: 0%;"></div>
+          </div>
+          <p id="tvRenderStatus" class="render-status-text">Preparing...</p>
+        </div>
+
+        <!-- Retry Button -->
+        <button id="btnRetry" class="btn btn-retro-yellow hidden">
+          🔁 RETRY
+        </button>
+
+        <!-- Video Player Preview -->
+        <div id="videoPreviewContainer" class="video-preview-box hidden">
+          <video id="videoPreview" controls class="rendered-video"></video>
+
+          <div class="preview-actions">
+            <a id="btnDownloadVideo" class="btn btn-retro-yellow action-btn" download="snapbeat.mp4">
+              ⬇️ DOWNLOAD VIDEO
+            </a>
+            <button id="btnNewVideo" class="btn btn-retro-pink action-btn">
+              🔄 NEW VIDEO
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer class="footer">
+      <p>
+        <a href="#" id="linkPrivacyPolicy" class="footer-link">🔒 Privacy Policy &amp; Terms • Ephemeral Processing</a>
+      </p>
+      <p style="color: var(--text-dimmer); font-size: 0.75rem; margin-top: 4px;">SnapBeat Web Edition &bull; Version 1.0</p>
     </footer>
+
+  </div>
+
+  <!-- ═══════════════ SETTINGS MODAL ═══════════════ -->
+  <div id="modalSettings" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h3 class="yellow-header">⚙️ Server Connection</h3>
+        <button id="btnCloseSettings" class="modal-close-btn">&times;</button>
+      </div>
+      <p class="modal-desc">Configure the backend render server or gateway URL.</p>
+      
+      <div class="form-group">
+        <label for="inputServerUrl" class="form-label">Server / Gateway URL</label>
+        <input type="text" id="inputServerUrl" class="retro-input" value="http://localhost:8772" />
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnTestConnection" class="btn btn-retro-blue modal-action-btn">Test Connection</button>
+        <button id="btnSaveServerUrl" class="btn btn-retro-yellow modal-action-btn">Save</button>
+      </div>
+
+      <div id="serverTestFeedback" class="test-feedback hidden"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <!-- ═══════════════ PRIVACY MODAL ═══════════════ -->
+  <div id="modalPrivacy" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h3 class="yellow-header">🔒 SnapBeat Privacy Policy</h3>
+        <button id="btnClosePrivacy" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="privacy-content">
+        <p><strong>Effective Date:</strong> September 8, 2026</p>
+        <h4>1. Ephemeral Media Processing</h4>
+        <p>SnapBeat processes only the specific photos and music track you upload. Files are sent via encrypted HTTPS to our dedicated rendering backend solely to synchronize beats, arrange visuals, and produce your MP4 video.</p>
+        <h4>2. Automatic Deletion</h4>
+        <p>Your uploaded photos and music are processed temporarily and <strong>automatically deleted immediately after download</strong>. We never store, archive, or retain your personal media.</p>
+        <h4>3. AI Smart Arrangement</h4>
+        <p>Visual attributes (vibrance, contrast, tempo drop markers) are analyzed solely to sequence photos for the video climax. We never train public AI models on your photos.</p>
+        <h4>4. No Tracking or Selling</h4>
+        <p>We do not sell, share, or monetize user data with third parties or advertisers.</p>
+      </div>
+      <div class="modal-actions" style="margin-top: 14px;">
+        <button id="btnDismissPrivacy" class="btn btn-retro-yellow modal-action-btn">Close</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
