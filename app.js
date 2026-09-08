@@ -8,7 +8,9 @@
   // ─── State ──────────────────────────────────────────────────────────
   const state = {
     serverUrl: localStorage.getItem('snapbeat_server_url') || (window.location.protocol.startsWith('http') ? window.location.origin : 'http://localhost:8000'),
-    isDarkMode: localStorage.getItem('snapbeat_theme') !== 'light',
+    theme: localStorage.getItem('snapbeat_theme') || 'dark',
+    autoArrange: 'auto',
+    quality: 'fast',
     isProMode: false,
     musicFile: null,
     musicDuration: 0,
@@ -22,13 +24,18 @@
 
   // ─── DOM References ──────────────────────────────────────────────────
   const dom = {
-    // Switches
+    // Switches & Theme
     switchMode: document.getElementById('switchMode'),
-    labelBasic: document.getElementById('labelBasic'),
+    labelAuto: document.getElementById('labelAuto'),
     labelPro: document.getElementById('labelPro'),
-    switchTheme: document.getElementById('switchTheme'),
-    labelDark: document.getElementById('labelDark'),
-    labelLight: document.getElementById('labelLight'),
+    themePills: document.querySelectorAll('.theme-pill'),
+    badgeAutoArrange: document.getElementById('badgeAutoArrange'),
+    rbArrangeAuto: document.getElementById('rbArrangeAuto'),
+    rbArrangeManual: document.getElementById('rbArrangeManual'),
+    linkPrivacyPolicy: document.getElementById('linkPrivacyPolicy'),
+    modalPrivacy: document.getElementById('modalPrivacy'),
+    btnClosePrivacy: document.getElementById('btnClosePrivacy'),
+    btnDismissPrivacy: document.getElementById('btnDismissPrivacy'),
     
     // Server status
     btnOpenSettings: document.getElementById('btnOpenSettings'),
@@ -99,39 +106,53 @@
     return `${m}:${rem.toString().padStart(2, '0')}`;
   };
 
-  // ─── Theme Management ────────────────────────────────────────────────
-  const applyTheme = (isDark) => {
-    state.isDarkMode = isDark;
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    dom.switchTheme.checked = !isDark;
+  // ─── Theme Management (DARK / LIGHT / Y2K) ──────────────────────────
+  const applyTheme = (theme) => {
+    state.theme = theme || 'dark';
+    document.documentElement.setAttribute('data-theme', state.theme);
+    localStorage.setItem('snapbeat_theme', state.theme);
 
-    if (isDark) {
-      dom.labelDark.className = 'switch-label active';
-      dom.labelLight.className = 'switch-label dimmed';
-    } else {
-      dom.labelDark.className = 'switch-label dimmed';
-      dom.labelLight.className = 'switch-label active';
+    if (dom.themePills) {
+      dom.themePills.forEach((pill) => {
+        if (pill.getAttribute('data-theme-val') === state.theme) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
     }
     updateModeLabels();
     drawTitlePreview();
   };
 
-  dom.switchTheme.addEventListener('change', (e) => {
-    const isDark = !e.target.checked;
-    localStorage.setItem('snapbeat_theme', isDark ? 'dark' : 'light');
-    applyTheme(isDark);
-  });
+  if (dom.themePills) {
+    dom.themePills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const selectedTheme = pill.getAttribute('data-theme-val');
+        if (selectedTheme) {
+          applyTheme(selectedTheme);
+        }
+      });
+    });
+  }
 
-  // ─── Mode Management (BASIC / PRO) ──────────────────────────────────
+  // ─── Mode Management (AUTO / PRO) ──────────────────────────────────
   const updateModeLabels = () => {
     if (state.isProMode) {
-      dom.labelBasic.className = 'switch-label dimmed';
-      dom.labelPro.className = 'switch-label active';
+      if (dom.labelAuto) dom.labelAuto.className = 'switch-label dimmed';
+      if (dom.labelPro) dom.labelPro.className = 'switch-label active';
       dom.cardPro.classList.remove('hidden');
+      if (dom.badgeAutoArrange) {
+        const isAuto = dom.rbArrangeAuto ? dom.rbArrangeAuto.checked : true;
+        dom.badgeAutoArrange.classList.toggle('hidden', !isAuto);
+      }
     } else {
-      dom.labelBasic.className = 'switch-label active';
-      dom.labelPro.className = 'switch-label dimmed';
+      if (dom.labelAuto) dom.labelAuto.className = 'switch-label active';
+      if (dom.labelPro) dom.labelPro.className = 'switch-label dimmed';
       dom.cardPro.classList.add('hidden');
+      if (dom.badgeAutoArrange) {
+        dom.badgeAutoArrange.classList.remove('hidden');
+      }
     }
   };
 
@@ -139,6 +160,43 @@
     state.isProMode = e.target.checked;
     updateModeLabels();
   });
+
+  if (dom.rbArrangeAuto) {
+    dom.rbArrangeAuto.addEventListener('change', () => {
+      if (dom.badgeAutoArrange) dom.badgeAutoArrange.classList.remove('hidden');
+    });
+  }
+  if (dom.rbArrangeManual) {
+    dom.rbArrangeManual.addEventListener('change', () => {
+      if (dom.badgeAutoArrange) dom.badgeAutoArrange.classList.add('hidden');
+    });
+  }
+
+  // ─── Privacy Policy Modal ─────────────────────────────────────────────
+  if (dom.linkPrivacyPolicy) {
+    dom.linkPrivacyPolicy.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (dom.modalPrivacy) dom.modalPrivacy.classList.remove('hidden');
+    });
+  }
+  if (dom.btnClosePrivacy) {
+    dom.btnClosePrivacy.addEventListener('click', () => {
+      if (dom.modalPrivacy) dom.modalPrivacy.classList.add('hidden');
+    });
+  }
+  if (dom.btnDismissPrivacy) {
+    dom.btnDismissPrivacy.addEventListener('click', () => {
+      if (dom.modalPrivacy) dom.modalPrivacy.classList.add('hidden');
+    });
+  }
+  if (dom.modalPrivacy) {
+    const backdrop = dom.modalPrivacy.querySelector('.modal-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        dom.modalPrivacy.classList.add('hidden');
+      });
+    }
+  }
 
   // ─── Server & Health Checks ──────────────────────────────────────────
   const checkServerHealth = async () => {
@@ -604,6 +662,12 @@
       formData.append('photos', p.file, `photo_${idx}.jpg`);
     });
 
+    // Auto arrange in Auto Mode
+    if (!state.isProMode) {
+      formData.append('auto_arrange', 'auto');
+      formData.append('quality', 'fast');
+    }
+
     // Audio trimming params
     if (state.isFullTrack) {
       formData.append('full_track', 'true');
@@ -622,6 +686,12 @@
         formData.append('drop_it', 'true');
       }
       formData.append('frame', dom.selectAspectRatio.value);
+
+      const qualityRadio = document.querySelector('input[name="videoQuality"]:checked');
+      formData.append('quality', qualityRadio ? qualityRadio.value : 'fast');
+
+      const isManual = dom.rbArrangeManual && dom.rbArrangeManual.checked;
+      formData.append('auto_arrange', isManual ? 'manual' : 'auto');
 
       const titleText = dom.inputTitleText.value.trim();
       if (titleText) {
@@ -683,7 +753,8 @@
           // Display video preview
           const downloadUrl = `${state.serverUrl.replace(/\/$/, '')}/api/render/download/${jobId}`;
           dom.videoPreview.src = downloadUrl;
-          dom.btnDownloadVideo.href = downloadUrl;
+          // Ephemeral cleanup: download with delete_after=true
+          dom.btnDownloadVideo.href = `${downloadUrl}?delete_after=true`;
           dom.videoPreviewContainer.classList.remove('hidden');
           dom.videoPreview.play().catch(() => {}); // Autoplay if allowed
         } else if (data.status === 'failed' || data.status === 'error') {
@@ -737,7 +808,7 @@
   };
 
   // ─── Initialization ──────────────────────────────────────────────────
-  applyTheme(state.isDarkMode);
+  applyTheme(state.theme);
   updateModeLabels();
   checkServerHealth();
   fetchRemoteConfig();

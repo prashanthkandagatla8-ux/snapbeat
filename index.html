@@ -24,7 +24,7 @@
       <div class="header-right">
         <!-- Mode Switch (BASIC / PRO) -->
         <div class="switch-row">
-          <span id="labelBasic" class="switch-label active">BASIC</span>
+          <span id="labelAuto" class="switch-label active">AUTO</span>
           <label class="toggle-switch">
             <input type="checkbox" id="switchMode" />
             <span class="slider round"></span>
@@ -32,14 +32,11 @@
           <span id="labelPro" class="switch-label dimmed">PRO</span>
         </div>
 
-        <!-- Theme Switch (DARK / LIGHT) -->
-        <div class="switch-row">
-          <span id="labelDark" class="switch-label active">🌙 DARK</span>
-          <label class="toggle-switch theme-toggle">
-            <input type="checkbox" id="switchTheme" />
-            <span class="slider round"></span>
-          </label>
-          <span id="labelLight" class="switch-label dimmed">☀️ LIGHT</span>
+        <!-- Theme Selector (DARK / LIGHT / Y2K) -->
+        <div class="theme-pills">
+          <button type="button" class="theme-pill active" data-theme-val="dark">🌙 Dark</button>
+          <button type="button" class="theme-pill" data-theme-val="light">☀️ Light</button>
+          <button type="button" class="theme-pill" data-theme-val="y2k">📼 Y2K</button>
         </div>
 
         <!-- Server Settings Link -->
@@ -88,6 +85,38 @@
 
         <div class="divider"></div>
 
+                <!-- Video Quality & Photo Arrangement -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label blue-text">⚡ VIDEO QUALITY</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="videoQuality" value="fast" checked />
+                <span>Fast (~5 MB)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="videoQuality" value="master" />
+                <span>Master (~20 MB)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label yellow-text">✨ PHOTO ARRANGEMENT</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="photoArrangeMode" value="auto" checked id="rbArrangeAuto" />
+                <span>🤖 AI Smart (Gemini)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="photoArrangeMode" value="manual" id="rbArrangeManual" />
+                <span>✋ Manual Order</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
         <!-- Drop It Toggle -->
         <div class="toggle-row">
           <div>
@@ -270,6 +299,11 @@
           <p class="drop-hint">or drop 1 to 60 photos here</p>
         </div>
 
+                <!-- AI Auto Arrange Indicator Badge -->
+        <div id="badgeAutoArrange" class="auto-arrange-badge">
+          <span>✨ AI SMART ARRANGE ACTIVE (GEMINI BEAT-SYNC)</span>
+        </div>
+
         <div class="status-box">
           <p id="tvPhotosStatus" class="status-text">0 photos (tap to load)</p>
         </div>
@@ -317,7 +351,10 @@
 
     <!-- ═══════════════ FOOTER ═══════════════ -->
     <footer class="footer">
-      <p>SnapBeat &bull; Standalone Web Edition</p>
+      <p>
+        <a href="#" id="linkPrivacyPolicy" class="footer-link">🔒 Privacy Policy &amp; Terms • Ephemeral Processing</a>
+      </p>
+      <p style="color: var(--text-dimmer); font-size: 0.75rem; margin-top: 4px;">SnapBeat Web Edition &bull; Version 1.0</p>
     </footer>
 
   </div>
@@ -347,5 +384,30 @@
   </div>
 
   <script src="app.js"></script>
+  <!-- ═══════════════ PRIVACY MODAL ═══════════════ -->
+  <div id="modalPrivacy" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h3 class="yellow-header">🔒 SnapBeat Privacy Policy</h3>
+        <button id="btnClosePrivacy" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="privacy-content">
+        <p><strong>Effective Date:</strong> September 8, 2026</p>
+        <h4>1. Ephemeral Media Processing</h4>
+        <p>SnapBeat processes only the specific photos and music track you upload. Files are sent via encrypted HTTPS to our dedicated rendering backend solely to synchronize beats, arrange visuals, and produce your MP4 video.</p>
+        <h4>2. Automatic Deletion</h4>
+        <p>Your uploaded photos and music are processed temporarily and <strong>automatically deleted immediately after download</strong>. We never store, archive, or retain your personal media.</p>
+        <h4>3. AI Smart Arrangement</h4>
+        <p>Visual attributes (vibrance, contrast, tempo drop markers) are analyzed solely to sequence photos for the video climax. We never train public AI models on your photos.</p>
+        <h4>4. No Tracking or Selling</h4>
+        <p>We do not sell, share, or monetize user data with third parties or advertisers.</p>
+      </div>
+      <div class="modal-actions" style="margin-top: 14px;">
+        <button id="btnDismissPrivacy" class="btn btn-retro-yellow modal-action-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
