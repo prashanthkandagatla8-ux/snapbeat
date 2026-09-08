@@ -52,6 +52,40 @@ class MainActivity : AppCompatActivity() {
     private var isDarkMode: Boolean = true
     private val PREFS_NAME = "snapbeat_prefs"
     private val KEY_DARK_MODE = "is_dark_mode"
+    private val KEY_CACHED_SERVER_URL = "cached_server_url"
+    private val REMOTE_CONFIG_URL = "https://raw.githubusercontent.com/prashanthkandagatla8-ux/snapbeat/main/config.json"
+
+    private fun getServerUrl(): String {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val cached = prefs.getString(KEY_CACHED_SERVER_URL, null)
+        return if (!cached.isNullOrBlank()) cached else BuildConfig.SERVER_URL
+    }
+
+    private fun fetchRemoteConfig() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val request = Request.Builder()
+                    .url(REMOTE_CONFIG_URL)
+                    .header("Cache-Control", "no-cache")
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val body = response.body?.string() ?: return@use
+                        val json = JSONObject(body)
+                        val remoteUrl = json.optString("server_url", "").trim().trimEnd('/')
+                        if (remoteUrl.isNotEmpty()) {
+                            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                                .edit()
+                                .putString(KEY_CACHED_SERVER_URL, remoteUrl)
+                                .apply()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Graceful fallback to cached or BuildConfig.SERVER_URL
+            }
+        }
+    }
 
     private val templates = arrayOf("Beat Cut", "Bounce", "Cine Zoom", "Fade", "Glide", "Mosaic Flow", "Mosaic Pulse", "Pendulum", "Pendulum OG", "Pulse", "Punch", "Reveal Bounce", "Reveal Boxes", "Reveal Circles", "Reveal Grid", "Reveal Spiral", "Slide", "Slow Drift", "Spin", "Sway", "Whip", "Zoom Out")
     private val aspectRatios = arrayOf("Portrait (9:16)", "Landscape (16:9)", "Square (1:1)")
@@ -116,6 +150,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        fetchRemoteConfig()
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         isDarkMode = prefs.getBoolean(KEY_DARK_MODE, true)
@@ -574,7 +610,7 @@ class MainActivity : AppCompatActivity() {
 
                 val requestBody = builder.build()
                 val request = Request.Builder()
-                    .url(BuildConfig.SERVER_URL + "/api/render/mobile") 
+                    .url(getServerUrl() + "/api/render/mobile") 
                     .post(requestBody)
                     .build()
 
@@ -623,7 +659,7 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 val statusRequest = Request.Builder()
-                    .url(BuildConfig.SERVER_URL + "/api/render/status/$jobId")
+                    .url(getServerUrl() + "/api/render/status/$jobId")
                     .get()
                     .build()
 
@@ -666,7 +702,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val downloadRequest = Request.Builder()
-            .url(BuildConfig.SERVER_URL + "/api/render/download/$jobId")
+            .url(getServerUrl() + "/api/render/download/$jobId")
             .get()
             .build()
 
