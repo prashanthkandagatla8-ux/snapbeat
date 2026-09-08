@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1C1B19"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvSponsorTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🎬 VIDEO READY TO UNLOCK!"
+        android:textColor="#FFE14D"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-black"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvSponsorDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Your beat-synced video has finished rendering on the VPS! Watch a short sponsor video to unlock and save your video."
+        android:textColor="#FFFCF5"
+        android:alpha="0.85"
+        android:textSize="13sp"
+        android:lineSpacingExtra="3dp"
+        android:layout_marginBottom="18dp" />
+
+    <!-- Unlock Button -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnWatchSponsorAd"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@drawable/btn_retro_yellow"
+        android:text="▶️  WATCH FULL AD TO UNLOCK"
+        android:textColor="#1A1A1A"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-black"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚠️ You must watch the complete ad to unlock the video."
+        android:textAlignment="center"
+        android:textColor="#FFB800"
+        android:textSize="11sp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Close / Later -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCancelUnlock"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:background="@android:color/transparent"
+        android:text="CLOSE"
+        android:textColor="#888888"
+        android:textSize="13sp" />
+</LinearLayout>

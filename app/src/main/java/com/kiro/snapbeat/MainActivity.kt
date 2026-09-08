@@ -48,10 +48,14 @@ import androidx.work.WorkManager
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var creditManager: CreditManager
+    private lateinit var billingManager: BillingManager
+    private lateinit var rewardedAdManager: RewardedAdManager
     private var selectedMusicUri: Uri? = null
     private var selectedPhotos = mutableListOf<Uri>()
     private lateinit var photoOrderAdapter: PhotoOrderAdapter
     private var lastVideoUri: android.net.Uri? = null
+    private val unlockedVideoUris = mutableSetOf<String>()
     private var audioDurationSeconds: Int = 0
     private var audioStartSeconds: Int = 0
     private var audioEndSeconds: Int = 0
@@ -71,13 +75,25 @@ class MainActivity : AppCompatActivity() {
     private val PRIVACY_POLICY_URL = "https://github.com/prashanthkandagatla8-ux/snapbeat/blob/android/PRIVACY_POLICY.md"
 
     private val KEY_CACHED_SERVER_URL = "cached_server_url"
+    private val KEY_CACHED_VPS_URL = "cached_vps_url"
+    private val KEY_CACHED_SERVERLESS_URL = "cached_serverless_url"
     private val REMOTE_CONFIG_URL = "https://raw.githubusercontent.com/prashanthkandagatla8-ux/snapbeat/main/config.json"
 
-    private fun getServerUrl(): String {
+    private fun getVpsUrl(): String {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val vps = prefs.getString(KEY_CACHED_VPS_URL, null)
+        if (!vps.isNullOrBlank()) return vps
         val cached = prefs.getString(KEY_CACHED_SERVER_URL, null)
         return if (!cached.isNullOrBlank()) cached else BuildConfig.SERVER_URL
     }
+
+    private fun getServerlessUrl(): String {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val serverless = prefs.getString(KEY_CACHED_SERVERLESS_URL, null)
+        return if (!serverless.isNullOrBlank()) serverless else getVpsUrl()
+    }
+
+    private fun getServerUrl(): String = getVpsUrl()
 
     private fun fetchRemoteConfig() {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -90,13 +106,14 @@ class MainActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         val body = response.body?.string() ?: return@use
                         val json = JSONObject(body)
+                        val vpsUrl = json.optString("vps_url", "").trim().trimEnd('/')
+                        val serverlessUrl = json.optString("serverless_url", "").trim().trimEnd('/')
                         val remoteUrl = json.optString("server_url", "").trim().trimEnd('/')
-                        if (remoteUrl.isNotEmpty()) {
-                            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                                .edit()
-                                .putString(KEY_CACHED_SERVER_URL, remoteUrl)
-                                .apply()
-                        }
+                        val editor = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+                        if (vpsUrl.isNotEmpty()) editor.putString(KEY_CACHED_VPS_URL, vpsUrl)
+                        if (serverlessUrl.isNotEmpty()) editor.putString(KEY_CACHED_SERVERLESS_URL, serverlessUrl)
+                        if (remoteUrl.isNotEmpty()) editor.putString(KEY_CACHED_SERVER_URL, remoteUrl)
+                        editor.apply()
                     }
                 }
             } catch (e: Exception) {
@@ -245,6 +262,7 @@ class MainActivity : AppCompatActivity() {
             if (checkedId == R.id.rbAudioFull) {
                 isFullTrack = true
                 binding.layoutTrimSliders.visibility = View.GONE
+                updateDynamicRenderCost()
             } else {
                 isFullTrack = false
                 binding.layoutTrimSliders.visibility = View.VISIBLE
@@ -311,15 +329,48 @@ class MainActivity : AppCompatActivity() {
             photosPicker.launch("image/*")
         }
 
+        // Credit & Billing System
+        creditManager = CreditManager(this)
+        rewardedAdManager = RewardedAdManager(this)
+        billingManager = BillingManager(this, creditManager) { _, msg ->
+            updateCreditBalanceUI()
+            updateWatermarkUI()
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+        updateCreditBalanceUI()
+        updateWatermarkUI()
+
+        binding.layoutCreditMeter.setOnClickListener {
+            showCreditStoreDialog(getRequiredCredits())
+        }
+
+        binding.layoutWatermarkPill.setOnClickListener {
+            showCreditStoreDialog()
+        }
+
+        binding.rgVideoQuality.setOnCheckedChangeListener { _, _ ->
+            updateDynamicRenderCost()
+        }
+
         binding.btnRender.setOnClickListener {
             if (selectedMusicUri == null || selectedPhotos.isEmpty()) {
                 Toast.makeText(this, "Please pick actual music and photos first!", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            val required = getRequiredCredits()
+            if (creditManager.getCredits() < required) {
+                showCreditStoreDialog(required)
                 return@setOnClickListener
             }
             uploadAndRender()
         }
 
         binding.btnQueue.setOnClickListener {
+            if (selectedMusicUri == null || selectedPhotos.isEmpty()) {
+                Toast.makeText(this, "Please pick actual music and photos first!", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            // 100% Free! Unlimited renders on VPS queue
             queueBackgroundRender()
         }
 
@@ -348,11 +399,185 @@ class MainActivity : AppCompatActivity() {
         updateLiveTitlePreview()
     }
 
+    private fun getRequiredCredits(): Int {
+        if (!::creditManager.isInitialized) return 1
+        val duration = if (isFullTrack) {
+            if (audioDurationSeconds > 0) audioDurationSeconds else 30
+        } else {
+            maxOf(1, audioEndSeconds - audioStartSeconds)
+        }
+        val isMaster = binding.rbQualityMaster.isChecked
+        return creditManager.calculateRequiredCredits(duration, isMaster)
+    }
+
+    private fun updateDynamicRenderCost() {
+        if (!::creditManager.isInitialized) return
+        val cost = getRequiredCredits()
+        val creditText = if (cost == 1) "1 CREDIT" else "$cost CREDITS"
+        when (currentTheme) {
+            AppTheme.VINTAGE_Y2K -> {
+                binding.btnRender.text = "● REC / INSTANT ($creditText)"
+                binding.btnQueue.text = "📥 FREE QUEUE (UNLIMITED)"
+            }
+            else -> {
+                binding.btnRender.text = "⚡ INSTANT RENDER ($creditText)"
+                binding.btnQueue.text = "📥 FREE QUEUE (UNLIMITED)"
+            }
+        }
+        updateWatermarkUI()
+    }
+
+    private fun updateWatermarkUI() {
+        if (!::creditManager.isInitialized) return
+        if (creditManager.isProSubscriber()) {
+            binding.tvWatermarkStatus.text = "👑 Pro Active: Watermark Removed!"
+            binding.tvWatermarkStatus.setTextColor(Color.parseColor("#FFE14D"))
+            binding.tvWatermarkAction.visibility = View.GONE
+        } else {
+            binding.tvWatermarkStatus.text = "🚫 Watermark: ON (Free Queue)"
+            binding.tvWatermarkAction.visibility = View.VISIBLE
+            binding.tvWatermarkAction.text = "REMOVE (PRO ₹199/MO) ❯"
+        }
+    }
+
+    private fun updateCreditBalanceUI() {
+        if (!::creditManager.isInitialized) return
+        val count = creditManager.getCredits()
+        val label = if (count == 1) "CREDIT" else "CREDITS"
+        binding.tvCreditBalance.text = "$count $label"
+        updateDynamicRenderCost()
+    }
+
+    private fun showCreditStoreDialog(requiredCredits: Int = 0) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_credit_store, null)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val tvStoreBalance = dialogView.findViewById<android.widget.TextView>(R.id.tvStoreBalance)
+        val tvRequiredNotice = dialogView.findViewById<android.widget.TextView>(R.id.tvRequiredNotice)
+        val btnSubMonthly = dialogView.findViewById<android.view.View>(R.id.btnSubMonthly)
+        val btnSubYearly = dialogView.findViewById<android.view.View>(R.id.btnSubYearly)
+        val btnPackStarter = dialogView.findViewById<android.view.View>(R.id.btnPackStarter)
+        val btnPackParty = dialogView.findViewById<android.view.View>(R.id.btnPackParty)
+        val btnPackStudio = dialogView.findViewById<android.view.View>(R.id.btnPackStudio)
+        val btnPackDirector = dialogView.findViewById<android.view.View>(R.id.btnPackDirector)
+        val btnCloseStore = dialogView.findViewById<android.view.View>(R.id.btnCloseStore)
+
+        val balance = creditManager.getCredits()
+        tvStoreBalance.text = "Balance: $balance"
+
+        if (requiredCredits > balance) {
+            tvRequiredNotice.visibility = android.view.View.VISIBLE
+            tvRequiredNotice.text = "⚠️ Instant render requires $requiredCredits credits. Your balance: $balance credits. Top up below or use the Free Queue!"
+        } else {
+            tvRequiredNotice.visibility = android.view.View.GONE
+        }
+
+        btnSubMonthly?.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.SUBS_PRO_MONTHLY)
+            dialog.dismiss()
+        }
+        btnSubYearly?.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.SUBS_PRO_YEARLY)
+            dialog.dismiss()
+        }
+
+        btnPackStarter.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_STARTER_10)
+            dialog.dismiss()
+        }
+        btnPackParty.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_PARTY_35)
+            dialog.dismiss()
+        }
+        btnPackStudio.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_STUDIO_80)
+            dialog.dismiss()
+        }
+        btnPackDirector.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_DIRECTOR_200)
+            dialog.dismiss()
+        }
+        btnCloseStore.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun showSponsorUnlockDialog(videoUriStr: String) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_sponsor_unlock, null)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val tvTitle = dialogView.findViewById<android.widget.TextView>(R.id.tvSponsorTitle)
+        val tvDesc = dialogView.findViewById<android.widget.TextView>(R.id.tvSponsorDesc)
+        val btnWatch = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnWatchSponsorAd)
+        val btnCancel = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnCancelUnlock)
+
+        when (currentTheme) {
+            AppTheme.RETRO_LIGHT -> {
+                dialogView.setBackgroundColor(Color.parseColor("#FFFDF9"))
+                tvTitle?.setTextColor(Color.parseColor("#1A1A1A"))
+                tvDesc?.setTextColor(Color.parseColor("#444444"))
+                btnWatch?.setBackgroundResource(R.drawable.btn_retro_yellow)
+                btnWatch?.setTextColor(Color.parseColor("#1A1A1A"))
+                btnCancel?.setTextColor(Color.parseColor("#666666"))
+            }
+            AppTheme.VINTAGE_Y2K -> {
+                dialogView.setBackgroundColor(Color.parseColor("#E8DEC8"))
+                tvTitle?.setTextColor(Color.parseColor("#22211D"))
+                tvDesc?.setTextColor(Color.parseColor("#4A443B"))
+                btnWatch?.setBackgroundResource(R.drawable.btn_y2k_amber)
+                btnWatch?.setTextColor(Color.parseColor("#1C1B19"))
+                btnCancel?.setTextColor(Color.parseColor("#6B655B"))
+            }
+            else -> {
+                dialogView.setBackgroundColor(Color.parseColor("#1C1B19"))
+                tvTitle?.setTextColor(Color.parseColor("#FFE14D"))
+                tvDesc?.setTextColor(Color.parseColor("#FFFCF5"))
+                btnWatch?.setBackgroundResource(R.drawable.btn_retro_yellow)
+                btnWatch?.setTextColor(Color.parseColor("#1A1A1A"))
+                btnCancel?.setTextColor(Color.parseColor("#888888"))
+            }
+        }
+
+        btnWatch.setOnClickListener {
+            btnWatch.isEnabled = false
+            rewardedAdManager.showRewardedAd(
+                activity = this,
+                onUnlocked = {
+                    btnWatch.isEnabled = true
+                    unlockedVideoUris.add(videoUriStr)
+                    dialog.dismiss()
+                    Toast.makeText(this, "Video unlocked! Enjoy your SnapBeat 🎬", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, PreviewActivity::class.java).apply {
+                        putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
+                    }
+                    startActivity(intent)
+                },
+                onIncompleteOrFailed = { reason ->
+                    btnWatch.isEnabled = true
+                    Toast.makeText(this, reason, Toast.LENGTH_LONG).show()
+                }
+            )
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     private fun updateAudioTrimLabels() {
         binding.tvAudioStart.text = "Start Time: ${formatTime(audioStartSeconds)}"
         binding.tvAudioEnd.text = "End Time: ${formatTime(audioEndSeconds)}"
         val duration = maxOf(0, audioEndSeconds - audioStartSeconds)
         binding.tvAudioRange.text = "Start: ${formatTime(audioStartSeconds)}  |  End: ${formatTime(audioEndSeconds)}  (Duration: ${formatTime(duration)})"
+        updateDynamicRenderCost()
     }
 
     private fun updateLiveTitlePreview() {
@@ -545,7 +770,17 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                val requiredCredits = getRequiredCredits()
+                creditManager.deductCredits(requiredCredits)
+                withContext(Dispatchers.Main) {
+                    updateCreditBalanceUI()
+                }
+
                 val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
+                builder.addFormDataPart("device_id", creditManager.getDeviceId())
+                builder.addFormDataPart("credits_used", requiredCredits.toString())
+                builder.addFormDataPart("watermark", "false")
+                builder.addFormDataPart("render_type", "instant")
 
                 val musicUri = selectedMusicUri
                     ?: throw IOException("No music selected")
@@ -681,9 +916,10 @@ class MainActivity : AppCompatActivity() {
                     builder.addFormDataPart("audio_end", audioEndSeconds.toString())
                 }
 
+                val serverlessUrl = getServerlessUrl()
                 val requestBody = builder.build()
                 val request = Request.Builder()
-                    .url(getServerUrl() + "/api/render/mobile") 
+                    .url("$serverlessUrl/api/render/mobile") 
                     .post(requestBody)
                     .build()
 
@@ -701,7 +937,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 clearCache()
-                pollStatusAndDownload(jobId)
+                pollStatusAndDownload(jobId, serverlessUrl)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -716,7 +952,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun pollStatusAndDownload(jobId: String) {
+    private suspend fun pollStatusAndDownload(jobId: String, serverUrl: String = getServerlessUrl()) {
         withContext(Dispatchers.Main) {
             binding.progressBar.isIndeterminate = false
             binding.progressBar.progress = 0
@@ -732,7 +968,7 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 val statusRequest = Request.Builder()
-                    .url(getServerUrl() + "/api/render/status/$jobId")
+                    .url("$serverUrl/api/render/status/$jobId")
                     .get()
                     .build()
 
@@ -772,7 +1008,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val downloadRequest = Request.Builder()
-            .url(getServerUrl() + "/api/render/download/$jobId?delete_after=true")
+            .url("$serverUrl/api/render/download/$jobId?delete_after=true")
             .get()
             .build()
 
@@ -995,10 +1231,16 @@ class MainActivity : AppCompatActivity() {
 
                 val autoArrange = if (binding.rbArrangeAuto.isChecked) "auto" else "manual"
 
+                val isWatermark = creditManager.shouldWatermark(isInstant = false)
+
                 val data = Data.Builder()
+                    .putString(RenderQueueWorker.KEY_DEVICE_ID, creditManager.getDeviceId())
+                    .putInt(RenderQueueWorker.KEY_CREDITS_USED, 0)
+                    .putBoolean(RenderQueueWorker.KEY_WATERMARK, isWatermark)
+                    .putString(RenderQueueWorker.KEY_RENDER_TYPE, "free_queue")
                     .putString(RenderQueueWorker.KEY_JOB_DIR, jobDir.absolutePath)
                     .putString(RenderQueueWorker.KEY_AUTO_ARRANGE, autoArrange)
-                    .putString(RenderQueueWorker.KEY_SERVER_URL, getServerUrl())
+                    .putString(RenderQueueWorker.KEY_SERVER_URL, getVpsUrl())
                     .putString(RenderQueueWorker.KEY_QUALITY, quality)
                     .putString(RenderQueueWorker.KEY_TEMPLATE, templateName)
                     .putBoolean(RenderQueueWorker.KEY_DROP_IT, isPro && binding.switchDropIt.isChecked)
@@ -1076,15 +1318,19 @@ class MainActivity : AppCompatActivity() {
                         binding.queueProgressBar.visibility = View.GONE
                         binding.tvQueueBadge.text = "COMPLETE ✓"
                         binding.tvQueueBadge.setTextColor(Color.parseColor("#3DD4FF"))
-                        binding.tvQueueStatus.text = "Video rendered & saved to your Gallery! 🎬"
+                        binding.tvQueueStatus.text = "Video rendered & ready! 🎬"
                         val videoUriStr = info.outputData.getString(RenderQueueWorker.OUTPUT_VIDEO_URI)
                         if (!videoUriStr.isNullOrEmpty()) {
                             binding.btnViewQueueVideo.visibility = View.VISIBLE
                             binding.btnViewQueueVideo.setOnClickListener {
-                                val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
-                                    putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
+                                if (unlockedVideoUris.contains(videoUriStr) || !creditManager.shouldShowAd(isInstant = false)) {
+                                    val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
+                                        putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
+                                    }
+                                    startActivity(intent)
+                                } else {
+                                    showSponsorUnlockDialog(videoUriStr)
                                 }
-                                startActivity(intent)
                             }
                         }
                     }
@@ -1304,6 +1550,12 @@ class MainActivity : AppCompatActivity() {
                 binding.tvSubtitle.text = "let the music decide your edit."
                 binding.tvSubtitle.setTextColor(Color.parseColor("#FFFCF5"))
                 binding.tvSubtitle.alpha = 0.7f
+                binding.layoutCreditMeter.setBackgroundResource(R.drawable.bg_credit_meter)
+                binding.tvCreditBalance.setTextColor(Color.parseColor("#FFB800"))
+                binding.tvCreditPlus.setTextColor(Color.parseColor("#FFB800"))
+                binding.layoutWatermarkPill.setBackgroundResource(R.drawable.bg_credit_meter)
+                binding.tvWatermarkStatus.setTextColor(Color.parseColor("#FFE14D"))
+                binding.tvWatermarkAction.setTextColor(Color.parseColor("#FF4D8D"))
 
                 // Cards
                 binding.proModeContainer.setBackgroundResource(R.drawable.card_dark)
@@ -1422,6 +1674,12 @@ class MainActivity : AppCompatActivity() {
                 binding.tvSubtitle.text = "let the music decide your edit."
                 binding.tvSubtitle.setTextColor(Color.parseColor("#666666"))
                 binding.tvSubtitle.alpha = 0.9f
+                binding.layoutCreditMeter.setBackgroundResource(R.drawable.bg_credit_meter_light)
+                binding.tvCreditBalance.setTextColor(Color.parseColor("#B37400"))
+                binding.tvCreditPlus.setTextColor(Color.parseColor("#B37400"))
+                binding.layoutWatermarkPill.setBackgroundResource(R.drawable.bg_credit_meter_light)
+                binding.tvWatermarkStatus.setTextColor(Color.parseColor("#B37400"))
+                binding.tvWatermarkAction.setTextColor(Color.parseColor("#FF2A70"))
 
                 // Cards
                 binding.proModeContainer.setBackgroundResource(R.drawable.card_light)
@@ -1540,6 +1798,12 @@ class MainActivity : AppCompatActivity() {
                 binding.tvSubtitle.text = "HI-FI RHYTHM CASSETTE DECK • BEAT SYNCHRONIZER"
                 binding.tvSubtitle.setTextColor(Color.parseColor("#6B655B"))
                 binding.tvSubtitle.alpha = 0.95f
+                binding.layoutCreditMeter.setBackgroundResource(R.drawable.bg_credit_meter_y2k)
+                binding.tvCreditBalance.setTextColor(Color.parseColor("#FFB800"))
+                binding.tvCreditPlus.setTextColor(Color.parseColor("#FFB800"))
+                binding.layoutWatermarkPill.setBackgroundResource(R.drawable.bg_credit_meter_y2k)
+                binding.tvWatermarkStatus.setTextColor(Color.parseColor("#FF9F1C"))
+                binding.tvWatermarkAction.setTextColor(Color.parseColor("#FF2A70"))
 
                 // Cards: Distinct tactile boombox deck materials
                 binding.cardMusic.setBackgroundResource(R.drawable.card_y2k_cassette)
@@ -1653,6 +1917,7 @@ class MainActivity : AppCompatActivity() {
 
         // Rebind spinners with current theme layout resources
         setupSpinners(theme)
+        updateDynamicRenderCost()
     }
 
     private fun updateModeSwitchLabels() {

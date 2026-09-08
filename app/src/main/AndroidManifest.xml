@@ -13,6 +13,12 @@
         android:label="SnapBeat"
         android:supportsRtl="true"
         android:theme="@style/Theme.SnapBeat">
+
+        <!-- Google AdMob Test App ID (Official Google Test Ad Unit) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
+
         <activity
             android:name=".SplashActivity"
             android:exported="true"

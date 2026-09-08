@@ -55,6 +55,10 @@ class RenderQueueWorker(
         const val KEY_AUDIO_START = "audio_start"
         const val KEY_AUDIO_END = "audio_end"
         const val KEY_AUTO_ARRANGE = "auto_arrange"
+        const val KEY_DEVICE_ID = "device_id"
+        const val KEY_CREDITS_USED = "credits_used"
+        const val KEY_WATERMARK = "watermark"
+        const val KEY_RENDER_TYPE = "render_type"
 
         const val OUTPUT_VIDEO_URI = "output_video_uri"
         const val OUTPUT_JOB_ID = "output_job_id"
@@ -130,6 +134,21 @@ class RenderQueueWorker(
 
             val autoArrange = inputData.getString(KEY_AUTO_ARRANGE) ?: "auto"
             builder.addFormDataPart("auto_arrange", autoArrange)
+
+            val deviceId = inputData.getString(KEY_DEVICE_ID)
+            if (!deviceId.isNullOrEmpty()) {
+                builder.addFormDataPart("device_id", deviceId)
+            }
+            val creditsUsed = inputData.getInt(KEY_CREDITS_USED, 0)
+            if (creditsUsed > 0) {
+                builder.addFormDataPart("credits_used", creditsUsed.toString())
+            }
+
+            val watermark = inputData.getBoolean(KEY_WATERMARK, true)
+            builder.addFormDataPart("watermark", watermark.toString())
+
+            val renderType = inputData.getString(KEY_RENDER_TYPE) ?: "free_queue"
+            builder.addFormDataPart("render_type", renderType)
 
             val template = inputData.getString(KEY_TEMPLATE)
             if (!template.isNullOrEmpty()) {

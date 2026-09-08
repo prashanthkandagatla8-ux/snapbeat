@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#191816"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🪙 SNAPBEAT COIN STORE"
+                android:textStyle="bold"
+                android:textColor="#FFB800"
+                android:textSize="17sp"
+                android:fontFamily="sans-serif-black" />
+
+            <TextView
+                android:id="@+id/tvStoreBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Balance: 2"
+                android:textColor="#FFFCF5"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_credit_meter" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvStoreSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose Pro Pass to remove watermarks, or buy Instant Credits to skip the queue &amp; skip ads!"
+            android:textColor="#A8A398"
+            android:textSize="12sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Notice banner if insufficient credits -->
+        <TextView
+            android:id="@+id/tvRequiredNotice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚠️ Instant render requires 3 credits. Top up below, or tap CLOSE to render for FREE in queue!"
+            android:textColor="#FFE14D"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:background="#2E2813"
+            android:padding="10dp"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp" />
+
+        <!-- ══════════ PRO PASS (REMOVE WATERMARK) ══════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_store_pack_popular"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="👑 SNAPBEAT PRO PASS"
+                    android:textColor="#FFE14D"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NO WATERMARK"
+                    android:textColor="#FF4D8D"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-black"
+                    android:background="#332410"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🚫 Clean videos with NO watermark\n⚡ Unlimited Free Queue renders\n✨ Priority render processing"
+                android:textColor="#FFFCF5"
+                android:alpha="0.85"
+                android:textSize="11sp"
+                android:lineSpacingExtra="2dp"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Monthly Button -->
+                <LinearLayout
+                    android:id="@+id/btnSubMonthly"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/btn_retro_yellow"
+                    android:padding="8dp"
+                    android:layout_marginEnd="6dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹199 / MO"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Monthly Pass"
+                        android:textColor="#444444"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <!-- Yearly Button -->
+                <LinearLayout
+                    android:id="@+id/btnSubYearly"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/btn_retro_pink"
+                    android:padding="8dp"
+                    android:layout_marginStart="6dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹999 / YR"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SAVE 58% (₹83/mo)"
+                        android:textColor="#FFFCF5"
+                        android:alpha="0.85"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Divider & Instant Credits Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚡ INSTANT SERVERLESS CREDITS (SKIP QUEUE &amp; ADS)"
+            android:textColor="#FFE14D"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Pack 1: Starter (10 Credits) -->
+        <LinearLayout
+            android:id="@+id/btnPackStarter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/card_store_pack"
+            android:padding="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🪙"
+                android:textSize="24sp"
+                android:layout_marginEnd="12dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="STARTER TAPE (10 CREDITS)"
+                    android:textStyle="bold"
+                    android:textColor="#FFFCF5"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Render up to 10 quick reels • ~10¢/credit"
+                    android:textColor="#888888"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnBuyStarter"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="$0.99"
+                android:textStyle="bold"
+                android:textColor="#111111"
+                android:background="@drawable/btn_retro_yellow"
+                android:clickable="false" />
+        </LinearLayout>
+
+        <!-- Pack 2: Party Pack (35 Credits) - POPULAR -->
+        <LinearLayout
+            android:id="@+id/btnPackParty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/card_store_pack_popular"
+            android:padding="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⭐"
+                android:textSize="24sp"
+                android:layout_marginEnd="12dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PARTY PACK (35 CREDITS)"
+                        android:textStyle="bold"
+                        android:textColor="#FFE14D"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif-black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" POPULAR "
+                        android:textStyle="bold"
+                        android:textColor="#111111"
+                        android:textSize="9sp"
+                        android:background="#FF4D8D"
+                        android:layout_marginStart="6dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Full songs and event montages • 8.5¢/credit"
+                    android:textColor="#A8A398"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnBuyParty"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="$2.99"
+                android:textStyle="bold"
+                android:textColor="#111111"
+                android:background="@drawable/btn_retro_yellow"
+                android:clickable="false" />
+        </LinearLayout>
+
+        <!-- Pack 3: Studio Event (80 Credits) - BEST VALUE -->
+        <LinearLayout
+            android:id="@+id/btnPackStudio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/card_store_pack"
+            android:padding="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🚀"
+                android:textSize="24sp"
+                android:layout_marginEnd="12dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="STUDIO EVENT (80 CREDITS)"
+                    android:textStyle="bold"
+                    android:textColor="#FFFCF5"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Multiple full-length event recaps • 7.5¢/credit"
+                    android:textColor="#888888"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnBuyStudio"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="$5.99"
+                android:textStyle="bold"
+                android:textColor="#111111"
+                android:background="@drawable/btn_retro_yellow"
+                android:clickable="false" />
+        </LinearLayout>
+
+        <!-- Pack 4: Director's Deck (200 Credits) -->
+        <LinearLayout
+            android:id="@+id/btnPackDirector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/card_store_pack"
+            android:padding="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👑"
+                android:textSize="24sp"
+                android:layout_marginEnd="12dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DIRECTOR'S DECK (200 CREDITS)"
+                    android:textStyle="bold"
+                    android:textColor="#FFFCF5"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pro creators &amp; power videographers • 6.5¢/credit"
+                    android:textColor="#888888"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnBuyDirector"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="$12.99"
+                android:textStyle="bold"
+                android:textColor="#111111"
+                android:background="@drawable/btn_retro_yellow"
+                android:clickable="false" />
+        </LinearLayout>
+
+        <!-- Google Play Compliance Notice -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="🔒 Billed via Google Play • 1-Tap Secure Checkout • Credits Never Expire"
+            android:textColor="#6A655C"
+            android:textSize="10sp"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnCloseStore"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="CLOSE"
+            android:textColor="#888888"
+            android:background="@android:color/transparent" />
+
+    </LinearLayout>
+</ScrollView>
