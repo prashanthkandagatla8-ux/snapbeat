@@ -719,10 +719,28 @@
     dom.tvRenderStatus.textContent = '';
   });
 
+  const REMOTE_CONFIG_URL = 'https://raw.githubusercontent.com/prashanthkandagatla8-ux/snapbeat/main/config.json';
+
+  const fetchRemoteConfig = async () => {
+    try {
+      const resp = await fetch(REMOTE_CONFIG_URL, { cache: 'no-store' });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.server_url && !localStorage.getItem('snapbeat_server_url')) {
+          state.serverUrl = data.server_url.trim().replace(/\/+$/, '');
+          checkServerHealth();
+        }
+      }
+    } catch (e) {
+      // Graceful fallback
+    }
+  };
+
   // ─── Initialization ──────────────────────────────────────────────────
   applyTheme(state.isDarkMode);
   updateModeLabels();
   checkServerHealth();
+  fetchRemoteConfig();
   drawTitlePreview();
   checkRenderReadiness();
 
