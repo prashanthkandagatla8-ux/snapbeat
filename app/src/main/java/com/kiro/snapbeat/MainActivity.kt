@@ -67,6 +67,8 @@ class MainActivity : AppCompatActivity() {
 
     private var currentTheme: AppTheme = AppTheme.RETRO_DARK
     private val KEY_CURRENT_THEME = "current_theme_v2"
+    private val KEY_PRIVACY_ACCEPTED = "privacy_policy_accepted_v1"
+    private val PRIVACY_POLICY_URL = "https://github.com/prashanthkandagatla8-ux/snapbeat/blob/android/PRIVACY_POLICY.md"
 
     private val KEY_CACHED_SERVER_URL = "cached_server_url"
     private val REMOTE_CONFIG_URL = "https://raw.githubusercontent.com/prashanthkandagatla8-ux/snapbeat/main/config.json"
@@ -221,6 +223,15 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnThemeSelect.setOnClickListener {
             showThemeSelectionDialog()
+        }
+
+        binding.tvPrivacyPolicyLink.setOnClickListener {
+            showFullPrivacyPolicyDialog()
+        }
+
+        // Google Play Mandated Prominent Disclosure for Media Processing
+        if (!prefs.getBoolean(KEY_PRIVACY_ACCEPTED, false)) {
+            showProminentPrivacyDisclosureDialog()
         }
 
         // Audio Trim controls
@@ -1106,6 +1117,64 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    private fun showProminentPrivacyDisclosureDialog() {
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("🔒 Privacy & Media Processing Notice")
+        builder.setMessage(
+            "Welcome to SnapBeat!\n\n" +
+            "To generate beat-synced music videos, SnapBeat processes only the specific photos and audio track that you select.\n\n" +
+            "• Secure Processing: Your selected files are uploaded securely to our rendering engine solely for video creation and beat synchronization.\n\n" +
+            "• Zero Permanent Storage: Uploaded files are processed ephemerally and automatically deleted immediately after your video is downloaded to your device.\n\n" +
+            "• No Data Sharing: We never sell, store, or share your personal media with third parties or advertisers.\n\n" +
+            "By continuing, you agree to our data handling practices."
+        )
+        builder.setCancelable(false)
+        builder.setPositiveButton("Agree & Continue") { dialog, _ ->
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_PRIVACY_ACCEPTED, true)
+                .apply()
+            dialog.dismiss()
+        }
+        builder.setNeutralButton("View Full Policy") { _, _ ->
+            showFullPrivacyPolicyDialog()
+        }
+        builder.show()
+    }
+
+    private fun showFullPrivacyPolicyDialog() {
+        val policyText =
+            "SNAPBEAT PRIVACY POLICY\n" +
+            "Effective Date: September 8, 2026\n\n" +
+            "1. MEDIA DATA PROCESSING\n" +
+            "SnapBeat processes only the photos and audio file you choose to include in your video. The app does not access your private photo library or files not explicitly selected.\n\n" +
+            "2. EPHEMERAL PROCESSING & AUTOMATIC DELETION\n" +
+            "Selected media is securely transmitted to our rendering backend via TLS/HTTPS encryption. Upon completion and download of your video to your device gallery, all uploaded source files and temporary rendering assets are immediately and permanently deleted.\n\n" +
+            "3. AI SMART ARRANGEMENT\n" +
+            "When using AI Smart Arrangement, visual attributes (such as color vibrance, edge sharpness, and tempo alignment) are analyzed strictly to order photos for the video climax. Your photos are never used to train public AI models.\n\n" +
+            "4. MINIMAL PERMISSIONS\n" +
+            "• Internet: To communicate with the rendering server.\n" +
+            "• Notifications: To alert you when your background render is finished.\n" +
+            "• Foreground Service: To ensure background rendering is not killed by the OS.\n\n" +
+            "5. NO DATA SELLING OR TRACKING\n" +
+            "We do not sell, monetize, or share your data with third parties.\n\n" +
+            "Contact Developer: snapbeat.app@gmail.com"
+
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("SnapBeat Privacy Policy")
+        builder.setMessage(policyText)
+        builder.setPositiveButton("Close", null)
+        builder.setNeutralButton("Open in Browser") { _, _ ->
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))
+                startActivity(intent)
+            } catch (_: Exception) {
+                Toast.makeText(this, "Could not open browser", Toast.LENGTH_SHORT).show()
+            }
+        }
+        builder.show()
+    }
     private fun showThemeSelectionDialog() {
         val themes = AppTheme.values()
         val names = themes.map { it.displayName }.toTypedArray()
@@ -1293,6 +1362,9 @@ class MainActivity : AppCompatActivity() {
                 binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro)
                 binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro)
                 binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro)
+
+                binding.tvPrivacyPolicyLink.setTextColor(Color.parseColor("#888888"))
+                binding.tvAppVersion.setTextColor(Color.parseColor("#555555"))
             }
 
             AppTheme.RETRO_LIGHT -> {
@@ -1402,6 +1474,9 @@ class MainActivity : AppCompatActivity() {
                 binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro_light)
                 binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro_light)
                 binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro_light)
+
+                binding.tvPrivacyPolicyLink.setTextColor(Color.parseColor("#555555"))
+                binding.tvAppVersion.setTextColor(Color.parseColor("#777777"))
             }
 
             AppTheme.VINTAGE_Y2K -> {
@@ -1511,6 +1586,9 @@ class MainActivity : AppCompatActivity() {
                 binding.spinnerTitleFont.setBackgroundResource(R.drawable.spinner_retro_y2k)
                 binding.spinnerTitleStyle.setBackgroundResource(R.drawable.spinner_retro_y2k)
                 binding.spinnerTitleFrame.setBackgroundResource(R.drawable.spinner_retro_y2k)
+
+                binding.tvPrivacyPolicyLink.setTextColor(Color.parseColor("#7A756C"))
+                binding.tvAppVersion.setTextColor(Color.parseColor("#9E9A90"))
             }
         }
 
