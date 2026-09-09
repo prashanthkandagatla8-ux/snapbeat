@@ -1584,12 +1584,8 @@ class MainActivity : AppCompatActivity() {
 
         btnQueue.setOnClickListener {
             dialog.dismiss()
-            if (creditManager.isProSubscriber()) {
-                queueBackgroundRender()
-                switchNavPage(NavPage.QUEUE)
-            } else {
-                showWatermarkChoiceDialog()
-            }
+            queueBackgroundRender()
+            switchNavPage(NavPage.QUEUE)
         }
 
         btnRemoveWatermark?.setOnClickListener {
@@ -1602,23 +1598,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
-    }
-
-    private fun showWatermarkChoiceDialog() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("🎬 Free Queue Render")
-            .setMessage("Free renders process on our VPS engine and include a subtle SnapBeat watermark.\n\nWould you like to render with watermark, or remove it with Credits / Pro Pass?")
-            .setPositiveButton("Render with Watermark") { d, _ ->
-                d.dismiss()
-                queueBackgroundRender()
-                switchNavPage(NavPage.QUEUE)
-            }
-            .setNeutralButton("Remove Watermark") { d, _ ->
-                d.dismiss()
-                showCreditStoreDialog(getRequiredCredits())
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     private fun applyTheme(darkMode: Boolean) {
