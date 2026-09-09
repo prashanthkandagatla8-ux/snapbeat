@@ -69,7 +69,7 @@
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-black"
-                    android:background="@drawable/btn_retro_yellow"
+                    android:background="@drawable/badge_pill_yellow"
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp"
                     android:paddingTop="3dp"
@@ -136,7 +136,7 @@
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-black"
-                    android:background="@drawable/btn_retro_blue"
+                    android:background="@drawable/badge_pill_cyan"
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp"
                     android:paddingTop="3dp"
@@ -166,6 +166,20 @@
                 android:fontFamily="sans-serif-black"
                 android:stateListAnimator="@null" />
         </LinearLayout>
+
+        <!-- Option 3: Remove Watermark Directly -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnRemoveWatermark"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/btn_retro_pink"
+            android:text="👑 REMOVE WATERMARK (PRO PASS / CREDITS)"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:stateListAnimator="@null"
+            android:layout_marginBottom="10dp" />
 
         <!-- Cancel / Close -->
         <androidx.appcompat.widget.AppCompatButton

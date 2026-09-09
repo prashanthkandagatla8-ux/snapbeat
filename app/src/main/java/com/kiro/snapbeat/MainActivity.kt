@@ -143,6 +143,9 @@ class MainActivity : AppCompatActivity() {
 
     // Single ItemTouchHelper instance — attached once, never duplicated
     private var itemTouchHelper: ItemTouchHelper? = null
+
+    private lateinit var queueJobManager: QueueJobManager
+    private lateinit var queueJobAdapter: QueueJobAdapter
     
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.MINUTES)
@@ -272,6 +275,13 @@ class MainActivity : AppCompatActivity() {
             binding.tvAspectRatioDesc.text = if (isChecked) "Custom ratio active" else "Default: 9:16 Portrait (Reels/Shorts/TikTok)"
         }
 
+        // Custom video quality toggle (default off, optimized fast ~5 MB)
+        binding.switchCustomQuality.setOnCheckedChangeListener { _, isChecked ->
+            binding.rgVideoQuality.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding.tvQualityDesc.text = if (isChecked) "Custom quality selection active" else "Default: Optimized (Fast Download ~5 MB)"
+            updateDynamicRenderCost()
+        }
+
         binding.tvPrivacyPolicyLink.setOnClickListener {
             showFullPrivacyPolicyDialog()
         }
@@ -371,8 +381,18 @@ class MainActivity : AppCompatActivity() {
             showRenderChoiceDialog()
         }
 
+        // Initialize Queue History Ledger & Adapter
+        queueJobManager = QueueJobManager(this)
+        setupQueueRecyclerView()
+
         binding.btnQueueNewVideo.setOnClickListener {
             switchNavPage(NavPage.AUTO)
+        }
+        binding.btnQueueNewVideoEmpty.setOnClickListener {
+            switchNavPage(NavPage.AUTO)
+        }
+        binding.btnClearQueue.setOnClickListener {
+            showClearQueueConfirmationDialog()
         }
 
         setupQueueObserver()
@@ -407,7 +427,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             maxOf(1, audioEndSeconds - audioStartSeconds)
         }
-        val isMaster = binding.rbQualityMaster.isChecked
+        val isMaster = (currentNavPage == NavPage.PRO) && binding.switchCustomQuality.isChecked && binding.rbQualityMaster.isChecked
         return creditManager.calculateRequiredCredits(duration, isMaster)
     }
 
@@ -852,7 +872,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // Video quality selection in Pro mode
-                    val qualityVal = if (binding.rbQualityMaster.isChecked) "master" else "fast"
+                    val qualityVal = if (binding.switchCustomQuality.isChecked && binding.rbQualityMaster.isChecked) "master" else "fast"
                     builder.addFormDataPart("quality", qualityVal)
                 } else {
                     builder.addFormDataPart("quality", "fast")
@@ -1031,6 +1051,38 @@ class MainActivity : AppCompatActivity() {
                 binding.btnUnifiedRender.isEnabled = true
                 lastVideoUri = uri
 
+                // Record instant render job in Queue history ledger
+                val title = if (currentNavPage == NavPage.PRO && binding.switchEnableTitleCard.isChecked) {
+                    binding.etTitleText.text.toString().trim().ifEmpty { "Instant Render" }
+                } else "Instant Render"
+                val template = if (currentNavPage == NavPage.PRO) {
+                    binding.spinnerTemplate.selectedItem?.toString() ?: "Beat Cut"
+                } else "Beat Cut"
+                val aspect = if (currentNavPage == NavPage.PRO && binding.switchCustomAspectRatio.isChecked) {
+                    when (binding.spinnerAspectRatio.selectedItemPosition) {
+                        0 -> "9:16"
+                        1 -> "16:9"
+                        2 -> "1:1"
+                        else -> "9:16"
+                    }
+                } else "9:16"
+                val quality = if (currentNavPage == NavPage.PRO && binding.switchCustomQuality.isChecked && binding.rbQualityMaster.isChecked) "master" else "fast"
+
+                val instantJob = QueueJob(
+                    id = "instant_$jobId",
+                    title = title,
+                    videoUri = uri.toString(),
+                    timestamp = System.currentTimeMillis(),
+                    templateName = template,
+                    quality = quality,
+                    aspectRatio = aspect,
+                    status = "COMPLETED",
+                    isFavourite = false,
+                    isInstant = true
+                )
+                queueJobManager.addOrUpdateJob(instantJob)
+                refreshQueueLedgerUI()
+
                 // Launch dedicated Preview screen
                 val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
                     putExtra(PreviewActivity.EXTRA_VIDEO_URI, uri.toString())
@@ -1098,7 +1150,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Determine options
                 val isPro = (currentNavPage == NavPage.PRO)
-                val quality = if (isPro && binding.rbQualityMaster.isChecked) "master" else "fast"
+                val quality = if (isPro && binding.switchCustomQuality.isChecked && binding.rbQualityMaster.isChecked) "master" else "fast"
 
                 val templateName = if (isPro) {
                     val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "Beat Cut"
@@ -1216,7 +1268,23 @@ class MainActivity : AppCompatActivity() {
                     workRequest
                 )
 
+                // Record initial queued job in history ledger
+                val queuedJob = QueueJob(
+                    id = "queue_$timestamp",
+                    title = if (titleText.isNotEmpty()) titleText else "Queue Render",
+                    videoUri = null,
+                    timestamp = timestamp,
+                    templateName = templateName,
+                    quality = quality,
+                    aspectRatio = frameValue,
+                    status = "PROCESSING",
+                    isFavourite = false,
+                    isInstant = false
+                )
+                queueJobManager.addOrUpdateJob(queuedJob)
+
                 withContext(Dispatchers.Main) {
+                    refreshQueueLedgerUI()
                     Toast.makeText(
                         this@MainActivity,
                         "🎬 Added to render queue! You can safely close or minimize the app.",
@@ -1272,6 +1340,26 @@ class MainActivity : AppCompatActivity() {
                         binding.tvQueueStatus.text = "Video rendered & ready! 🎬"
                         val videoUriStr = info.outputData.getString(RenderQueueWorker.OUTPUT_VIDEO_URI)
                         if (!videoUriStr.isNullOrEmpty()) {
+                            // Update Queue Ledger with completed job
+                            val jobs = queueJobManager.getJobs()
+                            val activeJob = jobs.find { it.status == "PROCESSING" && !it.isInstant }
+                            if (activeJob != null) {
+                                activeJob.status = "COMPLETED"
+                                activeJob.videoUri = videoUriStr
+                                queueJobManager.addOrUpdateJob(activeJob)
+                            } else {
+                                val newJob = QueueJob(
+                                    id = "queue_${System.currentTimeMillis()}",
+                                    title = "Queue Render",
+                                    videoUri = videoUriStr,
+                                    timestamp = System.currentTimeMillis(),
+                                    status = "COMPLETED",
+                                    isInstant = false
+                                )
+                                queueJobManager.addOrUpdateJob(newJob)
+                            }
+                            refreshQueueLedgerUI()
+
                             binding.layoutQueueResultCard.visibility = View.VISIBLE
                             binding.btnViewQueueVideo.visibility = View.VISIBLE
                             binding.btnViewQueueVideo.setOnClickListener {
@@ -1311,6 +1399,14 @@ class MainActivity : AppCompatActivity() {
                         binding.tvQueueStatus.text = error
                         binding.layoutQueueResultCard.visibility = View.GONE
                         binding.btnViewQueueVideo.visibility = View.GONE
+
+                        val jobs = queueJobManager.getJobs()
+                        val activeJob = jobs.find { it.status == "PROCESSING" && !it.isInstant }
+                        if (activeJob != null) {
+                            activeJob.status = "FAILED"
+                            queueJobManager.addOrUpdateJob(activeJob)
+                            refreshQueueLedgerUI()
+                        }
                     }
                     WorkInfo.State.CANCELLED -> {
                         binding.cardQueueTray.visibility = View.GONE
@@ -1395,6 +1491,7 @@ class MainActivity : AppCompatActivity() {
 
         val btnInstant = dialogView.findViewById<android.widget.Button>(R.id.btnChooseInstant)
         val btnQueue = dialogView.findViewById<android.widget.Button>(R.id.btnChooseQueue)
+        val btnRemoveWatermark = dialogView.findViewById<android.widget.Button>(R.id.btnRemoveWatermark)
         val btnCancel = dialogView.findViewById<android.widget.Button>(R.id.btnCancelChoice)
 
         val required = getRequiredCredits()
@@ -1418,6 +1515,11 @@ class MainActivity : AppCompatActivity() {
             } else {
                 showWatermarkChoiceDialog()
             }
+        }
+
+        btnRemoveWatermark?.setOnClickListener {
+            dialog.dismiss()
+            showCreditStoreDialog(required)
         }
 
         btnCancel.setOnClickListener {
@@ -1591,5 +1693,106 @@ class MainActivity : AppCompatActivity() {
             }
         }
         updatePhotoArrangementVisibility()
+        if (page == NavPage.QUEUE) {
+            refreshQueueLedgerUI()
+        }
+    }
+
+    private fun setupQueueRecyclerView() {
+        val jobs = queueJobManager.getJobs()
+        queueJobAdapter = QueueJobAdapter(
+            context = this,
+            jobs = jobs,
+            onPlayClick = { job -> handleQueuePlay(job) },
+            onDownloadClick = { job -> handleQueueDownload(job) },
+            onFavouriteClick = { job ->
+                val newFav = queueJobManager.toggleFavourite(job.id)
+                job.isFavourite = newFav
+                refreshQueueLedgerUI()
+            },
+            onDeleteClick = { job ->
+                queueJobManager.deleteJob(job.id)
+                refreshQueueLedgerUI()
+                Toast.makeText(this, "Removed from history", Toast.LENGTH_SHORT).show()
+            }
+        )
+        binding.rvQueueJobs.layoutManager = LinearLayoutManager(this)
+        binding.rvQueueJobs.adapter = queueJobAdapter
+        refreshQueueLedgerUI()
+    }
+
+    private fun refreshQueueLedgerUI() {
+        if (!::queueJobManager.isInitialized) return
+        val jobs = queueJobManager.getJobs()
+        if (jobs.isEmpty()) {
+            binding.layoutQueueEmpty.visibility = View.VISIBLE
+            binding.rvQueueJobs.visibility = View.GONE
+            binding.btnClearQueue.visibility = View.GONE
+        } else {
+            binding.layoutQueueEmpty.visibility = View.GONE
+            binding.rvQueueJobs.visibility = View.VISIBLE
+            binding.btnClearQueue.visibility = View.VISIBLE
+            if (::queueJobAdapter.isInitialized) {
+                queueJobAdapter.updateData(jobs)
+            }
+        }
+    }
+
+    private fun handleQueuePlay(job: QueueJob) {
+        val uriStr = job.videoUri ?: return
+        if (unlockedVideoUris.contains(uriStr) || creditManager.isProSubscriber()) {
+            val intent = Intent(this, PreviewActivity::class.java).apply {
+                putExtra(PreviewActivity.EXTRA_VIDEO_URI, uriStr)
+            }
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, "Loading sponsor message to play video...", Toast.LENGTH_SHORT).show()
+            rewardedAdManager.showRewardedAd(
+                activity = this,
+                onUnlocked = {
+                    unlockedVideoUris.add(uriStr)
+                    val intent = Intent(this, PreviewActivity::class.java).apply {
+                        putExtra(PreviewActivity.EXTRA_VIDEO_URI, uriStr)
+                    }
+                    startActivity(intent)
+                },
+                onIncompleteOrFailed = { reason ->
+                    Toast.makeText(this, reason, Toast.LENGTH_LONG).show()
+                }
+            )
+        }
+    }
+
+    private fun handleQueueDownload(job: QueueJob) {
+        val uriStr = job.videoUri ?: return
+        if (unlockedVideoUris.contains(uriStr) || creditManager.isProSubscriber()) {
+            Toast.makeText(this, "Video is already saved in your Movies/SnapBeat gallery! 🎬", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(this, "Loading sponsor message to download video...", Toast.LENGTH_SHORT).show()
+            rewardedAdManager.showRewardedAd(
+                activity = this,
+                onUnlocked = {
+                    unlockedVideoUris.add(uriStr)
+                    Toast.makeText(this, "Video is ready and saved in your Movies/SnapBeat gallery! 🎬", Toast.LENGTH_LONG).show()
+                },
+                onIncompleteOrFailed = { reason ->
+                    Toast.makeText(this, reason, Toast.LENGTH_LONG).show()
+                }
+            )
+        }
+    }
+
+    private fun showClearQueueConfirmationDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Clear Render History")
+            .setMessage("Are you sure you want to clear all renders from this list? (Downloaded videos in your gallery will not be deleted).")
+            .setPositiveButton("Clear All") { d, _ ->
+                d.dismiss()
+                queueJobManager.clearAll()
+                refreshQueueLedgerUI()
+                Toast.makeText(this, "Queue history cleared", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }
