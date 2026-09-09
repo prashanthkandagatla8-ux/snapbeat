@@ -68,7 +68,7 @@
                 android:id="@+id/tvStoreRegion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📍 Region: 🇮🇳 India (INR ₹) ▾"
+                android:text="📍 Region: 🇺🇸 United States (USD $) ▾"
                 android:textColor="#3DD4FF"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -162,7 +162,7 @@
                         android:id="@+id/tvPriceSubMonthly"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="₹199 / MO"
+                        android:text="$2.99 / MO"
                         android:textColor="#1A1A1A"
                         android:textSize="13sp"
                         android:textStyle="bold"
@@ -195,7 +195,7 @@
                         android:id="@+id/tvPriceSubYearly"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="₹999 / YR"
+                        android:text="$14.99 / YR"
                         android:textColor="#FFFFFF"
                         android:textSize="13sp"
                         android:textStyle="bold"
@@ -205,7 +205,7 @@
                         android:id="@+id/tvSubYearlySavings"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="SAVE 58% (₹83/mo)"
+                        android:text="SAVE 58% ($1.25/mo)"
                         android:textColor="#FFFCF5"
                         android:alpha="0.85"
                         android:textSize="10sp" />
@@ -263,7 +263,7 @@
                     android:id="@+id/tvSubtitleStarter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Render up to 10 quick reels • ~₹8/credit"
+                    android:text="Render up to 10 quick reels • ~10¢/credit"
                     android:textColor="#888888"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -272,7 +272,7 @@
                 android:id="@+id/btnBuyStarter"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="₹79"
+                android:text="$0.99"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"
@@ -335,7 +335,7 @@
                     android:id="@+id/tvSubtitleParty"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Full songs and event montages • ~₹7/credit"
+                    android:text="Full songs and event montages • ~8.5¢/credit"
                     android:textColor="#A8A398"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -344,7 +344,7 @@
                 android:id="@+id/btnBuyParty"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="₹249"
+                android:text="$2.99"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"
@@ -390,7 +390,7 @@
                     android:id="@+id/tvSubtitleStudio"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Multiple full-length event recaps • ~₹6/credit"
+                    android:text="Multiple full-length event recaps • ~7.5¢/credit"
                     android:textColor="#888888"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -399,7 +399,7 @@
                 android:id="@+id/btnBuyStudio"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="₹499"
+                android:text="$5.99"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"
@@ -445,7 +445,7 @@
                     android:id="@+id/tvSubtitleDirector"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pro creators &amp; power videographers • ~₹5/credit"
+                    android:text="Pro creators &amp; power videographers • ~6.5¢/credit"
                     android:textColor="#888888"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -454,7 +454,7 @@
                 android:id="@+id/btnBuyDirector"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="₹999"
+                android:text="$12.99"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"

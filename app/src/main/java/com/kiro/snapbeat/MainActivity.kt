@@ -539,8 +539,8 @@ class MainActivity : AppCompatActivity() {
                 .setItems(labels) { _, which ->
                     val (code, _) = supported[which]
                     if (code == "AUTO") {
+                        RegionPricingManager.clearActiveRegionOverride(this)
                         val detected = RegionPricingManager.detectDeviceRegion(this)
-                        RegionPricingManager.setActiveRegion(this, detected)
                         Toast.makeText(this, "Auto-detected region: $detected", Toast.LENGTH_SHORT).show()
                     } else {
                         RegionPricingManager.setActiveRegion(this, code)

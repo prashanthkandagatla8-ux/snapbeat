@@ -3,6 +3,7 @@ package com.kiro.snapbeat
 import android.content.Context
 import android.telephony.TelephonyManager
 import java.util.Locale
+import java.util.TimeZone
 
 data class StorePricing(
     val regionCode: String,
@@ -26,26 +27,10 @@ object RegionPricingManager {
     private const val PREFS_NAME = "snapbeat_region_prefs"
     private const val KEY_REGION = "user_configured_region"
 
-    // Default is explicitly set to India ("IN") per user request
-    const val DEFAULT_REGION = "IN"
+    // Default is explicitly kept as USD ($) for global Play Store users
+    const val DEFAULT_REGION = "US"
 
     private val PRICING_MAP = mapOf(
-        "IN" to StorePricing(
-            regionCode = "IN",
-            regionDisplayName = "🇮🇳 India (INR ₹)",
-            currencySymbol = "₹",
-            starterPrice = "₹79",
-            starterSubtitle = "Render up to 10 quick reels • ~₹8/credit",
-            partyPrice = "₹249",
-            partySubtitle = "Full songs and event montages • ~₹7/credit",
-            studioPrice = "₹499",
-            studioSubtitle = "Multiple full-length event recaps • ~₹6/credit",
-            directorPrice = "₹999",
-            directorSubtitle = "Pro creators & power videographers • ~₹5/credit",
-            proMonthlyPrice = "₹199 / MO",
-            proYearlyPrice = "₹999 / YR",
-            proYearlySavings = "SAVE 58% (₹83/mo)"
-        ),
         "US" to StorePricing(
             regionCode = "US",
             regionDisplayName = "🇺🇸 United States (USD $)",
@@ -61,6 +46,22 @@ object RegionPricingManager {
             proMonthlyPrice = "$2.99 / MO",
             proYearlyPrice = "$14.99 / YR",
             proYearlySavings = "SAVE 58% ($1.25/mo)"
+        ),
+        "IN" to StorePricing(
+            regionCode = "IN",
+            regionDisplayName = "🇮🇳 India (INR ₹)",
+            currencySymbol = "₹",
+            starterPrice = "₹79",
+            starterSubtitle = "Render up to 10 quick reels • ~₹8/credit",
+            partyPrice = "₹249",
+            partySubtitle = "Full songs and event montages • ~₹7/credit",
+            studioPrice = "₹499",
+            studioSubtitle = "Multiple full-length event recaps • ~₹6/credit",
+            directorPrice = "₹999",
+            directorSubtitle = "Pro creators & power videographers • ~₹5/credit",
+            proMonthlyPrice = "₹199 / MO",
+            proYearlyPrice = "₹999 / YR",
+            proYearlySavings = "SAVE 58% (₹83/mo)"
         ),
         "GB" to StorePricing(
             regionCode = "GB",
@@ -98,12 +99,22 @@ object RegionPricingManager {
 
     fun getActiveRegion(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_REGION, DEFAULT_REGION) ?: DEFAULT_REGION
+        if (prefs.contains(KEY_REGION)) {
+            val saved = prefs.getString(KEY_REGION, null)
+            if (!saved.isNullOrEmpty()) return saved
+        }
+        // Auto-detect based on device country / locale / timezone
+        return detectDeviceRegion(context)
     }
 
     fun setActiveRegion(context: Context, regionCode: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString(KEY_REGION, regionCode.uppercase()).apply()
+    }
+
+    fun clearActiveRegionOverride(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().remove(KEY_REGION).apply()
     }
 
     fun detectDeviceRegion(context: Context): String {
@@ -121,6 +132,12 @@ object RegionPricingManager {
             if (!localeCountry.isNullOrEmpty() && localeCountry.length == 2) {
                 return normalizeRegion(localeCountry)
             }
+            // Check Indian TimeZone (IST / Asia/Kolkata / Asia/Calcutta / rawOffset 19800000 ms)
+            val tz = TimeZone.getDefault()
+            val tzId = tz.id.lowercase()
+            if (tzId.contains("kolkata") || tzId.contains("calcutta") || tz.rawOffset == 19800000) {
+                return "IN"
+            }
         } catch (e: Exception) {
             // fallback
         }
@@ -137,14 +154,14 @@ object RegionPricingManager {
 
     fun getPricing(regionCode: String): StorePricing {
         val normalized = normalizeRegion(regionCode)
-        return PRICING_MAP[normalized] ?: PRICING_MAP[DEFAULT_REGION] ?: PRICING_MAP["IN"]!!
+        return PRICING_MAP[normalized] ?: PRICING_MAP[DEFAULT_REGION] ?: PRICING_MAP["US"]!!
     }
 
     fun getSupportedRegions(): List<Pair<String, String>> {
         return listOf(
+            "US" to "🇺🇸 United States (USD $) [Default]",
             "IN" to "🇮🇳 India (INR ₹)",
             "AUTO" to "🌐 Auto-Detect From Device",
-            "US" to "🇺🇸 United States (USD $)",
             "GB" to "🇬🇧 United Kingdom (GBP £)",
             "EU" to "🇪🇺 European Union (EUR €)"
         )
