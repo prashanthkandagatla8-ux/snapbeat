@@ -457,12 +457,31 @@ class MainActivity : AppCompatActivity() {
 
         val tvStoreBalance = dialogView.findViewById<android.widget.TextView>(R.id.tvStoreBalance)
         val tvRequiredNotice = dialogView.findViewById<android.widget.TextView>(R.id.tvRequiredNotice)
+        val tvStoreRegion = dialogView.findViewById<android.widget.TextView>(R.id.tvStoreRegion)
+        val btnChangeRegion = dialogView.findViewById<android.view.View>(R.id.btnChangeRegion)
+
         val btnSubMonthly = dialogView.findViewById<android.view.View>(R.id.btnSubMonthly)
+        val tvPriceSubMonthly = dialogView.findViewById<android.widget.TextView>(R.id.tvPriceSubMonthly)
         val btnSubYearly = dialogView.findViewById<android.view.View>(R.id.btnSubYearly)
+        val tvPriceSubYearly = dialogView.findViewById<android.widget.TextView>(R.id.tvPriceSubYearly)
+        val tvSubYearlySavings = dialogView.findViewById<android.widget.TextView>(R.id.tvSubYearlySavings)
+
         val btnPackStarter = dialogView.findViewById<android.view.View>(R.id.btnPackStarter)
+        val btnBuyStarter = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnBuyStarter)
+        val tvSubtitleStarter = dialogView.findViewById<android.widget.TextView>(R.id.tvSubtitleStarter)
+
         val btnPackParty = dialogView.findViewById<android.view.View>(R.id.btnPackParty)
+        val btnBuyParty = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnBuyParty)
+        val tvSubtitleParty = dialogView.findViewById<android.widget.TextView>(R.id.tvSubtitleParty)
+
         val btnPackStudio = dialogView.findViewById<android.view.View>(R.id.btnPackStudio)
+        val btnBuyStudio = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnBuyStudio)
+        val tvSubtitleStudio = dialogView.findViewById<android.widget.TextView>(R.id.tvSubtitleStudio)
+
         val btnPackDirector = dialogView.findViewById<android.view.View>(R.id.btnPackDirector)
+        val btnBuyDirector = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnBuyDirector)
+        val tvSubtitleDirector = dialogView.findViewById<android.widget.TextView>(R.id.tvSubtitleDirector)
+
         val btnCloseStore = dialogView.findViewById<android.view.View>(R.id.btnCloseStore)
 
         val balance = creditManager.getCredits()
@@ -473,6 +492,62 @@ class MainActivity : AppCompatActivity() {
             tvRequiredNotice.text = "⚠️ Instant render requires $requiredCredits credits. Your balance: $balance credits. Top up below or use the Free Queue!"
         } else {
             tvRequiredNotice.visibility = android.view.View.GONE
+        }
+
+        fun refreshStorePricesUI() {
+            val activeRegion = RegionPricingManager.getActiveRegion(this)
+            val pricing = RegionPricingManager.getPricing(activeRegion)
+
+            tvStoreRegion?.text = "📍 Region: ${pricing.regionDisplayName} ▾"
+
+            // Subscriptions: use Google Play price if returned, else regional fallback
+            tvPriceSubMonthly?.text = billingManager.getFormattedPrice(BillingManager.SUBS_PRO_MONTHLY) ?: pricing.proMonthlyPrice
+            tvPriceSubYearly?.text = billingManager.getFormattedPrice(BillingManager.SUBS_PRO_YEARLY) ?: pricing.proYearlyPrice
+            tvSubYearlySavings?.text = pricing.proYearlySavings
+
+            // Credit Packs:
+            btnBuyStarter?.text = billingManager.getFormattedPrice(BillingManager.PRODUCT_STARTER_10) ?: pricing.starterPrice
+            tvSubtitleStarter?.text = pricing.starterSubtitle
+
+            btnBuyParty?.text = billingManager.getFormattedPrice(BillingManager.PRODUCT_PARTY_35) ?: pricing.partyPrice
+            tvSubtitleParty?.text = pricing.partySubtitle
+
+            btnBuyStudio?.text = billingManager.getFormattedPrice(BillingManager.PRODUCT_STUDIO_80) ?: pricing.studioPrice
+            tvSubtitleStudio?.text = pricing.studioSubtitle
+
+            btnBuyDirector?.text = billingManager.getFormattedPrice(BillingManager.PRODUCT_DIRECTOR_200) ?: pricing.directorPrice
+            tvSubtitleDirector?.text = pricing.directorSubtitle
+        }
+
+        refreshStorePricesUI()
+
+        // When Play Store products load, refresh prices in real time
+        billingManager.onProductsQueried = {
+            if (dialog.isShowing) {
+                refreshStorePricesUI()
+            }
+        }
+        dialog.setOnDismissListener {
+            billingManager.onProductsQueried = null
+        }
+
+        btnChangeRegion?.setOnClickListener {
+            val supported = RegionPricingManager.getSupportedRegions()
+            val labels = supported.map { it.second }.toTypedArray()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Select Currency & Region")
+                .setItems(labels) { _, which ->
+                    val (code, _) = supported[which]
+                    if (code == "AUTO") {
+                        val detected = RegionPricingManager.detectDeviceRegion(this)
+                        RegionPricingManager.setActiveRegion(this, detected)
+                        Toast.makeText(this, "Auto-detected region: $detected", Toast.LENGTH_SHORT).show()
+                    } else {
+                        RegionPricingManager.setActiveRegion(this, code)
+                    }
+                    refreshStorePricesUI()
+                }
+                .show()
         }
 
         btnSubMonthly?.setOnClickListener {

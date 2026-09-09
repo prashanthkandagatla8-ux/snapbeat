@@ -46,7 +46,33 @@
             android:text="Choose Pro Pass to remove watermarks, or buy Instant Credits to skip the queue &amp; skip ads!"
             android:textColor="#A8A398"
             android:textSize="12sp"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="8dp" />
+
+        <!-- Region & Currency Selector -->
+        <LinearLayout
+            android:id="@+id/btnChangeRegion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_marginBottom="12dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/tvStoreRegion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📍 Region: 🇮🇳 India (INR ₹) ▾"
+                android:textColor="#3DD4FF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <!-- Notice banner if insufficient credits -->
         <TextView
@@ -133,6 +159,7 @@
                     android:focusable="true">
 
                     <TextView
+                        android:id="@+id/tvPriceSubMonthly"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="₹199 / MO"
@@ -142,6 +169,7 @@
                         android:fontFamily="sans-serif-black" />
 
                     <TextView
+                        android:id="@+id/tvLabelSubMonthly"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Monthly Pass"
@@ -164,6 +192,7 @@
                     android:focusable="true">
 
                     <TextView
+                        android:id="@+id/tvPriceSubYearly"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="₹999 / YR"
@@ -173,6 +202,7 @@
                         android:fontFamily="sans-serif-black" />
 
                     <TextView
+                        android:id="@+id/tvSubYearlySavings"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="SAVE 58% (₹83/mo)"
@@ -230,9 +260,10 @@
                     android:fontFamily="sans-serif-black" />
 
                 <TextView
+                    android:id="@+id/tvSubtitleStarter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Render up to 10 quick reels • ~10¢/credit"
+                    android:text="Render up to 10 quick reels • ~₹8/credit"
                     android:textColor="#888888"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -241,7 +272,7 @@
                 android:id="@+id/btnBuyStarter"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="$0.99"
+                android:text="₹79"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"
@@ -301,9 +332,10 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/tvSubtitleParty"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Full songs and event montages • 8.5¢/credit"
+                    android:text="Full songs and event montages • ~₹7/credit"
                     android:textColor="#A8A398"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -312,7 +344,7 @@
                 android:id="@+id/btnBuyParty"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="$2.99"
+                android:text="₹249"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"
@@ -355,9 +387,10 @@
                     android:fontFamily="sans-serif-black" />
 
                 <TextView
+                    android:id="@+id/tvSubtitleStudio"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Multiple full-length event recaps • 7.5¢/credit"
+                    android:text="Multiple full-length event recaps • ~₹6/credit"
                     android:textColor="#888888"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -366,7 +399,7 @@
                 android:id="@+id/btnBuyStudio"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="$5.99"
+                android:text="₹499"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"
@@ -409,9 +442,10 @@
                     android:fontFamily="sans-serif-black" />
 
                 <TextView
+                    android:id="@+id/tvSubtitleDirector"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pro creators &amp; power videographers • 6.5¢/credit"
+                    android:text="Pro creators &amp; power videographers • ~₹5/credit"
                     android:textColor="#888888"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -420,7 +454,7 @@
                 android:id="@+id/btnBuyDirector"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:text="$12.99"
+                android:text="₹999"
                 android:textStyle="bold"
                 android:textColor="#111111"
                 android:background="@drawable/btn_retro_yellow"

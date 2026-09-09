@@ -35,6 +35,7 @@ class BillingManager(
     private var billingClient: BillingClient? = null
     private var isConnected = false
     private val productDetailsMap = mutableMapOf<String, ProductDetails>()
+    var onProductsQueried: (() -> Unit)? = null
 
     init {
         setupBillingClient()
@@ -102,6 +103,9 @@ class BillingManager(
                     productDetailsMap[details.productId] = details
                 }
                 Log.d(TAG, "Loaded ${productDetailsList.size} in-app products")
+                Handler(Looper.getMainLooper()).post {
+                    onProductsQueried?.invoke()
+                }
             }
         }
 
@@ -125,7 +129,19 @@ class BillingManager(
                     productDetailsMap[details.productId] = details
                 }
                 Log.d(TAG, "Loaded ${productDetailsList.size} subscription products")
+                Handler(Looper.getMainLooper()).post {
+                    onProductsQueried?.invoke()
+                }
             }
+        }
+    }
+
+    fun getFormattedPrice(productId: String): String? {
+        val details = productDetailsMap[productId] ?: return null
+        return when (details.productType) {
+            BillingClient.ProductType.INAPP -> details.oneTimePurchaseOfferDetails?.formattedPrice
+            BillingClient.ProductType.SUBS -> details.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
+            else -> null
         }
     }
 
