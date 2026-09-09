@@ -1143,7 +1143,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="44dp"
                         android:background="@drawable/btn_retro_pink"
-                        android:text="🎬 UNLOCK &amp; VIEW VIDEO"
+                        android:text="🎬 VIEW VIDEO"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="#FFFFFF"

@@ -55,7 +55,6 @@ class MainActivity : AppCompatActivity() {
     private var selectedPhotos = mutableListOf<Uri>()
     private lateinit var photoOrderAdapter: PhotoOrderAdapter
     private var lastVideoUri: android.net.Uri? = null
-    private val unlockedVideoUris = mutableSetOf<String>()
     private var audioDurationSeconds: Int = 0
     private var audioStartSeconds: Int = 0
     private var audioEndSeconds: Int = 0
@@ -136,6 +135,36 @@ class MainActivity : AppCompatActivity() {
         "Whip",
         "Zoom Out"
     )
+
+    private var lastAutoTemplate: String? = null
+
+    private fun getTemplateSlug(displayName: String): String {
+        return when (displayName) {
+            "Beat Cut" -> "beat-cut"
+            "Bounce" -> "beat-bounce"
+            "Cine Zoom" -> "cinematic-zoom"
+            "Fade" -> "beat-fade"
+            "Glide" -> "glide-pan"
+            "Pendulum" -> "pendulum"
+            "Pulse" -> "beat-pulse"
+            "Punch" -> "punch-cut"
+            "Reveal Boxes" -> "reveal-tiles"
+            "Slide" -> "beat-slide"
+            "Slow Drift" -> "slow-drift"
+            "Sway" -> "sway-ballad"
+            "Whip" -> "beat-whip"
+            "Zoom Out" -> "zoom-out-reveal"
+            else -> "beat-cut"
+        }
+    }
+
+    private fun getRandomAutoTemplate(): Pair<String, String> {
+        val pool = templates.filter { it != lastAutoTemplate }
+        val selectedDisplay = pool.randomOrNull() ?: templates.random()
+        lastAutoTemplate = selectedDisplay
+        return Pair(selectedDisplay, getTemplateSlug(selectedDisplay))
+    }
+
     private val aspectRatios = arrayOf("Portrait (9:16)", "Landscape (16:9)", "Square (1:1)")
     private val titleFonts = arrayOf("Bold Blockbuster (Impact)", "Elegant Serif (Georgia)", "Modern Minimal (Clean)", "Vintage Typewriter", "Casual Retro (Playful)")
     private val titleStyles = arrayOf("Classic Yellow Drop-Shadow", "Neon Glow (Electric Cyan)", "3D Retro Arcade Extrusion", "Cinematic All-Caps", "Badge Tag Container")
@@ -582,52 +611,6 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun showSponsorUnlockDialog(videoUriStr: String) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_sponsor_unlock, null)
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setView(dialogView)
-            .create()
-
-        val tvTitle = dialogView.findViewById<android.widget.TextView>(R.id.tvSponsorTitle)
-        val tvDesc = dialogView.findViewById<android.widget.TextView>(R.id.tvSponsorDesc)
-        val btnWatch = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnWatchSponsorAd)
-        val btnCancel = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnCancelUnlock)
-
-        dialogView.setBackgroundColor(Color.parseColor("#1C1B19"))
-        tvTitle?.setTextColor(Color.parseColor("#FFE14D"))
-        tvDesc?.setTextColor(Color.parseColor("#FFFCF5"))
-        btnWatch?.setBackgroundResource(R.drawable.btn_retro_yellow)
-        btnWatch?.setTextColor(Color.parseColor("#1A1A1A"))
-        btnCancel?.setTextColor(Color.parseColor("#888888"))
-
-        btnWatch.setOnClickListener {
-            btnWatch.isEnabled = false
-            rewardedAdManager.showRewardedAd(
-                activity = this,
-                onUnlocked = {
-                    btnWatch.isEnabled = true
-                    unlockedVideoUris.add(videoUriStr)
-                    dialog.dismiss()
-                    Toast.makeText(this, "Video unlocked! Enjoy your SnapBeat 🎬", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this, PreviewActivity::class.java).apply {
-                        putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
-                    }
-                    startActivity(intent)
-                },
-                onIncompleteOrFailed = { reason ->
-                    btnWatch.isEnabled = true
-                    Toast.makeText(this, reason, Toast.LENGTH_LONG).show()
-                }
-            )
-        }
-
-        btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
-    }
-
     private fun updateAudioTrimLabels() {
         binding.tvAudioStart.text = "Start Time: ${formatTime(audioStartSeconds)}"
         binding.tvAudioEnd.text = "End Time: ${formatTime(audioEndSeconds)}"
@@ -857,26 +840,15 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val isPro = (currentNavPage == NavPage.PRO)
-                if (isPro) {
+                val (chosenTemplateDisplay, chosenTemplateBackend) = if (isPro) {
                     val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "Beat Cut"
-                    val templateName = when(selection) {
-                        "Beat Cut" -> "beat-cut"
-                        "Bounce" -> "beat-bounce"
-                        "Cine Zoom" -> "cinematic-zoom"
-                        "Fade" -> "beat-fade"
-                        "Glide" -> "glide-pan"
-                        "Pendulum" -> "pendulum"
-                        "Pulse" -> "beat-pulse"
-                        "Punch" -> "punch-cut"
-                        "Reveal Boxes" -> "reveal-tiles"
-                        "Slide" -> "beat-slide"
-                        "Slow Drift" -> "slow-drift"
-                        "Sway" -> "sway-ballad"
-                        "Whip" -> "beat-whip"
-                        "Zoom Out" -> "zoom-out-reveal"
-                        else -> "beat-cut"
-                    }
-                    builder.addFormDataPart("template", templateName)
+                    Pair(selection, getTemplateSlug(selection))
+                } else {
+                    getRandomAutoTemplate()
+                }
+                builder.addFormDataPart("template", chosenTemplateBackend)
+
+                if (isPro) {
 
                     // Send drop_it flag if enabled
                     if (binding.switchDropIt.isChecked) {
@@ -989,7 +961,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 clearCache()
-                pollStatusAndDownload(jobId, serverlessUrl)
+                pollStatusAndDownload(jobId, serverlessUrl, chosenTemplateDisplay)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -1004,7 +976,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun pollStatusAndDownload(jobId: String, serverUrl: String = getServerlessUrl()) {
+    private suspend fun pollStatusAndDownload(jobId: String, serverUrl: String = getServerlessUrl(), templateName: String = "Beat Cut") {
         withContext(Dispatchers.Main) {
             binding.progressBar.isIndeterminate = false
             binding.progressBar.progress = 0
@@ -1130,9 +1102,7 @@ class MainActivity : AppCompatActivity() {
                 val title = if (currentNavPage == NavPage.PRO && binding.switchEnableTitleCard.isChecked) {
                     binding.etTitleText.text.toString().trim().ifEmpty { "Instant Render" }
                 } else "Instant Render"
-                val template = if (currentNavPage == NavPage.PRO) {
-                    binding.spinnerTemplate.selectedItem?.toString() ?: "Beat Cut"
-                } else "Beat Cut"
+                val template = templateName
                 val aspect = if (currentNavPage == NavPage.PRO && binding.switchCustomAspectRatio.isChecked) {
                     when (binding.spinnerAspectRatio.selectedItemPosition) {
                         0 -> "9:16"
@@ -1227,27 +1197,11 @@ class MainActivity : AppCompatActivity() {
                 val isPro = (currentNavPage == NavPage.PRO)
                 val quality = if (isPro && binding.switchCustomQuality.isChecked && binding.rbQualityMaster.isChecked) "master" else "fast"
 
-                val templateName = if (isPro) {
+                val (chosenTemplateDisplay, chosenTemplateBackend) = if (isPro) {
                     val selection = binding.spinnerTemplate.selectedItem?.toString() ?: "Beat Cut"
-                    when (selection) {
-                        "Beat Cut" -> "beat-cut"
-                        "Bounce" -> "beat-bounce"
-                        "Cine Zoom" -> "cinematic-zoom"
-                        "Fade" -> "beat-fade"
-                        "Glide" -> "glide-pan"
-                        "Pendulum" -> "pendulum"
-                        "Pulse" -> "beat-pulse"
-                        "Punch" -> "punch-cut"
-                        "Reveal Boxes" -> "reveal-tiles"
-                        "Slide" -> "beat-slide"
-                        "Slow Drift" -> "slow-drift"
-                        "Sway" -> "sway-ballad"
-                        "Whip" -> "beat-whip"
-                        "Zoom Out" -> "zoom-out-reveal"
-                        else -> "beat-cut"
-                    }
+                    Pair(selection, getTemplateSlug(selection))
                 } else {
-                    "beat-cut"
+                    getRandomAutoTemplate()
                 }
 
                 val frameValue = if (isPro && binding.switchCustomAspectRatio.isChecked) {
@@ -1318,7 +1272,7 @@ class MainActivity : AppCompatActivity() {
                     .putString(RenderQueueWorker.KEY_AUTO_ARRANGE, autoArrange)
                     .putString(RenderQueueWorker.KEY_SERVER_URL, getVpsUrl())
                     .putString(RenderQueueWorker.KEY_QUALITY, quality)
-                    .putString(RenderQueueWorker.KEY_TEMPLATE, templateName)
+                    .putString(RenderQueueWorker.KEY_TEMPLATE, chosenTemplateBackend)
                     .putBoolean(RenderQueueWorker.KEY_DROP_IT, isPro && binding.switchDropIt.isChecked)
                     .putString(RenderQueueWorker.KEY_FRAME, frameValue)
                     .putString(RenderQueueWorker.KEY_TITLE_TEXT, titleText)
@@ -1349,7 +1303,7 @@ class MainActivity : AppCompatActivity() {
                     title = if (titleText.isNotEmpty()) titleText else "Queue Render",
                     videoUri = null,
                     timestamp = timestamp,
-                    templateName = templateName,
+                    templateName = chosenTemplateDisplay,
                     quality = quality,
                     aspectRatio = frameValue,
                     status = "PROCESSING",
@@ -1437,22 +1391,24 @@ class MainActivity : AppCompatActivity() {
 
                             binding.layoutQueueResultCard.visibility = View.VISIBLE
                             binding.btnViewQueueVideo.visibility = View.VISIBLE
+                            binding.btnViewQueueVideo.text = "🎬 VIEW VIDEO"
                             binding.btnViewQueueVideo.setOnClickListener {
-                                if (unlockedVideoUris.contains(videoUriStr) || creditManager.isProSubscriber()) {
+                                if (creditManager.isProSubscriber()) {
                                     val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
                                         putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                     }
                                     startActivity(intent)
                                 } else {
                                     binding.btnViewQueueVideo.isEnabled = false
-                                    Toast.makeText(this@MainActivity, "Loading sponsor message to unlock video...", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this@MainActivity, "Loading ad...", Toast.LENGTH_SHORT).show()
                                     rewardedAdManager.showRewardedAd(
                                         activity = this@MainActivity,
                                         onUnlocked = {
                                             binding.btnViewQueueVideo.isEnabled = true
-                                            unlockedVideoUris.add(videoUriStr)
                                             val intent = Intent(this@MainActivity, PreviewActivity::class.java).apply {
                                                 putExtra(PreviewActivity.EXTRA_VIDEO_URI, videoUriStr)
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                             }
                                             startActivity(intent)
                                         },
@@ -1794,19 +1750,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleQueuePlay(job: QueueJob) {
         val uriStr = job.videoUri ?: return
-        if (unlockedVideoUris.contains(uriStr) || creditManager.isProSubscriber()) {
+        if (creditManager.isProSubscriber()) {
             val intent = Intent(this, PreviewActivity::class.java).apply {
                 putExtra(PreviewActivity.EXTRA_VIDEO_URI, uriStr)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(intent)
         } else {
-            Toast.makeText(this, "Loading sponsor message to play video...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Loading ad...", Toast.LENGTH_SHORT).show()
             rewardedAdManager.showRewardedAd(
                 activity = this,
                 onUnlocked = {
-                    unlockedVideoUris.add(uriStr)
                     val intent = Intent(this, PreviewActivity::class.java).apply {
                         putExtra(PreviewActivity.EXTRA_VIDEO_URI, uriStr)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     startActivity(intent)
                 },
@@ -1819,15 +1776,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleQueueDownload(job: QueueJob) {
         val uriStr = job.videoUri ?: return
-        if (unlockedVideoUris.contains(uriStr) || creditManager.isProSubscriber()) {
-            Toast.makeText(this, "Video is already saved in your Movies/SnapBeat gallery! 🎬", Toast.LENGTH_LONG).show()
+        if (creditManager.isProSubscriber()) {
+            Toast.makeText(this, "Video is saved in your Movies/SnapBeat gallery! 🎬", Toast.LENGTH_LONG).show()
         } else {
-            Toast.makeText(this, "Loading sponsor message to download video...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Loading ad...", Toast.LENGTH_SHORT).show()
             rewardedAdManager.showRewardedAd(
                 activity = this,
                 onUnlocked = {
-                    unlockedVideoUris.add(uriStr)
-                    Toast.makeText(this, "Video is ready and saved in your Movies/SnapBeat gallery! 🎬", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Video is saved in your Movies/SnapBeat gallery! 🎬", Toast.LENGTH_LONG).show()
                 },
                 onIncompleteOrFailed = { reason ->
                     Toast.makeText(this, reason, Toast.LENGTH_LONG).show()

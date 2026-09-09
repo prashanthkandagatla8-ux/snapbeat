@@ -98,9 +98,30 @@ class RewardedAdManager(private val context: Context) {
                 rewardEarned = true
             }
         } else {
-            Log.i(TAG, "Ad not ready yet; attempting reload")
-            loadRewardedAd()
-            onIncompleteOrFailed("Sponsor video is loading. Please wait a moment and try again.")
+            Log.i(TAG, "Ad not ready yet; fetching and showing on-demand")
+            isLoading = true
+            val adRequest = AdRequest.Builder().build()
+            RewardedAd.load(
+                context,
+                AD_UNIT_ID,
+                adRequest,
+                object : RewardedAdLoadCallback() {
+                    override fun onAdLoaded(ad: RewardedAd) {
+                        rewardedAd = ad
+                        isLoading = false
+                        Log.d(TAG, "Rewarded ad loaded on demand, presenting now")
+                        showRewardedAd(activity, onUnlocked, onIncompleteOrFailed)
+                    }
+
+                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                        rewardedAd = null
+                        isLoading = false
+                        Log.w(TAG, "Rewarded ad failed to load on demand: ${loadAdError.message}")
+                        // Don't block user if ad provider cannot fill or is offline
+                        onUnlocked()
+                    }
+                }
+            )
         }
     }
 }
