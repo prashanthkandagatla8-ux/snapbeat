@@ -14,6 +14,8 @@ class CreditManager(context: Context) {
         private const val KEY_INITIALIZED = "welcome_credits_granted"
         private const val KEY_PRO_ACTIVE = "snapbeat_pro_active"
         private const val KEY_PRO_EXPIRY = "snapbeat_pro_expiry_ms"
+        private const val KEY_WATERMARK_REMOVED = "snapbeat_watermark_removed"
+        private const val KEY_PRO_MODE_ENABLED = "snapbeat_pro_mode_enabled"
         const val DEFAULT_WELCOME_CREDITS = 2
     }
 
@@ -105,23 +107,46 @@ class CreditManager(context: Context) {
             .putBoolean(KEY_PRO_ACTIVE, active)
             .putLong(KEY_PRO_EXPIRY, expiryEpochMs)
             .apply()
+        if (active) {
+            setWatermarkRemoved(true)
+            setProModeEnabled(true)
+        }
+    }
+
+    fun isWatermarkRemoved(): Boolean {
+        return prefs.getBoolean(KEY_WATERMARK_REMOVED, false) || isProModeEnabled() || isProSubscriber()
+    }
+
+    fun setWatermarkRemoved(removed: Boolean) {
+        prefs.edit().putBoolean(KEY_WATERMARK_REMOVED, removed).apply()
+    }
+
+    fun isProModeEnabled(): Boolean {
+        return prefs.getBoolean(KEY_PRO_MODE_ENABLED, false) || isProSubscriber()
+    }
+
+    fun setProModeEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_PRO_MODE_ENABLED, enabled).apply()
+        if (enabled) {
+            setWatermarkRemoved(true)
+        }
     }
 
     /**
      * Watermark policy:
-     * - Pro subscribers: NO watermark
+     * - Watermark removed / Pro enabled: NO watermark
      * - Instant Serverless (credits): NO watermark
-     * - Free VPS Queue (non-pro): YES, transparent "Made with SnapBeat"
+     * - Free VPS Queue (non-pro / watermark active): YES, branded SnapBeat badge
      */
     fun shouldWatermark(isInstant: Boolean): Boolean {
-        if (isInstant || isProSubscriber()) return false
+        if (isInstant || isWatermarkRemoved()) return false
         return true
     }
 
     /**
      * Ad policy:
-     * - ONLY Serverless renders skip ads!
-     * - Free users AND Pro Pass users both view the rewarded ad before video delivery on VPS queue.
+     * - Instant Serverless renders skip ads.
+     * - Free VPS queue renders view rewarded ad.
      */
     fun shouldShowAd(isInstant: Boolean): Boolean {
         return !isInstant

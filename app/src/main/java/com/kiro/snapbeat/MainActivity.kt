@@ -263,7 +263,11 @@ class MainActivity : AppCompatActivity() {
             switchNavPage(NavPage.AUTO)
         }
         binding.tabNavPro.setOnClickListener {
-            switchNavPage(NavPage.PRO)
+            if (!creditManager.isProModeEnabled()) {
+                showProModePaywallDialog(canPreview = true)
+            } else {
+                switchNavPage(NavPage.PRO)
+            }
         }
         binding.tabNavQueue.setOnClickListener {
             switchNavPage(NavPage.QUEUE)
@@ -407,6 +411,10 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please pick actual music and photos first!", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
+            if (currentNavPage == NavPage.PRO && !creditManager.isProModeEnabled()) {
+                showProModePaywallDialog(canPreview = false)
+                return@setOnClickListener
+            }
             showRenderChoiceDialog()
         }
 
@@ -489,11 +497,13 @@ class MainActivity : AppCompatActivity() {
         val tvStoreRegion = dialogView.findViewById<android.widget.TextView>(R.id.tvStoreRegion)
         val btnChangeRegion = dialogView.findViewById<android.view.View>(R.id.btnChangeRegion)
 
-        val btnSubMonthly = dialogView.findViewById<android.view.View>(R.id.btnSubMonthly)
-        val tvPriceSubMonthly = dialogView.findViewById<android.widget.TextView>(R.id.tvPriceSubMonthly)
-        val btnSubYearly = dialogView.findViewById<android.view.View>(R.id.btnSubYearly)
-        val tvPriceSubYearly = dialogView.findViewById<android.widget.TextView>(R.id.tvPriceSubYearly)
-        val tvSubYearlySavings = dialogView.findViewById<android.widget.TextView>(R.id.tvSubYearlySavings)
+        val btnBuyWatermark = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnBuyWatermark)
+        val badgeWatermarkStatus = dialogView.findViewById<android.widget.TextView>(R.id.badgeWatermarkStatus)
+        val tvSubtitleWatermark = dialogView.findViewById<android.widget.TextView>(R.id.tvSubtitleWatermark)
+
+        val btnBuyProMode = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnBuyProMode)
+        val badgeProStatus = dialogView.findViewById<android.widget.TextView>(R.id.badgeProStatus)
+        val tvSubtitleProMode = dialogView.findViewById<android.widget.TextView>(R.id.tvSubtitleProMode)
 
         val btnPackStarter = dialogView.findViewById<android.view.View>(R.id.btnPackStarter)
         val btnBuyStarter = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnBuyStarter)
@@ -529,10 +539,35 @@ class MainActivity : AppCompatActivity() {
 
             tvStoreRegion?.text = "📍 Region: ${pricing.regionDisplayName} ▾"
 
-            // Subscriptions: use Google Play price if returned, else regional fallback
-            tvPriceSubMonthly?.text = billingManager.getFormattedPrice(BillingManager.SUBS_PRO_MONTHLY) ?: pricing.proMonthlyPrice
-            tvPriceSubYearly?.text = billingManager.getFormattedPrice(BillingManager.SUBS_PRO_YEARLY) ?: pricing.proYearlyPrice
-            tvSubYearlySavings?.text = pricing.proYearlySavings
+            // Plan 1: Remove Watermark (99)
+            if (creditManager.isWatermarkRemoved()) {
+                btnBuyWatermark?.text = "ACTIVE ✓ (WATERMARK REMOVED)"
+                btnBuyWatermark?.isEnabled = false
+                btnBuyWatermark?.setBackgroundResource(R.drawable.btn_retro_yellow)
+                badgeWatermarkStatus?.text = "UNLOCKED ✓"
+            } else {
+                val watermarkPrice = billingManager.getFormattedPrice(BillingManager.PRODUCT_REMOVE_WATERMARK) ?: pricing.removeWatermarkPrice
+                btnBuyWatermark?.text = "REMOVE WATERMARK ($watermarkPrice)"
+                btnBuyWatermark?.isEnabled = true
+                btnBuyWatermark?.setBackgroundResource(R.drawable.btn_retro_blue)
+                badgeWatermarkStatus?.text = "NO WATERMARK"
+            }
+            tvSubtitleWatermark?.text = pricing.removeWatermarkSubtitle
+
+            // Plan 2: Enable Pro Mode (199)
+            if (creditManager.isProModeEnabled()) {
+                btnBuyProMode?.text = "ACTIVE ✓ (PRO MODE UNLOCKED)"
+                btnBuyProMode?.isEnabled = false
+                btnBuyProMode?.setBackgroundResource(R.drawable.btn_retro_yellow)
+                badgeProStatus?.text = "UNLOCKED ✓"
+            } else {
+                val proPrice = billingManager.getFormattedPrice(BillingManager.PRODUCT_PRO_MODE) ?: pricing.proModePrice
+                btnBuyProMode?.text = "ENABLE PRO MODE ($proPrice)"
+                btnBuyProMode?.isEnabled = true
+                btnBuyProMode?.setBackgroundResource(R.drawable.btn_retro_yellow)
+                badgeProStatus?.text = "ALL FEATURES"
+            }
+            tvSubtitleProMode?.text = pricing.proModeSubtitle
 
             // Credit Packs:
             btnBuyStarter?.text = billingManager.getFormattedPrice(BillingManager.PRODUCT_STARTER_10) ?: pricing.starterPrice
@@ -579,12 +614,12 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        btnSubMonthly?.setOnClickListener {
-            billingManager.launchPurchaseFlow(this, BillingManager.SUBS_PRO_MONTHLY)
+        btnBuyWatermark?.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_REMOVE_WATERMARK)
             dialog.dismiss()
         }
-        btnSubYearly?.setOnClickListener {
-            billingManager.launchPurchaseFlow(this, BillingManager.SUBS_PRO_YEARLY)
+        btnBuyProMode?.setOnClickListener {
+            billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_PRO_MODE)
             dialog.dismiss()
         }
 
@@ -609,6 +644,34 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
+    }
+
+    private fun showProModePaywallDialog(canPreview: Boolean = false) {
+        val activeRegion = RegionPricingManager.getActiveRegion(this)
+        val pricing = RegionPricingManager.getPricing(activeRegion)
+        val proPrice = billingManager.getFormattedPrice(BillingManager.PRODUCT_PRO_MODE) ?: pricing.proModePrice
+
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("👑 UNLOCK SNAPBEAT PRO")
+            .setMessage("Enable Pro Mode ($proPrice) to unlock:\n\n" +
+                    "• All 14 custom beat templates\n" +
+                    "• Master 1080p 60fps high bitrate quality\n" +
+                    "• Custom aspect ratios (9:16, 16:9, 1:1)\n" +
+                    "• Animated Title Cards & Font Styles\n" +
+                    "• NO WATERMARK included on all renders!")
+            .setPositiveButton("ENABLE PRO MODE ($proPrice)") { d, _ ->
+                d.dismiss()
+                billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_PRO_MODE)
+            }
+
+        if (canPreview) {
+            builder.setNeutralButton("Preview Controls") { d, _ ->
+                d.dismiss()
+                switchNavPage(NavPage.PRO)
+            }
+        }
+        builder.setNegativeButton("Cancel", null)
+        builder.show()
     }
 
     private fun updateAudioTrimLabels() {
@@ -1528,6 +1591,19 @@ class MainActivity : AppCompatActivity() {
         val required = getRequiredCredits()
         val creditText = if (required == 1) "1 CREDIT" else "$required CREDITS"
         btnInstant.text = "⚡ RENDER INSTANT ($creditText)"
+
+        val isWatermarkClean = creditManager.isWatermarkRemoved()
+        if (isWatermarkClean) {
+            btnQueue.text = "📥 RENDER FREE (NO WATERMARK)"
+            btnRemoveWatermark?.visibility = View.GONE
+        } else {
+            val activeRegion = RegionPricingManager.getActiveRegion(this)
+            val pricing = RegionPricingManager.getPricing(activeRegion)
+            val priceStr = billingManager.getFormattedPrice(BillingManager.PRODUCT_REMOVE_WATERMARK) ?: pricing.removeWatermarkPrice
+            btnQueue.text = "📥 RENDER FREE WITH WATERMARK"
+            btnRemoveWatermark?.visibility = View.VISIBLE
+            btnRemoveWatermark?.text = "🚫 REMOVE WATERMARK ($priceStr)"
+        }
 
         btnInstant.setOnClickListener {
             dialog.dismiss()

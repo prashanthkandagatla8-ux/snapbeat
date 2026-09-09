@@ -16,6 +16,9 @@ class BillingManager(
     companion object {
         private const val TAG = "BillingManager"
 
+        const val PRODUCT_REMOVE_WATERMARK = "snapbeat_remove_watermark" // ₹99 / $0.99
+        const val PRODUCT_PRO_MODE = "snapbeat_pro_mode"                 // ₹199 / $1.99
+
         const val PRODUCT_STARTER_10 = "snapbeat_starter_10"
         const val PRODUCT_PARTY_35 = "snapbeat_party_35"
         const val PRODUCT_STUDIO_80 = "snapbeat_studio_80"
@@ -76,6 +79,14 @@ class BillingManager(
 
     private fun queryAvailableProducts() {
         val inAppList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_REMOVE_WATERMARK)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_PRO_MODE)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(PRODUCT_STARTER_10)
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -206,10 +217,27 @@ class BillingManager(
                     if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                         // Credit user based on purchased product
                         for (productId in purchase.products) {
-                            val creditsToAdd = PRODUCT_CREDIT_MAP[productId] ?: 10
-                            val newBalance = creditManager.addCredits(creditsToAdd)
-                            Handler(Looper.getMainLooper()).post {
-                                onCreditsUpdated(newBalance, "+$creditsToAdd Instant Credits added! 🎉")
+                            when (productId) {
+                                PRODUCT_REMOVE_WATERMARK -> {
+                                    creditManager.setWatermarkRemoved(true)
+                                    Handler(Looper.getMainLooper()).post {
+                                        onCreditsUpdated(creditManager.getCredits(), "🚫 Watermark Removed! All renders are now clean! 🎉")
+                                    }
+                                }
+                                PRODUCT_PRO_MODE -> {
+                                    creditManager.setProModeEnabled(true)
+                                    creditManager.setWatermarkRemoved(true)
+                                    Handler(Looper.getMainLooper()).post {
+                                        onCreditsUpdated(creditManager.getCredits(), "👑 Pro Mode Enabled! All templates & features unlocked! 🎉")
+                                    }
+                                }
+                                else -> {
+                                    val creditsToAdd = PRODUCT_CREDIT_MAP[productId] ?: 10
+                                    val newBalance = creditManager.addCredits(creditsToAdd)
+                                    Handler(Looper.getMainLooper()).post {
+                                        onCreditsUpdated(newBalance, "+$creditsToAdd Instant Credits added! 🎉")
+                                    }
+                                }
                             }
                         }
                     }
@@ -223,6 +251,8 @@ class BillingManager(
         val durationMs = if (isYearly) 365L * 24 * 3600 * 1000L else 30L * 24 * 3600 * 1000L
         val expiry = System.currentTimeMillis() + durationMs
         creditManager.setProSubscription(true, expiry)
+        creditManager.setProModeEnabled(true)
+        creditManager.setWatermarkRemoved(true)
         val msg = if (isYearly) "👑 Pro Pass (Yearly) Activated! Watermark Removed! 🎉" else "👑 Pro Pass (Monthly) Activated! Watermark Removed! 🎉"
         Handler(Looper.getMainLooper()).post {
             onCreditsUpdated(creditManager.getCredits(), msg)
@@ -233,13 +263,29 @@ class BillingManager(
      * Local test mode for rapid development and testing in emulators
      */
     fun simulateTestPurchase(productId: String) {
-        if (productId == SUBS_PRO_MONTHLY || productId == SUBS_PRO_YEARLY) {
-            activateProSubscription(listOf(productId))
-        } else {
-            val creditsToAdd = PRODUCT_CREDIT_MAP[productId] ?: 10
-            val newBalance = creditManager.addCredits(creditsToAdd)
-            Handler(Looper.getMainLooper()).post {
-                onCreditsUpdated(newBalance, "+$creditsToAdd Test Instant Credits added! 🎉")
+        when (productId) {
+            PRODUCT_REMOVE_WATERMARK -> {
+                creditManager.setWatermarkRemoved(true)
+                Handler(Looper.getMainLooper()).post {
+                    onCreditsUpdated(creditManager.getCredits(), "🚫 Watermark Removed Permanently! 🎉")
+                }
+            }
+            PRODUCT_PRO_MODE -> {
+                creditManager.setProModeEnabled(true)
+                creditManager.setWatermarkRemoved(true)
+                Handler(Looper.getMainLooper()).post {
+                    onCreditsUpdated(creditManager.getCredits(), "👑 Pro Mode Enabled! All templates & features unlocked! 🎉")
+                }
+            }
+            SUBS_PRO_MONTHLY, SUBS_PRO_YEARLY -> {
+                activateProSubscription(listOf(productId))
+            }
+            else -> {
+                val creditsToAdd = PRODUCT_CREDIT_MAP[productId] ?: 10
+                val newBalance = creditManager.addCredits(creditsToAdd)
+                Handler(Looper.getMainLooper()).post {
+                    onCreditsUpdated(newBalance, "+$creditsToAdd Test Instant Credits added! 🎉")
+                }
             }
         }
     }
