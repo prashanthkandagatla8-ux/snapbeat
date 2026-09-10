@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
 import 'ui/screens/home_screen.dart';
@@ -8,9 +8,9 @@ void main() {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF090A0E),
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFFE8E4DC),
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
   runApp(const SnapBeatApp());
@@ -24,7 +24,7 @@ class SnapBeatApp extends StatelessWidget {
     return MaterialApp(
       title: 'SnapBeat',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.luxuryDark,
+      theme: AppTheme.retroMetalClassic,
       home: const HomeScreen(),
     );
   }

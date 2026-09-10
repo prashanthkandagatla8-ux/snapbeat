@@ -1,18 +1,26 @@
 import 'dart:io';
+import 'dart:ui' as ui;
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../models/models.dart';
+import '../../models/sound_track.dart';
 import '../../services/credit_manager.dart';
 import '../../services/queue_manager.dart';
 import '../../services/api_service.dart';
 import '../../theme/app_colors.dart';
+import '../components/retro_tape_deck.dart';
 import '../components/interactive_waveform.dart';
 import '../components/snaps_reorder_strip.dart';
 import '../components/pro_controls_card.dart';
 import '../components/master_action_deck.dart';
 import '../components/store_dialog.dart';
+import '../components/video_preview_dialog.dart';
+import '../components/sound_library_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _currentMode = "auto"; // "auto", "pro", "vault"
   File? _selectedMusic;
-  String _selectedMusicTitle = "Summer Beats (Acoustic Demo)";
+  String _selectedMusicTitle = "Funk Smooth Party (124 BPM)";
   final List<PhotoItem> _photos = [];
   String _selectedTemplate = "beat-cut";
   String _selectedAspectRatio = "9:16";
@@ -52,16 +60,57 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isRendering = false;
   double _renderProgress = 0.0;
 
+  // Auto Mode Template Rotation
+  BeatTemplate _currentAutoTemplate = BeatTemplate.allTemplates.first;
+  String? _lastAutoTemplateId;
+
+  void _rollAutoTemplate() {
+    final pool = BeatTemplate.allTemplates.where((t) => t.id != _lastAutoTemplateId).toList();
+    final picked = pool.isNotEmpty
+        ? (List<BeatTemplate>.from(pool)..shuffle()).first
+        : BeatTemplate.allTemplates.first;
+    setState(() {
+      _lastAutoTemplateId = picked.id;
+      _currentAutoTemplate = picked;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _rollAutoTemplate();
     _initData();
   }
 
   Future<void> _initData() async {
     await cm.init();
     await qm.init();
+    await _ensureDefaultSampleAudio();
     if (mounted) setState(() {});
+  }
+
+  Future<File> _ensureDefaultSampleAudio() async {
+    try {
+      final track = SoundTrack.builtInLibrary.first;
+      final file = await track.getCachedFile();
+      _selectedMusic = file;
+      _selectedMusicTitle = '${track.title} (${track.bpm})';
+      _audioDuration = track.durationSeconds;
+      return file;
+    } catch (e) {
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/sample_beat.mp3');
+      if (!await file.exists()) {
+        try {
+          final byteData = await rootBundle.load('assets/audio/sample_beat.mp3');
+          await file.writeAsBytes(
+            byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+          );
+        } catch (_) {}
+      }
+      _selectedMusic = file;
+      return file;
+    }
   }
 
   @override
@@ -82,16 +131,74 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _loadSampleBeat() {
-    setState(() {
-      _selectedMusicTitle = "Electro Wave Demo (128 BPM)";
-      _audioDuration = 30.0;
-      _audioStart = 0.0;
-      _audioEnd = 15.0;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("✨ Sample beat loaded successfully!")),
+  void _openSoundLibrary() {
+    SoundLibraryDialog.show(
+      context: context,
+      currentTrackTitle: _selectedMusicTitle,
+      onSelectTrack: (track) async {
+        final file = await track.getCachedFile();
+        setState(() {
+          _selectedMusic = file;
+          _selectedMusicTitle = '${track.title} (${track.bpm})';
+          _audioDuration = track.durationSeconds;
+          _audioStart = 0.0;
+          _audioEnd = math.min(15.0, track.durationSeconds);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("📼 Mounted Reel: ${track.title}"),
+              backgroundColor: AppColors.brassDark,
+            ),
+          );
+        }
+      },
     );
+  }
+
+  Future<File> _generateTestSlide(int index, String title, int hexColor) async {
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/sample_slide_$index.png');
+    if (!await file.exists()) {
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, 720, 1280));
+      final bgPaint = Paint()..color = Color(hexColor);
+      canvas.drawRect(const Rect.fromLTWH(0, 0, 720, 1280), bgPaint);
+
+      final borderPaint = Paint()
+        ..color = const Color(0xFFFAF6EE)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 24;
+      canvas.drawRect(const Rect.fromLTWH(20, 20, 680, 1240), borderPaint);
+
+      final innerBorder = Paint()
+        ..color = const Color(0xFFC8A232)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4;
+      canvas.drawRect(const Rect.fromLTWH(36, 36, 648, 1208), innerBorder);
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: 'SNAPBEAT 35MM\n\n$title\n\nSLIDE #0$index',
+          style: const TextStyle(
+            color: Color(0xFFFAF6EE),
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+            height: 1.4,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      )..layout(maxWidth: 600);
+      textPainter.paint(canvas, const Offset(60, 520));
+
+      final picture = recorder.endRecording();
+      final img = await picture.toImage(720, 1280);
+      final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+      await file.writeAsBytes(byteData!.buffer.asUint8List());
+    }
+    return file;
   }
 
   Future<void> _pickPhotos() async {
@@ -111,22 +218,48 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadSamplePhotos() async {
+    final slides = [
+      await _generateTestSlide(1, 'GOLDEN SUNSET', 0xFFE65100),
+      await _generateTestSlide(2, 'NEON BEAT', 0xFF880E4F),
+      await _generateTestSlide(3, 'PACIFIC DUSK', 0xFF0D47A1),
+    ];
+
+    _photos.clear();
+    for (final file in slides) {
+      _photos.add(PhotoItem(
+        id: '${DateTime.now().microsecondsSinceEpoch}_${file.path.hashCode}',
+        path: file.path,
+        order: _photos.length,
+      ));
+    }
+    setState(() {});
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("✨ Mounted ${_photos.length} studio 35mm slides!"),
+          backgroundColor: AppColors.brassDark,
+        ),
+      );
+    }
+  }
+
   void _togglePlayAudio() async {
     if (_isPlayingAudio) {
       await _audioPlayer.pause();
       setState(() => _isPlayingAudio = false);
     } else {
-      if (_selectedMusic != null) {
+      if (_selectedMusic != null && _selectedMusic!.existsSync()) {
         await _audioPlayer.play(DeviceFileSource(_selectedMusic!.path));
       }
       setState(() => _isPlayingAudio = true);
     }
   }
 
-  void _triggerMasterReel() {
+  void _triggerMasterReel() async {
     if (_photos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please add your snaps (photos) first!")),
+        const SnackBar(content: Text("Please mount some 35mm snaps (photos) first!")),
       );
       return;
     }
@@ -143,29 +276,37 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.cardSurface,
-        title: const Text("👑 UNLOCK SNAPBEAT PRO", style: TextStyle(color: AppColors.goldBright, fontWeight: FontWeight.bold)),
-        content: Text(
-          "Enable Pro Mode (${cm.pricing.proModePrice}) to unlock:\n\n"
-          "• All 14 custom beat templates\n"
-          "• Master 1080p 60fps high bitrate quality\n"
-          "• Custom aspect ratios (9:16, 1:1, 16:9)\n"
-          "• Animated Title Cards & Audio Trimming\n"
-          "• NO WATERMARK included on all renders!",
-          style: const TextStyle(fontSize: 12, color: AppColors.textWhite),
+        backgroundColor: AppColors.panelCream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.brassGold, width: 1.5),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.workspace_premium_rounded, color: AppColors.brassGold),
+            SizedBox(width: 8),
+            Text("STUDIO PRO CONSOLE", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textEngraved)),
+          ],
+        ),
+        content: const Text(
+          "Unlocks all 14 vintage beat templates, master 1080p 60fps export, custom aspect ratios, and zero watermarks.",
+          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancel", style: TextStyle(color: AppColors.textMuted)),
+            child: const Text("CLOSE", style: TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brassGold,
+              foregroundColor: AppColors.hardwareGunmetal,
+            ),
             onPressed: () {
               Navigator.pop(ctx);
               StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {}));
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.goldPrimary),
-            child: Text("ENABLE PRO (${cm.pricing.proModePrice})", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            child: const Text("UNLOCK PRO", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -174,43 +315,62 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showRenderChoiceDialog() {
     final watermarkClean = cm.isWatermarkRemoved;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
-          color: AppColors.canvasDark,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border(top: BorderSide(color: AppColors.goldPrimary)),
+          color: AppColors.panelCream,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(top: BorderSide(color: AppColors.chassisBevelLight, width: 2)),
         ),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Choose Render Processing", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text(
+              "SELECT PROCESSING ROUTE",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: AppColors.textEngraved),
+            ),
             const SizedBox(height: 12),
-            // Instant
+            // Instant Fast Server
             ListTile(
-              leading: const Text("⚡", style: TextStyle(fontSize: 22)),
-              title: const Text("Render Instant (1 Credit)", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.goldBright)),
-              subtitle: const Text("Bypasses queue • No watermark • Fast serverless", style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppColors.brassKnobGradient,
+                ),
+                child: const Icon(Icons.bolt_rounded, size: 20, color: AppColors.hardwareGunmetal),
+              ),
+              title: const Text("Instant Priority Render (1 Pass)", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textEngraved)),
+              subtitle: const Text("Bypasses queue • No watermark • 4x GPU processing", style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
               onTap: () {
                 Navigator.pop(ctx);
                 _executeRender(isInstant: true);
               },
             ),
-            const Divider(color: AppColors.borderSubtle),
+            const Divider(color: AppColors.chassisBevelDark),
             // Free Queue
             ListTile(
-              leading: const Text("📥", style: TextStyle(fontSize: 22)),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.panelInset,
+                  border: Border.all(color: AppColors.chassisBevelDark),
+                ),
+                child: const Icon(Icons.cloud_download_outlined, size: 20, color: AppColors.textSecondary),
+              ),
               title: Text(
-                watermarkClean ? "Render Free (No Watermark)" : "Render Free with Watermark",
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                watermarkClean ? "Standard Queue (No Watermark)" : "Standard Queue with Badge",
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textEngraved),
               ),
               subtitle: Text(
-                watermarkClean ? "Processed in Free Queue • Clean output" : "Processed in Free Queue • Includes SnapBeat badge",
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                watermarkClean ? "Processed on VPS Gateway • Clean video output" : "Processed on VPS Gateway • Includes small studio stamp",
+                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -230,14 +390,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      String tId = _selectedTemplate;
+      String tId;
+      String tDisplayName;
       if (_currentMode == "auto") {
-        final proList = List<BeatTemplate>.from(BeatTemplate.allTemplates)..shuffle();
-        tId = proList.first.id;
+        // Roll a fresh template and visibly display it
+        _rollAutoTemplate();
+        tId = _currentAutoTemplate.id;
+        tDisplayName = _currentAutoTemplate.name;
+      } else {
+        tId = _selectedTemplate;
+        final matching = BeatTemplate.allTemplates.where((t) => t.id == tId).toList();
+        tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
       }
 
       final photoFiles = _photos.map((p) => File(p.path)).toList();
-      final musicFile = _selectedMusic ?? File("");
+      File musicFile = _selectedMusic ?? await _ensureDefaultSampleAudio();
+      if (!musicFile.existsSync()) {
+        musicFile = await _ensureDefaultSampleAudio();
+      }
 
       final videoPath = await api.renderReel(
         musicFile: musicFile,
@@ -246,6 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
         aspectRatio: _selectedAspectRatio,
         quality: _selectedQuality,
         watermark: cm.shouldWatermark(isInstant),
+        isInstant: isInstant,
         audioStart: _audioStart.toInt(),
         audioEnd: _audioEnd.toInt(),
         titleText: _enableTitle ? _titleText : null,
@@ -257,316 +428,552 @@ class _HomeScreenState extends State<HomeScreen> {
       // Record job
       await qm.addJob(QueueJobItem(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        templateName: tId,
+        templateName: tDisplayName,
         status: "READY",
         videoPath: videoPath,
         createdAt: DateTime.now(),
         quality: _selectedQuality,
       ));
 
-      if (isInstant) {
+      if (isInstant && cm.credits > 0) {
         await cm.deductCredit();
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("✨ Reel Mastered! Saved to: $videoPath"),
-            backgroundColor: const Color(0xFF10B981),
-          ),
-        );
+        setState(() => _isRendering = false);
+        _showSuccessDialog(videoPath, templateName: tDisplayName, quality: _selectedQuality);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Render notice: ${e.toString()}"), backgroundColor: Colors.amber[900]),
+        setState(() => _isRendering = false);
+        _showErrorDialog(
+          e.toString(),
+          onRetry: () => _executeRender(isInstant: isInstant),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isRendering = false);
-      }
     }
+  }
+
+  void _showErrorDialog(String rawError, {VoidCallback? onRetry}) {
+    String cleanMsg = rawError.replaceAll("Exception: ", "").trim();
+    if (cleanMsg.contains("FileNotFoundError") || cleanMsg.contains("no longer available")) {
+      cleanMsg = "The selected template preset is currently unavailable on the master engine. Please choose another preset.";
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.panelCream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.vuRed, width: 1.5),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: AppColors.vuRed, size: 24),
+            SizedBox(width: 8),
+            Text(
+              "MASTER CONSOLE NOTICE",
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+                letterSpacing: 1.0,
+                color: AppColors.textEngraved,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              cleanMsg,
+              style: const TextStyle(fontSize: 12, height: 1.4, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Your chosen photos, audio trimming, and studio settings remain loaded on the deck.",
+              style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("DISMISS", style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+          ),
+          if (onRetry != null)
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brassGold,
+                foregroundColor: AppColors.hardwareGunmetal,
+              ),
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: const Text("RETRY", style: TextStyle(fontWeight: FontWeight.w900)),
+              onPressed: () {
+                Navigator.pop(ctx);
+                onRetry();
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessDialog(String videoPath, {String? templateName, String? quality}) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.panelCream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.brassGold, width: 1.5),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.check_circle_rounded, color: AppColors.vuGreen),
+            SizedBox(width: 8),
+            Text("MASTER REEL CUT READY", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppColors.textEngraved)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Your reel has been beat-synced and rendered by the master studio engine.",
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Saved: ${videoPath.split(Platform.pathSeparator).last}",
+              style: const TextStyle(fontSize: 10, fontFamily: 'Courier', color: AppColors.textMuted),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() => _currentMode = "vault");
+            },
+            child: const Text("VIEW VAULT", style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brassGold,
+              foregroundColor: AppColors.hardwareGunmetal,
+            ),
+            icon: const Icon(Icons.play_arrow_rounded, size: 18),
+            label: const Text("PLAY REEL ▶", style: TextStyle(fontWeight: FontWeight.w900)),
+            onPressed: () {
+              Navigator.pop(ctx);
+              VideoPreviewDialog.show(
+                context,
+                videoPath: videoPath,
+                templateName: templateName,
+                quality: quality,
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.canvasChassis,
       body: SafeArea(
-        bottom: false,
-        child: Column(
+        child: Stack(
           children: [
-            _buildAppBar(),
-            _buildModeSegmentedBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                child: Column(
-                  children: [
-                    if (_currentMode == "vault") ...[
-                      _buildVaultSection(),
-                    ] else ...[
-                      // Track Picker Row
+            Column(
+              children: [
+                // Top Milled Aluminum Header Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.canvasChassis,
+                    border: const Border(
+                      bottom: BorderSide(color: AppColors.chassisBevelDark, width: 1),
+                    ),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              const Text("🎧", style: TextStyle(fontSize: 14)),
-                              const SizedBox(width: 6),
-                              Text(
-                                "Choose Your Track",
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 13),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                            decoration: BoxDecoration(
+                              gradient: AppColors.brassKnobGradient,
+                              borderRadius: BorderRadius.circular(5),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black26, offset: Offset(1, 1), blurRadius: 2),
+                              ],
+                            ),
+                            child: const Text(
+                              'SB',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.hardwareGunmetal,
                               ),
-                            ],
+                            ),
                           ),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: _pickMusic,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.cardSurface,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.goldPrimary.withOpacity(0.4)),
-                                  ),
-                                  child: const Text("📁 Pick Audio", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.goldBright)),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'SNAPBEAT ATELIER',
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                  color: AppColors.textEngraved,
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: _loadSampleBeat,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.cardSurface,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.borderSubtle),
-                                  ),
-                                  child: const Text("✨ Sample Beat", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70)),
+                              Text(
+                                'ANALOG MASTER CONSOLE • 1974',
+                                style: TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                  color: AppColors.textMuted,
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-
-                      InteractiveWaveform(
-                        trackTitle: _selectedMusicTitle,
-                        durationSeconds: _audioDuration,
-                        startSeconds: _audioStart,
-                        endSeconds: _audioEnd,
-                        isPlaying: _isPlayingAudio,
-                        onTogglePlay: _togglePlayAudio,
-                        onTrimChanged: (start, end) {
-                          setState(() {
-                            _audioStart = start;
-                            _audioEnd = end;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      SnapsReorderStrip(
-                        photos: _photos,
-                        onPickPhotos: _pickPhotos,
-                        onReorder: (oldIdx, newIdx) {
-                          setState(() {
-                            final item = _photos.removeAt(oldIdx);
-                            _photos.insert(newIdx, item);
-                          });
-                        },
-                        onDelete: (id) {
-                          setState(() => _photos.removeWhere((p) => p.id == id));
-                        },
-                        arrangementMode: _arrangementMode,
-                        onArrangementChanged: (mode) => setState(() => _arrangementMode = mode),
-                      ),
-                      const SizedBox(height: 12),
-                      if (_currentMode == "pro") ...[
-                        ProControlsCard(
-                          selectedTemplateId: _selectedTemplate,
-                          onSelectTemplate: (id) => setState(() => _selectedTemplate = id),
-                          selectedAspectRatio: _selectedAspectRatio,
-                          onSelectAspectRatio: (r) => setState(() => _selectedAspectRatio = r),
-                          selectedQuality: _selectedQuality,
-                          onSelectQuality: (q) => setState(() => _selectedQuality = q),
-                          enableTitle: _enableTitle,
-                          onToggleTitle: (v) => setState(() => _enableTitle = v),
-                          titleText: _titleText,
-                          onTitleTextChanged: (t) => setState(() => _titleText = t),
-                          titleBg: _titleBg,
-                          onSelectTitleBg: (b) => setState(() => _titleBg = b),
-                          titleDuration: _titleDuration,
-                          onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
+                      // Credit Passes Badge
+                      GestureDetector(
+                        onTap: () => StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {})),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.panelCream,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.borderBrass, width: 1),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black12, offset: Offset(1, 1), blurRadius: 2),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('⚡', style: TextStyle(fontSize: 12)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${cm.credits} PASSES',
+                                style: const TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textEngraved,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ] else ...[
-                        _buildAutoModeCard(),
-                      ],
+                      ),
                     ],
-                  ],
-                ),
-              ),
-            ),
-            MasterActionDeck(
-              onMasterTap: _triggerMasterReel,
-              isRendering: _isRendering,
-              progress: _renderProgress,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: const BoxDecoration(
-        color: AppColors.canvasDark,
-        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppColors.goldPrimary, AppColors.goldBright]),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: Text("SB", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black, fontSize: 13)),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("SnapBeat", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Colors.white)),
-                  Text("ÉDITION ROYALE", style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.goldBright.withOpacity(0.8))),
-                ],
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {})),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.amberBadgeBg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.goldPrimary.withOpacity(0.4)),
                   ),
+                ),
+
+                // Rocker Switch Mode Selector
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
-                      const Text("⚡", style: TextStyle(fontSize: 11)),
-                      const SizedBox(width: 4),
-                      Text(
-                        "${cm.credits} Passes",
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.goldBright),
-                      ),
+                      _buildModeRocker('auto', 'AUTO MAGIC', Icons.auto_awesome_rounded),
+                      const SizedBox(width: 8),
+                      _buildModeRocker('pro', 'STUDIO PRO', Icons.tune_rounded),
+                      const SizedBox(width: 8),
+                      _buildModeRocker('vault', 'REEL VAULT', Icons.movie_filter_rounded),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.cardSurface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.borderSubtle),
-                ),
-                child: Text(
-                  cm.pricing.currencySymbol,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildModeSegmentedBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.canvasDark,
-      child: Container(
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderSubtle),
-        ),
-        child: Row(
-          children: [
-            _buildTabPill("🎲 Auto Magic", "auto"),
-            _buildTabPill("👑 Studio Pro", "pro"),
-            _buildTabPill("🎞️ Reel Vault", "vault"),
+                // Main Scrollable Console Deck
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    children: [
+                      if (_currentMode != "vault") ...[
+                        if (_currentMode == "auto") _buildAutoTemplateBanner(),
+
+                        // 1. Reel-to-Reel Tape Deck
+                        RetroTapeDeck(
+                          isPlaying: _isPlayingAudio,
+                          trackTitle: _selectedMusicTitle,
+                          currentSeconds: _audioStart,
+                          totalSeconds: _audioDuration,
+                          onTogglePlay: _togglePlayAudio,
+                          onPickAudio: _pickMusic,
+                          onLoadSample: _openSoundLibrary,
+                        ),
+
+                        // 2. Interactive Audio Waveform Trimmer
+                        InteractiveWaveform(
+                          durationSeconds: _audioDuration,
+                          startSeconds: _audioStart,
+                          endSeconds: _audioEnd,
+                          isPlaying: _isPlayingAudio,
+                          onTogglePlay: _togglePlayAudio,
+                          onTrimChanged: (s, e) => setState(() {
+                            _audioStart = s;
+                            _audioEnd = e;
+                          }),
+                        ),
+
+                        // 3. 35mm Slide Mounts Curate Strip
+                        SnapsReorderStrip(
+                          photos: _photos,
+                          onAddPhotos: _pickPhotos,
+                          onReorder: (oldIdx, newIdx) {
+                            setState(() {
+                              if (newIdx > oldIdx) newIdx -= 1;
+                              final item = _photos.removeAt(oldIdx);
+                              _photos.insert(newIdx, item);
+                            });
+                          },
+                          onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
+                          arrangementMode: _arrangementMode,
+                          onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
+                          onLoadSample: _loadSamplePhotos,
+                        ),
+
+                        // 4. Pro Controls or Auto Magic Plate
+                        if (_currentMode == "pro")
+                          ProControlsCard(
+                            selectedTemplateId: _selectedTemplate,
+                            onSelectTemplate: (t) => setState(() => _selectedTemplate = t),
+                            selectedAspectRatio: _selectedAspectRatio,
+                            onSelectAspectRatio: (r) => setState(() => _selectedAspectRatio = r),
+                            selectedQuality: _selectedQuality,
+                            onSelectQuality: (q) => setState(() => _selectedQuality = q),
+                            enableTitle: _enableTitle,
+                            onToggleTitle: (v) => setState(() => _enableTitle = v),
+                            titleText: _titleText,
+                            onTitleTextChanged: (t) => setState(() => _titleText = t),
+                            titleBg: _titleBg,
+                            onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
+                            titleDuration: _titleDuration,
+                            onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
+                          ),
+                      ] else ...[
+                        // Vault Jobs List
+                        _buildVaultView(),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // Bottom Action Deck
+                if (_currentMode != "vault")
+                  MasterActionDeck(
+                    photoCount: _photos.length,
+                    onTriggerMaster: _triggerMasterReel,
+                  ),
+              ],
+            ),
+
+            // Live Rendering Modal Overlay
+            if (_isRendering)
+              Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.panelCream,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.brassGold, width: 2),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black45, offset: Offset(2, 4), blurRadius: 12),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(color: AppColors.brassGold),
+                        const SizedBox(height: 18),
+                        const Text(
+                          "PROCESSING MASTER CUT",
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            color: AppColors.textEngraved,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Transmitting to Studio Cloud Engine... ${(_renderProgress * 100).toInt()}%",
+                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: _renderProgress,
+                            backgroundColor: AppColors.panelInset,
+                            color: AppColors.amberJewel,
+                            minHeight: 6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTabPill(String title, String mode) {
+  Widget _buildModeRocker(String mode, String label, IconData icon) {
     final isSelected = _currentMode == mode;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _currentMode = mode),
+        onTap: () {
+          setState(() {
+            _currentMode = mode;
+            if (mode == "auto") {
+              _rollAutoTemplate();
+            }
+          });
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.goldPrimary : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                color: isSelected ? Colors.black : AppColors.textMuted,
-              ),
+            color: isSelected ? const Color(0xFF1E1A16) : AppColors.panelCream,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark,
+              width: isSelected ? 1.5 : 1.0,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                offset: const Offset(1, 2),
+                blurRadius: 3,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 13,
+                color: isSelected ? AppColors.brassHighlight : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                  color: isSelected ? AppColors.brassHighlight : AppColors.textEngraved,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAutoModeCard() {
+  Widget _buildAutoTemplateBanner() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.goldPrimary.withOpacity(0.3)),
+        color: AppColors.panelCreamDark,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.brassGold, width: 1.4),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
+        ],
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Text("🎲", style: TextStyle(fontSize: 20)),
-          SizedBox(width: 12),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.amberJewel,
+              boxShadow: [
+                BoxShadow(color: AppColors.amberJewel, blurRadius: 6, spreadRadius: 1),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Auto Magic Selection Active", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.goldBright)),
-                SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Text(
+                      'ACTIVE AUTO TEMPLATE: ',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        _currentAutoTemplate.name.toUpperCase(),
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textEngraved,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
                 Text(
-                  "Picks a completely different motion template from all 14 styles on every render!",
-                  style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                  '${_currentAutoTemplate.emoji} ${_currentAutoTemplate.subtitle} (cycles each render)',
+                  style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: _rollAutoTemplate,
+            child: Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: AppColors.panelInset,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.chassisBevelDark),
+              ),
+              child: const Icon(Icons.casino_outlined, size: 20, color: AppColors.textEngraved),
             ),
           ),
         ],
@@ -574,79 +981,120 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildVaultSection() {
+  Widget _buildVaultView() {
     final jobs = qm.jobs;
     if (jobs.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(30),
-        child: const Center(
-          child: Column(
-            children: [
-              Text("🎞️", style: TextStyle(fontSize: 36)),
-              SizedBox(height: 8),
-              Text("Reel Vault is Empty", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-              SizedBox(height: 4),
-              Text("Render your first reel to see it here!", style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-            ],
-          ),
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.panelCream,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.chassisBevelDark),
+        ),
+        child: Column(
+          children: const [
+            Icon(Icons.movie_creation_outlined, size: 48, color: AppColors.textMuted),
+            SizedBox(height: 12),
+            Text(
+              "REEL VAULT EMPTY",
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+                color: AppColors.textEngraved,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              "Rendered reels from the Master Engine will appear here for playback and sharing.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ],
         ),
       );
     }
 
-    return ListView.separated(
+    return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: jobs.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final job = jobs[index];
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.cardSurface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.borderSubtle),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: AppColors.goldPrimary.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(child: Text("🎬", style: TextStyle(fontSize: 16))),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
+      itemBuilder: (ctx, i) {
+        final job = jobs[i];
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (job.videoPath != null) {
+              VideoPreviewDialog.show(
+                context,
+                videoPath: job.videoPath!,
+                templateName: job.templateName,
+                quality: job.quality,
+              );
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.panelCream,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.chassisBevelDark),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.movie_outlined, color: AppColors.brassGold),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Reel #${job.id.substring(job.id.length - 4)}", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                      Text("Template: ${job.templateName} • ${job.quality}", style: const TextStyle(fontSize: 10, color: AppColors.goldBright)),
+                      Text(
+                        job.templateName.toUpperCase(),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.textEngraved),
+                      ),
+                      Text(
+                        "Quality: ${job.quality} • Status: ${job.status}",
+                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                      ),
                     ],
                   ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: job.status == "READY" ? const Color(0xFF10B981).withOpacity(0.2) : AppColors.amberBadgeBg,
-                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  job.status,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: job.status == "READY" ? const Color(0xFF34D399) : AppColors.goldBright,
+                if (job.videoPath != null)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.brassKnobGradient,
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          offset: const Offset(1, 2),
+                          blurRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.play_arrow_rounded, color: AppColors.hardwareGunmetal, size: 16),
+                        SizedBox(width: 2),
+                        Text(
+                          "PLAY",
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.hardwareGunmetal,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

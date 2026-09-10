@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
 
@@ -41,155 +41,181 @@ class ProControlsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.goldPrimary.withOpacity(0.4), width: 1.2),
+        color: AppColors.panelCream,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
         boxShadow: [
+          const BoxShadow(
+            color: Colors.white,
+            offset: Offset(-2, -2),
+            blurRadius: 4,
+          ),
           BoxShadow(
-            color: AppColors.goldPrimary.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.15),
+            offset: const Offset(3, 4),
+            blurRadius: 8,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
+          // Header Bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  const Text("👑", style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Studio Master Controls",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 13, color: AppColors.goldBright),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.brassKnobGradient,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'PRO',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.hardwareGunmetal,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'STUDIO MASTER CONTROLS',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.amberBadgeBg,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.goldPrimary.withOpacity(0.3)),
-                ),
-                child: const Text(
-                  "14 TEMPLATES",
-                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.goldBright),
+              // Quality Indicator Lamp
+              GestureDetector(
+                onTap: () => onSelectQuality(selectedQuality == '1080p' ? '720p' : '1080p'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: selectedQuality == '1080p' ? const Color(0xFF1E1A16) : AppColors.panelInset,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.chassisBevelDark, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: selectedQuality == '1080p' ? AppColors.amberJewel : Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        selectedQuality == '1080p' ? '1080p 60fps' : '720p Std',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          color: selectedQuality == '1080p' ? AppColors.amberJewel : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // 1. Templates Horizontal Reel (All 14)
-          Text(
-            "Motion Beat Template",
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.textMuted),
+          // Templates Selector Label
+          const Text(
+            'TRANSITION ENGINE PRESET',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
+
+          // 14 Beat Templates in Retro Selector Chips
           SizedBox(
-            height: 38,
-            child: ListView.separated(
+            height: 40,
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: BeatTemplate.allTemplates.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 6),
               itemBuilder: (context, index) {
                 final t = BeatTemplate.allTemplates[index];
-                final isSelected = selectedTemplateId == t.id;
+                final isSel = t.id == selectedTemplateId;
                 return GestureDetector(
                   onTap: () => onSelectTemplate(t.id),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      gradient: isSelected
-                          ? const LinearGradient(colors: [AppColors.goldPrimary, AppColors.goldBright])
-                          : null,
-                      color: isSelected ? null : AppColors.canvasDark,
-                      borderRadius: BorderRadius.circular(12),
+                      color: isSel ? const Color(0xFF1E1A16) : AppColors.panelCreamDark,
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: isSelected ? AppColors.goldBright : AppColors.borderSubtle,
+                        color: isSel ? AppColors.brassGold : AppColors.chassisBevelDark,
+                        width: isSel ? 1.5 : 1.0,
                       ),
+                      boxShadow: isSel
+                          ? [
+                              BoxShadow(
+                                color: AppColors.brassGold.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : [],
                     ),
-                    child: Row(
-                      children: [
-                        Text(t.emoji, style: const TextStyle(fontSize: 12)),
-                        const SizedBox(width: 5),
-                        Text(
-                          t.name,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected ? Colors.black : AppColors.textWhite,
-                          ),
+                    child: Center(
+                      child: Text(
+                        t.name.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          color: isSel ? AppColors.brassHighlight : AppColors.textSecondary,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // 2. Aspect Ratio & Quality Grid
+          // Aspect Ratio Rocker Switches
+          const Text(
+            'CANVAS FRAME GEOMETRY',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+
           Row(
             children: [
-              // Aspect Ratios
-              Expanded(
-                flex: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Aspect Ratio", style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.textMuted)),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        _buildRatioBtn("9:16", "9:16"),
-                        const SizedBox(width: 4),
-                        _buildRatioBtn("1:1", "1:1"),
-                        const SizedBox(width: 4),
-                        _buildRatioBtn("16:9", "16:9"),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              // Video Quality
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Quality", style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.textMuted)),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        _buildQualityBtn("720p", "720p"),
-                        const SizedBox(width: 4),
-                        _buildQualityBtn("1080p 60fps", "1080p"),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              _buildAspectRocker('9:16', 'Reel / Story', '9:16'),
+              const SizedBox(width: 8),
+              _buildAspectRocker('1:1', 'Square Post', '1:1'),
+              const SizedBox(width: 8),
+              _buildAspectRocker('16:9', 'Cinema Wide', '16:9'),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // 3. Title Card Intro Suite
+          // Title Intro Card Section
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.canvasDark,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderSubtle),
+              color: AppColors.panelInset,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.chassisBevelDark, width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,68 +223,40 @@ class ProControlsCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Text("🎬", style: TextStyle(fontSize: 12)),
+                    Row(
+                      children: const [
+                        Icon(Icons.title_rounded, size: 14, color: AppColors.textSecondary),
                         SizedBox(width: 6),
-                        Text("Reel Title Intro", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textWhite)),
+                        Text(
+                          'OPENING TITLE CARD',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.textSecondary),
+                        ),
                       ],
                     ),
                     Switch(
                       value: enableTitle,
-                      activeColor: AppColors.goldPrimary,
-                      activeTrackColor: AppColors.goldPrimary.withOpacity(0.3),
+                      activeThumbColor: AppColors.amberJewel,
                       onChanged: onToggleTitle,
                     ),
                   ],
                 ),
                 if (enableTitle) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   TextField(
                     onChanged: onTitleTextChanged,
                     decoration: InputDecoration(
-                      hintText: "Enter title text (e.g. Summer Moments)",
-                      hintStyle: const TextStyle(fontSize: 11, color: AppColors.textDim),
+                      hintText: 'e.g. SUMMER RECAP 2026',
+                      hintStyle: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                       filled: true,
-                      fillColor: AppColors.cardSurface,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                    ),
-                    style: const TextStyle(fontSize: 11, color: AppColors.textWhite),
-                  ),
-                  const SizedBox(height: 8),
-                  // Background Mode Selector
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildBgOption("Black", "black"),
-                      _buildBgOption("Gold", "gold"),
-                      _buildBgOption("Over Video", "video"),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // Live Preview Box
-                  Container(
-                    height: 38,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: titleBg == "gold"
-                          ? AppColors.goldDark
-                          : titleBg == "video"
-                              ? Colors.purple.withOpacity(0.4)
-                              : Colors.black,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.goldPrimary.withOpacity(0.5)),
-                    ),
-                    child: Center(
-                      child: Text(
-                        titleText.isEmpty ? "✦ REEL TITLE PREVIEW ✦" : "✦ ${titleText.toUpperCase()} ✦",
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.goldBright,
-                          letterSpacing: 1.2,
-                        ),
+                      fillColor: Colors.white,
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: AppColors.chassisBevelDark),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: AppColors.chassisBevelDark),
                       ),
                     ),
                   ),
@@ -271,77 +269,42 @@ class ProControlsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRatioBtn(String label, String value) {
+  Widget _buildAspectRocker(String ratio, String label, String value) {
     final isSelected = selectedAspectRatio == value;
     return Expanded(
       child: GestureDetector(
         onTap: () => onSelectAspectRatio(value),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.goldPrimary : AppColors.canvasDark,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isSelected ? AppColors.goldBright : AppColors.borderSubtle),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.black : AppColors.textWhite,
-              ),
+            color: isSelected ? const Color(0xFF1E1A16) : AppColors.panelCreamDark,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark,
+              width: isSelected ? 1.5 : 1.0,
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQualityBtn(String label, String value) {
-    final isSelected = selectedQuality == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onSelectQuality(value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.goldPrimary : AppColors.canvasDark,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isSelected ? AppColors.goldBright : AppColors.borderSubtle),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.black : AppColors.textWhite,
+          child: Column(
+            children: [
+              Text(
+                ratio,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: isSelected ? AppColors.brassHighlight : AppColors.textEngraved,
+                ),
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBgOption(String label, String value) {
-    final isSelected = titleBg == value;
-    return GestureDetector(
-      onTap: () => onSelectTitleBg(value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.goldPrimary.withOpacity(0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: isSelected ? AppColors.goldPrimary : AppColors.borderSubtle),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? AppColors.goldBright : AppColors.textMuted,
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? AppColors.textFoilGold : AppColors.textMuted,
+                ),
+              ),
+            ],
           ),
         ),
       ),

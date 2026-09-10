@@ -1,260 +1,285 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
 
 class SnapsReorderStrip extends StatelessWidget {
   final List<PhotoItem> photos;
-  final VoidCallback onPickPhotos;
+  final VoidCallback onAddPhotos;
   final Function(int oldIndex, int newIndex) onReorder;
   final Function(String id) onDelete;
   final String arrangementMode;
-  final Function(String mode) onArrangementChanged;
+  final Function(String mode) onArrangementModeChanged;
+  final VoidCallback? onLoadSample;
 
   const SnapsReorderStrip({
     super.key,
     required this.photos,
-    required this.onPickPhotos,
+    required this.onAddPhotos,
     required this.onReorder,
     required this.onDelete,
     required this.arrangementMode,
-    required this.onArrangementChanged,
+    required this.onArrangementModeChanged,
+    this.onLoadSample,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.borderGold),
+        color: AppColors.panelCream,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
         boxShadow: [
+          const BoxShadow(
+            color: Colors.white,
+            offset: Offset(-2, -2),
+            blurRadius: 4,
+          ),
           BoxShadow(
-            color: AppColors.goldPrimary.withOpacity(0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.15),
+            offset: const Offset(3, 4),
+            blurRadius: 8,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
+          // Section Title
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      const Text("📸", style: TextStyle(fontSize: 14)),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Curate Your Snaps",
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 13),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.brassKnobGradient,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      '35MM',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.hardwareGunmetal,
+                        letterSpacing: 1.2,
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(width: 8),
                   Text(
-                    "${photos.length} Snaps Loaded (Max 60)",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 10),
+                    'SNAPS (${photos.length})',
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                onPressed: onPickPhotos,
-                icon: const Icon(Icons.add_photo_alternate_rounded, size: 14, color: Colors.black),
-                label: const Text("Pick Photos", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.goldPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  elevation: 2,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Arrangement Mode Pills
-          Container(
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: AppColors.canvasDark,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Row(
-              children: [
-                _buildModePill(context, "Sequential", "sequential"),
-                _buildModePill(context, "Beat-Matched", "beat_matched"),
-                _buildModePill(context, "Story Arc", "story_arc"),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Horizontal Photo Reel with Numbered Badges & Delete
-          SizedBox(
-            height: 90,
-            child: photos.isEmpty
-                ? _buildEmptyState(context)
-                : ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: photos.length + 1,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      if (index == photos.length) {
-                        // Add more snap tile
-                        return GestureDetector(
-                          onTap: onPickPhotos,
-                          child: Container(
-                            width: 68,
-                            height: 90,
-                            decoration: BoxDecoration(
-                              color: AppColors.canvasDark.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.goldPrimary.withOpacity(0.4), style: BorderStyle.solid),
-                            ),
-                            child: const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_rounded, color: AppColors.goldBright, size: 24),
-                                SizedBox(height: 2),
-                                Text(
-                                  "ADD",
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.goldBright),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-
-                      final item = photos[index];
-                      return Container(
-                        width: 68,
-                        height: 90,
+              Row(
+                children: [
+                  if (onLoadSample != null) ...[
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onLoadSample,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        margin: const EdgeInsets.only(right: 6),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: index == 0 ? AppColors.goldPrimary : AppColors.borderSubtle, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                          color: AppColors.panelCreamDark,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.chassisBevelDark),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.auto_awesome_rounded, size: 12, color: AppColors.textEngraved),
+                            SizedBox(width: 4),
+                            Text(
+                              'SAMPLE',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.6,
+                                color: AppColors.textEngraved,
+                              ),
                             ),
                           ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.file(
-                                File(item.path),
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: AppColors.cardSurfaceHigh,
-                                  child: const Icon(Icons.image_outlined, color: AppColors.textDim),
-                                ),
-                              ),
-                              // Numbered Badge
-                              Positioned(
-                                top: 4,
-                                left: 4,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.8),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: AppColors.goldBright.withOpacity(0.6), width: 0.8),
-                                  ),
-                                  child: Text(
-                                    "#${(index + 1).toString().padLeft(2, '0')}",
-                                    style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.goldBright),
-                                  ),
-                                ),
-                              ),
-                              // Delete Button
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: GestureDetector(
-                                  onTap: () => onDelete(item.id),
-                                  child: Container(
-                                    width: 16,
-                                    height: 16,
-                                    decoration: BoxDecoration(
-                                      color: Colors.red.withOpacity(0.8),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.close_rounded, size: 10, color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
+                      ),
+                    ),
+                  ],
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onAddPhotos,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.brassKnobGradient,
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            offset: const Offset(1, 2),
+                            blurRadius: 3,
                           ),
+                        ],
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.add_photo_alternate_rounded, size: 12, color: AppColors.hardwareGunmetal),
+                          SizedBox(width: 4),
+                          Text(
+                            'ADD SLIDES',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                              color: AppColors.hardwareGunmetal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Slides Horizontal Carousel
+          SizedBox(
+            height: 130,
+            child: photos.isEmpty
+                ? GestureDetector(
+                    onTap: onAddPhotos,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.panelInset,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.chassisBevelDark, style: BorderStyle.solid),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.camera_roll_outlined, size: 32, color: AppColors.textMuted),
+                          SizedBox(height: 6),
+                          Text(
+                            'LIGHT TABLE EMPTY • TAP TO MOUNT SLIDES',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : ReorderableListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: photos.length,
+                    onReorder: onReorder,
+                    itemBuilder: (context, index) {
+                      final p = photos[index];
+                      return Container(
+                        key: ValueKey(p.id),
+                        margin: const EdgeInsets.only(right: 12),
+                        width: 90,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFD6D0C4), width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              offset: const Offset(2, 3),
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            // 35mm Slide Window
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6, left: 6, right: 6, bottom: 24),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(3),
+                                child: Image.file(
+                                  File(p.path),
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: const Color(0xFFE5DECF),
+                                      alignment: Alignment.center,
+                                      child: const Icon(Icons.broken_image_rounded, size: 24, color: AppColors.textEngraved),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            // Slide Mount Footer
+                            Positioned(
+                              bottom: 4,
+                              left: 6,
+                              right: 6,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '#${(index + 1).toString().padLeft(2, '0')}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Courier',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF6B5847),
+                                    ),
+                                  ),
+                                  const Text(
+                                    '35mm',
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFFA89F91),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Delete Pin
+                            Positioned(
+                              top: 2,
+                              right: 2,
+                              child: GestureDetector(
+                                onTap: () => onDelete(p.id),
+                                child: Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xDD3E3A36),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.close_rounded, size: 10, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
                   ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildModePill(BuildContext context, String label, String value) {
-    final isSelected = arrangementMode == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onArrangementChanged(value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 5),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.goldPrimary : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.black : AppColors.textMuted,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return GestureDetector(
-      onTap: onPickPhotos,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.canvasDark.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderSubtle),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_photo_alternate_outlined, color: AppColors.goldPrimary, size: 20),
-            SizedBox(width: 8),
-            Text(
-              "Tap to load your snaps (Photos)",
-              style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
       ),
     );
   }

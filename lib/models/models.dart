@@ -15,19 +15,19 @@ class BeatTemplate {
 
   static const List<BeatTemplate> allTemplates = [
     BeatTemplate(id: "beat-cut", name: "Beat Cut", subtitle: "Classic snappy beat drop transitions", emoji: "⚡"),
-    BeatTemplate(id: "cine-zoom", name: "Cine Zoom", subtitle: "Dynamic optical punch-in zooms", emoji: "🎬", isPro: true),
-    BeatTemplate(id: "whip", name: "Whip Glide", subtitle: "High-velocity directional whip pans", emoji: "🌪️", isPro: true),
-    BeatTemplate(id: "bounce", name: "Bounce Beat", subtitle: "Kinetic bassline scale bounces", emoji: "🏀", isPro: true),
-    BeatTemplate(id: "flash", name: "Flash Pulse", subtitle: "Luminous white strobe transients", emoji: "✨", isPro: true),
-    BeatTemplate(id: "strobe", name: "Strobe Echo", subtitle: "Fast rhythmic flash cuts", emoji: "⚡", isPro: true),
-    BeatTemplate(id: "heartbeat", name: "Heartbeat", subtitle: "Pulsing emotional sub-bass pump", emoji: "💓", isPro: true),
-    BeatTemplate(id: "glitch", name: "Glitch Hop", subtitle: "RGB chromatic aberration jumps", emoji: "👾", isPro: true),
-    BeatTemplate(id: "fade", name: "Smooth Fade", subtitle: "Silk crossfades for ambient beats", emoji: "🌊", isPro: true),
-    BeatTemplate(id: "pan-right", name: "Pan Right", subtitle: "Continuous horizontal pan flow", emoji: "➡️", isPro: true),
-    BeatTemplate(id: "tilt-up", name: "Tilt Up", subtitle: "Ascending vertical camera sweep", emoji: "⬆️", isPro: true),
-    BeatTemplate(id: "ripple", name: "Ripple Wave", subtitle: "Fluid liquid distortion pulses", emoji: "💧", isPro: true),
-    BeatTemplate(id: "hyper-zoom", name: "Hyper Zoom", subtitle: "Infinite continuous tunnel zoom", emoji: "🚀", isPro: true),
-    BeatTemplate(id: "kaleido", name: "Kaleido", subtitle: "Prismatic mirrored party geometry", emoji: "🔮", isPro: true),
+    BeatTemplate(id: "beat-bounce", name: "Bounce", subtitle: "Kinetic bassline scale bounces", emoji: "🏀", isPro: true),
+    BeatTemplate(id: "cinematic-zoom", name: "Cine Zoom", subtitle: "Dynamic optical punch-in zooms", emoji: "🎬", isPro: true),
+    BeatTemplate(id: "beat-fade", name: "Fade", subtitle: "Silk crossfades for ambient beats", emoji: "🌊", isPro: true),
+    BeatTemplate(id: "glide-pan", name: "Glide", subtitle: "Lateral gliding pan motion", emoji: "🛹", isPro: true),
+    BeatTemplate(id: "pendulum", name: "Pendulum", subtitle: "Rhythmic swinging physics cuts", emoji: "⏱️", isPro: true),
+    BeatTemplate(id: "beat-pulse", name: "Pulse", subtitle: "Pulsing emotional sub-bass pump", emoji: "💓", isPro: true),
+    BeatTemplate(id: "punch-cut", name: "Punch", subtitle: "High-impact rhythmic punch cuts", emoji: "🥊", isPro: true),
+    BeatTemplate(id: "reveal-tiles", name: "Reveal Boxes", subtitle: "Geometric box tile mosaic reveals", emoji: "🔲", isPro: true),
+    BeatTemplate(id: "beat-slide", name: "Slide", subtitle: "Directional kinetic slide transitions", emoji: "➡️", isPro: true),
+    BeatTemplate(id: "slow-drift", name: "Slow Drift", subtitle: "Atmospheric slow cinematic drift", emoji: "☁️", isPro: true),
+    BeatTemplate(id: "sway-ballad", name: "Sway", subtitle: "Gentle rhythmic swaying cadence", emoji: "🍃", isPro: true),
+    BeatTemplate(id: "beat-whip", name: "Whip", subtitle: "High-velocity directional whip pans", emoji: "🌪️", isPro: true),
+    BeatTemplate(id: "zoom-out-reveal", name: "Zoom Out", subtitle: "Expanding optical reveal zoom", emoji: "🔍", isPro: true),
   ];
 }
 

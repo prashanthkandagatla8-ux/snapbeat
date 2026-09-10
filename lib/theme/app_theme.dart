@@ -1,55 +1,50 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  static ThemeData get luxuryDark {
+  static ThemeData get retroMetalClassic {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.canvasDark,
-      primaryColor: AppColors.goldPrimary,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.goldPrimary,
-        secondary: AppColors.goldBright,
-        surface: AppColors.canvasSurface,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppColors.canvasChassis,
+      primaryColor: AppColors.brassGold,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.brassGold,
+        secondary: AppColors.brassHighlight,
+        surface: AppColors.panelCream,
       ),
       textTheme: TextTheme(
         headlineLarge: GoogleFonts.playfairDisplay(
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: FontWeight.w900,
-          color: AppColors.textWhite,
+          color: AppColors.textEngraved,
           letterSpacing: -0.5,
         ),
         headlineMedium: GoogleFonts.playfairDisplay(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: AppColors.textWhite,
+          color: AppColors.textEngraved,
         ),
         titleMedium: GoogleFonts.montserrat(
           fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textWhite,
+          fontWeight: FontWeight.w800,
+          color: AppColors.textEngraved,
+          letterSpacing: 0.5,
         ),
         bodyMedium: GoogleFonts.montserrat(
           fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textMuted,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
         ),
         labelSmall: GoogleFonts.montserrat(
           fontSize: 10,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
+          letterSpacing: 0.8,
+          color: AppColors.textMuted,
         ),
-      ),
-      sliderTheme: SliderThemeData(
-        activeTrackColor: AppColors.goldPrimary,
-        inactiveTrackColor: AppColors.borderSubtle,
-        thumbColor: AppColors.goldBright,
-        overlayColor: AppColors.amberGlow.withOpacity(0.2),
-        trackHeight: 3.0,
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7.0),
       ),
     );
   }
 }
+
