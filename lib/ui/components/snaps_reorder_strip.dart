@@ -177,6 +177,7 @@ class SnapsReorderStrip extends StatelessWidget {
                 : ReorderableListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: photos.length,
+                    // ignore: deprecated_member_use
                     onReorder: onReorder,
                     itemBuilder: (context, index) {
                       final p = photos[index];

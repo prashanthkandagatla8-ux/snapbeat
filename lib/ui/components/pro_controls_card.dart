@@ -233,7 +233,7 @@ class ProControlsCard extends StatelessWidget {
                     ),
                     Switch(
                       value: enableTitle,
-                      activeColor: AppColors.hardwareGunmetal,
+                      activeThumbColor: AppColors.hardwareGunmetal,
                       activeTrackColor: AppColors.brassGold,
                       inactiveThumbColor: AppColors.textSecondary,
                       inactiveTrackColor: AppColors.panelCreamDark,

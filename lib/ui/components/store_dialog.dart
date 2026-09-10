@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/credit_manager.dart';
 import '../../theme/app_colors.dart';
+import 'privacy_policy_dialog.dart';
 
 class StoreBottomSheet extends StatefulWidget {
   final VoidCallback onPurchaseComplete;
@@ -136,7 +137,28 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
               _buildCreditTile('50 Credits', p.studioPrice, 50),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+          Center(
+            child: TextButton(
+              onPressed: () => PrivacyPolicyDialog.show(context),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              ),
+              child: const Text(
+                'Privacy Policy & Data Safety',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColors.textMuted,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );

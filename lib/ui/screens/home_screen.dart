@@ -21,6 +21,7 @@ import '../components/master_action_deck.dart';
 import '../components/store_dialog.dart';
 import '../components/video_preview_dialog.dart';
 import '../components/sound_library_dialog.dart';
+import '../components/privacy_policy_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -133,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openSoundLibrary() async {
     await _audioPlayer.pause();
+    if (!mounted) return;
     setState(() => _isPlayingAudio = false);
     SoundLibraryDialog.show(
       context: context,
@@ -576,6 +578,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await _audioPlayer.pause();
+              if (!mounted) return;
               setState(() => _isPlayingAudio = false);
               VideoPreviewDialog.show(
                 context,
@@ -662,35 +665,49 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      // Credit Passes Badge
-                      GestureDetector(
-                        onTap: () => StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {})),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: AppColors.panelCream,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.borderBrass, width: 1),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black12, offset: Offset(1, 1), blurRadius: 2),
-                            ],
+                      // Right Action Group: Privacy Policy Shield + Credit Passes Badge
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
+                            tooltip: 'Privacy Policy',
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                            onPressed: () => PrivacyPolicyDialog.show(context),
                           ),
-                          child: Row(
-                            children: [
-                              const Text('⚡', style: TextStyle(fontSize: 12)),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${cm.credits} PASSES',
-                                style: const TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.textEngraved,
-                                ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {})),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.panelCream,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: AppColors.borderBrass, width: 1),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black12, offset: Offset(1, 1), blurRadius: 2),
+                                ],
                               ),
-                            ],
+                              child: Row(
+                                children: [
+                                  const Text('⚡', style: TextStyle(fontSize: 12)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${cm.credits} PASSES',
+                                    style: const TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.textEngraved,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -1035,6 +1052,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () async {
             if (job.videoPath != null) {
               await _audioPlayer.pause();
+              if (!mounted) return;
               setState(() => _isPlayingAudio = false);
               VideoPreviewDialog.show(
                 context,

@@ -34,7 +34,22 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
+    );
+    if (widget.isPlaying) {
+      _pulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant InteractiveWaveform oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPlaying != oldWidget.isPlaying) {
+      if (widget.isPlaying) {
+        _pulseController.repeat(reverse: true);
+      } else {
+        _pulseController.stop();
+      }
+    }
   }
 
   @override
@@ -63,15 +78,10 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
         boxShadow: [
-          const BoxShadow(
-            color: Colors.white,
-            offset: Offset(-2, -2),
-            blurRadius: 4,
-          ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            offset: const Offset(3, 4),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.4),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
           ),
         ],
       ),
@@ -143,13 +153,16 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                 ),
               ],
             ),
-            child: CustomPaint(
-              size: const Size(double.infinity, 50),
-              painter: _RetroWaveformPainter(
-                startRatio: (widget.startSeconds / dur).clamp(0.0, 1.0),
-                endRatio: (widget.endSeconds / dur).clamp(0.0, 1.0),
-                pulseValue: _pulseController.value,
-                isPlaying: widget.isPlaying,
+            child: AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) => CustomPaint(
+                size: const Size(double.infinity, 50),
+                painter: _RetroWaveformPainter(
+                  startRatio: (widget.startSeconds / dur).clamp(0.0, 1.0),
+                  endRatio: (widget.endSeconds / dur).clamp(0.0, 1.0),
+                  pulseValue: _pulseController.value,
+                  isPlaying: widget.isPlaying,
+                ),
               ),
             ),
           ),
