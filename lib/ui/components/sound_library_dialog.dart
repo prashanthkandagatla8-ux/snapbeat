@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../models/sound_track.dart';
 import '../../theme/app_colors.dart';
@@ -95,7 +95,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
             width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.metalScrewHead,
+              color: AppColors.textMuted,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -114,23 +114,23 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.hardwareGunmetal,
+                            color: AppColors.panelInset,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
-                            'STUDIO VAULT',
+                            'LIBRARY',
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.0,
-                              color: AppColors.brassHighlight,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'MASTER TAPE ARCHIVE',
+                          'Music Library',
                           style: TextStyle(
                             fontFamily: 'PlayfairDisplay',
                             fontSize: 16,
@@ -142,7 +142,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                     ),
                     const SizedBox(height: 2),
                     const Text(
-                      'Select or audition curated master audio reels',
+                      'Tap to preview, then select a track',
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 10,
@@ -185,10 +185,10 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.panelCream : AppColors.panelCreamDark,
+                    color: AppColors.panelCream,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark,
+                      color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
                       width: isSelected ? 1.8 : 1.0,
                     ),
                     boxShadow: [
@@ -214,30 +214,22 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                               height: 44,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: isCurrentPreview
-                                    ? const LinearGradient(
-                                        colors: [AppColors.amberJewel, AppColors.tubeWarmOrange],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      )
-                                    : AppColors.brassKnobGradient,
+                                color: AppColors.amberJewel,
                                 border: Border.all(
-                                  color: isCurrentPreview ? AppColors.brassHighlight : AppColors.brassDark,
+                                  color: AppColors.amberGlow,
                                   width: 1.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: isCurrentPreview
-                                        ? AppColors.amberGlow
-                                        : Colors.black.withValues(alpha: 0.25),
-                                    blurRadius: isCurrentPreview ? 8 : 4,
-                                    spreadRadius: isCurrentPreview ? 2 : 0,
+                                    color: Colors.black.withValues(alpha: 0.25),
+                                    blurRadius: 4,
+                                    spreadRadius: 0,
                                   ),
                                 ],
                               ),
                               child: Icon(
                                 isCurrentPreview ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                color: isCurrentPreview ? Colors.white : AppColors.hardwareGunmetal,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ),
@@ -274,8 +266,9 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                       decoration: BoxDecoration(
-                                        color: AppColors.hardwareGunmetal,
+                                        color: AppColors.panelInset,
                                         borderRadius: BorderRadius.circular(3),
+                                        border: Border.all(color: AppColors.chassisBevelDark),
                                       ),
                                       child: Text(
                                         track.genre.toUpperCase(),
@@ -283,7 +276,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                           fontFamily: 'Montserrat',
                                           fontSize: 8,
                                           fontWeight: FontWeight.w800,
-                                          color: AppColors.brassHighlight,
+                                          color: AppColors.textSecondary,
                                         ),
                                       ),
                                     ),
@@ -335,14 +328,8 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    isSelected ? Icons.check_circle_rounded : Icons.file_download_done_rounded,
-                                    size: 13,
-                                    color: isSelected ? AppColors.vuGreen : AppColors.hardwareGunmetal,
-                                  ),
-                                  const SizedBox(width: 4),
                                   Text(
-                                    isSelected ? 'LOADED' : 'MOUNT',
+                                    isSelected ? '✓ SELECTED' : 'SELECT',
                                     style: TextStyle(
                                       fontFamily: 'Montserrat',
                                       fontSize: 10,

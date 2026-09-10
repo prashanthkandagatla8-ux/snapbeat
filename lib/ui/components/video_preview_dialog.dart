@@ -55,7 +55,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
       if (!file.existsSync()) {
         setState(() {
           _hasError = true;
-          _errorMessage = "Master reel file was not found on local storage.";
+          _errorMessage = "Video file not found.";
         });
         return;
       }
@@ -77,7 +77,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
       if (mounted) {
         setState(() {
           _hasError = true;
-          _errorMessage = "Could not initialize video player: $e";
+          _errorMessage = "Could not load video.";
         });
       }
     }
@@ -104,9 +104,9 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.canvasChassis,
+          color: AppColors.panelCream,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.brassGold, width: 2),
+          border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
           boxShadow: const [
             BoxShadow(color: Colors.black87, blurRadius: 24, offset: Offset(0, 10)),
           ],
@@ -148,7 +148,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "MASTER REEL MONITOR",
+                          "Video Preview",
                           style: TextStyle(
                             fontFamily: 'Montserrat',
                             fontWeight: FontWeight.w900,
@@ -163,7 +163,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.brassDark,
+                              color: AppColors.textFoilGold,
                             ),
                           ),
                       ],
@@ -209,7 +209,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                                 CircularProgressIndicator(color: AppColors.brassGold),
                                 SizedBox(height: 16),
                                 Text(
-                                  "THREADING MAGNETIC TAPE...",
+                                  "Loading video...",
                                   style: TextStyle(
                                     fontFamily: 'Courier',
                                     fontSize: 11,
@@ -261,7 +261,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
             if (_isInitialized) ...[
               // Scrubber
               Container(
-                color: AppColors.hardwareGunmetal,
+                color: AppColors.canvasChassis,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: VideoProgressIndicator(
                   _controller,
@@ -269,7 +269,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                   colors: const VideoProgressColors(
                     playedColor: AppColors.amberJewel,
                     bufferedColor: Colors.white24,
-                    backgroundColor: Colors.black45,
+                    backgroundColor: AppColors.panelInset,
                   ),
                 ),
               ),
@@ -289,7 +289,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     IconButton(
                       icon: Icon(
                         _controller.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        color: AppColors.hardwareGunmetal,
+                        color: AppColors.textEngraved,
                         size: 28,
                       ),
                       onPressed: () {
@@ -307,9 +307,9 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF141210),
+                        color: AppColors.canvasChassis,
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.brassDark, width: 0.8),
+                        border: Border.all(color: AppColors.chassisBevelDark, width: 1.0),
                       ),
                       child: Text(
                         "${_formatDuration(_controller.value.position)} / ${_formatDuration(_controller.value.duration)}",
@@ -317,25 +317,32 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                           fontFamily: 'Courier',
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.tubeWarmOrange,
+                          color: AppColors.amberJewel,
                           letterSpacing: 1.0,
                         ),
                       ),
                     ),
                     const Spacer(),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brassGold,
-                        foregroundColor: AppColors.hardwareGunmetal,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: AppColors.ctaButtonGradient,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      icon: const Icon(Icons.check_rounded, size: 16),
-                      label: const Text(
-                        "DONE",
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 0.8),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          foregroundColor: AppColors.hardwareGunmetal,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        icon: const Icon(Icons.check_rounded, size: 16),
+                        label: const Text(
+                          "DONE",
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 0.8),
+                        ),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),

@@ -45,7 +45,15 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    final dur = widget.durationSeconds > 0 ? widget.durationSeconds : 45.0;
+    double dur = widget.durationSeconds > 0 ? widget.durationSeconds : 45.0;
+    if (dur < 1.0) dur = 1.0;
+
+    double startMax = (dur - 1.0).clamp(0.0, dur);
+    if (startMax <= 0.0) startMax = 0.1; // Ensure max > min
+
+    double endMin = 1.0;
+    double endMax = dur;
+    if (endMax <= endMin) endMax = endMin + 0.1; // Ensure max > min
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -94,7 +102,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'PRECISION AUDIO WINDOW',
+                    'AUDIO TRIM',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 11,
@@ -123,7 +131,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
             height: 64,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF1F1B16),
+              color: AppColors.panelInset,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.chassisBevelDark, width: 1.2),
               boxShadow: [
@@ -160,16 +168,16 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: AppColors.brassGold,
+                        activeTrackColor: AppColors.amberJewel,
                         inactiveTrackColor: AppColors.panelInset,
-                        thumbColor: AppColors.brassHighlight,
+                        thumbColor: AppColors.amberJewel,
                         trackHeight: 3,
                         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
                       ),
                       child: Slider(
-                        value: widget.startSeconds.clamp(0.0, dur - 1.0),
+                        value: widget.startSeconds.clamp(0.0, startMax),
                         min: 0.0,
-                        max: (dur - 1.0).clamp(0.0, dur),
+                        max: startMax,
                         onChanged: (val) {
                           if (val < widget.endSeconds) {
                             widget.onTrimChanged(val, widget.endSeconds);
@@ -198,9 +206,9 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
                       ),
                       child: Slider(
-                        value: widget.endSeconds.clamp(widget.startSeconds + 1.0, dur),
-                        min: 1.0,
-                        max: dur,
+                        value: widget.endSeconds.clamp(endMin, endMax),
+                        min: endMin,
+                        max: endMax,
                         onChanged: (val) {
                           if (val > widget.startSeconds) {
                             widget.onTrimChanged(widget.startSeconds, val);

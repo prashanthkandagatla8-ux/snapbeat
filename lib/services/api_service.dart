@@ -103,7 +103,7 @@ class ApiService {
     }
 
     // Poll for status
-    int maxAttempts = 80;
+    int maxAttempts = 400;
     bool isCompleted = false;
     for (int i = 0; i < maxAttempts; i++) {
       await Future.delayed(const Duration(milliseconds: 1500));
@@ -140,7 +140,7 @@ class ApiService {
     final savePath = "${dir.path}/snapbeat_$timestamp.mp4";
 
     final downloadResp = await _dio.get(
-      "/api/render/download/$jobId",
+      "/api/render/download/$jobId?delete_after=true",
       options: Options(responseType: ResponseType.bytes),
     );
 

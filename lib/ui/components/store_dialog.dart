@@ -29,7 +29,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.panelCream,
+        color: AppColors.canvasChassis,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(top: BorderSide(color: AppColors.chassisBevelLight, width: 2)),
         boxShadow: [
@@ -61,7 +61,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                       ],
                     ),
                     child: Text(
-                      '⚡ ${cm.credits} PASSES',
+                      '⚡ ${cm.credits} Credits',
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
@@ -72,7 +72,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                   ),
                   const SizedBox(width: 10),
                   const Text(
-                    'STUDIO MEMBERSHIP & PASSES',
+                    'Store',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 12,
@@ -93,7 +93,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
 
           // Plan 1: Watermark Removal
           _buildPlanTile(
-            title: 'PLAN 1: ZERO WATERMARK',
+            title: 'Remove Watermark',
             price: p.removeWatermarkPrice,
             subtitle: p.removeWatermarkSubtitle,
             isActive: cm.isWatermarkRemoved,
@@ -107,7 +107,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
 
           // Plan 2: Enable Pro Mode
           _buildPlanTile(
-            title: 'PLAN 2: STUDIO PRO ACCESS',
+            title: 'Unlock Pro Mode',
             price: p.proModePrice,
             subtitle: p.proModeSubtitle,
             isActive: cm.isProModeEnabled,
@@ -122,18 +122,18 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
 
           // Credit Bundles
           const Text(
-            'DIRECT RENDER PASS PACKS',
+            'Credit Packs',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 8),
 
           Row(
             children: [
-              _buildCreditTile('5 PASSES', p.starterPrice, 5),
+              _buildCreditTile('5 Credits', p.starterPrice, 5),
               const SizedBox(width: 8),
-              _buildCreditTile('15 PASSES', p.partyPrice, 15, isPopular: true),
+              _buildCreditTile('15 Credits', p.partyPrice, 15, isPopular: true),
               const SizedBox(width: 8),
-              _buildCreditTile('50 PASSES', p.studioPrice, 50),
+              _buildCreditTile('50 Credits', p.studioPrice, 50),
             ],
           ),
           const SizedBox(height: 16),
@@ -151,88 +151,90 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
     bool isFeatured = false,
   }) {
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isActive ? AppColors.panelInset : AppColors.panelCreamDark,
+        color: AppColors.panelCream,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isFeatured ? AppColors.brassGold : AppColors.chassisBevelDark,
           width: isFeatured ? 1.5 : 1.0,
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textEngraved,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    if (isFeatured) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: AppColors.amberJewel,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: const Text(
-                          'FEATURED',
-                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textEngraved,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: isActive ? null : onBuy,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: isActive ? null : AppColors.brassKnobGradient,
-                color: isActive ? Colors.grey.shade400 : null,
-                borderRadius: BorderRadius.circular(6),
-                boxShadow: isActive
-                    ? []
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          offset: const Offset(1, 2),
-                          blurRadius: 3,
+                      if (isFeatured) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.amberJewel,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: const Text(
+                            'BEST VALUE',
+                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white),
+                          ),
                         ),
                       ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                  ),
+                ],
               ),
-              child: Text(
-                isActive ? 'ACTIVE' : price,
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  color: isActive ? Colors.white : AppColors.hardwareGunmetal,
+            ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: isActive ? null : onBuy,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: isActive ? null : AppColors.brassKnobGradient,
+                  color: isActive ? Colors.grey.shade400 : null,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: isActive
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            offset: const Offset(1, 2),
+                            blurRadius: 3,
+                          ),
+                        ],
+                ),
+                child: Text(
+                  isActive ? '✓ Active' : price,
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: isActive ? Colors.white : AppColors.hardwareGunmetal,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -248,7 +250,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
-            color: AppColors.panelCreamDark,
+            color: AppColors.panelCream,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isPopular ? AppColors.brassGold : AppColors.chassisBevelDark,

@@ -48,15 +48,10 @@ class ProControlsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
         boxShadow: [
-          const BoxShadow(
-            color: Colors.white,
-            offset: Offset(-2, -2),
-            blurRadius: 4,
-          ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: Colors.black.withValues(alpha: 0.5),
             offset: const Offset(3, 4),
-            blurRadius: 8,
+            blurRadius: 10,
           ),
         ],
       ),
@@ -72,7 +67,7 @@ class ProControlsCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
-                      gradient: AppColors.brassKnobGradient,
+                      color: AppColors.brassGold,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
@@ -87,7 +82,7 @@ class ProControlsCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'STUDIO MASTER CONTROLS',
+                    'PRO SETTINGS',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 11,
@@ -104,7 +99,7 @@ class ProControlsCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: selectedQuality == '1080p' ? const Color(0xFF1E1A16) : AppColors.panelInset,
+                    color: AppColors.panelInset,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: AppColors.chassisBevelDark, width: 1),
                   ),
@@ -115,7 +110,10 @@ class ProControlsCard extends StatelessWidget {
                         height: 7,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: selectedQuality == '1080p' ? AppColors.amberJewel : Colors.grey,
+                          color: selectedQuality == '1080p' ? AppColors.amberJewel : Colors.grey.withValues(alpha: 0.3),
+                          boxShadow: selectedQuality == '1080p' 
+                              ? [BoxShadow(color: AppColors.amberGlow, blurRadius: 4, spreadRadius: 1)]
+                              : [],
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -137,7 +135,7 @@ class ProControlsCard extends StatelessWidget {
 
           // Templates Selector Label
           const Text(
-            'TRANSITION ENGINE PRESET',
+            'STYLE',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 8),
@@ -157,16 +155,16 @@ class ProControlsCard extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isSel ? const Color(0xFF1E1A16) : AppColors.panelCreamDark,
-                      borderRadius: BorderRadius.circular(6),
+                      color: isSel ? AppColors.brassGold : AppColors.panelInset,
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isSel ? AppColors.brassGold : AppColors.chassisBevelDark,
-                        width: isSel ? 1.5 : 1.0,
+                        color: isSel ? AppColors.brassGold : AppColors.chassisBevelLight,
+                        width: 1.0,
                       ),
                       boxShadow: isSel
                           ? [
                               BoxShadow(
-                                color: AppColors.brassGold.withValues(alpha: 0.3),
+                                color: AppColors.amberGlow,
                                 blurRadius: 4,
                                 spreadRadius: 1,
                               ),
@@ -180,7 +178,7 @@ class ProControlsCard extends StatelessWidget {
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.8,
-                          color: isSel ? AppColors.brassHighlight : AppColors.textSecondary,
+                          color: isSel ? AppColors.hardwareGunmetal : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -193,18 +191,18 @@ class ProControlsCard extends StatelessWidget {
 
           // Aspect Ratio Rocker Switches
           const Text(
-            'CANVAS FRAME GEOMETRY',
+            'ASPECT RATIO',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 8),
 
           Row(
             children: [
-              _buildAspectRocker('9:16', 'Reel / Story', '9:16'),
+              _buildAspectRocker('9:16', 'Story', '9:16'),
               const SizedBox(width: 8),
-              _buildAspectRocker('1:1', 'Square Post', '1:1'),
+              _buildAspectRocker('1:1', 'Square', '1:1'),
               const SizedBox(width: 8),
-              _buildAspectRocker('16:9', 'Cinema Wide', '16:9'),
+              _buildAspectRocker('16:9', 'Wide', '16:9'),
             ],
           ),
           const SizedBox(height: 14),
@@ -228,14 +226,17 @@ class ProControlsCard extends StatelessWidget {
                         Icon(Icons.title_rounded, size: 14, color: AppColors.textSecondary),
                         SizedBox(width: 6),
                         Text(
-                          'OPENING TITLE CARD',
+                          'INTRO TITLE',
                           style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                     Switch(
                       value: enableTitle,
-                      activeThumbColor: AppColors.amberJewel,
+                      activeColor: AppColors.hardwareGunmetal,
+                      activeTrackColor: AppColors.brassGold,
+                      inactiveThumbColor: AppColors.textSecondary,
+                      inactiveTrackColor: AppColors.panelCreamDark,
                       onChanged: onToggleTitle,
                     ),
                   ],
@@ -244,11 +245,12 @@ class ProControlsCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   TextField(
                     onChanged: onTitleTextChanged,
+                    style: const TextStyle(color: AppColors.textEngraved, fontSize: 13),
                     decoration: InputDecoration(
-                      hintText: 'e.g. SUMMER RECAP 2026',
+                      hintText: 'e.g. Summer Vibes 2026',
                       hintStyle: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.panelCreamDark,
                       isDense: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
@@ -257,6 +259,10 @@ class ProControlsCard extends StatelessWidget {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
                         borderSide: const BorderSide(color: AppColors.chassisBevelDark),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: AppColors.brassGold),
                       ),
                     ),
                   ),
@@ -277,11 +283,11 @@ class ProControlsCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF1E1A16) : AppColors.panelCreamDark,
+            color: isSelected ? AppColors.brassGold : AppColors.panelInset,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark,
-              width: isSelected ? 1.5 : 1.0,
+              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
+              width: 1.0,
             ),
           ),
           child: Column(
@@ -292,7 +298,7 @@ class ProControlsCard extends StatelessWidget {
                   fontFamily: 'Montserrat',
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
-                  color: isSelected ? AppColors.brassHighlight : AppColors.textEngraved,
+                  color: isSelected ? AppColors.hardwareGunmetal : AppColors.textEngraved,
                 ),
               ),
               const SizedBox(height: 2),
@@ -301,7 +307,7 @@ class ProControlsCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 8,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? AppColors.textFoilGold : AppColors.textMuted,
+                  color: isSelected ? AppColors.hardwareGunmetal.withValues(alpha: 0.7) : AppColors.textMuted,
                 ),
               ),
             ],

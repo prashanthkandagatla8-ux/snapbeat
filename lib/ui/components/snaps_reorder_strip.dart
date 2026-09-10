@@ -33,14 +33,9 @@ class SnapsReorderStrip extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
         boxShadow: [
-          const BoxShadow(
-            color: Colors.white,
-            offset: Offset(-2, -2),
-            blurRadius: 4,
-          ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            offset: const Offset(3, 4),
+            color: Colors.black.withValues(alpha: 0.5),
+            offset: const Offset(0, 4),
             blurRadius: 8,
           ),
         ],
@@ -57,11 +52,11 @@ class SnapsReorderStrip extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
-                      gradient: AppColors.brassKnobGradient,
+                      color: AppColors.brassGold,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
-                      '35MM',
+                      'PHOTOS',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
@@ -72,7 +67,7 @@ class SnapsReorderStrip extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'SNAPS (${photos.length})',
+                    '(${photos.length})',
                     style: const TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 10,
@@ -95,14 +90,14 @@ class SnapsReorderStrip extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.panelCreamDark,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.chassisBevelDark),
+                          border: Border.all(color: AppColors.chassisBevelLight),
                         ),
                         child: Row(
                           children: const [
-                            Icon(Icons.auto_awesome_rounded, size: 12, color: AppColors.textEngraved),
+                            Icon(Icons.auto_awesome, size: 12, color: AppColors.textEngraved),
                             SizedBox(width: 4),
                             Text(
-                              'SAMPLE',
+                              'DEMO',
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
@@ -121,27 +116,21 @@ class SnapsReorderStrip extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        gradient: AppColors.brassKnobGradient,
+                        color: AppColors.panelCreamDark,
                         borderRadius: BorderRadius.circular(6),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            offset: const Offset(1, 2),
-                            blurRadius: 3,
-                          ),
-                        ],
+                        border: Border.all(color: AppColors.chassisBevelLight),
                       ),
                       child: Row(
                         children: const [
-                          Icon(Icons.add_photo_alternate_rounded, size: 12, color: AppColors.hardwareGunmetal),
+                          Icon(Icons.add_photo_alternate_rounded, size: 12, color: AppColors.textEngraved),
                           SizedBox(width: 4),
                           Text(
-                            'ADD SLIDES',
+                            'ADD PHOTOS',
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.6,
-                              color: AppColors.hardwareGunmetal,
+                              color: AppColors.textEngraved,
                             ),
                           ),
                         ],
@@ -173,7 +162,7 @@ class SnapsReorderStrip extends StatelessWidget {
                           Icon(Icons.camera_roll_outlined, size: 32, color: AppColors.textMuted),
                           SizedBox(height: 6),
                           Text(
-                            'LIGHT TABLE EMPTY • TAP TO MOUNT SLIDES',
+                            'No photos yet — tap to add',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -196,12 +185,12 @@ class SnapsReorderStrip extends StatelessWidget {
                         margin: const EdgeInsets.only(right: 12),
                         width: 90,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.panelCreamDark,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFFD6D0C4), width: 1.5),
+                          border: Border.all(color: AppColors.metalBrushedDark, width: 1.5),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: Colors.black.withValues(alpha: 0.4),
                               offset: const Offset(2, 3),
                               blurRadius: 5,
                             ),
@@ -221,9 +210,9 @@ class SnapsReorderStrip extends StatelessWidget {
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     return Container(
-                                      color: const Color(0xFFE5DECF),
+                                      color: AppColors.panelInset,
                                       alignment: Alignment.center,
-                                      child: const Icon(Icons.broken_image_rounded, size: 24, color: AppColors.textEngraved),
+                                      child: const Icon(Icons.broken_image_rounded, size: 24, color: AppColors.textMuted),
                                     );
                                   },
                                 ),
@@ -243,15 +232,7 @@ class SnapsReorderStrip extends StatelessWidget {
                                       fontFamily: 'Courier',
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
-                                      color: Color(0xFF6B5847),
-                                    ),
-                                  ),
-                                  const Text(
-                                    '35mm',
-                                    style: TextStyle(
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFFA89F91),
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -266,7 +247,7 @@ class SnapsReorderStrip extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.all(3),
                                   decoration: const BoxDecoration(
-                                    color: Color(0xDD3E3A36),
+                                    color: AppColors.vuRed,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(Icons.close_rounded, size: 10, color: Colors.white),

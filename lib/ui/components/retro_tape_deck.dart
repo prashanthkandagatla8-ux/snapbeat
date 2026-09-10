@@ -72,14 +72,14 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
         border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
         boxShadow: [
           // Bevel light top-left
-          const BoxShadow(
-            color: Colors.white,
-            offset: Offset(-2, -2),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.05),
+            offset: const Offset(-2, -2),
             blurRadius: 4,
           ),
           // Bevel shadow bottom-right
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
+            color: Colors.black.withValues(alpha: 0.5),
             offset: const Offset(4, 5),
             blurRadius: 10,
           ),
@@ -124,7 +124,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'MASTER TAPE DECK',
+                          'MUSIC',
                           style: TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 11,
@@ -164,7 +164,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                   decoration: BoxDecoration(
                     color: AppColors.panelInset,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                    border: Border.all(color: Colors.black.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -184,24 +184,6 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                       Column(
                         children: [
                           _AnalogVuMeter(isPlaying: widget.isPlaying),
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.panelCream,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: AppColors.borderBrass, width: 0.8),
-                            ),
-                            child: const Text(
-                              'STUDIO HI-FI 48kHz',
-                              style: TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                                color: AppColors.textFoilGold,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
 
@@ -268,7 +250,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                           ),
                           const SizedBox(height: 2),
                           const Text(
-                            'MAGNETIC TAPE LOADED • READY',
+                            'Ready to play',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -284,13 +266,13 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                     Row(
                       children: [
                         _RetroMiniButton(
-                          label: 'VAULT',
+                          label: 'LIBRARY',
                           icon: Icons.library_music_rounded,
                           onTap: widget.onLoadSample,
                         ),
                         const SizedBox(width: 6),
                         _RetroMiniButton(
-                          label: 'IMPORT',
+                          label: 'FILES',
                           icon: Icons.file_upload_outlined,
                           onTap: widget.onPickAudio,
                         ),
@@ -383,12 +365,12 @@ class _AnalogVuMeter extends StatelessWidget {
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF6EE),
+        color: AppColors.panelInset,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: AppColors.metalBrushedDark, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.4),
             offset: const Offset(1, 1),
             blurRadius: 2,
           ),
@@ -399,10 +381,10 @@ class _AnalogVuMeter extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
-              Text('-20', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.black54)),
-              Text('-7', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.black54)),
-              Text('0', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.black87)),
-              Text('+3', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+              Text('-20', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+              Text('-7', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+              Text('0', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppColors.textEngraved)),
+              Text('+3', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppColors.vuRed)),
             ],
           ),
           const SizedBox(height: 4),
@@ -436,7 +418,7 @@ class _AnalogVuMeter extends StatelessWidget {
           ),
           const Text(
             'VU LEVEL',
-            style: TextStyle(fontSize: 6, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: Colors.black45),
+            style: TextStyle(fontSize: 6, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -485,17 +467,17 @@ class _RetroMiniButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.panelCreamDark,
+          color: AppColors.metalBrushedDark,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.chassisBevelDark, width: 1),
+          border: Border.all(color: AppColors.chassisBevelLight, width: 1),
           boxShadow: [
-            const BoxShadow(
-              color: Colors.white,
-              offset: Offset(-1, -1),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.05),
+              offset: const Offset(-1, -1),
               blurRadius: 1,
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
+              color: Colors.black.withValues(alpha: 0.3),
               offset: const Offset(1, 2),
               blurRadius: 2,
             ),

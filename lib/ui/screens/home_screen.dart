@@ -124,14 +124,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result.isNotEmpty && result.first.path != null) {
       _selectedMusic = File(result.first.path!);
       _selectedMusicTitle = result.first.name;
-      _audioDuration = 45.0;
+      _audioDuration = 60.0;
       _audioStart = 0.0;
       _audioEnd = 15.0;
       setState(() {});
     }
   }
 
-  void _openSoundLibrary() {
+  void _openSoundLibrary() async {
+    await _audioPlayer.pause();
+    setState(() => _isPlayingAudio = false);
     SoundLibraryDialog.show(
       context: context,
       currentTrackTitle: _selectedMusicTitle,
@@ -147,8 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("📼 Mounted Reel: ${track.title}"),
-              backgroundColor: AppColors.brassDark,
+              content: Text("🎵 Selected: ${track.title}", style: const TextStyle(color: AppColors.textEngraved)),
+              backgroundColor: AppColors.panelCream,
             ),
           );
         }
@@ -179,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final textPainter = TextPainter(
         text: TextSpan(
-          text: 'SNAPBEAT 35MM\n\n$title\n\nSLIDE #0$index',
+          text: 'SNAPBEAT\n\n$title\n\n#$index',
           style: const TextStyle(
             color: Color(0xFFFAF6EE),
             fontSize: 40,
@@ -237,8 +239,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("✨ Mounted ${_photos.length} studio 35mm slides!"),
-          backgroundColor: AppColors.brassDark,
+          content: Text("✨ Added ${_photos.length} demo photos!", style: const TextStyle(color: AppColors.textEngraved)),
+          backgroundColor: AppColors.panelCream,
         ),
       );
     }
@@ -259,7 +261,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _triggerMasterReel() async {
     if (_photos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please mount some 35mm snaps (photos) first!")),
+        SnackBar(
+          content: Text("Add some photos first!", style: TextStyle(color: AppColors.textEngraved)),
+          backgroundColor: AppColors.panelCream,
+        ),
       );
       return;
     }
@@ -285,11 +290,11 @@ class _HomeScreenState extends State<HomeScreen> {
           children: const [
             Icon(Icons.workspace_premium_rounded, color: AppColors.brassGold),
             SizedBox(width: 8),
-            Text("STUDIO PRO CONSOLE", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textEngraved)),
+            Text("Unlock Pro", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textEngraved)),
           ],
         ),
         content: const Text(
-          "Unlocks all 14 vintage beat templates, master 1080p 60fps export, custom aspect ratios, and zero watermarks.",
+          "Access all 14 styles, 1080p 60fps export, all aspect ratios, and no watermarks.",
           style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         actions: [
@@ -331,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "SELECT PROCESSING ROUTE",
+              "Render Options",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: AppColors.textEngraved),
             ),
             const SizedBox(height: 12),
@@ -345,8 +350,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: const Icon(Icons.bolt_rounded, size: 20, color: AppColors.hardwareGunmetal),
               ),
-              title: const Text("Instant Priority Render (1 Pass)", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textEngraved)),
-              subtitle: const Text("Bypasses queue • No watermark • 4x GPU processing", style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+              title: const Text("⚡ Instant Render (1 Credit)", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textEngraved)),
+              subtitle: const Text("No watermark · Fast processing", style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
               onTap: () {
                 Navigator.pop(ctx);
                 _executeRender(isInstant: true);
@@ -365,11 +370,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Icon(Icons.cloud_download_outlined, size: 20, color: AppColors.textSecondary),
               ),
               title: Text(
-                watermarkClean ? "Standard Queue (No Watermark)" : "Standard Queue with Badge",
+                watermarkClean ? "Free Render (No Watermark)" : "Free Render",
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textEngraved),
               ),
               subtitle: Text(
-                watermarkClean ? "Processed on VPS Gateway • Clean video output" : "Processed on VPS Gateway • Includes small studio stamp",
+                watermarkClean ? "Clean video output" : "Includes SnapBeat watermark",
                 style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
               ),
               onTap: () {
@@ -473,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Icon(Icons.warning_amber_rounded, color: AppColors.vuRed, size: 24),
             SizedBox(width: 8),
             Text(
-              "MASTER CONSOLE NOTICE",
+              "Something went wrong",
               style: TextStyle(
                 fontFamily: 'Montserrat',
                 fontWeight: FontWeight.w900,
@@ -494,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             const Text(
-              "Your chosen photos, audio trimming, and studio settings remain loaded on the deck.",
+              "Your photos and settings are still loaded. Try again.",
               style: TextStyle(fontSize: 10, color: AppColors.textMuted),
             ),
           ],
@@ -535,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: const [
             Icon(Icons.check_circle_rounded, color: AppColors.vuGreen),
             SizedBox(width: 8),
-            Text("MASTER REEL CUT READY", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppColors.textEngraved)),
+            Text("Your Reel is Ready! 🎬", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppColors.textEngraved)),
           ],
         ),
         content: Column(
@@ -543,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Your reel has been beat-synced and rendered by the master studio engine.",
+              "Your beat-synced reel is ready to watch and share.",
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 8),
@@ -559,7 +564,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.pop(ctx);
               setState(() => _currentMode = "vault");
             },
-            child: const Text("VIEW VAULT", style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+            child: const Text("VIEW REELS", style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -567,9 +572,11 @@ class _HomeScreenState extends State<HomeScreen> {
               foregroundColor: AppColors.hardwareGunmetal,
             ),
             icon: const Icon(Icons.play_arrow_rounded, size: 18),
-            label: const Text("PLAY REEL ▶", style: TextStyle(fontWeight: FontWeight.w900)),
-            onPressed: () {
+            label: const Text("PLAY ▶", style: TextStyle(fontWeight: FontWeight.w900)),
+            onPressed: () async {
               Navigator.pop(ctx);
+              await _audioPlayer.pause();
+              setState(() => _isPlayingAudio = false);
               VideoPreviewDialog.show(
                 context,
                 videoPath: videoPath,
@@ -633,7 +640,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
-                                'SNAPBEAT ATELIER',
+                                'SNAPBEAT',
                                 style: TextStyle(
                                   fontFamily: 'Montserrat',
                                   fontSize: 13,
@@ -643,7 +650,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                'ANALOG MASTER CONSOLE • 1974',
+                                'Beat-Synced Reel Maker',
                                 style: TextStyle(
                                   fontSize: 8,
                                   fontWeight: FontWeight.w700,
@@ -694,11 +701,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
-                      _buildModeRocker('auto', 'AUTO MAGIC', Icons.auto_awesome_rounded),
+                      _buildModeRocker('auto', 'AUTO', Icons.auto_awesome_rounded),
                       const SizedBox(width: 8),
-                      _buildModeRocker('pro', 'STUDIO PRO', Icons.tune_rounded),
+                      _buildModeRocker('pro', 'PRO', Icons.tune_rounded),
                       const SizedBox(width: 8),
-                      _buildModeRocker('vault', 'REEL VAULT', Icons.movie_filter_rounded),
+                      _buildModeRocker('vault', 'MY REELS', Icons.movie_filter_rounded),
                     ],
                   ),
                 ),
@@ -809,7 +816,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const CircularProgressIndicator(color: AppColors.brassGold),
                         const SizedBox(height: 18),
                         const Text(
-                          "PROCESSING MASTER CUT",
+                          "Creating your reel...",
                           style: TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 13,
@@ -820,7 +827,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "Transmitting to Studio Cloud Engine... ${(_renderProgress * 100).toInt()}%",
+                          "Uploading & rendering... ${(_renderProgress * 100).toInt()}%",
                           style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 12),
@@ -859,10 +866,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF1E1A16) : AppColors.panelCream,
+            color: isSelected ? AppColors.brassGold : AppColors.panelInset,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark,
+              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
               width: isSelected ? 1.5 : 1.0,
             ),
             boxShadow: [
@@ -879,7 +886,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(
                 icon,
                 size: 13,
-                color: isSelected ? AppColors.brassHighlight : AppColors.textSecondary,
+                color: isSelected ? AppColors.hardwareGunmetal : AppColors.textSecondary,
               ),
               const SizedBox(width: 5),
               Text(
@@ -889,7 +896,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 9,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.6,
-                  color: isSelected ? AppColors.brassHighlight : AppColors.textEngraved,
+                  color: isSelected ? AppColors.hardwareGunmetal : AppColors.textEngraved,
                 ),
               ),
             ],
@@ -932,7 +939,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     const Text(
-                      'ACTIVE AUTO TEMPLATE: ',
+                      'STYLE: ',
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 9,
@@ -957,7 +964,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${_currentAutoTemplate.emoji} ${_currentAutoTemplate.subtitle} (cycles each render)',
+                  '${_currentAutoTemplate.emoji} ${_currentAutoTemplate.subtitle} (changes each render)',
                   style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                 ),
               ],
@@ -997,7 +1004,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Icon(Icons.movie_creation_outlined, size: 48, color: AppColors.textMuted),
             SizedBox(height: 12),
             Text(
-              "REEL VAULT EMPTY",
+              "No reels yet",
               style: TextStyle(
                 fontFamily: 'Montserrat',
                 fontSize: 13,
@@ -1008,7 +1015,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 6),
             Text(
-              "Rendered reels from the Master Engine will appear here for playback and sharing.",
+              "Your rendered reels will appear here.",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
@@ -1025,8 +1032,10 @@ class _HomeScreenState extends State<HomeScreen> {
         final job = jobs[i];
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () {
+          onTap: () async {
             if (job.videoPath != null) {
+              await _audioPlayer.pause();
+              setState(() => _isPlayingAudio = false);
               VideoPreviewDialog.show(
                 context,
                 videoPath: job.videoPath!,
