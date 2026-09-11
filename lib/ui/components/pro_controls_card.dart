@@ -272,9 +272,9 @@ class ProControlsCard extends StatelessWidget {
                 if (enableTitle) ...[
                   const SizedBox(height: 10),
                   // Title Text Field
-                  TextField(
+                  TextFormField(
+                    initialValue: titleText,
                     onChanged: onTitleTextChanged,
-                    controller: TextEditingController(text: titleText)..selection = TextSelection.fromPosition(TextPosition(offset: titleText.length)),
                     style: const TextStyle(color: AppColors.textEngraved, fontSize: 13, fontWeight: FontWeight.bold),
                     decoration: InputDecoration(
                       hintText: 'e.g. Summer Memories 2026',

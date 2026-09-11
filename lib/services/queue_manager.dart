@@ -11,7 +11,10 @@ class QueueManager with ChangeNotifier {
 
   final List<QueueJobItem> _jobs = [];
   List<QueueJobItem> get jobs => List.unmodifiable(_jobs);
-  List<QueueJobItem> get activeJobs => _jobs.where((j) => j.status == 'rendering' || j.status == 'queued').toList();
+  List<QueueJobItem> get activeJobs => _jobs.where((j) {
+    final s = j.status.toLowerCase();
+    return s == 'processing' || s == 'rendering' || s == 'queued';
+  }).toList();
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();

@@ -13,6 +13,7 @@ import '../../models/sound_track.dart';
 import '../../services/credit_manager.dart';
 import '../../services/queue_manager.dart';
 import '../../services/api_service.dart';
+import '../../services/export_service.dart';
 import '../../theme/app_colors.dart';
 import '../components/retro_tape_deck.dart';
 import '../components/interactive_waveform.dart';
@@ -56,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _audioStart = 0.0;
   double _audioEnd = 15.0;
   bool _isPlayingAudio = false;
+  bool _showAudioTrimmerInAuto = false;
 
   // Title Intro
   bool _enableTitle = false;
@@ -334,54 +336,10 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    if (_currentMode == "pro" && !cm.isProModeEnabled) {
-      _showProPaywall();
-      return;
-    }
-
+    // All templates and Pro features unlocked for closed testing
     _showRenderChoiceDialog();
   }
 
-  void _showProPaywall() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.panelCream,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.brassGold, width: 1.5),
-        ),
-        title: Row(
-          children: const [
-            Icon(Icons.workspace_premium_rounded, color: AppColors.brassGold),
-            SizedBox(width: 8),
-            Text("Unlock Pro", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textEngraved)),
-          ],
-        ),
-        content: const Text(
-          "Access all 14 styles, 1080p 60fps export, all aspect ratios, and no watermarks.",
-          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("CLOSE", style: TextStyle(color: AppColors.textMuted)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brassGold,
-              foregroundColor: AppColors.hardwareGunmetal,
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {}));
-            },
-            child: const Text("UNLOCK PRO", style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showRenderChoiceDialog() {
     final watermarkClean = cm.isWatermarkRemoved;
@@ -780,18 +738,68 @@ class _HomeScreenState extends State<HomeScreen> {
                           onLoadSample: _openSoundLibrary,
                         ),
 
-                        // 2. Interactive Audio Waveform Trimmer
-                        InteractiveWaveform(
-                          durationSeconds: _audioDuration,
-                          startSeconds: _audioStart,
-                          endSeconds: _audioEnd,
-                          isPlaying: _isPlayingAudio,
-                          onTogglePlay: _togglePlayAudio,
-                          onTrimChanged: (s, e) => setState(() {
-                            _audioStart = s;
-                            _audioEnd = e;
-                          }),
-                        ),
+                        // 2. Interactive Audio Waveform Trimmer (Collapsible in Auto mode for clean layout)
+                        if (_currentMode == "pro" || _showAudioTrimmerInAuto) ...[
+                          InteractiveWaveform(
+                            durationSeconds: _audioDuration,
+                            startSeconds: _audioStart,
+                            endSeconds: _audioEnd,
+                            isPlaying: _isPlayingAudio,
+                            onTogglePlay: _togglePlayAudio,
+                            onTrimChanged: (s, e) => setState(() {
+                              _audioStart = s;
+                              _audioEnd = e;
+                            }),
+                          ),
+                          if (_currentMode == "auto")
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Center(
+                                child: TextButton.icon(
+                                  icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 16, color: AppColors.textMuted),
+                                  label: const Text('COLLAPSE TRIMMER', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+                                  onPressed: () => setState(() => _showAudioTrimmerInAuto = false),
+                                ),
+                              ),
+                            ),
+                        ] else ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            child: GestureDetector(
+                              onTap: () => setState(() => _showAudioTrimmerInAuto = true),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: AppColors.panelCreamDark,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.6), width: 1),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.tune_rounded, size: 14, color: AppColors.brassGold),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          "TRIM AUDIO: ${_audioStart.toInt()}s - ${_audioEnd.toInt()}s (OPTIONAL)",
+                                          style: const TextStyle(
+                                            fontFamily: 'Montserrat',
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.8,
+                                            color: AppColors.textEngraved,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textEngraved),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
 
                         // 3. 35mm Slide Mounts Curate Strip
                         SnapsReorderStrip(
@@ -1382,7 +1390,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            if (job.videoPath != null)
+            if (job.videoPath != null) ...[
+              // Save to Gallery Button
+              IconButton(
+                icon: const Icon(Icons.download_rounded, color: AppColors.brassGold, size: 21),
+                tooltip: 'Save to Gallery',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => ExportService.saveToGallery(
+                  context,
+                  videoPath: job.videoPath!,
+                  templateName: job.templateName,
+                ),
+              ),
+              // Social Share Button
+              IconButton(
+                icon: const Icon(Icons.share_rounded, color: AppColors.pinkAccent, size: 19),
+                tooltip: 'Share Reel',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => ExportService.shareReel(
+                  context,
+                  videoPath: job.videoPath!,
+                  templateName: job.templateName,
+                ),
+              ),
+              const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -1413,6 +1444,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+            ],
             IconButton(
               icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.textMuted),
               onPressed: () => qm.deleteJob(job.id),

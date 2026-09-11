@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../models/sound_track.dart';
 import '../../theme/app_colors.dart';
 
@@ -58,14 +59,18 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
   }
 
   Future<void> _togglePreview(SoundTrack track) async {
-    if (_previewingId == track.id && _isPlaying) {
-      await _previewPlayer.pause();
-    } else {
-      _previewingId = track.id;
-      // AudioPlayer plays asset using AssetSource (without 'assets/' prefix)
-      final relativeAssetPath = track.assetPath.replaceFirst('assets/', '');
-      await _previewPlayer.stop();
-      await _previewPlayer.play(AssetSource(relativeAssetPath));
+    try {
+      if (_previewingId == track.id && _isPlaying) {
+        await _previewPlayer.pause();
+      } else {
+        _previewingId = track.id;
+        // AudioPlayer plays asset using AssetSource (without 'assets/' prefix)
+        final relativeAssetPath = track.assetPath.replaceFirst('assets/', '');
+        await _previewPlayer.stop();
+        await _previewPlayer.play(AssetSource(relativeAssetPath));
+      }
+    } catch (e) {
+      debugPrint('Audio preview error: $e');
     }
   }
 
@@ -129,10 +134,9 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
+                        Text(
                           'Music Library',
-                          style: TextStyle(
-                            fontFamily: 'PlayfairDisplay',
+                          style: GoogleFonts.montserrat(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
                             color: AppColors.textEngraved,

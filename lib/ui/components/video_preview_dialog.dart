@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../theme/app_colors.dart';
+import '../../services/export_service.dart';
 
 class VideoPreviewDialog extends StatefulWidget {
   final String videoPath;
@@ -323,6 +324,44 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                       ),
                     ),
                     const Spacer(),
+                    // Save to Gallery Button
+                    Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.panelInset,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.borderBrass, width: 1),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.download_rounded, color: AppColors.brassGold, size: 20),
+                        tooltip: 'Save to Gallery',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => ExportService.saveToGallery(
+                          context,
+                          videoPath: widget.videoPath,
+                          templateName: widget.templateName ?? 'SnapBeat',
+                        ),
+                      ),
+                    ),
+                    // Social Share Button
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.panelInset,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.pinkAccent, width: 1),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.share_rounded, color: AppColors.pinkAccent, size: 18),
+                        tooltip: 'Share Reel',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => ExportService.shareReel(
+                          context,
+                          videoPath: widget.videoPath,
+                          templateName: widget.templateName ?? 'SnapBeat',
+                        ),
+                      ),
+                    ),
                     Container(
                       decoration: BoxDecoration(
                         gradient: AppColors.ctaButtonGradient,

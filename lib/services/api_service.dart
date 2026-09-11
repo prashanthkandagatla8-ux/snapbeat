@@ -146,19 +146,24 @@ class ApiService {
 
     if (onProgress != null) onProgress(0.95);
 
-    // Download final video
+    // Download final video directly to disk (streaming to prevent OOM crashes)
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final savePath = "${dir.path}/snapbeat_$timestamp.mp4";
+    final cleanTemplate = templateId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+    final savePath = "${dir.path}/SnapBeat_${cleanTemplate}_$timestamp.mp4";
 
-    final downloadResp = await _dio.get(
+    final downloadResp = await _dio.download(
       "/api/render/download/$jobId?delete_after=true",
-      options: Options(responseType: ResponseType.bytes),
+      savePath,
+      onReceiveProgress: (received, total) {
+        if (total > 0 && onProgress != null) {
+          final prog = 0.95 + (received / total) * 0.05;
+          onProgress(prog.clamp(0.95, 1.0));
+        }
+      },
     );
 
-    if (downloadResp.statusCode == 200 && downloadResp.data != null) {
-      final file = File(savePath);
-      await file.writeAsBytes(downloadResp.data as List<int>);
+    if (downloadResp.statusCode == 200 && File(savePath).existsSync()) {
       if (onProgress != null) onProgress(1.0);
       return savePath;
     } else {
