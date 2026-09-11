@@ -13,60 +13,36 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   VideoPlayerController? _controller;
-  bool _isVideoReady = false;
+  bool _isReady = false;
   bool _hasNavigated = false;
   Timer? _safetyTimer;
 
   @override
   void initState() {
     super.initState();
+    // Complete fullscreen immersive mode (no status bar, no navigation bar)
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _startSplashFlow();
+    _initAndPlayVideo();
   }
 
-  Future<void> _startSplashFlow() async {
-    // 1. Overall safety timer: Never hold the user longer than 10.5 seconds
-    _safetyTimer = Timer(const Duration(milliseconds: 10500), () {
-      _navigateToHome();
-    });
+  Future<void> _initAndPlayVideo() async {
+    // Master safety timeout
+    _safetyTimer = Timer(const Duration(seconds: 11), _navigateToHome);
 
-    // 2. Attempt video initialization with a strict 1500ms timeout for low-end phones
     try {
       final controller = VideoPlayerController.asset('assets/videos/splash_screen.mp4');
       _controller = controller;
-
-      // Timeout after 1500ms if low-end GPU/RAM cannot initialize video decoder fast enough
-      await controller.initialize().timeout(const Duration(milliseconds: 1500));
+      await controller.initialize();
+      // Ensure zero audio for splash screen
+      await controller.setVolume(0.0);
+      controller.addListener(_videoListener);
 
       if (!mounted) return;
-
-      if (controller.value.hasError) {
-        throw Exception('Video controller reported an error');
-      }
-
-      setState(() {
-        _isVideoReady = true;
-      });
-
-      controller.addListener(_videoListener);
+      setState(() => _isReady = true);
       await controller.play();
     } catch (e) {
-      debugPrint('Low-end device or video playback error ($e). Falling back to static image splash.');
-      if (!mounted) return;
-
-      setState(() {
-        _isVideoReady = false;
-      });
-
-      try {
-        _controller?.dispose();
-        _controller = null;
-      } catch (_) {}
-
-      // On low-end phones, display the static branded splash image for 2.5 seconds total
-      Future.delayed(const Duration(milliseconds: 2500), () {
-        if (mounted) _navigateToHome();
-      });
+      debugPrint('Video splash error: $e');
+      _navigateToHome();
     }
   }
 
@@ -81,8 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final pos = controller.value.position;
     final dur = controller.value.duration;
-
-    if (dur > Duration.zero && pos >= (dur - const Duration(milliseconds: 200))) {
+    if (dur > Duration.zero && pos >= (dur - const Duration(milliseconds: 150))) {
       _navigateToHome();
     }
   }
@@ -109,11 +84,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: const Duration(milliseconds: 300),
         pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
       ),
     );
   }
@@ -132,36 +105,22 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0F),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Base layer: Always render the static high-res poster immediately
-          Image.asset(
-            'assets/images/splash_poster.webp',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFC8A232),
-                strokeWidth: 2,
-              ),
-            ),
-          ),
-
-          // Video layer (plays cleanly with zero overlays)
-          if (_isVideoReady && _controller != null && _controller!.value.isInitialized)
-            Center(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                clipBehavior: Clip.hardEdge,
-                child: SizedBox(
-                  width: _controller!.value.size.width,
-                  height: _controller!.value.size.height,
-                  child: VideoPlayer(_controller!),
-                ),
-              ),
-            ),
-        ],
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        onTap: _navigateToHome,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox.expand(
+          child: _isReady && _controller != null && _controller!.value.isInitialized
+              ? FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: _controller!.value.size.width,
+                    height: _controller!.value.size.height,
+                    child: VideoPlayer(_controller!),
+                  ),
+                )
+              : const SizedBox.expand(),
+        ),
       ),
     );
   }

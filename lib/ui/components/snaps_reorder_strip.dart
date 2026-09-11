@@ -13,6 +13,9 @@ class SnapsReorderStrip extends StatelessWidget {
   final Function(String mode) onArrangementModeChanged;
   final VoidCallback? onLoadSample;
   final VoidCallback? onAutoShuffle;
+  final bool isEnabled;
+  final int maxPhotos;
+  final VoidCallback? onPromptSelectMusic;
 
   const SnapsReorderStrip({
     super.key,
@@ -24,6 +27,9 @@ class SnapsReorderStrip extends StatelessWidget {
     required this.onArrangementModeChanged,
     this.onLoadSample,
     this.onAutoShuffle,
+    this.isEnabled = true,
+    this.maxPhotos = 60,
+    this.onPromptSelectMusic,
   });
 
   @override
@@ -52,60 +58,90 @@ class SnapsReorderStrip extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const SnapBeatPinkDot(size: 13, withGlow: true),
+                  SnapBeatPinkDot(size: 13, withGlow: isEnabled),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.brassGold,
+                      color: isEnabled ? AppColors.brassGold : AppColors.panelCreamDark,
                       borderRadius: BorderRadius.circular(4),
+                      border: isEnabled ? null : Border.all(color: AppColors.chassisBevelLight),
                     ),
-                    child: const Text(
-                      'PHOTOS',
+                    child: Text(
+                      '2. PHOTOS',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.hardwareGunmetal,
+                        color: isEnabled ? AppColors.hardwareGunmetal : AppColors.textMuted,
                         letterSpacing: 1.2,
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '(${photos.length})',
-                    style: const TextStyle(
+                    isEnabled ? '(${photos.length} / $maxPhotos max)' : '(LOCKED)',
+                    style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.0,
-                      color: AppColors.textSecondary,
+                      color: isEnabled ? AppColors.textSecondary : AppColors.amberJewel,
                     ),
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  if (onLoadSample != null) ...[
+              if (isEnabled)
+                Row(
+                  children: [
+                    if (onLoadSample != null) ...[
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: onLoadSample,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.panelCreamDark,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.chassisBevelLight),
+                          ),
+                          child: Row(
+                            children: const [
+                              Icon(Icons.auto_awesome, size: 12, color: AppColors.textEngraved),
+                              SizedBox(width: 4),
+                              Text(
+                                'DEMO',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                  color: AppColors.textEngraved,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: onLoadSample,
+                      onTap: onAddPhotos,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        margin: const EdgeInsets.only(right: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.panelCreamDark,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: AppColors.chassisBevelLight),
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.auto_awesome, size: 12, color: AppColors.textEngraved),
-                            SizedBox(width: 4),
+                          children: [
+                            const Icon(Icons.add_photo_alternate_rounded, size: 12, color: AppColors.textEngraved),
+                            const SizedBox(width: 4),
                             Text(
-                              'DEMO',
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
+                              photos.length >= maxPhotos ? 'FULL ($maxPhotos)' : 'ADD PHOTOS',
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: 0.6,
                                 color: AppColors.textEngraved,
                               ),
@@ -115,37 +151,112 @@ class SnapsReorderStrip extends StatelessWidget {
                       ),
                     ),
                   ],
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onAddPhotos,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.panelCreamDark,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.chassisBevelLight),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.panelCreamDark,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.chassisBevelLight),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.lock_rounded, size: 11, color: AppColors.amberJewel),
+                      SizedBox(width: 4),
+                      Text(
+                        'STEP 2',
+                        style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppColors.amberJewel),
                       ),
-                      child: Row(
-                        children: const [
-                          Icon(Icons.add_photo_alternate_rounded, size: 12, color: AppColors.textEngraved),
-                          SizedBox(width: 4),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+
+          if (!isEnabled) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onPromptSelectMusic,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.panelInset,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.chassisBevelDark),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/snapbeat_mascot.png',
+                          height: 48,
+                          width: 48,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'CHOOSE MUSIC IN STEP 1 FIRST',
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                  color: AppColors.amberJewel,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Select or load a soundtrack above. We calculate the exact maximum photo slots based on your track length & beat tempo.',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textMuted,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.brassKnobGradient,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.arrow_upward_rounded, size: 14, color: AppColors.hardwareGunmetal),
+                          SizedBox(width: 6),
                           Text(
-                            'ADD PHOTOS',
+                            'CHOOSE MUSIC ABOVE TO UNLOCK',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontFamily: 'Montserrat',
+                              fontSize: 9.5,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.6,
-                              color: AppColors.textEngraved,
+                              color: AppColors.hardwareGunmetal,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ] else ...[
 
           // Ordering Mode Bar: AUTO vs MANUAL + Shuffle
           if (photos.isNotEmpty) ...[
@@ -264,15 +375,29 @@ class SnapsReorderStrip extends StatelessWidget {
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.camera_roll_outlined, size: 32, color: AppColors.textMuted),
-                          SizedBox(height: 6),
-                          Text(
-                            'No photos yet — tap to add',
+                        children: [
+                          Image.asset(
+                            'assets/images/snapbeat_mascot.png',
+                            height: 38,
+                            width: 38,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Ready for snaps — tap to add',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.8,
+                              color: AppColors.textEngraved,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Capacity: up to $maxPhotos photos for current track',
+                            style: const TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.textMuted,
                             ),
                           ),
@@ -377,6 +502,7 @@ class SnapsReorderStrip extends StatelessWidget {
                     },
                   ),
           ),
+          ],
         ],
       ),
     );

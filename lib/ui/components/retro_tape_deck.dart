@@ -11,6 +11,7 @@ class RetroTapeDeck extends StatefulWidget {
   final VoidCallback onTogglePlay;
   final VoidCallback onPickAudio;
   final VoidCallback onLoadSample;
+  final VoidCallback? onQuickDemo;
 
   const RetroTapeDeck({
     super.key,
@@ -21,6 +22,7 @@ class RetroTapeDeck extends StatefulWidget {
     required this.onTogglePlay,
     required this.onPickAudio,
     required this.onLoadSample,
+    this.onQuickDemo,
   });
 
   @override
@@ -62,8 +64,9 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final mins = (widget.currentSeconds ~/ 60).toString().padLeft(2, '0');
-    final secs = (widget.currentSeconds % 60).toInt().toString().padLeft(2, '0');
+    final hasTrack = widget.trackTitle.trim().isNotEmpty && widget.trackTitle != "No soundtrack selected";
+    final mins = hasTrack ? (widget.currentSeconds ~/ 60).toString().padLeft(2, '0') : '--';
+    final secs = hasTrack ? (widget.currentSeconds % 60).toInt().toString().padLeft(2, '0') : '--';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -104,17 +107,34 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      children: const [
-                        SnapBeatPinkDot(size: 13, withGlow: true),
-                        SizedBox(width: 8),
+                      children: [
+                        const SnapBeatPinkDot(size: 13, withGlow: true),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.brassGold,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            '1. MUSIC',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.hardwareGunmetal,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Text(
-                          'MUSIC',
+                          hasTrack ? 'READY' : 'REQUIRED FIRST',
                           style: TextStyle(
                             fontFamily: 'Montserrat',
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: 1.6,
-                            color: AppColors.textSecondary,
+                            letterSpacing: 1.0,
+                            color: hasTrack ? AppColors.amberJewel : AppColors.textMuted,
                           ),
                         ),
                       ],
@@ -222,24 +242,24 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.trackTitle,
+                            hasTrack ? widget.trackTitle : 'CHOOSE SOUNDTRACK',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 14,
+                            style: TextStyle(
+                              fontSize: 13.5,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textEngraved,
+                              color: hasTrack ? AppColors.textEngraved : AppColors.textSecondary,
                               letterSpacing: 0.2,
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'Ready to play',
-                            style: TextStyle(
-                              fontSize: 10,
+                          Text(
+                            hasTrack ? 'Step 1 Ready • Tap play to preview' : 'Step 1 • Pick track to unlock Step 2 Photos',
+                            style: const TextStyle(
+                              fontSize: 9.5,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textMuted,
-                              letterSpacing: 0.6,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
@@ -249,6 +269,14 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                     // Audio Source Buttons
                     Row(
                       children: [
+                        if (widget.onQuickDemo != null) ...[
+                          _RetroMiniButton(
+                            label: 'DEMO',
+                            icon: Icons.auto_awesome,
+                            onTap: widget.onQuickDemo!,
+                          ),
+                          const SizedBox(width: 6),
+                        ],
                         _RetroMiniButton(
                           label: 'LIBRARY',
                           icon: Icons.library_music_rounded,
