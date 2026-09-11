@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
-import 'ui/screens/home_screen.dart';
+import 'ui/screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +25,7 @@ class SnapBeatApp extends StatelessWidget {
       title: 'SnapBeat',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.retroMetalClassic,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
