@@ -223,28 +223,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadSamplePhotos() async {
-    final slides = [
-      await _generateTestSlide(1, 'GOLDEN SUNSET', 0xFFE65100),
-      await _generateTestSlide(2, 'NEON BEAT', 0xFF880E4F),
-      await _generateTestSlide(3, 'PACIFIC DUSK', 0xFF0D47A1),
+    final sampleAssets = [
+      'assets/sample_photos/sample_01.jpg',
+      'assets/sample_photos/sample_02.jpg',
+      'assets/sample_photos/sample_03.jpg',
+      'assets/sample_photos/sample_04.jpg',
+      'assets/sample_photos/sample_05.jpg',
+      'assets/sample_photos/sample_06.jpg',
+      'assets/sample_photos/sample_07.jpg',
+      'assets/sample_photos/sample_08.jpg',
     ];
 
-    _photos.clear();
-    for (final file in slides) {
-      _photos.add(PhotoItem(
-        id: '${DateTime.now().microsecondsSinceEpoch}_${file.path.hashCode}',
-        path: file.path,
-        order: _photos.length,
-      ));
-    }
-    setState(() {});
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("✨ Added ${_photos.length} demo photos!", style: const TextStyle(color: AppColors.textEngraved)),
-          backgroundColor: AppColors.panelCream,
-        ),
-      );
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final List<PhotoItem> loadedPhotos = [];
+
+      for (int i = 0; i < sampleAssets.length; i++) {
+        final assetPath = sampleAssets[i];
+        final targetFile = File('${tempDir.path}/snapbeat_sample_${i + 1}.jpg');
+        if (!await targetFile.exists()) {
+          final byteData = await rootBundle.load(assetPath);
+          await targetFile.writeAsBytes(byteData.buffer.asUint8List());
+        }
+        loadedPhotos.add(PhotoItem(
+          id: '${DateTime.now().microsecondsSinceEpoch}_$i',
+          path: targetFile.path,
+          order: i,
+        ));
+      }
+
+      _photos.clear();
+      _photos.addAll(loadedPhotos);
+      setState(() {});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("✨ Added ${_photos.length} AI sample photos!", style: const TextStyle(color: AppColors.textEngraved)),
+            backgroundColor: AppColors.panelCream,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error loading sample photos: $e');
+      final slides = [
+        await _generateTestSlide(1, 'GOLDEN SUNSET', 0xFFE65100),
+        await _generateTestSlide(2, 'NEON BEAT', 0xFF880E4F),
+        await _generateTestSlide(3, 'PACIFIC DUSK', 0xFF0D47A1),
+      ];
+
+      _photos.clear();
+      for (final file in slides) {
+        _photos.add(PhotoItem(
+          id: '${DateTime.now().microsecondsSinceEpoch}_${file.path.hashCode}',
+          path: file.path,
+          order: _photos.length,
+        ));
+      }
+      setState(() {});
     }
   }
 
