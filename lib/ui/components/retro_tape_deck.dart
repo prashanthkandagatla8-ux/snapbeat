@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import 'snapbeat_pink_dot.dart';
 
 class RetroTapeDeck extends StatefulWidget {
   final bool isPlaying;
@@ -103,27 +104,10 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      children: [
-                        // Glowing Amber Power Lamp
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: widget.isPlaying ? AppColors.amberJewel : AppColors.metalScrewHead,
-                            boxShadow: widget.isPlaying
-                                ? [
-                                    const BoxShadow(
-                                      color: AppColors.amberJewel,
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    )
-                                  ]
-                                : [],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
+                      children: const [
+                        SnapBeatPinkDot(size: 13, withGlow: true),
+                        SizedBox(width: 8),
+                        Text(
                           'MUSIC',
                           style: TextStyle(
                             fontFamily: 'Montserrat',

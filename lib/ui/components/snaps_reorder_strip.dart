@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
+import 'snapbeat_pink_dot.dart';
 
 class SnapsReorderStrip extends StatelessWidget {
   final List<PhotoItem> photos;
@@ -51,6 +52,8 @@ class SnapsReorderStrip extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  const SnapBeatPinkDot(size: 13, withGlow: true),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
@@ -144,7 +147,7 @@ class SnapsReorderStrip extends StatelessWidget {
             ],
           ),
 
-          // Ordering Mode Bar: AUTO vs MANUAL + Drag Hint
+          // Ordering Mode Bar: AUTO vs MANUAL + Shuffle
           if (photos.isNotEmpty) ...[
             const SizedBox(height: 10),
             Container(
@@ -164,13 +167,40 @@ class SnapsReorderStrip extends StatelessWidget {
                       _buildOrderingModeChip('manual', 'MANUAL', Icons.pan_tool_alt_rounded),
                     ],
                   ),
-                  if (arrangementMode == 'manual')
+                  if (onAutoShuffle != null && arrangementMode == 'auto')
+                    GestureDetector(
+                      onTap: onAutoShuffle,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.panelCreamDark,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.chassisBevelLight),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.shuffle_rounded, size: 12, color: AppColors.brassGold),
+                            SizedBox(width: 4),
+                            Text(
+                              'SHUFFLE',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.brassGold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (arrangementMode == 'manual')
                     Row(
                       children: const [
-                        Icon(Icons.swap_horiz_rounded, size: 14, color: AppColors.amberJewel),
+                        Icon(Icons.tune_rounded, size: 13, color: AppColors.amberJewel),
                         SizedBox(width: 4),
                         Text(
-                          'HOLD & DRAG TO REORDER',
+                          'CUSTOM SEQUENCE',
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
@@ -179,28 +209,43 @@ class SnapsReorderStrip extends StatelessWidget {
                           ),
                         ),
                       ],
-                    )
-                  else if (onAutoShuffle != null)
-                    GestureDetector(
-                      onTap: onAutoShuffle,
-                      child: Row(
-                        children: const [
-                          Icon(Icons.shuffle_rounded, size: 13, color: AppColors.brassGold),
-                          SizedBox(width: 4),
-                          Text(
-                            'SHUFFLE',
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.brassGold,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                 ],
               ),
             ),
+            if (photos.length > 1) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.panelInset,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.chassisBevelDark.withValues(alpha: 0.7)),
+                ),
+                child: Row(
+                  children: [
+                    const SnapBeatPinkDot(size: 8, withGlow: true),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.drag_indicator_rounded, size: 14, color: AppColors.brassGold),
+                    const SizedBox(width: 6),
+                    const Expanded(
+                      child: Text(
+                        'Press & hold any photo, then drag and drop to alter order',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textEngraved,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.swap_horiz_rounded, size: 14, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+            ],
           ],
           const SizedBox(height: 12),
 
@@ -300,12 +345,13 @@ class SnapsReorderStrip extends StatelessWidget {
                                       color: AppColors.textSecondary,
                                     ),
                                   ),
-                                  if (arrangementMode == 'manual')
-                                    const Icon(
-                                      Icons.drag_indicator_rounded,
-                                      size: 14,
-                                      color: AppColors.amberJewel,
-                                    ),
+                                  Icon(
+                                    Icons.drag_indicator_rounded,
+                                    size: 14,
+                                    color: arrangementMode == 'manual'
+                                        ? AppColors.amberJewel
+                                        : AppColors.brassGold.withValues(alpha: 0.85),
+                                  ),
                                 ],
                               ),
                             ),

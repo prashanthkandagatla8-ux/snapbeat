@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
+import 'snapbeat_pink_dot.dart';
 
 class ProControlsCard extends StatelessWidget {
   final String selectedTemplateId;
@@ -77,6 +78,8 @@ class ProControlsCard extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  const SnapBeatPinkDot(size: 13, withGlow: true),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
@@ -147,9 +150,15 @@ class ProControlsCard extends StatelessWidget {
           const SizedBox(height: 14),
 
           // Templates Selector Label
-          const Text(
-            'STYLE',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+          Row(
+            children: const [
+              SnapBeatPinkDot(size: 10),
+              SizedBox(width: 6),
+              Text(
+                'STYLE',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
 
@@ -203,9 +212,15 @@ class ProControlsCard extends StatelessWidget {
           const SizedBox(height: 14),
 
           // Aspect Ratio Rocker Switches
-          const Text(
-            'ASPECT RATIO',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+          Row(
+            children: const [
+              SnapBeatPinkDot(size: 10),
+              SizedBox(width: 6),
+              Text(
+                'ASPECT RATIO',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
 
@@ -236,7 +251,7 @@ class ProControlsCard extends StatelessWidget {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.title_rounded, size: 14, color: AppColors.textSecondary),
+                        SnapBeatPinkDot(size: 11, withGlow: true),
                         SizedBox(width: 6),
                         Text(
                           'INTRO TITLE CARD',

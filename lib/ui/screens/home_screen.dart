@@ -25,6 +25,7 @@ import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
 import '../components/tactile_3d_button.dart';
 import '../components/metal_chassis_scaffold.dart';
+import '../components/snapbeat_pink_dot.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,6 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final qm = QueueManager.instance;
   final api = ApiService.instance;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final ScrollController _scrollController = ScrollController();
+  String? _focusedJobId;
 
   String _currentMode = "auto"; // "auto", "pro", "vault"
   File? _selectedMusic;
@@ -139,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     qm.removeListener(_onQueueChanged);
     _audioPlayer.dispose();
     super.dispose();
@@ -497,14 +501,21 @@ class _HomeScreenState extends State<HomeScreen> {
       cm.deductCredit();
     }
 
-    // Immediately switch user to "MY REELS" (vault) view
+    // Immediately switch user to "MY REELS" (vault) view and focus new job
     setState(() {
       _currentMode = "vault";
+      _focusedJobId = jobId;
     });
 
-    if (_currentMode == "auto") {
-      _rollAutoTemplate();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -688,48 +699,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Image.asset(
-                              'assets/images/snapbeat_logo_crop.png',
-                              height: 36,
-                              fit: BoxFit.contain,
-                            ),
+                            const SnapBeatPinkDot(size: 14, withGlow: true),
                             const SizedBox(width: 8),
-                            Flexible(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Text(
-                                    'SNAPBEAT',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 1.2,
-                                      color: AppColors.textEngraved,
-                                      shadows: [
-                                        Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    'Your Photos. Your Music. Synced.',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 7.5,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.3,
-                                      color: AppColors.textSecondary,
-                                      shadows: [
-                                        Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            Image.asset(
+                              'assets/images/snapbeat_logo.png',
+                              height: 42,
+                              fit: BoxFit.contain,
                             ),
                           ],
                         ),
@@ -784,23 +759,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // Rocker Switch Mode Selector
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      _buildModeRocker('auto', 'AUTO', Icons.auto_awesome_rounded),
-                      const SizedBox(width: 8),
-                      _buildModeRocker('pro', 'PRO', Icons.tune_rounded),
-                      const SizedBox(width: 8),
-                      _buildModeRocker('vault', 'MY REELS', Icons.movie_filter_rounded),
-                    ],
-                  ),
-                ),
-
                 // Main Scrollable Console Deck
                 Expanded(
                   child: ListView(
+                    controller: _scrollController,
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
                       if (_currentMode != "vault") ...[
@@ -840,6 +802,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               if (newIdx > oldIdx) newIdx -= 1;
                               final item = _photos.removeAt(oldIdx);
                               _photos.insert(newIdx, item);
+                              _arrangementMode = 'manual';
                             });
                           },
                           onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
@@ -881,12 +844,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // Bottom Action Deck
-                if (_currentMode != "vault")
-                  MasterActionDeck(
-                    photoCount: _photos.length,
-                    onTriggerMaster: _triggerMasterReel,
-                  ),
+                // Bottom Action Deck (With Integrated Thumb Mode Switcher and RENDER [Button] NOW)
+                MasterActionDeck(
+                  currentMode: _currentMode,
+                  onSelectMode: (mode) {
+                    setState(() {
+                      _currentMode = mode;
+                      if (mode == "auto") {
+                        _rollAutoTemplate();
+                      }
+                    });
+                  },
+                  photoCount: _photos.length,
+                  onTriggerMaster: _triggerMasterReel,
+                  activeJobsCount: qm.activeJobs.length,
+                ),
               ],
             ),
           ],
@@ -895,95 +867,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildModeRocker(String mode, String label, IconData icon) {
-    final isSelected = _currentMode == mode;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _currentMode = mode;
-            if (mode == "auto") {
-              _rollAutoTemplate();
-            }
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 90),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            gradient: isSelected
-                ? const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFFFFE082),
-                      Color(0xFFFFC72C),
-                      Color(0xFFD49A00),
-                    ],
-                  )
-                : const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFFB5AD9E),
-                      Color(0xFFA0988A),
-                    ],
-                  ),
-            border: Border.all(
-              color: isSelected ? const Color(0xFFFFE8A3) : const Color(0xFFC7BFAF),
-              width: 1.5,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      offset: const Offset(0, 3),
-                      blurRadius: 4,
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      offset: const Offset(0, 1),
-                      blurRadius: 2,
-                    ),
-                  ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 13,
-                color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                  color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
-                  shadows: isSelected
-                      ? [
-                          const Shadow(
-                            color: Color(0x66FFFFFF),
-                            offset: Offset(0, 1),
-                            blurRadius: 1,
-                          ),
-                        ]
-                      : null,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildMascotHeroCard() {
     return Container(
@@ -1014,18 +898,26 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Turn your moments into cinematic stories',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF2B2B2D),
-                    shadows: [
-                      Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                  Row(
+                    children: const [
+                      SnapBeatPinkDot(size: 10, withGlow: true),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Turn your moments into cinematic stories',
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF2B2B2D),
+                            shadows: [
+                              Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
@@ -1094,17 +986,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.amberJewel,
-              boxShadow: [
-                BoxShadow(color: AppColors.amberJewel, blurRadius: 6, spreadRadius: 1),
-              ],
-            ),
-          ),
+          const SnapBeatPinkDot(size: 13, withGlow: true),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1230,7 +1112,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.video_library_rounded, size: 16, color: AppColors.brassGold),
+                  SnapBeatPinkDot(size: 13, withGlow: true),
                   SizedBox(width: 8),
                   Text(
                     "MY REELS & QUEUE",
@@ -1278,17 +1160,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
             child: Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.amberJewel,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Text(
+              children: const [
+                SnapBeatPinkDot(size: 9, withGlow: true),
+                SizedBox(width: 6),
+                Text(
                   "PROCESSING IN BACKGROUND",
                   style: TextStyle(
                     fontSize: 9.5,
@@ -1342,24 +1217,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildActiveJobCard(QueueJobItem job) {
     final percent = (job.progress * 100).clamp(0, 99).toInt();
+    final isFocused = job.id == _focusedJobId;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.panelCream,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.brassGold, width: 1.8),
+        border: Border.all(
+          color: isFocused ? const Color(0xFFFF3366) : AppColors.brassGold,
+          width: isFocused ? 2.2 : 1.8,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.amberGlow.withValues(alpha: 0.4),
+            color: isFocused
+                ? const Color(0xFFFF3366).withValues(alpha: 0.35)
+                : AppColors.amberGlow.withValues(alpha: 0.4),
             offset: const Offset(0, 3),
-            blurRadius: 8,
+            blurRadius: isFocused ? 12 : 8,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isFocused) ...[
+            Row(
+              children: const [
+                SnapBeatPinkDot(size: 11, withGlow: true),
+                SizedBox(width: 6),
+                Text(
+                  "CURRENT RENDER IN PROGRESS",
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    color: Color(0xFFFF3366),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1385,17 +1286,17 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.amberJewel.withValues(alpha: 0.2),
+                  color: isFocused ? const Color(0xFFFF3366).withValues(alpha: 0.2) : AppColors.amberJewel.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.amberJewel, width: 1),
+                  border: Border.all(color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel, width: 1),
                 ),
                 child: Text(
                   "$percent%",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.amberJewel,
+                    color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel,
                   ),
                 ),
               ),
@@ -1407,7 +1308,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: LinearProgressIndicator(
               value: job.progress.clamp(0.05, 1.0),
               backgroundColor: AppColors.panelInset,
-              color: AppColors.amberJewel,
+              color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel,
               minHeight: 6,
             ),
           ),

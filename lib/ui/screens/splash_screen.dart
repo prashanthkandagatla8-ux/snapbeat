@@ -120,112 +120,35 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0F),
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: _navigateToHome, // Tap anywhere to skip
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Base layer: Always render the static high-res poster immediately!
-            Image.asset(
-              'assets/images/splash_poster.webp',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFC8A232),
-                  strokeWidth: 2,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Base layer: Always render the static high-res poster immediately
+          Image.asset(
+            'assets/images/splash_poster.webp',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFFC8A232),
+                strokeWidth: 2,
+              ),
+            ),
+          ),
+
+          // Video layer (plays cleanly with zero overlays)
+          if (_isVideoReady && _controller != null && _controller!.value.isInitialized)
+            Center(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                clipBehavior: Clip.hardEdge,
+                child: SizedBox(
+                  width: _controller!.value.size.width,
+                  height: _controller!.value.size.height,
+                  child: VideoPlayer(_controller!),
                 ),
               ),
             ),
-
-            // Video overlay layer (only displayed once decoder is primed and playing)
-            if (_isVideoReady && _controller != null && _controller!.value.isInitialized)
-              Center(
-                child: FittedBox(
-                  fit: BoxFit.cover,
-                  clipBehavior: Clip.hardEdge,
-                  child: SizedBox(
-                    width: _controller!.value.size.width,
-                    height: _controller!.value.size.height,
-                    child: VideoPlayer(_controller!),
-                  ),
-                ),
-              ),
-
-            // Bottom patch to completely mask any "AI POWERED" text baked into the poster/video
-            Positioned(
-              bottom: 30,
-              left: 30,
-              right: 30,
-              height: 48,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/brushed_metal_background.jpg',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: const Color(0xFFC2B8A5),
-                  ),
-                ),
-              ),
-            ),
-
-            // Top overlay: High-visibility tactile SKIP button
-            SafeArea(
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _navigateToHome,
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1B1917).withValues(alpha: 0.85),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: const Color(0xFFFFC72C),
-                            width: 1.8,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              offset: const Offset(0, 3),
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "SKIP",
-                              style: TextStyle(
-                                color: Color(0xFFFFC72C),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                            SizedBox(width: 6),
-                            Icon(
-                              Icons.fast_forward_rounded,
-                              size: 16,
-                              color: Color(0xFFFFC72C),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
