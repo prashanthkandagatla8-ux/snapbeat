@@ -21,6 +21,7 @@ class MasterActionDeck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isVault = currentMode == 'vault';
     return Container(
       decoration: BoxDecoration(
         color: AppColors.metalBase,
@@ -37,171 +38,78 @@ class MasterActionDeck extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 1. Lower Mode Rocker Bar (Easy Thumb Navigation)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFC0B8AA),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFDED8CE), width: 1),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      offset: Offset(0, 1),
-                      blurRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    _buildTab('auto', 'AUTO', Icons.auto_awesome_rounded),
-                    const SizedBox(width: 4),
-                    _buildTab('pro', 'PRO', Icons.tune_rounded),
-                    const SizedBox(width: 4),
-                    _buildTab('vault', 'MY REELS', Icons.movie_filter_rounded, badgeCount: activeJobsCount),
-                  ],
-                ),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 1. Render Button on Top (Centered, No text beside it, disabled in My Reels)
+              SplashMasterRedButton(
+                size: 58,
+                onTap: isVault ? null : onTriggerMaster,
+                isEnabled: !isVault,
               ),
-            ),
 
-            // 2. Action Area
-            if (currentMode != 'vault')
+              // 2. Small font text below the button
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SnapBeatPinkDot(size: 8, withGlow: !isVault),
+                  const SizedBox(width: 6),
+                  Text(
+                    isVault
+                        ? 'DISABLED IN MY REELS'
+                        : (photoCount > 0 ? 'RENDER NOW • $photoCount SNAPS' : 'RENDER NOW'),
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 9.0,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      color: isVault ? const Color(0xFF8A857D) : const Color(0xFF2E2B27),
+                      shadows: isVault
+                          ? null
+                          : const [
+                              Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                            ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+
+              // 3. Lower Mode Switcher Panel (Exact same height across all modes)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Left: Pink Dot + RENDER
-                    Flexible(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          const SnapBeatPinkDot(size: 13, withGlow: true),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Text(
-                                  'RENDER',
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    color: Color(0xFF222020),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 2.2,
-                                    shadows: [
-                                      Shadow(color: Color(0x99FFFFFF), offset: Offset(0, 1), blurRadius: 1),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  photoCount > 0 ? '$photoCount SNAPS' : 'READY',
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: photoCount > 0 ? const Color(0xFFC92A2A) : const Color(0xFF7A756D),
-                                    letterSpacing: 1.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  height: 38,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFB8AE9F),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFDED8CE), width: 1),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        offset: Offset(0, 1),
+                        blurRadius: 2,
                       ),
-                    ),
-
-                    const SizedBox(width: 14),
-
-                    // Center: Red Splash Trigger Button (compact diameter 58)
-                    SplashMasterRedButton(
-                      size: 58,
-                      onTap: onTriggerMaster,
-                    ),
-
-                    const SizedBox(width: 14),
-
-                    // Right: NOW + Pink Dot
-                    Flexible(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Flexible(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'NOW',
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    color: Color(0xFF222020),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 2.2,
-                                    shadows: [
-                                      Shadow(color: Color(0x99FFFFFF), offset: Offset(0, 1), blurRadius: 1),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  photoCount > 0 ? 'BEAT SYNC' : 'TAP TO ADD',
-                                  style: const TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF7A756D),
-                                    letterSpacing: 1.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const SnapBeatPinkDot(size: 13, withGlow: true),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              // Compact helper row in My Reels mode
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onSelectMode('auto'),
+                    ],
+                  ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      SnapBeatPinkDot(size: 11, withGlow: true),
-                      SizedBox(width: 8),
-                      Text(
-                        'TAP AUTO OR PRO ABOVE TO SCHEDULE ANOTHER REEL',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
-                          color: Color(0xFF4A463F),
-                        ),
-                      ),
+                    children: [
+                      _buildTab('auto', 'AUTO', Icons.auto_awesome_rounded),
+                      const SizedBox(width: 4),
+                      _buildTab('pro', 'PRO', Icons.tune_rounded),
+                      const SizedBox(width: 4),
+                      _buildTab('vault', 'MY REELS', Icons.movie_filter_rounded, badgeCount: activeJobsCount),
                     ],
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,16 +1,18 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class SplashMasterRedButton extends StatefulWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final double size;
   final String? label;
+  final bool isEnabled;
 
   const SplashMasterRedButton({
     super.key,
     required this.onTap,
     this.size = 140,
     this.label,
+    this.isEnabled = true,
   });
 
   @override
@@ -21,13 +23,15 @@ class _SplashMasterRedButtonState extends State<SplashMasterRedButton> {
   bool _isPressed = false;
 
   void _handleTapDown(TapDownDetails _) {
+    if (!widget.isEnabled || widget.onTap == null) return;
     HapticFeedback.heavyImpact();
     setState(() => _isPressed = true);
   }
 
   void _handleTapUp(TapUpDetails _) {
+    if (!widget.isEnabled || widget.onTap == null) return;
     setState(() => _isPressed = false);
-    widget.onTap();
+    widget.onTap!();
   }
 
   void _handleTapCancel() {
@@ -37,16 +41,19 @@ class _SplashMasterRedButtonState extends State<SplashMasterRedButton> {
   @override
   Widget build(BuildContext context) {
     final double buttonSize = widget.size;
+    final bool active = widget.isEnabled && widget.onTap != null;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTapDown: _handleTapDown,
-          onTapUp: _handleTapUp,
-          onTapCancel: _handleTapCancel,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedScale(
+    return Opacity(
+      opacity: active ? 1.0 : 0.45,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTapDown: _handleTapDown,
+            onTapUp: _handleTapUp,
+            onTapCancel: _handleTapCancel,
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedScale(
             scale: _isPressed ? 0.94 : 1.0,
             duration: const Duration(milliseconds: 70),
             curve: Curves.easeOutQuad,
@@ -90,25 +97,26 @@ class _SplashMasterRedButtonState extends State<SplashMasterRedButton> {
           ),
         ),
         if (widget.label != null) ...[
-          const SizedBox(height: 10),
-          Text(
-            widget.label!,
-            style: const TextStyle(
-              color: Color(0xFF2B2B2D),
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-              shadows: [
-                Shadow(
-                  color: Color(0x99FFFFFF),
-                  offset: Offset(0, 1),
-                  blurRadius: 1,
-                ),
-              ],
+            const SizedBox(height: 10),
+            Text(
+              widget.label!,
+              style: const TextStyle(
+                color: Color(0xFF2B2B2D),
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                shadows: [
+                  Shadow(
+                    color: Color(0x99FFFFFF),
+                    offset: Offset(0, 1),
+                    blurRadius: 1,
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
