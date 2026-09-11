@@ -43,7 +43,6 @@ dependencies:
   flutter_animate: ^4.5.2
   intl: ^0.20.3
   path_provider: ^2.1.6
-  in_app_purchase: ^3.3.0
   video_player: ^2.9.2
 
 dev_dependencies:

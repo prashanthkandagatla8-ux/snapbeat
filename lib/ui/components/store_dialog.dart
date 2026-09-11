@@ -24,6 +24,30 @@ class StoreBottomSheet extends StatefulWidget {
 class _StoreBottomSheetState extends State<StoreBottomSheet> {
   final cm = CreditManager.instance;
 
+  void _showTestingSnackBar() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.panelCream,
+        content: const Text(
+          '✨ [Testing Mode] Feature Unlocked / Credits Added!',
+          style: TextStyle(
+            color: AppColors.brassGold,
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
+          ),
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(color: AppColors.brassGold, width: 1),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = cm.pricing;
@@ -90,7 +114,42 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+
+          // Closed Testing Preview Banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.amberJewel.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.amberJewel.withValues(alpha: 0.6),
+                width: 1,
+              ),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.science_rounded, size: 14, color: AppColors.brassGold),
+                SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    '[ CLOSED TESTING PREVIEW • ALL PASSES ARE FREE ]',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.brassGold,
+                      letterSpacing: 0.8,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
 
           // Plan 1: Watermark Removal
           _buildPlanTile(
@@ -102,6 +161,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
               cm.setWatermarkRemoved(true);
               widget.onPurchaseComplete();
               setState(() {});
+              _showTestingSnackBar();
             },
           ),
           const SizedBox(height: 10),
@@ -117,6 +177,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
               cm.setProModeEnabled(true);
               widget.onPurchaseComplete();
               setState(() {});
+              _showTestingSnackBar();
             },
           ),
           const SizedBox(height: 14),
@@ -232,8 +293,9 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   gradient: isActive ? null : AppColors.brassKnobGradient,
-                  color: isActive ? Colors.grey.shade400 : null,
+                  color: isActive ? AppColors.panelCreamDark : null,
                   borderRadius: BorderRadius.circular(6),
+                  border: isActive ? Border.all(color: AppColors.vuGreen.withValues(alpha: 0.6)) : null,
                   boxShadow: isActive
                       ? []
                       : [
@@ -245,12 +307,12 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                         ],
                 ),
                 child: Text(
-                  isActive ? '✓ Active' : price,
+                  isActive ? '✓ Active' : 'FREE / UNLOCK',
                   style: TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
-                    color: isActive ? Colors.white : AppColors.hardwareGunmetal,
+                    color: isActive ? AppColors.vuGreen : AppColors.hardwareGunmetal,
                   ),
                 ),
               ),
@@ -268,6 +330,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
           cm.addCredits(passes);
           widget.onPurchaseComplete();
           setState(() {});
+          _showTestingSnackBar();
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
@@ -290,14 +353,39 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                price,
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textFoilGold,
-                ),
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: AppColors.brassGold,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: const Text(
+                      'FREE',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.hardwareGunmetal,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    price,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMuted,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: AppColors.textMuted,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
