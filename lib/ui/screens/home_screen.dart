@@ -22,6 +22,8 @@ import '../components/store_dialog.dart';
 import '../components/video_preview_dialog.dart';
 import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
+import '../components/tactile_3d_button.dart';
+import '../components/metal_chassis_scaffold.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -633,23 +635,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.canvasChassis,
+    return MetalChassisScaffold(
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
-                // Top Milled Aluminum Header Bar
+                // Top Brushed Stainless Steel Header Bar
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.canvasChassis,
+                    color: AppColors.metalBase.withValues(alpha: 0.9),
                     border: const Border(
-                      bottom: BorderSide(color: AppColors.chassisBevelDark, width: 1),
+                      bottom: BorderSide(color: Color(0xFF9E988D), width: 1.5),
                     ),
                     boxShadow: const [
-                      BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
+                      BoxShadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 4),
                     ],
                   ),
                   child: Row(
@@ -657,24 +658,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.brassKnobGradient,
-                              borderRadius: BorderRadius.circular(5),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black26, offset: Offset(1, 1), blurRadius: 2),
-                              ],
-                            ),
-                            child: const Text(
-                              'SB',
-                              style: TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.hardwareGunmetal,
-                              ),
-                            ),
+                          Image.asset(
+                            'assets/images/snapbeat_logo_crop.png',
+                            height: 38,
+                            fit: BoxFit.contain,
                           ),
                           const SizedBox(width: 8),
                           Column(
@@ -688,15 +675,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.2,
                                   color: AppColors.textEngraved,
+                                  shadows: [
+                                    Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                                  ],
                                 ),
                               ),
                               Text(
-                                'Beat-Synced Reel Maker',
+                                'Your Photos. Your Music. Perfectly Synced.',
                                 style: TextStyle(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: AppColors.textMuted,
+                                  fontSize: 7.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                  color: AppColors.textSecondary,
+                                  shadows: [
+                                    Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                                  ],
                                 ),
                               ),
                             ],
@@ -771,6 +764,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
                       if (_currentMode != "vault") ...[
+                        _buildMascotHeroCard(),
                         if (_currentMode == "auto") _buildAutoTemplateBanner(),
 
                         // 1. Reel-to-Reel Tape Deck
@@ -918,22 +912,48 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           });
         },
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 90),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.brassGold : AppColors.panelInset,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
+            gradient: isSelected
+                ? const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFFFE082),
+                      Color(0xFFFFC72C),
+                      Color(0xFFD49A00),
+                    ],
+                  )
+                : const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFB5AD9E),
+                      Color(0xFFA0988A),
+                    ],
+                  ),
             border: Border.all(
-              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
-              width: isSelected ? 1.5 : 1.0,
+              color: isSelected ? const Color(0xFFFFE8A3) : const Color(0xFFC7BFAF),
+              width: 1.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                offset: const Offset(1, 2),
-                blurRadius: 3,
-              ),
-            ],
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      offset: const Offset(0, 3),
+                      blurRadius: 4,
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      offset: const Offset(0, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -941,22 +961,126 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(
                 icon,
                 size: 13,
-                color: isSelected ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+                color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
               ),
               const SizedBox(width: 5),
               Text(
                 label,
                 style: TextStyle(
                   fontFamily: 'Montserrat',
-                  fontSize: 9,
+                  fontSize: 10,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 0.6,
-                  color: isSelected ? AppColors.hardwareGunmetal : AppColors.textEngraved,
+                  letterSpacing: 0.8,
+                  color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+                  shadows: isSelected
+                      ? [
+                          const Shadow(
+                            color: Color(0x66FFFFFF),
+                            offset: Offset(0, 1),
+                            blurRadius: 1,
+                          ),
+                        ]
+                      : null,
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMascotHeroCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD8D2C5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEFEBE4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            offset: const Offset(0, 3),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Image.asset(
+            'assets/images/snapbeat_mascot.png',
+            height: 64,
+            width: 64,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Turn your moments into cinematic stories',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF2B2B2D),
+                    shadows: [
+                      Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Tactile3DButton(
+                        label: '+ SELECT PHOTOS',
+                        height: 36,
+                        borderRadius: 18,
+                        onTap: _pickPhotos,
+                        textStyle: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1E1A10),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: _loadSamplePhotos,
+                      child: Container(
+                        height: 36,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFC7BFAF),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: const Color(0xFFE8E4DC), width: 1),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text('✨', style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 4),
+                            Text(
+                              'DEMO',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF3B3830),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
