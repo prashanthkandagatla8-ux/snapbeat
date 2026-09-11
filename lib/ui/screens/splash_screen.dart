@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'home_screen.dart';
@@ -121,13 +121,12 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0F),
       body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+        behavior: HitTestBehavior.translucent,
         onTap: _navigateToHome, // Tap anywhere to skip
         child: Stack(
           fit: StackFit.expand,
           children: [
             // Base layer: Always render the static high-res poster immediately!
-            // Guarantees instant visual display on low-end devices with 0 blank frames.
             Image.asset(
               'assets/images/splash_poster.webp',
               fit: BoxFit.cover,
@@ -153,43 +152,72 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
 
-            // Top overlay: Skip button
+            // Bottom patch to completely mask any "AI POWERED" text baked into the poster/video
+            Positioned(
+              bottom: 30,
+              left: 30,
+              right: 30,
+              height: 48,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/brushed_metal_background.jpg',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFFC2B8A5),
+                  ),
+                ),
+              ),
+            ),
+
+            // Top overlay: High-visibility tactile SKIP button
             SafeArea(
               child: Align(
                 alignment: Alignment.topRight,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: GestureDetector(
-                    onTap: _navigateToHome,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFFC8A232).withValues(alpha: 0.45),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "SKIP",
-                            style: TextStyle(
-                              color: Color(0xFFFAF6EE),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.2,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _navigateToHome,
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B1917).withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: const Color(0xFFFFC72C),
+                            width: 1.8,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              offset: const Offset(0, 3),
+                              blurRadius: 6,
                             ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Icons.fast_forward_rounded,
-                            size: 14,
-                            color: Color(0xFFC8A232),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "SKIP",
+                              style: TextStyle(
+                                color: Color(0xFFFFC72C),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Icon(
+                              Icons.fast_forward_rounded,
+                              size: 16,
+                              color: Color(0xFFFFC72C),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -1,8 +1,9 @@
-﻿import 'dart:convert';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 
-class QueueManager {
+class QueueManager with ChangeNotifier {
   static const String keyJobs = "snapbeat_queue_ledger_jobs";
 
   static final QueueManager instance = QueueManager._internal();
@@ -21,27 +22,41 @@ class QueueManager {
         _jobs.add(QueueJobItem.fromJson(map));
       } catch (_) {}
     }
+    notifyListeners();
   }
 
   Future<void> addJob(QueueJobItem job) async {
     _jobs.insert(0, job);
+    notifyListeners();
     await _save();
   }
 
-  Future<void> updateJob(String id, {String? status, String? videoPath}) async {
+  void updateJobProgress(String id, double progress) {
     final idx = _jobs.indexWhere((j) => j.id == id);
     if (idx != -1) {
-      final old = _jobs[idx];
-      _jobs[idx] = QueueJobItem(
-        id: old.id,
-        templateName: old.templateName,
-        status: status ?? old.status,
-        videoPath: videoPath ?? old.videoPath,
-        createdAt: old.createdAt,
-        quality: old.quality,
+      _jobs[idx] = _jobs[idx].copyWith(progress: progress);
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateJob(String id, {String? status, String? videoPath, double? progress, String? error}) async {
+    final idx = _jobs.indexWhere((j) => j.id == id);
+    if (idx != -1) {
+      _jobs[idx] = _jobs[idx].copyWith(
+        status: status,
+        videoPath: videoPath,
+        progress: progress,
+        error: error,
       );
+      notifyListeners();
       await _save();
     }
+  }
+
+  Future<void> deleteJob(String id) async {
+    _jobs.removeWhere((j) => j.id == id);
+    notifyListeners();
+    await _save();
   }
 
   Future<void> _save() async {

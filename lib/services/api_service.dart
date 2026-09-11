@@ -32,6 +32,9 @@ class ApiService {
     String? titleText,
     String? titleBg,
     int? titleDuration,
+    String? titleFont,
+    String? titleStyle,
+    String? titleFrame,
     Function(double progress)? onProgress,
   }) async {
     final formData = FormData();
@@ -77,6 +80,15 @@ class ApiService {
       formData.fields.add(MapEntry("title_text", titleText.trim()));
       formData.fields.add(MapEntry("title_bg", titleBg ?? "black"));
       formData.fields.add(MapEntry("title_duration", (titleDuration ?? 2).toString()));
+      if (titleFont != null && titleFont.isNotEmpty) {
+        formData.fields.add(MapEntry("title_font", titleFont));
+      }
+      if (titleStyle != null && titleStyle.isNotEmpty) {
+        formData.fields.add(MapEntry("title_style", titleStyle));
+      }
+      if (titleFrame != null && titleFrame.isNotEmpty) {
+        formData.fields.add(MapEntry("title_frame", titleFrame));
+      }
     }
 
     if (onProgress != null) onProgress(0.1);

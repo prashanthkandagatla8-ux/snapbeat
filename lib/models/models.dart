@@ -20,6 +20,7 @@ class BeatTemplate {
     BeatTemplate(id: "beat-fade", name: "Fade", subtitle: "Silk crossfades for ambient beats", emoji: "🌊", isPro: true),
     BeatTemplate(id: "glide-pan", name: "Glide", subtitle: "Lateral gliding pan motion", emoji: "🛹", isPro: true),
     BeatTemplate(id: "pendulum", name: "Pendulum", subtitle: "Rhythmic swinging physics cuts", emoji: "⏱️", isPro: true),
+    BeatTemplate(id: "pendulum-border-mirror", name: "Pendulum Mirror", subtitle: "Swinging cuts with mirrored borders", emoji: "🪞", isPro: true),
     BeatTemplate(id: "beat-pulse", name: "Pulse", subtitle: "Pulsing emotional sub-bass pump", emoji: "💓", isPro: true),
     BeatTemplate(id: "punch-cut", name: "Punch", subtitle: "High-impact rhythmic punch cuts", emoji: "🥊", isPro: true),
     BeatTemplate(id: "reveal-tiles", name: "Reveal Boxes", subtitle: "Geometric box tile mosaic reveals", emoji: "🔲", isPro: true),
@@ -50,6 +51,8 @@ class QueueJobItem {
   final String? videoPath;
   final DateTime createdAt;
   final String quality;
+  final double progress;
+  final String? error;
 
   QueueJobItem({
     required this.id,
@@ -58,7 +61,27 @@ class QueueJobItem {
     this.videoPath,
     required this.createdAt,
     this.quality = "1080p",
+    this.progress = 0.0,
+    this.error,
   });
+
+  QueueJobItem copyWith({
+    String? status,
+    String? videoPath,
+    double? progress,
+    String? error,
+  }) {
+    return QueueJobItem(
+      id: id,
+      templateName: templateName,
+      status: status ?? this.status,
+      videoPath: videoPath ?? this.videoPath,
+      createdAt: createdAt,
+      quality: quality,
+      progress: progress ?? this.progress,
+      error: error ?? this.error,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -67,6 +90,8 @@ class QueueJobItem {
     'videoPath': videoPath,
     'createdAt': createdAt.toIso8601String(),
     'quality': quality,
+    'progress': progress,
+    'error': error,
   };
 
   factory QueueJobItem.fromJson(Map<String, dynamic> json) => QueueJobItem(
@@ -76,6 +101,8 @@ class QueueJobItem {
     videoPath: json['videoPath'] as String?,
     createdAt: DateTime.parse(json['createdAt'] as String),
     quality: json['quality'] as String? ?? "1080p",
+    progress: ((json['progress'] ?? 0.0) as num).toDouble(),
+    error: json['error'] as String?,
   );
 }
 

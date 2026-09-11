@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../models/models.dart';
 import '../../models/sound_track.dart';
 import '../../services/credit_manager.dart';
@@ -58,10 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String _titleText = "";
   String _titleBg = "black";
   int _titleDuration = 2;
-
-  // Rendering
-  bool _isRendering = false;
-  double _renderProgress = 0.0;
+  String _titleFont = "impact";
+  String _titleStyle = "classic";
+  String _titleFrame = "none";
 
   // Auto Mode Template Rotation
   BeatTemplate _currentAutoTemplate = BeatTemplate.allTemplates.first;
@@ -78,10 +78,27 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _autoShufflePhotos() {
+    if (_photos.isEmpty) return;
+    setState(() {
+      _photos.shuffle();
+      for (int i = 0; i < _photos.length; i++) {
+        _photos[i].order = i + 1;
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("✨ Auto beat-sequence shuffled!"),
+        duration: Duration(milliseconds: 1500),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _rollAutoTemplate();
+    qm.addListener(_onQueueChanged);
     _initData();
   }
 
@@ -116,8 +133,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onQueueChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    qm.removeListener(_onQueueChanged);
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -427,27 +449,130 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _executeRender({required bool isInstant}) async {
+  void _executeRender({required bool isInstant}) {
+    if (_photos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select photos before rendering.")),
+      );
+      return;
+    }
+
+    String tId;
+    String tDisplayName;
+    if (_currentMode == "auto") {
+      tId = _currentAutoTemplate.id;
+      tDisplayName = _currentAutoTemplate.name;
+    } else {
+      tId = _selectedTemplate;
+      final matching = BeatTemplate.allTemplates.where((t) => t.id == tId).toList();
+      tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
+    }
+
+    final jobId = DateTime.now().millisecondsSinceEpoch.toString();
+    final photosSnapshot = List<PhotoItem>.from(_photos);
+    final musicSnapshot = _selectedMusic;
+    final aspectRatioSnapshot = _selectedAspectRatio;
+    final qualitySnapshot = _selectedQuality;
+    final shouldWatermark = cm.shouldWatermark(isInstant);
+    final audioStartSnapshot = _audioStart.toInt();
+    final audioEndSnapshot = _audioEnd.toInt();
+    final titleTextSnapshot = _enableTitle ? _titleText : null;
+    final titleBgSnapshot = _titleBg;
+    final titleDurationSnapshot = _titleDuration;
+    final titleFontSnapshot = _titleFont;
+    final titleStyleSnapshot = _titleStyle;
+    final titleFrameSnapshot = _titleFrame;
+
+    // Immediately create and record the processing job in QueueManager
+    qm.addJob(QueueJobItem(
+      id: jobId,
+      templateName: tDisplayName,
+      status: "PROCESSING",
+      createdAt: DateTime.now(),
+      quality: qualitySnapshot,
+      progress: 0.05,
+    ));
+
+    if (isInstant && cm.credits > 0) {
+      cm.deductCredit();
+    }
+
+    // Immediately switch user to "MY REELS" (vault) view
     setState(() {
-      _isRendering = true;
-      _renderProgress = 0.05;
+      _currentMode = "vault";
     });
 
-    try {
-      String tId;
-      String tDisplayName;
-      if (_currentMode == "auto") {
-        // Use the currently displayed auto template (which the user may have spun to)
-        tId = _currentAutoTemplate.id;
-        tDisplayName = _currentAutoTemplate.name;
-      } else {
-        tId = _selectedTemplate;
-        final matching = BeatTemplate.allTemplates.where((t) => t.id == tId).toList();
-        tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
-      }
+    if (_currentMode == "auto") {
+      _rollAutoTemplate();
+    }
 
-      final photoFiles = _photos.map((p) => File(p.path)).toList();
-      File musicFile = _selectedMusic ?? await _ensureDefaultSampleAudio();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.hardwareGunmetal,
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(color: AppColors.brassGold, strokeWidth: 2),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "🎬 Rendering '$tDisplayName' in background...",
+                style: const TextStyle(color: AppColors.panelCream, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
+    // Launch background execution (non-blocking)
+    _runBackgroundRenderTask(
+      jobId: jobId,
+      templateId: tId,
+      templateName: tDisplayName,
+      photos: photosSnapshot,
+      music: musicSnapshot,
+      aspectRatio: aspectRatioSnapshot,
+      quality: qualitySnapshot,
+      watermark: shouldWatermark,
+      isInstant: isInstant,
+      audioStart: audioStartSnapshot,
+      audioEnd: audioEndSnapshot,
+      titleText: titleTextSnapshot,
+      titleBg: titleBgSnapshot,
+      titleDuration: titleDurationSnapshot,
+      titleFont: titleFontSnapshot,
+      titleStyle: titleStyleSnapshot,
+      titleFrame: titleFrameSnapshot,
+    );
+  }
+
+  Future<void> _runBackgroundRenderTask({
+    required String jobId,
+    required String templateId,
+    required String templateName,
+    required List<PhotoItem> photos,
+    required File? music,
+    required String aspectRatio,
+    required String quality,
+    required bool watermark,
+    required bool isInstant,
+    required int audioStart,
+    required int audioEnd,
+    required String? titleText,
+    required String titleBg,
+    required int titleDuration,
+    required String titleFont,
+    required String titleStyle,
+    required String titleFrame,
+  }) async {
+    try {
+      final photoFiles = photos.map((p) => File(p.path)).toList();
+      File musicFile = music ?? await _ensureDefaultSampleAudio();
       if (!musicFile.existsSync()) {
         musicFile = await _ensureDefaultSampleAudio();
       }
@@ -455,182 +580,85 @@ class _HomeScreenState extends State<HomeScreen> {
       final videoPath = await api.renderReel(
         musicFile: musicFile,
         photoFiles: photoFiles,
-        templateId: tId,
-        aspectRatio: _selectedAspectRatio,
-        quality: _selectedQuality,
-        watermark: cm.shouldWatermark(isInstant),
+        templateId: templateId,
+        aspectRatio: aspectRatio,
+        quality: quality,
+        watermark: watermark,
         isInstant: isInstant,
-        audioStart: _audioStart.toInt(),
-        audioEnd: _audioEnd.toInt(),
-        titleText: _enableTitle ? _titleText : null,
-        titleBg: _titleBg,
-        titleDuration: _titleDuration,
-        onProgress: (p) => setState(() => _renderProgress = p),
+        audioStart: audioStart,
+        audioEnd: audioEnd,
+        titleText: titleText,
+        titleBg: titleBg,
+        titleDuration: titleDuration,
+        titleFont: titleFont,
+        titleStyle: titleStyle,
+        titleFrame: titleFrame,
+        onProgress: (p) {
+          qm.updateJobProgress(jobId, p);
+        },
       );
 
-      // Record job
-      await qm.addJob(QueueJobItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        templateName: tDisplayName,
+      await qm.updateJob(
+        jobId,
         status: "READY",
         videoPath: videoPath,
-        createdAt: DateTime.now(),
-        quality: _selectedQuality,
-      ));
-
-      if (isInstant && cm.credits > 0) {
-        await cm.deductCredit();
-      }
+        progress: 1.0,
+      );
 
       if (mounted) {
-        setState(() => _isRendering = false);
-        _showSuccessDialog(videoPath, templateName: tDisplayName, quality: _selectedQuality);
-        // Automatically roll a new template for the NEXT render
-        if (_currentMode == "auto") {
-          _rollAutoTemplate();
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF1E2818),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: AppColors.vuGreen, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "'$templateName' is ready to watch!",
+                    style: const TextStyle(color: AppColors.panelCream, fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    VideoPreviewDialog.show(
+                      context,
+                      videoPath: videoPath,
+                      templateName: templateName,
+                      quality: quality,
+                    );
+                  },
+                  child: const Text("PLAY ▶", style: TextStyle(color: AppColors.brassGold, fontWeight: FontWeight.w900)),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 6),
+          ),
+        );
       }
     } catch (e) {
+      final cleanMsg = e.toString().replaceAll("Exception: ", "").trim();
+      await qm.updateJob(
+        jobId,
+        status: "FAILED",
+        error: cleanMsg,
+      );
+
       if (mounted) {
-        setState(() => _isRendering = false);
-        _showErrorDialog(
-          e.toString(),
-          onRetry: () => _executeRender(isInstant: isInstant),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF381414),
+            content: Text("Render failed: $cleanMsg", style: const TextStyle(color: Colors.white, fontSize: 12)),
+            action: SnackBarAction(
+              label: "DISMISS",
+              textColor: AppColors.brassGold,
+              onPressed: () {},
+            ),
+            duration: const Duration(seconds: 5),
+          ),
         );
       }
     }
-  }
-
-  void _showErrorDialog(String rawError, {VoidCallback? onRetry}) {
-    String cleanMsg = rawError.replaceAll("Exception: ", "").trim();
-    if (cleanMsg.contains("FileNotFoundError") || cleanMsg.contains("no longer available")) {
-      cleanMsg = "The selected template preset is currently unavailable on the master engine. Please choose another preset.";
-    }
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.panelCream,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.vuRed, width: 1.5),
-        ),
-        title: Row(
-          children: const [
-            Icon(Icons.warning_amber_rounded, color: AppColors.vuRed, size: 24),
-            SizedBox(width: 8),
-            Text(
-              "Something went wrong",
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.w900,
-                fontSize: 13,
-                letterSpacing: 1.0,
-                color: AppColors.textEngraved,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              cleanMsg,
-              style: const TextStyle(fontSize: 12, height: 1.4, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              "Your photos and settings are still loaded. Try again.",
-              style: TextStyle(fontSize: 10, color: AppColors.textMuted),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("DISMISS", style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
-          ),
-          if (onRetry != null)
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brassGold,
-                foregroundColor: AppColors.hardwareGunmetal,
-              ),
-              icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text("RETRY", style: TextStyle(fontWeight: FontWeight.w900)),
-              onPressed: () {
-                Navigator.pop(ctx);
-                onRetry();
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _showSuccessDialog(String videoPath, {String? templateName, String? quality}) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.panelCream,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.brassGold, width: 1.5),
-        ),
-        title: Row(
-          children: const [
-            Icon(Icons.check_circle_rounded, color: AppColors.vuGreen),
-            SizedBox(width: 8),
-            Text("Your Reel is Ready! 🎬", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppColors.textEngraved)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Your beat-synced reel is ready to watch and share.",
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Saved: ${videoPath.split(Platform.pathSeparator).last}",
-              style: const TextStyle(fontSize: 10, fontFamily: 'Courier', color: AppColors.textMuted),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              setState(() => _currentMode = "vault");
-            },
-            child: const Text("VIEW REELS", style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
-          ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brassGold,
-              foregroundColor: AppColors.hardwareGunmetal,
-            ),
-            icon: const Icon(Icons.play_arrow_rounded, size: 18),
-            label: const Text("PLAY ▶", style: TextStyle(fontWeight: FontWeight.w900)),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await _audioPlayer.pause();
-              if (!mounted) return;
-              setState(() => _isPlayingAudio = false);
-              VideoPreviewDialog.show(
-                context,
-                videoPath: videoPath,
-                templateName: templateName,
-                quality: quality,
-              );
-            },
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -656,46 +684,57 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Image.asset(
-                            'assets/images/snapbeat_logo_crop.png',
-                            height: 38,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'SNAPBEAT',
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.2,
-                                  color: AppColors.textEngraved,
-                                  shadows: [
-                                    Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
-                                  ],
-                                ),
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              'assets/images/snapbeat_logo_crop.png',
+                              height: 36,
+                              fit: BoxFit.contain,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Text(
+                                    'SNAPBEAT',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      color: AppColors.textEngraved,
+                                      shadows: [
+                                        Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    'Your Photos. Your Music. Synced.',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 7.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.3,
+                                      color: AppColors.textSecondary,
+                                      shadows: [
+                                        Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                'Your Photos. Your Music. Perfectly Synced.',
-                                style: TextStyle(
-                                  fontSize: 7.5,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                  color: AppColors.textSecondary,
-                                  shadows: [
-                                    Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       // Right Action Group: Privacy Policy Shield + Credit Passes Badge
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -708,11 +747,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             constraints: const BoxConstraints(),
                             onPressed: () => PrivacyPolicyDialog.show(context),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           GestureDetector(
                             onTap: () => StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {})),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                               decoration: BoxDecoration(
                                 color: AppColors.panelCream,
                                 borderRadius: BorderRadius.circular(20),
@@ -722,6 +761,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Text('⚡', style: TextStyle(fontSize: 12)),
                                   const SizedBox(width: 4),
@@ -729,7 +769,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     '${cm.credits} PASSES',
                                     style: const TextStyle(
                                       fontFamily: 'Montserrat',
-                                      fontSize: 10,
+                                      fontSize: 9.5,
                                       fontWeight: FontWeight.w900,
                                       color: AppColors.textEngraved,
                                     ),
@@ -806,6 +846,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           arrangementMode: _arrangementMode,
                           onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
                           onLoadSample: _loadSamplePhotos,
+                          onAutoShuffle: _autoShufflePhotos,
                         ),
 
                         // 4. Pro Controls or Auto Magic Plate
@@ -825,6 +866,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
                             titleDuration: _titleDuration,
                             onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
+                            titleFont: _titleFont,
+                            onSelectTitleFont: (f) => setState(() => _titleFont = f),
+                            titleStyle: _titleStyle,
+                            onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
+                            titleFrame: _titleFrame,
+                            onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
                           ),
                       ] else ...[
                         // Vault Jobs List
@@ -842,58 +889,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
               ],
             ),
-
-            // Live Rendering Modal Overlay
-            if (_isRendering)
-              Container(
-                color: Colors.black54,
-                child: Center(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppColors.panelCream,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.brassGold, width: 2),
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black45, offset: Offset(2, 4), blurRadius: 12),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CircularProgressIndicator(color: AppColors.brassGold),
-                        const SizedBox(height: 18),
-                        const Text(
-                          "Creating your reel...",
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.2,
-                            color: AppColors.textEngraved,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Uploading & rendering... ${(_renderProgress * 100).toInt()}%",
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: _renderProgress,
-                            backgroundColor: AppColors.panelInset,
-                            color: AppColors.amberJewel,
-                            minHeight: 6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -1179,11 +1174,11 @@ class _HomeScreenState extends State<HomeScreen> {
           border: Border.all(color: AppColors.chassisBevelDark),
         ),
         child: Column(
-          children: const [
-            Icon(Icons.movie_creation_outlined, size: 48, color: AppColors.textMuted),
-            SizedBox(height: 12),
-            Text(
-              "No reels yet",
+          children: [
+            const Icon(Icons.movie_creation_outlined, size: 48, color: AppColors.textMuted),
+            const SizedBox(height: 12),
+            const Text(
+              "NO REELS YET",
               style: TextStyle(
                 fontFamily: 'Montserrat',
                 fontSize: 13,
@@ -1192,101 +1187,378 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.textEngraved,
               ),
             ),
-            SizedBox(height: 6),
-            Text(
-              "Your rendered reels will appear here.",
+            const SizedBox(height: 6),
+            const Text(
+              "Your rendered reels will appear here.\nSelect photos & music to create your first reel!",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brassGold,
+                foregroundColor: AppColors.hardwareGunmetal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              icon: const Icon(Icons.auto_awesome, size: 16),
+              label: const Text("CREATE REEL", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+              onPressed: () => setState(() => _currentMode = "auto"),
             ),
           ],
         ),
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: jobs.length,
-      itemBuilder: (ctx, i) {
-        final job = jobs[i];
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () async {
-            if (job.videoPath != null) {
-              await _audioPlayer.pause();
-              if (!mounted) return;
-              setState(() => _isPlayingAudio = false);
-              VideoPreviewDialog.show(
-                context,
-                videoPath: job.videoPath!,
-                templateName: job.templateName,
-                quality: job.quality,
-              );
-            }
-          },
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.panelCream,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.chassisBevelDark),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.movie_outlined, color: AppColors.brassGold),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+    final activeJobs = jobs.where((j) => j.status == "PROCESSING").toList();
+    final completedJobs = jobs.where((j) => j.status == "READY").toList();
+    final failedJobs = jobs.where((j) => j.status == "FAILED").toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Top banner in Vault allowing scheduling another job
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.panelCreamDark,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.chassisBevelLight),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.video_library_rounded, size: 16, color: AppColors.brassGold),
+                  SizedBox(width: 8),
+                  Text(
+                    "MY REELS & QUEUE",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: AppColors.textEngraved,
+                    ),
+                  ),
+                ],
+              ),
+              GestureDetector(
+                onTap: () => setState(() => _currentMode = "auto"),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.brassGold,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.add_rounded, size: 14, color: AppColors.hardwareGunmetal),
+                      SizedBox(width: 2),
                       Text(
-                        job.templateName.toUpperCase(),
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.textEngraved),
-                      ),
-                      Text(
-                        "Quality: ${job.quality} • Status: ${job.status}",
-                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                        "NEW REEL",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.hardwareGunmetal,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                if (job.videoPath != null)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.brassKnobGradient,
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          offset: const Offset(1, 2),
-                          blurRadius: 3,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.play_arrow_rounded, color: AppColors.hardwareGunmetal, size: 16),
-                        SizedBox(width: 2),
-                        Text(
-                          "PLAY",
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.hardwareGunmetal,
-                          ),
-                        ),
-                      ],
-                    ),
+              ),
+            ],
+          ),
+        ),
+
+        // Active Rendering Jobs (shown at top with live progress)
+        if (activeJobs.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.amberJewel,
                   ),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  "PROCESSING IN BACKGROUND",
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                    color: AppColors.amberJewel,
+                  ),
+                ),
               ],
             ),
           ),
-        );
+          ...activeJobs.map((job) => _buildActiveJobCard(job)),
+        ],
+
+        // Completed / Ready Reels
+        if (completedJobs.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+            child: Text(
+              "COMPLETED (${completedJobs.length})",
+              style: const TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.8,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          ...completedJobs.map((job) => _buildReadyJobCard(job)),
+        ],
+
+        // Failed Jobs (if any)
+        if (failedJobs.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+            child: Text(
+              "FAILED (${failedJobs.length})",
+              style: const TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.8,
+                color: AppColors.vuRed,
+              ),
+            ),
+          ),
+          ...failedJobs.map((job) => _buildFailedJobCard(job)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildActiveJobCard(QueueJobItem job) {
+    final percent = (job.progress * 100).clamp(0, 99).toInt();
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.panelCream,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.brassGold, width: 1.8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.amberGlow.withValues(alpha: 0.4),
+            offset: const Offset(0, 3),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(color: AppColors.brassGold, strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    job.templateName.toUpperCase(),
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                      color: AppColors.textEngraved,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.amberJewel.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.amberJewel, width: 1),
+                ),
+                child: Text(
+                  "$percent%",
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.amberJewel,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: job.progress.clamp(0.05, 1.0),
+              backgroundColor: AppColors.panelInset,
+              color: AppColors.amberJewel,
+              minHeight: 6,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Quality: ${job.quality} • Syncing frames & beats...",
+                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+              ),
+              Text(
+                DateFormat('hh:mm a').format(job.createdAt),
+                style: const TextStyle(fontSize: 9, color: AppColors.textMuted),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadyJobCard(QueueJobItem job) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () async {
+        if (job.videoPath != null) {
+          await _audioPlayer.pause();
+          if (!mounted) return;
+          setState(() => _isPlayingAudio = false);
+          VideoPreviewDialog.show(
+            context,
+            videoPath: job.videoPath!,
+            templateName: job.templateName,
+            quality: job.quality,
+          );
+        }
       },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.panelCream,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.chassisBevelDark),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.vuGreen.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle_rounded, color: AppColors.vuGreen, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    job.templateName.toUpperCase(),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.textEngraved),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "Quality: ${job.quality} • ${DateFormat('MMM d, hh:mm a').format(job.createdAt)}",
+                    style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                  ),
+                ],
+              ),
+            ),
+            if (job.videoPath != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: AppColors.brassKnobGradient,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      offset: const Offset(1, 2),
+                      blurRadius: 3,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.play_arrow_rounded, color: AppColors.hardwareGunmetal, size: 16),
+                    SizedBox(width: 2),
+                    Text(
+                      "PLAY",
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.hardwareGunmetal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.textMuted),
+              onPressed: () => qm.deleteJob(job.id),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFailedJobCard(QueueJobItem job) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.panelCream,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppColors.vuRed, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  job.templateName.toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.textEngraved),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  job.error ?? "Render error occurred",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, color: AppColors.vuRed),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.textMuted),
+            onPressed: () => qm.deleteJob(job.id),
+          ),
+        ],
+      ),
     );
   }
 }

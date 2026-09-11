@@ -11,6 +11,7 @@ class SnapsReorderStrip extends StatelessWidget {
   final String arrangementMode;
   final Function(String mode) onArrangementModeChanged;
   final VoidCallback? onLoadSample;
+  final VoidCallback? onAutoShuffle;
 
   const SnapsReorderStrip({
     super.key,
@@ -21,6 +22,7 @@ class SnapsReorderStrip extends StatelessWidget {
     required this.arrangementMode,
     required this.onArrangementModeChanged,
     this.onLoadSample,
+    this.onAutoShuffle,
   });
 
   @override
@@ -141,6 +143,65 @@ class SnapsReorderStrip extends StatelessWidget {
               ),
             ],
           ),
+
+          // Ordering Mode Bar: AUTO vs MANUAL + Drag Hint
+          if (photos.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.panelInset,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.chassisBevelDark),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _buildOrderingModeChip('auto', 'AUTO', Icons.auto_mode_rounded),
+                      const SizedBox(width: 4),
+                      _buildOrderingModeChip('manual', 'MANUAL', Icons.pan_tool_alt_rounded),
+                    ],
+                  ),
+                  if (arrangementMode == 'manual')
+                    Row(
+                      children: const [
+                        Icon(Icons.swap_horiz_rounded, size: 14, color: AppColors.amberJewel),
+                        SizedBox(width: 4),
+                        Text(
+                          'HOLD & DRAG TO REORDER',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                            color: AppColors.amberJewel,
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (onAutoShuffle != null)
+                    GestureDetector(
+                      onTap: onAutoShuffle,
+                      child: Row(
+                        children: const [
+                          Icon(Icons.shuffle_rounded, size: 13, color: AppColors.brassGold),
+                          SizedBox(width: 4),
+                          Text(
+                            'SHUFFLE',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.brassGold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
 
           // Slides Horizontal Carousel
@@ -188,7 +249,10 @@ class SnapsReorderStrip extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.panelCreamDark,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.metalBrushedDark, width: 1.5),
+                          border: Border.all(
+                            color: arrangementMode == 'manual' ? AppColors.brassGold : AppColors.metalBrushedDark,
+                            width: arrangementMode == 'manual' ? 1.8 : 1.5,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.4),
@@ -236,6 +300,12 @@ class SnapsReorderStrip extends StatelessWidget {
                                       color: AppColors.textSecondary,
                                     ),
                                   ),
+                                  if (arrangementMode == 'manual')
+                                    const Icon(
+                                      Icons.drag_indicator_rounded,
+                                      size: 14,
+                                      color: AppColors.amberJewel,
+                                    ),
                                 ],
                               ),
                             ),
@@ -262,6 +332,41 @@ class SnapsReorderStrip extends StatelessWidget {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOrderingModeChip(String mode, String label, IconData icon) {
+    final isSel = arrangementMode == mode;
+    return GestureDetector(
+      onTap: () => onArrangementModeChanged(mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSel ? AppColors.brassGold : AppColors.panelCreamDark,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSel ? AppColors.borderBrass : AppColors.chassisBevelLight,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 11,
+              color: isSel ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: isSel ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

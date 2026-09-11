@@ -22,9 +22,9 @@ class MetalChassisScaffold extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. High-resolution brushed metal plate texture from splash screen
+          // 1. High-resolution clean brushed metal plate texture from wishlist
           Image.asset(
-            'assets/images/metal_plate_bg.webp',
+            'assets/images/brushed_metal_background.jpg',
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
               decoration: const BoxDecoration(
