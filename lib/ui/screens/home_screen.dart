@@ -400,8 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String tId;
       String tDisplayName;
       if (_currentMode == "auto") {
-        // Roll a fresh template and visibly display it
-        _rollAutoTemplate();
+        // Use the currently displayed auto template (which the user may have spun to)
         tId = _currentAutoTemplate.id;
         tDisplayName = _currentAutoTemplate.name;
       } else {
@@ -449,6 +448,10 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() => _isRendering = false);
         _showSuccessDialog(videoPath, templateName: tDisplayName, quality: _selectedQuality);
+        // Automatically roll a new template for the NEXT render
+        if (_currentMode == "auto") {
+          _rollAutoTemplate();
+        }
       }
     } catch (e) {
       if (mounted) {
