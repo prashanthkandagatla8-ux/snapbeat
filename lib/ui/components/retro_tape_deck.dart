@@ -11,7 +11,6 @@ class RetroTapeDeck extends StatefulWidget {
   final VoidCallback onTogglePlay;
   final VoidCallback onPickAudio;
   final VoidCallback onLoadSample;
-  final VoidCallback? onQuickDemo;
 
   const RetroTapeDeck({
     super.key,
@@ -22,7 +21,6 @@ class RetroTapeDeck extends StatefulWidget {
     required this.onTogglePlay,
     required this.onPickAudio,
     required this.onLoadSample,
-    this.onQuickDemo,
   });
 
   @override
@@ -260,7 +258,9 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            hasTrack ? 'Step 1 Ready • Tap play to preview audio' : 'Step 1 • Pick track to unlock Step 2 Photos',
+                            hasTrack
+                                ? 'Default track ready • Change if needed, or tap play'
+                                : 'Step 1 • Pick track to unlock Step 2 Photos',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -278,19 +278,9 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
 
                 const SizedBox(height: 12),
 
-                // Row 2: Audio Source Buttons (DEMO, LIBRARY, FILES) below audio description
+                // Row 2: Audio Source Buttons (LIBRARY, OWN TRACK)
                 Row(
                   children: [
-                    if (widget.onQuickDemo != null) ...[
-                      Expanded(
-                        child: _RetroMiniButton(
-                          label: 'DEMO',
-                          icon: Icons.auto_awesome,
-                          onTap: widget.onQuickDemo!,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
                     Expanded(
                       child: _RetroMiniButton(
                         label: 'LIBRARY',
@@ -298,11 +288,11 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                         onTap: widget.onLoadSample,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: _RetroMiniButton(
-                        label: 'FILES',
-                        icon: Icons.file_upload_outlined,
+                        label: 'OWN TRACK',
+                        icon: Icons.audio_file_rounded,
                         onTap: widget.onPickAudio,
                       ),
                     ),

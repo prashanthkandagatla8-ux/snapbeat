@@ -253,6 +253,12 @@ class HomeScreenState extends State<HomeScreen> {
       _audioDuration = 58.0;
       _audioStart = 0.0;
       _audioEnd = 15.0;
+    } else {
+      final defaultTrack = SoundTrack.builtInLibrary.first;
+      _selectedMusicTitle = '${defaultTrack.title} (${defaultTrack.bpm})';
+      _audioDuration = defaultTrack.durationSeconds;
+      _audioStart = 0.0;
+      _audioEnd = math.min(15.0, defaultTrack.durationSeconds);
     }
     if (widget.initialPhotos != null) {
       _photos.addAll(widget.initialPhotos!);
@@ -683,7 +689,6 @@ class HomeScreenState extends State<HomeScreen> {
                           onTogglePlay: _togglePlayAudio,
                           onPickAudio: _pickMusic,
                           onLoadSample: _openSoundLibrary,
-                          onQuickDemo: _loadDefaultSampleTrack,
                         ),
 
                         // Interactive Audio Waveform Trimmer (shown when music is loaded)
@@ -724,7 +729,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      "Step 1: Pick a soundtrack or tap QUICK DEMO above to begin creating your reel.",
+                                      "Loading default soundtrack... Tap LIBRARY or OWN TRACK if you want to change it.",
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
