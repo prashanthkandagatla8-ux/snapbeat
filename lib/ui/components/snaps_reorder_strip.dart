@@ -230,16 +230,18 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                           ),
                           const SizedBox(width: 6),
                           Flexible(
-                            child: Text(
-                              photos.length >= maxPhotos ? 'FULL ($maxPhotos MAX)' : 'ADD PHOTOS (+)',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.8,
-                                color: photos.length >= maxPhotos ? AppColors.textMuted : const Color(0xFF1E1A10),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                photos.length >= maxPhotos ? 'FULL ($maxPhotos MAX)' : 'ADD PHOTOS (+)',
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6,
+                                  color: photos.length >= maxPhotos ? AppColors.textMuted : const Color(0xFF1E1A10),
+                                ),
                               ),
                             ),
                           ),

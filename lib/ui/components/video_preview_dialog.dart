@@ -274,9 +274,9 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                   ),
                 ),
               ),
-              // Controls Row
+              // Controls Section (2-Row Layout: NEVER overflows or floats outside)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 decoration: const BoxDecoration(
                   color: AppColors.panelCream,
                   borderRadius: BorderRadius.only(
@@ -284,104 +284,164 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     bottomRight: Radius.circular(14),
                   ),
                 ),
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Play/Pause button
-                    IconButton(
-                      icon: Icon(
-                        _controller.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        color: AppColors.textEngraved,
-                        size: 28,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          if (_controller.value.isPlaying) {
-                            _controller.pause();
-                          } else {
-                            _controller.play();
-                          }
-                        });
-                      },
+                    // Row 1: Play/Pause, Timecode Readout, and Close Button
+                    Row(
+                      children: [
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            _controller.value.isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
+                            color: AppColors.textEngraved,
+                            size: 32,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (_controller.value.isPlaying) {
+                                _controller.pause();
+                              } else {
+                                _controller.play();
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        // Nixie Timecode Readout
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.canvasChassis,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppColors.chassisBevelDark, width: 1.0),
+                          ),
+                          child: Text(
+                            "${_formatDuration(_controller.value.position)} / ${_formatDuration(_controller.value.duration)}",
+                            style: const TextStyle(
+                              fontFamily: 'Courier',
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.amberJewel,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            backgroundColor: AppColors.panelCreamDark,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              side: const BorderSide(color: AppColors.chassisBevelLight),
+                            ),
+                          ),
+                          icon: const Icon(Icons.close_rounded, size: 15, color: AppColors.textEngraved),
+                          label: const Text(
+                            "CLOSE",
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textEngraved,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    // Nixie Timecode Readout
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.canvasChassis,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.chassisBevelDark, width: 1.0),
-                      ),
-                      child: Text(
-                        "${_formatDuration(_controller.value.position)} / ${_formatDuration(_controller.value.duration)}",
-                        style: const TextStyle(
-                          fontFamily: 'Courier',
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.amberJewel,
-                          letterSpacing: 1.0,
+                    const SizedBox(height: 10),
+                    // Row 2: Full-Width Responsive Action Buttons (SAVE & SHARE)
+                    Row(
+                      children: [
+                        // Save to Gallery Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => ExportService.saveToGallery(
+                              context,
+                              videoPath: widget.videoPath,
+                              templateName: widget.templateName ?? 'SnapBeat',
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                              decoration: BoxDecoration(
+                                gradient: AppColors.brassKnobGradient,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.borderBrass, width: 1),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 2),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.download_rounded, color: AppColors.hardwareGunmetal, size: 16),
+                                  SizedBox(width: 5),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'SAVE GALLERY',
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.6,
+                                        color: AppColors.hardwareGunmetal,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const Spacer(),
-                    // Save to Gallery Button
-                    Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.panelInset,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.borderBrass, width: 1),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.download_rounded, color: AppColors.brassGold, size: 20),
-                        tooltip: 'Save to Gallery',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => ExportService.saveToGallery(
-                          context,
-                          videoPath: widget.videoPath,
-                          templateName: widget.templateName ?? 'SnapBeat',
+                        const SizedBox(width: 8),
+                        // Social Share Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => ExportService.shareReel(
+                              context,
+                              videoPath: widget.videoPath,
+                              templateName: widget.templateName ?? 'SnapBeat',
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                              decoration: BoxDecoration(
+                                color: AppColors.panelInset,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.pinkAccent, width: 1.2),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 2),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.share_rounded, color: AppColors.pinkAccent, size: 15),
+                                  SizedBox(width: 5),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'SHARE REEL',
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.6,
+                                        color: AppColors.pinkAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    // Social Share Button
-                    Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.panelInset,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.pinkAccent, width: 1),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.share_rounded, color: AppColors.pinkAccent, size: 18),
-                        tooltip: 'Share Reel',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => ExportService.shareReel(
-                          context,
-                          videoPath: widget.videoPath,
-                          templateName: widget.templateName ?? 'SnapBeat',
-                        ),
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.ctaButtonGradient,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          foregroundColor: AppColors.hardwareGunmetal,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        icon: const Icon(Icons.check_rounded, size: 16),
-                        label: const Text(
-                          "DONE",
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 0.8),
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
+                      ],
                     ),
                   ],
                 ),

@@ -156,16 +156,18 @@ class MasterActionDeck extends StatelessWidget {
                 ),
                 const SizedBox(width: 3),
                 Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 9.0,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.4,
-                      color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                        color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+                      ),
                     ),
                   ),
                 ),

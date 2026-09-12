@@ -33,8 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
       final controller = VideoPlayerController.asset('assets/videos/splash_screen.mp4');
       _controller = controller;
       await controller.initialize();
-      // Ensure zero audio for splash screen
-      await controller.setVolume(0.0);
+      await controller.setVolume(1.0);
       controller.addListener(_videoListener);
 
       if (!mounted) return;

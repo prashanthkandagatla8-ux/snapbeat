@@ -19,7 +19,6 @@ import '../components/interactive_waveform.dart';
 import '../components/snaps_reorder_strip.dart';
 import '../components/pro_controls_card.dart';
 import '../components/master_action_deck.dart';
-import '../components/splash_master_red_button.dart';
 import '../components/video_preview_dialog.dart';
 import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
@@ -863,14 +862,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                      color: Color(0xFF1E1A10),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                        color: Color(0xFF1E1A10),
+                      ),
                     ),
                   ),
                   Text(
@@ -1051,53 +1054,39 @@ class _HomeScreenState extends State<HomeScreen> {
         // 3. Job Summary Badge
         _buildJobSummaryCard(),
 
-        // 4. Master Launch Deck with Iconic Red Button
-        Container(
-          margin: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          decoration: BoxDecoration(
-            color: AppColors.panelCreamDark,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.brassGold, width: 1.5),
-            boxShadow: const [
-              BoxShadow(color: Colors.black12, offset: Offset(0, 3), blurRadius: 6),
-            ],
-          ),
-          child: Column(
-            children: [
-              SplashMasterRedButton(
-                size: 100,
-                isEnabled: _selectedMusic != null && _photos.isNotEmpty,
-                onTap: _triggerMasterReel,
-              ),
-              const SizedBox(height: 14),
-              InkWell(
-                onTap: _triggerMasterReel,
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFFF3366), Color(0xFFD6184C)],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFB0103C), width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF3366).withValues(alpha: 0.35),
-                        offset: const Offset(0, 2),
-                        blurRadius: 6,
-                      ),
-                    ],
+        // 4. Render Reel Launch Button (clean, tactile, fully responsive)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: InkWell(
+            onTap: _triggerMasterReel,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFF3366), Color(0xFFD6184C)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFB0103C), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF3366).withValues(alpha: 0.35),
+                    offset: const Offset(0, 3),
+                    blurRadius: 8,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.bolt_rounded, size: 20, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Text(
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.bolt_rounded, size: 20, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
                         "RENDER REEL NOW (${_photos.length} SNAPS)",
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
@@ -1107,11 +1096,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.white,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ],
@@ -1174,14 +1163,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF5A554D),
               ),
               const SizedBox(width: 5),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                  color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -1779,14 +1773,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Icon(Icons.play_arrow_rounded, color: AppColors.hardwareGunmetal, size: 18),
                           SizedBox(width: 4),
-                          Text(
-                            "PLAY",
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.hardwareGunmetal,
-                              letterSpacing: 0.8,
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "PLAY",
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.hardwareGunmetal,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -1817,14 +1816,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Icon(Icons.download_rounded, color: AppColors.brassGold, size: 16),
                           SizedBox(width: 4),
-                          Text(
-                            "SAVE",
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textEngraved,
-                              letterSpacing: 0.6,
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "SAVE",
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textEngraved,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -1855,14 +1859,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Icon(Icons.share_rounded, color: AppColors.pinkAccent, size: 16),
                           SizedBox(width: 4),
-                          Text(
-                            "SHARE",
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.pinkAccent,
-                              letterSpacing: 0.6,
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "SHARE",
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.pinkAccent,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
                             ),
                           ),
                         ],
