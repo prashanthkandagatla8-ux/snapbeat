@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -117,6 +117,16 @@ class SoundTrack {
       assetPath: 'assets/audio/heavy_bass_dubstep.mp3',
       durationSeconds: 126.0,
       fileName: 'heavy_bass_dubstep.mp3',
+    ),
+    SoundTrack(
+      id: 'little_do_you_know',
+      title: 'Little Do You Know',
+      genre: 'Cinematic / Emotional Beat',
+      bpm: '74 BPM',
+      vibe: 'Atmospheric piano chords and emotive slow-burn rhythm for storytelling',
+      assetPath: 'assets/audio/little_do_you_know.mp3',
+      durationSeconds: 154.0,
+      fileName: 'little_do_you_know.mp3',
     ),
   ];
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:file_picker/file_picker.dart';
@@ -24,15 +25,31 @@ import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
 import '../components/metal_chassis_scaffold.dart';
 import '../components/snapbeat_pink_dot.dart';
+import '../components/retro_mechanical_button.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String initialTab;
+  final String initialRenderMode;
+  final File? initialMusic;
+  final String? initialMusicTitle;
+  final List<PhotoItem>? initialPhotos;
+
+  static ui.Image? logoUiImage;
+
+  const HomeScreen({
+    super.key,
+    this.initialTab = "music",
+    this.initialRenderMode = "auto",
+    this.initialMusic,
+    this.initialMusicTitle,
+    this.initialPhotos,
+  });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final cm = CreditManager.instance;
   final qm = QueueManager.instance;
   final api = ApiService.instance;
@@ -44,6 +61,31 @@ class _HomeScreenState extends State<HomeScreen> {
   String _renderMode = "auto"; // "auto", "pro"
   File? _selectedMusic;
   String _selectedMusicTitle = "";
+
+  void setScreenshotState({
+    String? currentTab,
+    String? renderMode,
+    File? musicFile,
+    String? musicTitle,
+    List<PhotoItem>? photos,
+    String? selectedTemplate,
+    String? selectedAspectRatio,
+    String? selectedQuality,
+  }) {
+    setState(() {
+      if (currentTab != null) _currentTab = currentTab;
+      if (renderMode != null) _renderMode = renderMode;
+      if (musicFile != null) _selectedMusic = musicFile;
+      if (musicTitle != null) _selectedMusicTitle = musicTitle;
+      if (photos != null) {
+        _photos.clear();
+        _photos.addAll(photos);
+      }
+      if (selectedTemplate != null) _selectedTemplate = selectedTemplate;
+      if (selectedAspectRatio != null) _selectedAspectRatio = selectedAspectRatio;
+      if (selectedQuality != null) _selectedQuality = selectedQuality;
+    });
+  }
   final List<PhotoItem> _photos = [];
   String _selectedTemplate = "beat-cut";
   String _selectedAspectRatio = "9:16";
@@ -122,6 +164,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _currentTab = widget.initialTab;
+    _renderMode = widget.initialRenderMode;
+    if (widget.initialMusic != null) {
+      _selectedMusic = widget.initialMusic;
+      _selectedMusicTitle = widget.initialMusicTitle ?? "";
+      _audioDuration = 58.0;
+      _audioStart = 0.0;
+      _audioEnd = 15.0;
+    }
+    if (widget.initialPhotos != null) {
+      _photos.addAll(widget.initialPhotos!);
+    }
     _rollAutoTemplate();
     qm.addListener(_onQueueChanged);
     _initData();
@@ -621,11 +675,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             const SnapBeatPinkDot(size: 14, withGlow: true),
                             const SizedBox(width: 8),
-                            Image.asset(
-                              'assets/images/snapbeat_logo.png',
-                              height: 42,
-                              fit: BoxFit.contain,
-                            ),
+                            HomeScreen.logoUiImage != null
+                                ? RawImage(
+                                    image: HomeScreen.logoUiImage,
+                                    height: 42,
+                                    fit: BoxFit.contain,
+                                  )
+                                : Image.asset(
+                                    'assets/images/snapbeat_logo.png',
+                                    height: 42,
+                                    fit: BoxFit.contain,
+                                  ),
                           ],
                         ),
                       ),
@@ -1054,53 +1114,30 @@ class _HomeScreenState extends State<HomeScreen> {
         // 3. Job Summary Badge
         _buildJobSummaryCard(),
 
-        // 4. Render Reel Launch Button (clean, tactile, fully responsive)
+        // 4. Render Reel Launch Button (Tactile 3D Skeuomorphic Button)
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          child: InkWell(
-            onTap: _triggerMasterReel,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFF3366), Color(0xFFD6184C)],
+          child: Column(
+            children: [
+              Center(
+                child: RetroMechanicalButton(
+                  variant: RetroButtonVariant.render,
+                  height: 72,
+                  onTap: _triggerMasterReel,
                 ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFB0103C), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF3366).withValues(alpha: 0.35),
-                    offset: const Offset(0, 3),
-                    blurRadius: 8,
-                  ),
-                ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.bolt_rounded, size: 20, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        "RENDER REEL NOW (${_photos.length} SNAPS)",
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 6),
+              Text(
+                "READY TO SYNC ${_photos.length} SNAPS TO BEAT",
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.9,
+                  color: AppColors.textMuted,
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ],
@@ -1741,8 +1778,9 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 // 1. PLAY BUTTON
                 Expanded(
-                  flex: 3,
-                  child: InkWell(
+                  child: RetroMechanicalButton(
+                    variant: RetroButtonVariant.play,
+                    height: 44,
                     onTap: () async {
                       await _audioPlayer.pause();
                       if (!mounted) return;
@@ -1754,129 +1792,41 @@ class _HomeScreenState extends State<HomeScreen> {
                         quality: job.quality,
                       );
                     },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: AppColors.brassKnobGradient,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            offset: const Offset(1, 2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.play_arrow_rounded, color: AppColors.hardwareGunmetal, size: 18),
-                          SizedBox(width: 4),
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                "PLAY",
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.hardwareGunmetal,
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                // 2. SAVE TO GALLERY BUTTON
+                const SizedBox(width: 6),
+                // 2. SAVE TO GALLERY (DOWNLOAD)
                 Expanded(
-                  flex: 3,
-                  child: InkWell(
+                  child: RetroMechanicalButton(
+                    variant: RetroButtonVariant.download,
+                    height: 44,
                     onTap: () => ExportService.saveToGallery(
                       context,
                       videoPath: job.videoPath!,
                       templateName: job.templateName,
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.panelCreamDark,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.borderBrass, width: 1.2),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.download_rounded, color: AppColors.brassGold, size: 16),
-                          SizedBox(width: 4),
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                "SAVE",
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textEngraved,
-                                  letterSpacing: 0.6,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                // 3. SOCIAL SHARE BUTTON
+                const SizedBox(width: 6),
+                // 3. SOCIAL SHARE
                 Expanded(
-                  flex: 3,
-                  child: InkWell(
+                  child: RetroMechanicalButton(
+                    variant: RetroButtonVariant.share,
+                    height: 44,
                     onTap: () => ExportService.shareReel(
                       context,
                       videoPath: job.videoPath!,
                       templateName: job.templateName,
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.panelCreamDark,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.pinkAccent, width: 1.2),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.share_rounded, color: AppColors.pinkAccent, size: 16),
-                          SizedBox(width: 4),
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                "SHARE",
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.pinkAccent,
-                                  letterSpacing: 0.6,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // 4. DELETE
+                Expanded(
+                  child: RetroMechanicalButton(
+                    variant: RetroButtonVariant.delete,
+                    height: 44,
+                    onTap: () => qm.deleteJob(job.id),
                   ),
                 ),
               ],
@@ -1918,9 +1868,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.textMuted),
-            onPressed: () => qm.deleteJob(job.id),
+          RetroMechanicalButton(
+            variant: RetroButtonVariant.delete,
+            height: 36,
+            onTap: () => qm.deleteJob(job.id),
           ),
         ],
       ),

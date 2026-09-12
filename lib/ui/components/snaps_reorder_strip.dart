@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
@@ -16,6 +17,8 @@ class SnapsReorderStrip extends StatefulWidget {
   final bool isEnabled;
   final int maxPhotos;
   final VoidCallback? onPromptSelectMusic;
+
+  static final Map<String, ui.Image> photoImageCache = {};
 
   const SnapsReorderStrip({
     super.key,
@@ -594,19 +597,26 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   padding: const EdgeInsets.fromLTRB(6, 6, 6, 2),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: Image.file(
-                      File(p.path),
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: AppColors.panelInset,
-                          alignment: Alignment.center,
-                          child: const Icon(Icons.broken_image_rounded, size: 28, color: AppColors.textMuted),
-                        );
-                      },
-                    ),
+                    child: SnapsReorderStrip.photoImageCache[p.path] != null
+                        ? RawImage(
+                            image: SnapsReorderStrip.photoImageCache[p.path],
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            File(p.path),
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: AppColors.panelInset,
+                                alignment: Alignment.center,
+                                child: const Icon(Icons.broken_image_rounded, size: 28, color: AppColors.textMuted),
+                              );
+                            },
+                          ),
                   ),
                 ),
                 // Tactile Delete Pin Button (top-right)

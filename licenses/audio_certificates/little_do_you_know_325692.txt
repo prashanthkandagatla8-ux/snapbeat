@@ -1,0 +1,34 @@
+﻿================================================================================
+SNAPBEAT AUDIO CONTENT LICENSE CERTIFICATE
+================================================================================
+
+Track: Little Do You Know (Beat Cry)
+Creator: fordrums2theobjecthingy
+Pixabay URL: https://pixabay.com/sound-effects/film-special-effects-little-do-you-know-beat-cry-sound-effect-325692/
+Pixabay Item ID: 325692
+Downloaded: September 12, 2026
+License: Pixabay Content License
+Usage: Embedded in generated BeatSync / SnapBeat videos
+Standalone MP3 distribution: No
+
+--------------------------------------------------------------------------------
+AUDIO SPECIFICATIONS:
+--------------------------------------------------------------------------------
+Format: MPEG-1 Audio Layer 3 (MP3)
+Sample Rate: 44,100 Hz (Stereo)
+Bitrate: 256 kbps
+Duration: 154.17 seconds (02:34)
+Tempo / BPM: 74 BPM
+Asset Path: assets/audio/little_do_you_know.mp3
+File Size: 4,933,590 bytes
+
+--------------------------------------------------------------------------------
+TERMS OF USE SUMMARY:
+--------------------------------------------------------------------------------
+- Licensed under the Pixabay Content License.
+- Authorized for commercial and non-commercial usage within multimedia productions.
+- Audio is packaged within the SnapBeat application solely for synchronizing
+  user photographs to audio rhythms in exported video reels.
+- The raw audio file is not redistributed, resold, or sublicensed as a standalone
+  soundtrack or audio file.
+================================================================================

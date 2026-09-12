@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'hardware_accents.dart';
 
@@ -5,6 +6,8 @@ class MetalChassisScaffold extends StatelessWidget {
   final Widget body;
   final PreferredSizeWidget? appBar;
   final Widget? bottomNavigationBar;
+
+  static ui.Image? backgroundUiImage;
 
   const MetalChassisScaffold({
     super.key,
@@ -23,10 +26,15 @@ class MetalChassisScaffold extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // 1. High-resolution clean brushed metal plate texture from wishlist
-          Image.asset(
-            'assets/images/brushed_metal_background.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
+          backgroundUiImage != null
+              ? RawImage(
+                  image: backgroundUiImage,
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  'assets/images/brushed_metal_background.jpg',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,

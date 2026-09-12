@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../theme/app_colors.dart';
 import '../../services/export_service.dart';
+import 'retro_mechanical_button.dart';
 
 class VideoPreviewDialog extends StatefulWidget {
   final String videoPath;
@@ -358,86 +359,28 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     // Row 2: Full-Width Responsive Action Buttons (SAVE & SHARE)
                     Row(
                       children: [
-                        // Save to Gallery Button
+                        // Save to Gallery Button (DOWNLOAD)
                         Expanded(
-                          child: GestureDetector(
+                          child: RetroMechanicalButton(
+                            variant: RetroButtonVariant.download,
+                            height: 48,
                             onTap: () => ExportService.saveToGallery(
                               context,
                               videoPath: widget.videoPath,
                               templateName: widget.templateName ?? 'SnapBeat',
                             ),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-                              decoration: BoxDecoration(
-                                gradient: AppColors.brassKnobGradient,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.borderBrass, width: 1),
-                                boxShadow: const [
-                                  BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 2),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(Icons.download_rounded, color: AppColors.hardwareGunmetal, size: 16),
-                                  SizedBox(width: 5),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      'SAVE GALLERY',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.6,
-                                        color: AppColors.hardwareGunmetal,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        // Social Share Button
+                        const SizedBox(width: 10),
+                        // Social Share Button (SHARE)
                         Expanded(
-                          child: GestureDetector(
+                          child: RetroMechanicalButton(
+                            variant: RetroButtonVariant.share,
+                            height: 48,
                             onTap: () => ExportService.shareReel(
                               context,
                               videoPath: widget.videoPath,
                               templateName: widget.templateName ?? 'SnapBeat',
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-                              decoration: BoxDecoration(
-                                color: AppColors.panelInset,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.pinkAccent, width: 1.2),
-                                boxShadow: const [
-                                  BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 2),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(Icons.share_rounded, color: AppColors.pinkAccent, size: 15),
-                                  SizedBox(width: 5),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      'SHARE REEL',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.6,
-                                        color: AppColors.pinkAccent,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
                           ),
                         ),

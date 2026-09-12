@@ -106,38 +106,44 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const SnapBeatPinkDot(size: 13, withGlow: true),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.brassGold,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            '1. MUSIC',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.hardwareGunmetal,
-                              letterSpacing: 1.2,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const SnapBeatPinkDot(size: 13, withGlow: true),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.brassGold,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              '1. MUSIC',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.hardwareGunmetal,
+                                letterSpacing: 1.2,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          hasTrack ? 'READY' : 'REQUIRED FIRST',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.0,
-                            color: hasTrack ? AppColors.amberJewel : AppColors.textMuted,
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              hasTrack ? 'READY' : 'REQUIRED FIRST',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                                color: hasTrack ? AppColors.amberJewel : AppColors.textMuted,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     // Mechanical Counter Window
                     Container(
