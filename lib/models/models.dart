@@ -61,7 +61,7 @@ class QueueJobItem {
     required this.status,
     this.videoPath,
     required this.createdAt,
-    this.quality = "1080p",
+    this.quality = "720p",
     this.progress = 0.0,
     this.error,
     this.queuePosition = 0,

@@ -101,7 +101,7 @@ class HomeScreenState extends State<HomeScreen> {
   final List<PhotoItem> _photos = [];
   String _selectedTemplate = "pendulum";
   String _selectedAspectRatio = "9:16";
-  String _selectedQuality = "1080p";
+  String _selectedQuality = "720p";
   String _arrangementMode = "sequential";
 
   /// Calculates max photos dynamically based on track duration and beat tempo.
@@ -1496,7 +1496,56 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
 
-        // 3. Job Summary Badge
+        // 3. Upcoming Templates & Advanced Modes Teaser Banner
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8.5),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF1E1A16).withValues(alpha: 0.9),
+                  const Color(0xFF2B2319).withValues(alpha: 0.9),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.45), width: 1),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 1.5),
+                  child: Icon(Icons.auto_awesome_rounded, size: 13, color: AppColors.amberJewel),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: RichText(
+                    text: const TextSpan(
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9.5,
+                        color: AppColors.textSecondary,
+                        height: 1.35,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: "Coming Soon: ",
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.amberJewel),
+                        ),
+                        TextSpan(
+                          text: "More exciting templates, advanced features and modes coming soon!",
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // 4. Job Summary Badge
         _buildJobSummaryCard(),
 
         // 4. Render Reel Launch Button (Tactile 3D Skeuomorphic Button)
@@ -1967,6 +2016,49 @@ class HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+
+        // Testing Queue Notice Banner (active during closed beta)
+        if (activeJobs.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1A16).withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4), width: 1),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 1.5),
+                  child: Icon(Icons.info_outline_rounded, size: 13, color: AppColors.amberJewel),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: RichText(
+                    text: const TextSpan(
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9.5,
+                        color: AppColors.textSecondary,
+                        height: 1.35,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: "Beta Notice: ",
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.amberJewel),
+                        ),
+                        TextSpan(
+                          text: "Free renders process sequentially (1-at-a-time) in a shared queue. Thank you for your patience! Instant priority renders arriving soon.",
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
         // Active Rendering Jobs (shown at top with live progress)
         if (activeJobs.isNotEmpty) ...[
