@@ -41,7 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   String? _focusedJobId;
 
-  String _currentMode = "auto"; // "auto", "pro", "vault"
+  String _currentTab = "music"; // "music", "photos", "render", "queue"
+  String _renderMode = "auto"; // "auto", "pro"
   File? _selectedMusic;
   String _selectedMusicTitle = "";
   final List<PhotoItem> _photos = [];
@@ -78,7 +79,6 @@ class _HomeScreenState extends State<HomeScreen> {
   double _audioStart = 0.0;
   double _audioEnd = 15.0;
   bool _isPlayingAudio = false;
-  bool _showAudioTrimmerInAuto = false;
 
   // Title Intro
   bool _enableTitle = false;
@@ -447,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     String tId;
     String tDisplayName;
-    if (_currentMode == "auto") {
+    if (_renderMode == "auto") {
       tId = _currentAutoTemplate.id;
       tDisplayName = _currentAutoTemplate.name;
     } else {
@@ -489,9 +489,9 @@ class _HomeScreenState extends State<HomeScreen> {
       cm.deductCredit();
     }
 
-    // Immediately switch user to "MY REELS" (vault) view and focus new job
+    // Immediately switch user to "QUEUE" view and focus new job (retains all photo/music selections)
     setState(() {
-      _currentMode = "vault";
+      _currentTab = "queue";
       _focusedJobId = jobId;
     });
 
@@ -753,10 +753,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _scrollController,
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
-                      if (_currentMode != "vault") ...[
-                        if (_currentMode == "auto") _buildAutoTemplateBanner(),
-
-                        // 1. Reel-to-Reel Tape Deck (STEP 1: MUSIC FIRST)
+                      if (_currentTab == "music") ...[
+                        // STAGE 1: MUSIC FIRST
                         RetroTapeDeck(
                           isPlaying: _isPlayingAudio,
                           trackTitle: _selectedMusicTitle,
@@ -768,141 +766,599 @@ class _HomeScreenState extends State<HomeScreen> {
                           onQuickDemo: _loadDefaultSampleTrack,
                         ),
 
-                        // 2. Interactive Audio Waveform Trimmer (Collapsible, shown when music is loaded)
+                        // Interactive Audio Waveform Trimmer (shown when music is loaded)
                         if (_selectedMusic != null) ...[
-                          if (_currentMode == "pro" || _showAudioTrimmerInAuto) ...[
-                            InteractiveWaveform(
-                              durationSeconds: _audioDuration,
-                              startSeconds: _audioStart,
-                              endSeconds: _audioEnd,
-                              isPlaying: _isPlayingAudio,
-                              onTogglePlay: _togglePlayAudio,
-                              onTrimChanged: (s, e) => setState(() {
-                                _audioStart = s;
-                                _audioEnd = e;
-                              }),
-                            ),
-                            if (_currentMode == "auto")
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: Center(
-                                  child: TextButton.icon(
-                                    icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 16, color: AppColors.textMuted),
-                                    label: const Text('COLLAPSE TRIMMER', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
-                                    onPressed: () => setState(() => _showAudioTrimmerInAuto = false),
-                                  ),
-                                ),
-                              ),
-                          ] else ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                              child: GestureDetector(
-                                onTap: () => setState(() => _showAudioTrimmerInAuto = true),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.panelCreamDark,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.6), width: 1),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.tune_rounded, size: 14, color: AppColors.brassGold),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            "TRIM AUDIO: ${_audioStart.toInt()}s - ${_audioEnd.toInt()}s (OPTIONAL)",
-                                            style: const TextStyle(
-                                              fontFamily: 'Montserrat',
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: 0.8,
-                                              color: AppColors.textEngraved,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textEngraved),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-
-                        // 3. 35mm Slide Mounts Curate Strip (STEP 2: PHOTOS SECOND - ONLY PHOTO BLOCK)
-                        SnapsReorderStrip(
-                          photos: _photos,
-                          isEnabled: _selectedMusic != null,
-                          maxPhotos: maxPhotosForTrack,
-                          onPromptSelectMusic: _openSoundLibrary,
-                          onAddPhotos: _pickPhotos,
-                          onReorder: (oldIdx, newIdx) {
-                            setState(() {
-                              if (newIdx > oldIdx) newIdx -= 1;
-                              final item = _photos.removeAt(oldIdx);
-                              _photos.insert(newIdx, item);
-                              _arrangementMode = 'manual';
-                            });
-                          },
-                          onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
-                          arrangementMode: _arrangementMode,
-                          onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
-                          onLoadSample: _loadSamplePhotos,
-                          onAutoShuffle: _autoShufflePhotos,
-                        ),
-
-                        // 4. Pro Controls or Auto Magic Plate
-                        if (_currentMode == "pro")
-                          ProControlsCard(
-                            selectedTemplateId: _selectedTemplate,
-                            onSelectTemplate: (t) => setState(() => _selectedTemplate = t),
-                            selectedAspectRatio: _selectedAspectRatio,
-                            onSelectAspectRatio: (r) => setState(() => _selectedAspectRatio = r),
-                            selectedQuality: _selectedQuality,
-                            onSelectQuality: (q) => setState(() => _selectedQuality = q),
-                            enableTitle: _enableTitle,
-                            onToggleTitle: (v) => setState(() => _enableTitle = v),
-                            titleText: _titleText,
-                            onTitleTextChanged: (t) => setState(() => _titleText = t),
-                            titleBg: _titleBg,
-                            onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
-                            titleDuration: _titleDuration,
-                            onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
-                            titleFont: _titleFont,
-                            onSelectTitleFont: (f) => setState(() => _titleFont = f),
-                            titleStyle: _titleStyle,
-                            onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
-                            titleFrame: _titleFrame,
-                            onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
+                          InteractiveWaveform(
+                            durationSeconds: _audioDuration,
+                            startSeconds: _audioStart,
+                            endSeconds: _audioEnd,
+                            isPlaying: _isPlayingAudio,
+                            onTogglePlay: _togglePlayAudio,
+                            onTrimChanged: (s, e) => setState(() {
+                              _audioStart = s;
+                              _audioEnd = e;
+                            }),
                           ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            child: _buildProceedButton(
+                              label: "PROCEED TO PHOTOS",
+                              subtitle: "Up to $maxPhotosForTrack snaps can fit this ${_audioEnd > _audioStart ? (_audioEnd - _audioStart).toInt() : _audioDuration.toInt()}s track",
+                              icon: Icons.photo_library_rounded,
+                              onTap: () => setState(() => _currentTab = "photos"),
+                            ),
+                          ),
+                        ] else ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.panelCreamDark,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.chassisBevelLight),
+                              ),
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.info_outline_rounded, size: 20, color: AppColors.textMuted),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      "Step 1: Pick a soundtrack or tap QUICK DEMO above to begin creating your reel.",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textSecondary,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ] else if (_currentTab == "photos") ...[
+                        // STAGE 2: PHOTOS (Curate & Arrange)
+                        if (_selectedMusic == null)
+                          _buildGatedCard(
+                            icon: Icons.library_music_rounded,
+                            title: "MUSIC REQUIRED FIRST",
+                            description: "Track duration and BPM determine the optimal photo count.\nPlease select a music track in Step 1 first.",
+                            buttonText: "GO TO MUSIC",
+                            onButtonTap: () => setState(() => _currentTab = "music"),
+                          )
+                        else ...[
+                          SnapsReorderStrip(
+                            photos: _photos,
+                            isEnabled: true,
+                            maxPhotos: maxPhotosForTrack,
+                            onPromptSelectMusic: _openSoundLibrary,
+                            onAddPhotos: _pickPhotos,
+                            onReorder: (oldIdx, newIdx) {
+                              setState(() {
+                                if (newIdx > oldIdx) newIdx -= 1;
+                                final item = _photos.removeAt(oldIdx);
+                                _photos.insert(newIdx, item);
+                                _arrangementMode = 'manual';
+                              });
+                            },
+                            onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
+                            arrangementMode: _arrangementMode,
+                            onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
+                            onLoadSample: _loadSamplePhotos,
+                            onAutoShuffle: _autoShufflePhotos,
+                          ),
+                          if (_photos.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              child: _buildProceedButton(
+                                label: "PROCEED TO RENDER OPTIONS",
+                                subtitle: "${_photos.length} photos curated and ready",
+                                icon: Icons.movie_creation_rounded,
+                                onTap: () => setState(() => _currentTab = "render"),
+                              ),
+                            ),
+                        ],
+                      ] else if (_currentTab == "render") ...[
+                        // STAGE 3: RENDER OPTIONS (Auto vs Pro)
+                        if (_selectedMusic == null)
+                          _buildGatedCard(
+                            icon: Icons.library_music_rounded,
+                            title: "MUSIC REQUIRED FIRST",
+                            description: "Please select a music track in Step 1 before configuring render options.",
+                            buttonText: "GO TO MUSIC",
+                            onButtonTap: () => setState(() => _currentTab = "music"),
+                          )
+                        else if (_photos.isEmpty)
+                          _buildGatedCard(
+                            icon: Icons.photo_library_rounded,
+                            title: "PHOTOS REQUIRED FIRST",
+                            description: "Please add at least one photo in Step 2 before configuring render options.",
+                            buttonText: "GO TO PHOTOS",
+                            onButtonTap: () => setState(() => _currentTab = "photos"),
+                          )
+                        else
+                          _buildRenderOptionsView(),
                       ] else ...[
-                        // Vault Jobs List
+                        // STAGE 4: QUEUE (Processing & Finished Reels)
                         _buildVaultView(),
                       ],
                     ],
                   ),
                 ),
 
-                // Bottom Action Deck (With Integrated Thumb Mode Switcher and RENDER [Button] NOW)
+                // Bottom Action Deck (With 4-Stage Navigation Switcher: MUSIC, PHOTOS, RENDER, QUEUE)
                 MasterActionDeck(
-                  currentMode: _currentMode,
-                  onSelectMode: (mode) {
+                  currentMode: _currentTab,
+                  onSelectMode: (tab) {
                     setState(() {
-                      _currentMode = mode;
-                      if (mode == "auto") {
+                      _currentTab = tab;
+                      if (tab == "render" && _renderMode == "auto") {
                         _rollAutoTemplate();
                       }
                     });
                   },
                   photoCount: _photos.length,
+                  hasMusic: _selectedMusic != null,
+                  isPhotosEnabled: _selectedMusic != null,
+                  isRenderEnabled: _selectedMusic != null && _photos.isNotEmpty,
+                  onDisabledTabTap: (tab) {
+                    if (tab == 'photos') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("🎵 Select a music track first to unlock photos!"),
+                          backgroundColor: AppColors.hardwareGunmetal,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } else if (tab == 'render') {
+                      final msg = _selectedMusic == null
+                          ? "🎵 Select a music track first!"
+                          : "📸 Add at least one photo to configure render options!";
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(msg),
+                          backgroundColor: AppColors.hardwareGunmetal,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
                   onTriggerMaster: _triggerMasterReel,
                   activeJobsCount: qm.activeJobs.length,
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProceedButton({
+    required String label,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 4),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: const Color(0xFF1E1A10)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: Color(0xFF1E1A10),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF4A463F),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF1E1A10)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGatedCard({
+    required IconData icon,
+    required String title,
+    required String description,
+    required String buttonText,
+    required VoidCallback onButtonTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.panelCream,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.chassisBevelDark),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.panelInset,
+              border: Border.all(color: AppColors.chassisBevelLight),
+            ),
+            child: Icon(icon, size: 36, color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+              color: AppColors.textEngraved,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
+          ),
+          const SizedBox(height: 18),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brassGold,
+              foregroundColor: AppColors.hardwareGunmetal,
+              elevation: 2,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            icon: const Icon(Icons.arrow_back_rounded, size: 16),
+            label: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+            onPressed: onButtonTap,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRenderOptionsView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. Dual Mode Toggle: AUTO vs PRO
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFB8AE9F),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFDED8CE), width: 1),
+              boxShadow: const [
+                BoxShadow(color: Colors.black12, offset: Offset(0, 1), blurRadius: 2),
+              ],
+            ),
+            child: Row(
+              children: [
+                _buildRenderModeSwitchOption(
+                  mode: "auto",
+                  label: "AUTO MODE",
+                  icon: Icons.auto_awesome_rounded,
+                  isSelected: _renderMode == "auto",
+                ),
+                const SizedBox(width: 4),
+                _buildRenderModeSwitchOption(
+                  mode: "pro",
+                  label: "PRO CONTROLS",
+                  icon: Icons.tune_rounded,
+                  isSelected: _renderMode == "pro",
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // 2. Mode Content
+        if (_renderMode == "auto") ...[
+          _buildAutoTemplateBanner(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.panelCreamDark,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.chassisBevelLight),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.bolt_rounded, size: 18, color: AppColors.brassGold),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Auto beat-sync dynamically arranges transitions and pacing to match the soundtrack rhythm. Tap the dice to roll a different preset style!",
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: AppColors.textSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ] else ...[
+          ProControlsCard(
+            selectedTemplateId: _selectedTemplate,
+            onSelectTemplate: (t) => setState(() => _selectedTemplate = t),
+            selectedAspectRatio: _selectedAspectRatio,
+            onSelectAspectRatio: (r) => setState(() => _selectedAspectRatio = r),
+            selectedQuality: _selectedQuality,
+            onSelectQuality: (q) => setState(() => _selectedQuality = q),
+            enableTitle: _enableTitle,
+            onToggleTitle: (v) => setState(() => _enableTitle = v),
+            titleText: _titleText,
+            onTitleTextChanged: (t) => setState(() => _titleText = t),
+            titleBg: _titleBg,
+            onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
+            titleDuration: _titleDuration,
+            onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
+            titleFont: _titleFont,
+            onSelectTitleFont: (f) => setState(() => _titleFont = f),
+            titleStyle: _titleStyle,
+            onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
+            titleFrame: _titleFrame,
+            onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
+          ),
+        ],
+
+        // 3. Job Summary Badge
+        _buildJobSummaryCard(),
+
+        // 4. Start Render Tactile Button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+          child: InkWell(
+            onTap: _triggerMasterReel,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFF3366), Color(0xFFD6184C)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFB0103C), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF3366).withValues(alpha: 0.35),
+                    offset: const Offset(0, 3),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.bolt_rounded, size: 20, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    "RENDER REEL NOW (${_photos.length} SNAPS)",
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRenderModeSwitchOption({
+    required String mode,
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() {
+            _renderMode = mode;
+            if (mode == "auto") {
+              _rollAutoTemplate();
+            }
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 90),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+            gradient: isSelected
+                ? const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFFFE082),
+                      Color(0xFFFFC72C),
+                    ],
+                  )
+                : null,
+            border: isSelected ? Border.all(color: const Color(0xFFBF8A00), width: 1) : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      offset: const Offset(0, 2),
+                      blurRadius: 3,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isSelected) ...[
+                const SnapBeatPinkDot(size: 8, withGlow: true),
+                const SizedBox(width: 4),
+              ],
+              Icon(
+                icon,
+                size: 13,
+                color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF5A554D),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJobSummaryCard() {
+    final durationSec = (_audioEnd > _audioStart && _audioEnd <= _audioDuration)
+        ? (_audioEnd - _audioStart).toInt()
+        : _audioDuration.toInt();
+    final styleName = _renderMode == "auto"
+        ? _currentAutoTemplate.name.toUpperCase()
+        : _selectedTemplate.toUpperCase();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.panelCreamDark,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.chassisBevelLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              SnapBeatPinkDot(size: 9, withGlow: true),
+              SizedBox(width: 6),
+              Text(
+                "JOB CONFIGURATION SUMMARY",
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: AppColors.textEngraved,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSummaryPill(Icons.music_note_rounded, _selectedMusicTitle.isEmpty ? "Track" : _selectedMusicTitle),
+              _buildSummaryPill(Icons.timer_outlined, "${durationSec}s duration"),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSummaryPill(Icons.photo_library_outlined, "${_photos.length} photos"),
+              _buildSummaryPill(Icons.style_outlined, "$styleName • $_selectedAspectRatio • $_selectedQuality"),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryPill(IconData icon, String text) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.panelInset,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.chassisBevelDark.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: AppColors.brassGold),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textEngraved,
+                ),
+              ),
             ),
           ],
         ),
@@ -1023,7 +1479,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               icon: const Icon(Icons.auto_awesome, size: 16),
               label: const Text("CREATE REEL", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-              onPressed: () => setState(() => _currentMode = "auto"),
+              onPressed: () => setState(() {
+                if (_selectedMusic == null) {
+                  _currentTab = "music";
+                } else if (_photos.isEmpty) {
+                  _currentTab = "photos";
+                } else {
+                  _currentTab = "render";
+                }
+              }),
             ),
           ],
         ),
@@ -1066,7 +1530,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               GestureDetector(
-                onTap: () => setState(() => _currentMode = "auto"),
+                onTap: () => setState(() {
+                  if (_selectedMusic == null) {
+                    _currentTab = "music";
+                  } else if (_photos.isEmpty) {
+                    _currentTab = "photos";
+                  } else {
+                    _currentTab = "render";
+                  }
+                }),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
