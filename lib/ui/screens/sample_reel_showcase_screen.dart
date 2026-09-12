@@ -16,13 +16,16 @@ class SampleReelShowcaseScreen extends StatefulWidget {
 class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
   VideoPlayerController? _controller;
   bool _isReady = false;
-  bool _isMuted = false;
   bool _hasNavigated = false;
+  Timer? _safetyTimer;
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _safetyTimer = Timer(const Duration(seconds: 20), () {
+      _navigateToHome();
+    });
     _initVideo();
   }
 
@@ -31,6 +34,10 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
       final controller = VideoPlayerController.asset('assets/videos/showcase_reel.mp4');
       _controller = controller;
       await controller.initialize();
+      if (_hasNavigated || !mounted) {
+        _controller?.dispose();
+        return;
+      }
       await controller.setLooping(false);
       await controller.setVolume(1.0);
       controller.addListener(_videoListener);
@@ -46,6 +53,10 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
   void _videoListener() {
     final c = _controller;
     if (c == null || !c.value.isInitialized || _hasNavigated) return;
+    if (c.value.hasError) {
+      _navigateToHome();
+      return;
+    }
     final pos = c.value.position;
     final dur = c.value.duration;
     if (dur > Duration.zero && pos >= (dur - const Duration(milliseconds: 300))) {
@@ -65,29 +76,21 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
     });
   }
 
-  void _toggleMute() {
-    final c = _controller;
-    if (c == null || !c.value.isInitialized) return;
-    setState(() {
-      _isMuted = !_isMuted;
-      c.setVolume(_isMuted ? 0.0 : 1.0);
-    });
-  }
 
-  void _navigateToHome() {
+  void _navigateToHome({bool fromShowcase = true}) {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
+    _safetyTimer?.cancel();
 
     try {
       _controller?.removeListener(_videoListener);
       _controller?.pause();
-      _controller?.dispose();
     } catch (_) {}
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 350),
-        pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(fromShowcase: true),
+        pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(fromShowcase: fromShowcase),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -97,6 +100,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
 
   @override
   void dispose() {
+    _safetyTimer?.cancel();
     try {
       _controller?.removeListener(_videoListener);
       _controller?.pause();
@@ -110,8 +114,13 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
     final controller = _controller;
     final isPlaying = controller?.value.isPlaying ?? false;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _navigateToHome(fromShowcase: false);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -190,7 +199,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                         SnapBeatPinkDot(size: 8, withGlow: true),
                         SizedBox(width: 6),
                         Text(
-                          'SAMPLE REEL SHOWCASE',
+                          'SNAPBEAT SHOWCASE',
                           style: TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 9.5,
@@ -205,7 +214,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
 
                   // Skip to Studio Action Button
                   GestureDetector(
-                    onTap: _navigateToHome,
+                    onTap: () => _navigateToHome(fromShowcase: false),
                     behavior: HitTestBehavior.opaque,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
@@ -287,7 +296,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                                 SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
-                                    'TEMPLATE: PENDULUM',
+                                    'Template: Pendulum',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -320,7 +329,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                                 SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
-                                    'TRACK: Little Do You Know',
+                                    'Track: Little Do You Know',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -358,97 +367,43 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
 
                     const SizedBox(height: 10),
 
-                    // Controls & Master Call-to-Action
-                    Row(
-                      children: [
-                        // Mute / Unmute Toggle Button
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _toggleMute,
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: AppColors.panelInset,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.chassisBevelDark),
-                            ),
-                            child: Icon(
-                              _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                              size: 18,
-                              color: AppColors.brassGold,
-                            ),
+                    // Master Call-to-Action
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _navigateToHome,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
                           ),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 3),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-
-                        // Play / Pause Toggle Button
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _togglePlay,
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: AppColors.panelInset,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.chassisBevelDark),
-                            ),
-                            child: Icon(
-                              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                              size: 20,
-                              color: AppColors.textEngraved,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-
-                        // Primary Action: CREATE YOUR REEL (Pre-loads template & track)
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _navigateToHome,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
-                                boxShadow: const [
-                                  BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 3),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF1E1A10)),
-                                  SizedBox(width: 8),
-                                  Flexible(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        'CREATE YOUR OWN REEL ❯',
-                                        maxLines: 1,
-                                        style: TextStyle(
-                                          fontFamily: 'Montserrat',
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 0.8,
-                                          color: Color(0xFF1E1A10),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF1E1A10)),
+                            SizedBox(width: 8),
+                            Text(
+                              'CREATE YOUR OWN REEL ❯',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
+                                color: Color(0xFF1E1A10),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -457,6 +412,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }

@@ -22,6 +22,13 @@ class SnapsReorderStrip extends StatefulWidget {
 
   static final Map<String, ui.Image> photoImageCache = {};
 
+  static void disposeImageCache() {
+    for (final img in photoImageCache.values) {
+      img.dispose();
+    }
+    photoImageCache.clear();
+  }
+
   const SnapsReorderStrip({
     super.key,
     required this.photos,
@@ -186,7 +193,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                             SizedBox(width: 5),
                             Flexible(
                               child: Text(
-                                'SAMPLE SNAPS',
+                                'SAMPLE PHOTOS',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -209,7 +216,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   flex: 3,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: widget.onAddPhotos,
+                    onTap: photos.length >= maxPhotos ? null : widget.onAddPhotos,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       decoration: BoxDecoration(
@@ -404,7 +411,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                               Icon(Icons.tune_rounded, size: 13, color: AppColors.amberJewel),
                               SizedBox(width: 4),
                               Text(
-                                'CUSTOM',
+                                'MANUAL',
                                 style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w900,
@@ -416,7 +423,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                           ),
                           const SizedBox(width: 6),
                         ],
-                        // Thumbnail Size Toggle: BIG / SMALL
+                        // Thumbnail Size Toggle: LARGE / SMALL
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => setState(() => _isSmallThumbnails = !_isSmallThumbnails),
@@ -439,7 +446,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  _isSmallThumbnails ? 'SMALL' : 'BIG',
+                                  _isSmallThumbnails ? 'SMALL' : 'LARGE',
                                   style: TextStyle(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w900,
@@ -500,7 +507,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                     SizedBox(width: 5),
                     Expanded(
                       child: Text(
-                        'Tap ◀ ▶ to nudge, or drag to reorder. Scroll vertically for all photos.',
+                        'Tap arrows to nudge or drag to reorder.',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 8.5,
@@ -540,7 +547,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'READY FOR SNAPS — TAP TO ADD',
+                        'Add Photos to Get Started',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 11,
@@ -551,7 +558,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        'Capacity: up to $maxPhotos photos for current track duration.\nTap ADD PHOTOS (+) or SAMPLE SNAPS above to load photos.',
+                        'Capacity: up to $maxPhotos photos for current track duration.\nTap ADD PHOTOS (+) or SAMPLE PHOTOS above to load photos.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 9,
@@ -597,6 +604,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       itemBuilder: (context, index) {
                         final p = photos[index];
                         return DragTarget<int>(
+                          key: ValueKey(p.id),
                           onAcceptWithDetails: (details) {
                             final oldIdx = details.data;
                             if (oldIdx != index) {
@@ -693,6 +701,8 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
+                            cacheWidth: 240,
+                            cacheHeight: 300,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: AppColors.panelInset,
@@ -709,7 +719,12 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   right: isSmall ? 2 : 4,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => widget.onDelete(p.id),
+                    onTap: () {
+                      final removed = SnapsReorderStrip.photoImageCache.remove(p.id) ??
+                          SnapsReorderStrip.photoImageCache.remove(p.path);
+                      removed?.dispose();
+                      widget.onDelete(p.id);
+                    },
                     child: Container(
                       padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
                       decoration: BoxDecoration(

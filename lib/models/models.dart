@@ -17,8 +17,8 @@ class BeatTemplate {
     BeatTemplate(id: "pendulum", name: "Pendulum", subtitle: "Swinging cuts with mirrored borders", emoji: "🪞", isPro: false),
     BeatTemplate(id: "beat-cut", name: "Beat Cut", subtitle: "Classic snappy beat drop transitions", emoji: "⚡"),
     BeatTemplate(id: "beat-bounce", name: "Bounce", subtitle: "Kinetic bassline scale bounces", emoji: "🏀", isPro: true),
-    BeatTemplate(id: "cinematic-zoom", name: "Cine Zoom", subtitle: "Dynamic optical punch-in zooms", emoji: "🎬", isPro: true),
-    BeatTemplate(id: "beat-fade", name: "Fade", subtitle: "Silk crossfades for ambient beats", emoji: "🌊", isPro: true),
+    BeatTemplate(id: "cinematic-zoom", name: "Cinematic Zoom", subtitle: "Dynamic optical punch-in zooms", emoji: "🎬", isPro: true),
+    BeatTemplate(id: "beat-fade", name: "Fade", subtitle: "Silky crossfades for ambient beats", emoji: "🌊", isPro: true),
     BeatTemplate(id: "glide-pan", name: "Glide", subtitle: "Lateral gliding pan motion", emoji: "🛹", isPro: true),
     BeatTemplate(id: "beat-pulse", name: "Pulse", subtitle: "Pulsing emotional sub-bass pump", emoji: "💓", isPro: true),
     BeatTemplate(id: "punch-cut", name: "Punch", subtitle: "High-impact rhythmic punch cuts", emoji: "🥊", isPro: true),
@@ -93,16 +93,18 @@ class QueueJobItem {
     'error': error,
   };
 
-  factory QueueJobItem.fromJson(Map<String, dynamic> json) => QueueJobItem(
-    id: json['id'] as String,
-    templateName: json['templateName'] as String,
-    status: json['status'] as String,
-    videoPath: json['videoPath'] as String?,
-    createdAt: DateTime.parse(json['createdAt'] as String),
-    quality: json['quality'] as String? ?? "1080p",
-    progress: ((json['progress'] ?? 0.0) as num).toDouble(),
-    error: json['error'] as String?,
-  );
+  factory QueueJobItem.fromJson(Map<String, dynamic> json) {
+    return QueueJobItem(
+      id: json['id']?.toString() ?? '',
+      templateName: json['templateName']?.toString() ?? 'Unknown',
+      status: json['status']?.toString() ?? 'UNKNOWN',
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      quality: json['quality']?.toString() ?? 'fast',
+      videoPath: json['videoPath']?.toString(),
+      error: json['error']?.toString(),
+      progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
 }
 
 class RegionPricing {
@@ -140,7 +142,7 @@ class RegionPricing {
       removeWatermarkPrice: "₹99",
       removeWatermarkSubtitle: "Permanently remove watermarks on all renders",
       proModePrice: "₹199",
-      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • Zero Watermark",
+      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • No Watermark",
       starterPrice: "₹79",
       partyPrice: "₹249",
       studioPrice: "₹499",
@@ -153,7 +155,7 @@ class RegionPricing {
       removeWatermarkPrice: r"$0.99",
       removeWatermarkSubtitle: "Permanently remove watermarks on all renders",
       proModePrice: r"$1.99",
-      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • Zero Watermark",
+      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • No Watermark",
       starterPrice: r"$0.99",
       partyPrice: r"$2.99",
       studioPrice: r"$5.99",
@@ -166,7 +168,7 @@ class RegionPricing {
       removeWatermarkPrice: "£0.89",
       removeWatermarkSubtitle: "Permanently remove watermarks on all renders",
       proModePrice: "£1.89",
-      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • Zero Watermark",
+      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • No Watermark",
       starterPrice: "£0.89",
       partyPrice: "£2.49",
       studioPrice: "£4.99",
@@ -179,7 +181,7 @@ class RegionPricing {
       removeWatermarkPrice: "€0.99",
       removeWatermarkSubtitle: "Permanently remove watermarks on all renders",
       proModePrice: "€1.99",
-      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • Zero Watermark",
+      proModeSubtitle: "Full Pro Mode • All 14 Templates • 1080p 60fps • No Watermark",
       starterPrice: "€0.99",
       partyPrice: "€2.99",
       studioPrice: "€5.99",

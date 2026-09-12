@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,13 +37,14 @@ class SoundLibraryDialog extends StatefulWidget {
 
 class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
   final AudioPlayer _previewPlayer = AudioPlayer();
+  StreamSubscription<PlayerState>? _playerStateSub;
   String? _previewingId;
   bool _isPlaying = false;
 
   @override
   void initState() {
     super.initState();
-    _previewPlayer.onPlayerStateChanged.listen((state) {
+    _playerStateSub = _previewPlayer.onPlayerStateChanged.listen((state) {
       if (mounted) {
         setState(() {
           _isPlaying = (state == PlayerState.playing);
@@ -53,6 +55,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
 
   @override
   void dispose() {
+    _playerStateSub?.cancel();
     _previewPlayer.stop();
     _previewPlayer.dispose();
     super.dispose();
@@ -62,13 +65,18 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
     try {
       if (_previewingId == track.id && _isPlaying) {
         await _previewPlayer.pause();
-      } else {
-        _previewingId = track.id;
-        // AudioPlayer plays asset using AssetSource (without 'assets/' prefix)
-        final relativeAssetPath = track.assetPath.replaceFirst('assets/', '');
-        await _previewPlayer.stop();
-        await _previewPlayer.play(AssetSource(relativeAssetPath));
+        return;
       }
+      if (_previewingId == track.id && !_isPlaying) {
+        await _previewPlayer.resume();
+        setState(() => _isPlaying = true);
+        return;
+      }
+      _previewingId = track.id;
+      // AudioPlayer plays asset using AssetSource (without 'assets/' prefix)
+      final relativeAssetPath = track.assetPath.replaceFirst('assets/', '');
+      await _previewPlayer.stop();
+      await _previewPlayer.play(AssetSource(relativeAssetPath));
     } catch (e) {
       debugPrint('Audio preview error: $e');
     }
@@ -184,8 +192,8 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                 final cleanCurrentTitle = widget.currentTrackTitle.trim().toLowerCase();
                 final isSelected = cleanCurrentTitle.isNotEmpty &&
                     (cleanCurrentTitle == track.title.toLowerCase() ||
-                     cleanCurrentTitle.startsWith(track.title.toLowerCase()) ||
-                     (cleanCurrentTitle.contains(track.title.toLowerCase()) && track.title.length > 3));
+                     cleanCurrentTitle == track.assetPath.toLowerCase() ||
+                     cleanCurrentTitle == track.fileName.toLowerCase());
                 final isCurrentPreview = (_previewingId == track.id && _isPlaying);
 
                 return Container(

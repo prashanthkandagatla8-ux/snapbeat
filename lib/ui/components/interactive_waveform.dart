@@ -66,7 +66,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
     double startMax = (dur - 1.0).clamp(0.0, dur);
     if (startMax <= 0.0) startMax = 0.1; // Ensure max > min
 
-    double endMin = 1.0;
+    double endMin = (widget.startSeconds + 0.5).clamp(0.5, dur);
     double endMax = dur;
     if (endMax <= endMin) endMax = endMin + 0.1; // Ensure max > min
 
@@ -124,7 +124,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                 ],
               ),
               Text(
-                '${(widget.endSeconds - widget.startSeconds).toStringAsFixed(1)}s Window',
+                '${(widget.endSeconds - widget.startSeconds).toStringAsFixed(1)}s Selected',
                 style: const TextStyle(
                   fontFamily: 'Courier',
                   fontSize: 12,
@@ -155,13 +155,16 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
             ),
             child: AnimatedBuilder(
               animation: _pulseController,
-              builder: (context, child) => CustomPaint(
-                size: const Size(double.infinity, 50),
-                painter: _RetroWaveformPainter(
-                  startRatio: (widget.startSeconds / dur).clamp(0.0, 1.0),
-                  endRatio: (widget.endSeconds / dur).clamp(0.0, 1.0),
-                  pulseValue: _pulseController.value,
-                  isPlaying: widget.isPlaying,
+              builder: (context, child) => SizedBox(
+                height: 50,
+                width: double.infinity,
+                child: CustomPaint(
+                  painter: _RetroWaveformPainter(
+                    startRatio: (widget.startSeconds / dur).clamp(0.0, 1.0),
+                    endRatio: (widget.endSeconds / dur).clamp(0.0, 1.0),
+                    pulseValue: _pulseController.value,
+                    isPlaying: widget.isPlaying,
+                  ),
                 ),
               ),
             ),
@@ -192,9 +195,8 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                         min: 0.0,
                         max: startMax,
                         onChanged: (val) {
-                          if (val < widget.endSeconds) {
-                            widget.onTrimChanged(val, widget.endSeconds);
-                          }
+                          final clamped = val.clamp(0.0, widget.endSeconds - 0.5);
+                          widget.onTrimChanged(clamped, widget.endSeconds);
                         },
                       ),
                     ),
@@ -223,9 +225,8 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                         min: endMin,
                         max: endMax,
                         onChanged: (val) {
-                          if (val > widget.startSeconds) {
-                            widget.onTrimChanged(widget.startSeconds, val);
-                          }
+                          final clamped = val.clamp(widget.startSeconds + 0.5, widget.durationSeconds);
+                          widget.onTrimChanged(widget.startSeconds, clamped);
                         },
                       ),
                     ),

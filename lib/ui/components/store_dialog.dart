@@ -31,7 +31,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
       SnackBar(
         backgroundColor: AppColors.panelCream,
         content: const Text(
-          '✨ [Testing Mode] Feature Unlocked / Credits Added!',
+          '✨ Feature unlocked! Credits added.',
           style: TextStyle(
             color: AppColors.brassGold,
             fontWeight: FontWeight.w700,
@@ -66,10 +66,11 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
         ],
       ),
       padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header Bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -135,7 +136,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                 SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    '[ CLOSED TESTING PREVIEW • ALL PASSES ARE FREE ]',
+                    '🎉 BETA PREVIEW — ALL FEATURES FREE',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 10,
@@ -168,7 +169,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                 SnackBar(
                   content: Text(
                     newStatus
-                        ? "✨ Watermarks removed for future renders!"
+                        ? "✨ Watermark removed for future renders!"
                         : "🏷️ Watermarks re-enabled for future renders!",
                   ),
                   backgroundColor: AppColors.hardwareGunmetal,
@@ -234,6 +235,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
           ),
           const SizedBox(height: 8),
         ],
+      ),
       ),
     );
   }
@@ -301,7 +303,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
             ),
             const SizedBox(width: 10),
             GestureDetector(
-              onTap: isActive ? null : onBuy,
+              onTap: onBuy,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(

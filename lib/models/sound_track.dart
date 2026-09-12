@@ -29,9 +29,15 @@ class SoundTrack {
     final file = File('${tempDir.path}/$fileName');
     if (!await file.exists()) {
       final byteData = await rootBundle.load(assetPath);
-      await file.writeAsBytes(
+      final tmpFile = File('${file.path}.tmp');
+      await tmpFile.writeAsBytes(
         byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
       );
+      await tmpFile.rename(file.path);
+    }
+    if (await file.length() <= 0) {
+      await file.delete();
+      return getCachedFile();
     }
     return file;
   }

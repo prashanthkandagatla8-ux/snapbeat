@@ -5,7 +5,6 @@ import 'snapbeat_pink_dot.dart';
 class MasterActionDeck extends StatelessWidget {
   final String currentMode; // 'music', 'photos', 'render', 'queue'
   final Function(String mode) onSelectMode;
-  final bool hasMusic;
   final bool isPhotosEnabled;
   final bool isRenderEnabled;
   final int activeJobsCount;
@@ -15,7 +14,6 @@ class MasterActionDeck extends StatelessWidget {
     super.key,
     required this.currentMode,
     required this.onSelectMode,
-    required this.hasMusic,
     required this.isPhotosEnabled,
     required this.isRenderEnabled,
     this.activeJobsCount = 0,

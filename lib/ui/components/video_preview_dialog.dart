@@ -40,7 +40,7 @@ class VideoPreviewDialog extends StatefulWidget {
 }
 
 class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _hasError = false;
   String _errorMessage = "";
@@ -62,20 +62,24 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
         return;
       }
 
-      _controller = VideoPlayerController.file(file);
-      await _controller.initialize();
-      await _controller.setLooping(true);
-      await _controller.play();
+      final controller = VideoPlayerController.file(file);
+      _controller = controller;
+      await controller.initialize();
+      if (!mounted) {
+        _controller?.dispose();
+        return;
+      }
+      await controller.setLooping(true);
+      await controller.play();
 
       if (mounted) {
         setState(() {
           _isInitialized = true;
         });
-        _controller.addListener(() {
-          if (mounted) setState(() {});
-        });
+        controller.addListener(_onVideoUpdate);
       }
     } catch (e) {
+      _controller?.dispose();
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -85,11 +89,14 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
     }
   }
 
+  void _onVideoUpdate() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
-    if (_isInitialized) {
-      _controller.dispose();
-    }
+    _controller?.removeListener(_onVideoUpdate);
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -101,6 +108,12 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
 
   @override
   Widget build(BuildContext context) {
+    double safeAr = 9 / 16;
+    if (_controller != null) {
+      final ar = _controller!.value.aspectRatio;
+      safeAr = (ar > 0 && ar.isFinite) ? ar : (9 / 16);
+    }
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -136,10 +149,10 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     height: 12,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _isInitialized && _controller.value.isPlaying
+                      color: _isInitialized && _controller != null && _controller!.value.isPlaying
                           ? AppColors.amberJewel
                           : AppColors.textMuted,
-                      boxShadow: _isInitialized && _controller.value.isPlaying
+                      boxShadow: _isInitialized && _controller != null && _controller!.value.isPlaying
                           ? const [BoxShadow(color: AppColors.amberJewel, blurRadius: 6, spreadRadius: 1)]
                           : null,
                     ),
@@ -150,7 +163,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Video Preview",
+                          "Reel Preview",
                           style: TextStyle(
                             fontFamily: 'Montserrat',
                             fontWeight: FontWeight.w900,
@@ -202,7 +215,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                           ],
                         ),
                       )
-                    : !_isInitialized
+                    : !_isInitialized || _controller == null
                         ? Padding(
                             padding: const EdgeInsets.symmetric(vertical: 60),
                             child: Column(
@@ -211,7 +224,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                                 CircularProgressIndicator(color: AppColors.brassGold),
                                 SizedBox(height: 16),
                                 Text(
-                                  "Loading video...",
+                                  "Loading reel...",
                                   style: TextStyle(
                                     fontFamily: 'Courier',
                                     fontSize: 11,
@@ -225,10 +238,10 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                         : GestureDetector(
                             onTap: () {
                               setState(() {
-                                if (_controller.value.isPlaying) {
-                                  _controller.pause();
+                                if (_controller!.value.isPlaying) {
+                                  _controller!.pause();
                                 } else {
-                                  _controller.play();
+                                  _controller!.play();
                                 }
                               });
                             },
@@ -236,10 +249,10 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                               alignment: Alignment.center,
                               children: [
                                 AspectRatio(
-                                  aspectRatio: _controller.value.aspectRatio,
-                                  child: VideoPlayer(_controller),
+                                  aspectRatio: safeAr,
+                                  child: VideoPlayer(_controller!),
                                 ),
-                                if (!_controller.value.isPlaying)
+                                if (!_controller!.value.isPlaying)
                                   Container(
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
@@ -260,13 +273,13 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
             ),
 
             // Bottom Transport Bar
-            if (_isInitialized) ...[
+            if (_isInitialized && _controller != null) ...[
               // Scrubber
               Container(
                 color: AppColors.canvasChassis,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: VideoProgressIndicator(
-                  _controller,
+                  _controller!,
                   allowScrubbing: true,
                   colors: const VideoProgressColors(
                     playedColor: AppColors.amberJewel,
@@ -295,16 +308,16 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           icon: Icon(
-                            _controller.value.isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
+                            _controller!.value.isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
                             color: AppColors.textEngraved,
                             size: 32,
                           ),
                           onPressed: () {
                             setState(() {
-                              if (_controller.value.isPlaying) {
-                                _controller.pause();
+                              if (_controller!.value.isPlaying) {
+                                _controller!.pause();
                               } else {
-                                _controller.play();
+                                _controller!.play();
                               }
                             });
                           },
@@ -319,7 +332,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                             border: Border.all(color: AppColors.chassisBevelDark, width: 1.0),
                           ),
                           child: Text(
-                            "${_formatDuration(_controller.value.position)} / ${_formatDuration(_controller.value.duration)}",
+                            "${_formatDuration(_controller!.value.position)} / ${_formatDuration(_controller!.value.duration)}",
                             style: const TextStyle(
                               fontFamily: 'Courier',
                               fontSize: 11,

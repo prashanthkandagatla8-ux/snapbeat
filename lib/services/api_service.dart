@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 class ApiService {
   static final ApiService instance = ApiService._internal();
@@ -11,6 +12,7 @@ class ApiService {
     BaseOptions(
       baseUrl: "http://34.93.112.240",
       connectTimeout: const Duration(seconds: 45),
+      sendTimeout: const Duration(minutes: 3),
       receiveTimeout: const Duration(minutes: 5),
     ),
   );
@@ -27,9 +29,11 @@ class ApiService {
     required String quality,
     required bool watermark,
     bool isInstant = false,
+    bool autoArrange = true,
     int? audioStart,
     int? audioEnd,
     String? titleText,
+    bool? enableTitle,
     String? titleBg,
     int? titleDuration,
     String? titleFont,
@@ -38,6 +42,18 @@ class ApiService {
     String? titleAudio,
     Function(double progress)? onProgress,
   }) async {
+    if (!musicFile.existsSync()) {
+      throw Exception('Music file not found. Please re-select your track.');
+    }
+    for (final file in photoFiles) {
+      if (!file.existsSync()) {
+        throw Exception('A photo file was not found. Please re-select your photos.');
+      }
+    }
+    if (photoFiles.length < 2) {
+      throw Exception('Please select at least 2 photos to create a reel.');
+    }
+
     final formData = FormData();
 
     // Attach music
@@ -45,7 +61,7 @@ class ApiService {
       "audio",
       await MultipartFile.fromFile(
         musicFile.path,
-        filename: "audio.mp3",
+        filename: 'audio${p.extension(musicFile.path)}',
       ),
     ));
 
@@ -55,7 +71,7 @@ class ApiService {
         "photos",
         await MultipartFile.fromFile(
           file.path,
-          filename: file.path.split(Platform.pathSeparator).last,
+          filename: p.basename(file.path),
         ),
       ));
     }
@@ -70,15 +86,18 @@ class ApiService {
     formData.fields.add(MapEntry("quality", quality.toLowerCase().contains("1080") ? "master" : "fast"));
     formData.fields.add(MapEntry("watermark", watermark.toString()));
     formData.fields.add(MapEntry("render_type", isInstant ? "instant" : "free_queue"));
+    formData.fields.add(MapEntry("auto_arrange", autoArrange ? "true" : "false"));
 
+    formData.fields.add(MapEntry('full_track', (audioEnd != null && audioEnd > 0 && audioStart != null && audioEnd > audioStart) ? 'false' : 'true'));
     if (audioStart != null && audioStart > 0) {
       formData.fields.add(MapEntry("audio_start", audioStart.toString()));
     }
     if (audioEnd != null && audioEnd > 0) {
       formData.fields.add(MapEntry("audio_end", audioEnd.toString()));
     }
-    if (titleText != null && titleText.trim().isNotEmpty) {
-      formData.fields.add(MapEntry("title_text", titleText.trim()));
+    final effectiveTitleText = (titleText != null && titleText.trim().isNotEmpty) ? titleText.trim() : (enableTitle == true ? 'SNAPBEAT' : null);
+    if (effectiveTitleText != null) {
+      formData.fields.add(MapEntry("title_text", effectiveTitleText));
       formData.fields.add(MapEntry("title_bg", titleBg ?? "black"));
       formData.fields.add(MapEntry("title_duration", (titleDuration ?? 2).toString()));
       if (titleFont != null && titleFont.isNotEmpty) {
@@ -112,7 +131,10 @@ class ApiService {
       throw Exception("Gateway returned status ${submitResponse.statusCode}");
     }
 
-    final data = submitResponse.data is Map ? submitResponse.data : Map<String, dynamic>.from(submitResponse.data as Map);
+    if (submitResponse.data is! Map) {
+      throw Exception('Server returned invalid response. Please try again.');
+    }
+    final data = submitResponse.data as Map<String, dynamic>;
     final String jobId = (data["job_id"] ?? data["composite_id"] ?? "").toString();
     if (jobId.isEmpty) {
       throw Exception("No job ID received from server gateway");
@@ -157,7 +179,7 @@ class ApiService {
     final savePath = "${dir.path}/SnapBeat_${cleanTemplate}_$timestamp.mp4";
 
     final downloadResp = await _dio.download(
-      "/api/render/download/$jobId?delete_after=true",
+      "/api/render/download/$jobId",
       savePath,
       onReceiveProgress: (received, total) {
         if (total > 0 && onProgress != null) {

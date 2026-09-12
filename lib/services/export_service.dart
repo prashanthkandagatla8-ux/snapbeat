@@ -17,6 +17,7 @@ class ExportService {
   static Future<bool> saveToGallery(BuildContext context, {required String videoPath, required String templateName}) async {
     final file = File(videoPath);
     if (!file.existsSync()) {
+      if (!context.mounted) return false;
       _showToast(context, '⚠️ Video file not found on device.');
       return false;
     }
@@ -26,53 +27,61 @@ class ExportService {
       if (!hasAccess) {
         final granted = await Gal.requestAccess(toAlbum: true);
         if (!granted) {
-          if (context.mounted) {
-            _showToast(context, '⚠️ Storage permission needed to save to gallery.');
-          }
+          if (!context.mounted) return false;
+          _showToast(context, '⚠️ Storage permission needed to save to gallery.');
           return false;
         }
       }
 
       await Gal.putVideo(videoPath, album: 'SnapBeat');
 
-      if (context.mounted) {
-        _showToast(context, '✓ Saved to Gallery under SnapBeat album! 🎬');
-      }
+      if (!context.mounted) return false;
+      _showToast(context, '✓ Saved to Photos — SnapBeat album');
       return true;
     } catch (e) {
-      debugPrint('Gal save error: ');
-      if (context.mounted) {
-        _showToast(context, 'Failed to save to gallery: ');
-      }
+      debugPrint('Gal save error: $e');
+      if (!context.mounted) return false;
+      _showToast(context, 'Unable to save to gallery. Please check storage permissions.');
       return false;
     }
   }
 
   /// Share video to social media or messaging apps via system share sheet
-  static Future<void> shareReel(BuildContext context, {required String videoPath, required String templateName}) async {
+  static Future<bool> shareReel(
+    BuildContext context, {
+    required String videoPath,
+    String templateName = 'SnapBeat',
+    Rect? sharePositionOrigin,
+  }) async {
     final file = File(videoPath);
     if (!file.existsSync()) {
+      if (!context.mounted) return false;
       _showToast(context, '⚠️ Video file not found.');
-      return;
+      return false;
     }
 
     try {
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = sharePositionOrigin ?? (box != null && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null);
       final xfile = XFile(videoPath, mimeType: 'video/mp4', name: generateUniqueExportName(templateName));
       await SharePlus.instance.share(
         ShareParams(
           files: [xfile],
           text: 'Created with SnapBeat ⚡ #SnapBeat #BeatSync',
+          sharePositionOrigin: origin,
         ),
       );
+      return true;
     } catch (e) {
-      debugPrint('Share error: ');
-      if (context.mounted) {
-        _showToast(context, 'Could not open share sheet: ');
-      }
+      debugPrint('Share error: $e');
+      if (!context.mounted) return false;
+      _showToast(context, 'Unable to share. Please try again.');
+      return false;
     }
   }
 
   static void _showToast(BuildContext context, String message) {
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

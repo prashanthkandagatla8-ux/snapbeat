@@ -33,6 +33,10 @@ class _SplashScreenState extends State<SplashScreen> {
       final controller = VideoPlayerController.asset('assets/videos/splash_screen.mp4');
       _controller = controller;
       await controller.initialize();
+      if (_hasNavigated || !mounted) {
+        _controller?.dispose();
+        return;
+      }
       await controller.setVolume(1.0);
       controller.addListener(_videoListener);
 
@@ -75,7 +79,7 @@ class _SplashScreenState extends State<SplashScreen> {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.dark,
       ),

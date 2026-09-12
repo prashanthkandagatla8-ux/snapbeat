@@ -66,8 +66,8 @@ class _RetroMechanicalButtonState extends State<RetroMechanicalButton> {
             child: SizedBox(
               height: widget.height,
               width: widget.width,
-              child: AspectRatio(
-                aspectRatio: 720 / 450, // 1.6:1
+              child: FittedBox(
+                fit: BoxFit.contain,
                 child: cachedUiImage != null
                     ? RawImage(
                         image: cachedUiImage,

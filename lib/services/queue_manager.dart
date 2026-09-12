@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
@@ -34,6 +35,16 @@ class QueueManager with ChangeNotifier {
         _jobs.add(QueueJobItem.fromJson(map));
       } catch (_) {}
     }
+    for (int i = 0; i < _jobs.length; i++) {
+      final s = _jobs[i].status.toUpperCase();
+      if (s == 'PROCESSING' || s == 'RENDERING' || s == 'QUEUED' || s == 'UPLOADING') {
+        _jobs[i] = _jobs[i].copyWith(
+          status: 'FAILED',
+          error: 'Render interrupted when app was closed. Please retry.',
+        );
+      }
+    }
+    await _save();
     notifyListeners();
   }
 
@@ -69,6 +80,16 @@ class QueueManager with ChangeNotifier {
 
   Future<void> deleteJob(String id) async {
     _cancelledJobIds.add(id);
+    final matches = _jobs.where((j) => j.id == id);
+    if (matches.isNotEmpty) {
+      final job = matches.first;
+      if (job.videoPath != null) {
+        try {
+          final f = File(job.videoPath!);
+          if (await f.exists()) await f.delete();
+        } catch (_) {}
+      }
+    }
     _jobs.removeWhere((j) => j.id == id);
     notifyListeners();
     await _save();
@@ -81,6 +102,12 @@ class QueueManager with ChangeNotifier {
   Future<void> clearAll() async {
     for (final j in _jobs) {
       _cancelledJobIds.add(j.id);
+      if (j.videoPath != null) {
+        try {
+          final f = File(j.videoPath!);
+          if (await f.exists()) await f.delete();
+        } catch (_) {}
+      }
     }
     _jobs.clear();
     notifyListeners();

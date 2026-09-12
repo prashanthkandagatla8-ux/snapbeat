@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show rootBundle, SystemNavigator;
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -58,6 +59,9 @@ class HomeScreenState extends State<HomeScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final ScrollController _scrollController = ScrollController();
   String? _focusedJobId;
+  StreamSubscription? _playerCompleteSubscription;
+  StreamSubscription? _playerPositionSubscription;
+  bool _isSubmittingRender = false;
 
   String _currentTab = "music"; // "music", "photos", "render", "queue"
   String _renderMode = "auto"; // "auto", "pro"
@@ -75,7 +79,13 @@ class HomeScreenState extends State<HomeScreen> {
     String? selectedQuality,
   }) {
     setState(() {
-      if (currentTab != null) _currentTab = currentTab;
+      if (currentTab != null) {
+        if (_isPlayingAudio && currentTab != 'music') {
+          _audioPlayer.pause();
+          _isPlayingAudio = false;
+        }
+        _currentTab = currentTab;
+      }
       if (renderMode != null) _renderMode = renderMode;
       if (musicFile != null) _selectedMusic = musicFile;
       if (musicTitle != null) _selectedMusicTitle = musicTitle;
@@ -96,7 +106,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   /// Calculates max photos dynamically based on track duration and beat tempo.
   int get maxPhotosForTrack {
-    if (_selectedMusic == null) return 0;
+    if (_selectedMusic == null) return 30;
     final effectiveDuration = (_audioEnd > _audioStart && _audioEnd <= _audioDuration)
         ? (_audioEnd - _audioStart)
         : _audioDuration;
@@ -137,14 +147,18 @@ class HomeScreenState extends State<HomeScreen> {
   BeatTemplate _currentAutoTemplate = BeatTemplate.allTemplates.first;
   String? _lastAutoTemplateId;
 
-  void _rollAutoTemplate() {
+  void _assignAutoTemplate() {
     final pool = BeatTemplate.allTemplates.where((t) => t.id != _lastAutoTemplateId).toList();
     final picked = pool.isNotEmpty
         ? (List<BeatTemplate>.from(pool)..shuffle()).first
         : BeatTemplate.allTemplates.first;
+    _lastAutoTemplateId = picked.id;
+    _currentAutoTemplate = picked;
+  }
+
+  void _rollAutoTemplate() {
     setState(() {
-      _lastAutoTemplateId = picked.id;
-      _currentAutoTemplate = picked;
+      _assignAutoTemplate();
     });
   }
 
@@ -321,7 +335,7 @@ class HomeScreenState extends State<HomeScreen> {
 
               // Headline
               const Text(
-                'Create Videos Like This With YOUR Photos & Music!',
+                'Create Reels Like This with Your Photos & Music!',
                 style: TextStyle(
                   fontFamily: 'Montserrat',
                   fontSize: 16,
@@ -358,7 +372,7 @@ class HomeScreenState extends State<HomeScreen> {
                       icon: Icons.photo_library_rounded,
                       step: 'STEP 1',
                       title: 'Pick Your Photos',
-                      desc: 'Select 5 to 30 photos or test with Sample Photos.',
+                      desc: 'Select photos from your gallery or try with Sample Photos.',
                     ),
                     const Divider(color: AppColors.chassisBevelDark, height: 16),
                     _buildWelcomeStepRow(
@@ -372,77 +386,47 @@ class HomeScreenState extends State<HomeScreen> {
                       icon: Icons.motion_photos_auto_rounded,
                       step: 'STEP 3',
                       title: 'Render Pendulum Reel',
-                      desc: 'Pre-selected for you! Tap Render and let AI sync the beat.',
+                      desc: 'Pre-selected for you! Tap Render to sync your photos to the beat.',
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
 
-              // Call to Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        setState(() => _currentTab = "photos");
-                        _pickPhotos();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
-                          boxShadow: const [
-                            BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 4),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.add_photo_alternate_rounded, size: 16, color: Color(0xFF1E1A10)),
-                            SizedBox(width: 8),
-                            Text(
-                              'CHOOSE MY PHOTOS ❯',
-                              style: TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.6,
-                                color: Color(0xFF1E1A10),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+              // Call to Action
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
                     ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 4),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(ctx),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.panelCreamDark,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.borderBrass),
-                      ),
-                      child: const Text(
-                        'EXPLORE STUDIO',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.explore_rounded, size: 16, color: Color(0xFF1E1A10)),
+                      SizedBox(width: 8),
+                      Text(
+                        'EXPLORE STUDIO ❯',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
+                          color: Color(0xFF1E1A10),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -521,10 +505,17 @@ class HomeScreenState extends State<HomeScreen> {
     _currentTab = widget.initialTab;
     _renderMode = widget.initialRenderMode;
     if (widget.fromShowcase) {
-      _selectedTemplate = "pendulum";
+      _selectedTemplate = 'pendulum';
+      _currentAutoTemplate = BeatTemplate.allTemplates.firstWhere(
+        (t) => t.id == 'pendulum',
+        orElse: () => BeatTemplate.allTemplates.first,
+      );
+      _lastAutoTemplateId = 'pendulum';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showShowcaseWelcomeModal();
       });
+    } else {
+      _assignAutoTemplate();
     }
     if (widget.initialMusic != null) {
       _selectedMusic = widget.initialMusic;
@@ -542,7 +533,15 @@ class HomeScreenState extends State<HomeScreen> {
     if (widget.initialPhotos != null) {
       _photos.addAll(widget.initialPhotos!);
     }
-    _rollAutoTemplate();
+    _playerCompleteSubscription = _audioPlayer.onPlayerComplete.listen((_) {
+      if (mounted) setState(() => _isPlayingAudio = false);
+    });
+    _playerPositionSubscription = _audioPlayer.onPositionChanged.listen((pos) {
+      if (_isPlayingAudio && pos.inMilliseconds >= (_audioEnd * 1000).toInt()) {
+        _audioPlayer.pause();
+        if (mounted) setState(() => _isPlayingAudio = false);
+      }
+    });
     qm.addListener(_onQueueChanged);
     _initData();
   }
@@ -558,10 +557,12 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadDefaultSampleTrack() async {
     await _audioPlayer.pause();
+    if (!mounted) return;
     setState(() => _isPlayingAudio = false);
     try {
       final track = SoundTrack.builtInLibrary.first;
       final file = await track.getCachedFile();
+      if (!mounted) return;
       setState(() {
         _selectedMusic = file;
         _selectedMusicTitle = '${track.title} (${track.bpm})';
@@ -580,6 +581,8 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _playerCompleteSubscription?.cancel();
+    _playerPositionSubscription?.cancel();
     _scrollController.dispose();
     qm.removeListener(_onQueueChanged);
     _audioPlayer.dispose();
@@ -590,6 +593,7 @@ class HomeScreenState extends State<HomeScreen> {
     final result = await FilePicker.pickFiles(type: FileType.audio);
     if (result.isNotEmpty && result.first.path != null) {
       final file = File(result.first.path!);
+      final fileName = result.first.name;
       double dur = 60.0;
       try {
         await _audioPlayer.setSource(DeviceFileSource(file.path));
@@ -598,9 +602,10 @@ class HomeScreenState extends State<HomeScreen> {
           dur = d.inSeconds.toDouble();
         }
       } catch (_) {}
+      if (!mounted) return;
       setState(() {
         _selectedMusic = file;
-        _selectedMusicTitle = result.first.name;
+        _selectedMusicTitle = fileName;
         _audioDuration = dur;
         _audioStart = 0.0;
         _audioEnd = dur;
@@ -617,6 +622,7 @@ class HomeScreenState extends State<HomeScreen> {
       currentTrackTitle: _selectedMusicTitle,
       onSelectTrack: (track) async {
         final file = await track.getCachedFile();
+        if (!mounted) return;
         setState(() {
           _selectedMusic = file;
           _selectedMusicTitle = '${track.title} (${track.bpm})';
@@ -629,11 +635,6 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _pickPhotos() async {
-    if (_selectedMusic == null) {
-      _showNotice("Step 1: Please select a music track first!");
-      return;
-    }
-
     final maxAllowed = maxPhotosForTrack;
     if (_photos.length >= maxAllowed) {
       _showNotice("Maximum $maxAllowed photos already reached for this track.");
@@ -654,6 +655,7 @@ class HomeScreenState extends State<HomeScreen> {
           added++;
         }
       }
+      if (!mounted) return;
       setState(() {});
       if (pickedList.length > added && mounted) {
         _showNotice("Added $added photos (capped at $maxAllowed).");
@@ -698,6 +700,7 @@ class HomeScreenState extends State<HomeScreen> {
         ));
       }
 
+      if (!mounted) return;
       _photos.clear();
       _photos.addAll(loadedPhotos);
       setState(() {});
@@ -713,28 +716,36 @@ class HomeScreenState extends State<HomeScreen> {
     }
     if (_isPlayingAudio) {
       await _audioPlayer.pause();
+      if (!mounted) return;
       setState(() => _isPlayingAudio = false);
     } else {
       if (_selectedMusic!.existsSync()) {
         await _audioPlayer.play(DeviceFileSource(_selectedMusic!.path));
         await _audioPlayer.seek(Duration(seconds: _audioStart.toInt()));
       }
+      if (!mounted) return;
       setState(() => _isPlayingAudio = true);
     }
   }
 
   void _triggerMasterReel() async {
-    if (_selectedMusic == null) {
-      _showNotice("Step 1: Please select a music track first!");
-      return;
-    }
-    if (_photos.isEmpty) {
-      _showNotice("Step 2: Add at least one photo first!");
-      return;
-    }
+    if (_isSubmittingRender) return;
+    _isSubmittingRender = true;
+    try {
+      if (_selectedMusic == null) {
+        _showNotice("Step 1: Please select a music track first!");
+        return;
+      }
+      if (_photos.isEmpty) {
+        _showNotice("Step 2: Please add at least 2 photos.");
+        return;
+      }
 
-    // Direct single render execution for testing (holding instant modal for now)
-    _executeRender(isInstant: false);
+      // Direct single render execution for testing (holding instant modal for now)
+      _executeRender(isInstant: false);
+    } finally {
+      _isSubmittingRender = false;
+    }
   }
 
 
@@ -762,8 +773,17 @@ class HomeScreenState extends State<HomeScreen> {
       tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
     }
 
+    final selectedTpl = BeatTemplate.allTemplates.firstWhere((t) => t.id == tId, orElse: () => BeatTemplate.allTemplates.first);
+    if (selectedTpl.isPro && !cm.isProModeEnabled) {
+      _showNotice('This template requires Pro Mode. Unlock it in the Store.');
+      return;
+    }
+
     final jobId = DateTime.now().millisecondsSinceEpoch.toString();
     final maxAllowed = maxPhotosForTrack;
+    if (_photos.length > maxAllowed) {
+      _showNotice('Only the first $maxAllowed photos will be used for this track duration.');
+    }
     final photosToSend = _photos.length > maxAllowed
         ? _photos.take(maxAllowed).toList()
         : _photos;
@@ -798,11 +818,17 @@ class HomeScreenState extends State<HomeScreen> {
 
     // Immediately switch user to "QUEUE" view and focus new job (retains all photo/music selections)
     setState(() {
-      _currentTab = "queue";
+      const newTab = "queue";
+      if (_isPlayingAudio && newTab != 'music') {
+        _audioPlayer.pause();
+        _isPlayingAudio = false;
+      }
+      _currentTab = newTab;
       _focusedJobId = jobId;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           0.0,
@@ -911,8 +937,29 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MetalChassisScaffold(
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_currentTab != 'music') {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(0.0);
+          }
+          setState(() {
+            const newTab = 'music';
+            if (_isPlayingAudio && newTab != 'music') {
+              _audioPlayer.pause();
+              _isPlayingAudio = false;
+            }
+            _currentTab = newTab;
+          });
+        } else {
+          // Optionally show exit confirmation or allow pop
+          SystemNavigator.pop();
+        }
+      },
+      child: MetalChassisScaffold(
+        body: SafeArea(
         child: Stack(
           children: [
             Column(
@@ -978,7 +1025,6 @@ class HomeScreenState extends State<HomeScreen> {
                           isPlaying: _isPlayingAudio,
                           trackTitle: _selectedMusicTitle,
                           currentSeconds: _audioStart,
-                          totalSeconds: _audioDuration,
                           onTogglePlay: _togglePlayAudio,
                           onPickAudio: _pickMusic,
                           onLoadSample: _openSoundLibrary,
@@ -1001,9 +1047,21 @@ class HomeScreenState extends State<HomeScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             child: _buildProceedButton(
                               label: "PROCEED TO PHOTOS",
-                              subtitle: "Up to $maxPhotosForTrack snaps can fit this ${_audioEnd > _audioStart ? (_audioEnd - _audioStart).toInt() : _audioDuration.toInt()}s track",
+                              subtitle: "Up to $maxPhotosForTrack photos can fit this ${_audioEnd > _audioStart ? (_audioEnd - _audioStart).toInt() : _audioDuration.toInt()}s track",
                               icon: Icons.photo_library_rounded,
-                              onTap: () => setState(() => _currentTab = "photos"),
+                              onTap: () {
+                                if (_scrollController.hasClients) {
+                                  _scrollController.jumpTo(0.0);
+                                }
+                                setState(() {
+                                  const newTab = "photos";
+                                  if (_isPlayingAudio && newTab != 'music') {
+                                    _audioPlayer.pause();
+                                    _isPlayingAudio = false;
+                                  }
+                                  _currentTab = newTab;
+                                });
+                              },
                             ),
                           ),
                         ] else ...[
@@ -1022,7 +1080,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      "Loading default soundtrack... Tap LIBRARY or CHOOSE YOUR MUSIC if you want to change it.",
+                                      "Loading default soundtrack... Tap Library or Choose Music if you want to change it.",
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -1041,10 +1099,22 @@ class HomeScreenState extends State<HomeScreen> {
                         if (_selectedMusic == null)
                           _buildGatedCard(
                             icon: Icons.library_music_rounded,
-                            title: "MUSIC REQUIRED FIRST",
+                            title: "Music Required",
                             description: "Track duration and BPM determine the optimal photo count.\nPlease select a music track in Step 1 first.",
                             buttonText: "GO TO MUSIC",
-                            onButtonTap: () => setState(() => _currentTab = "music"),
+                            onButtonTap: () {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(0.0);
+                              }
+                              setState(() {
+                                const newTab = "music";
+                                if (_isPlayingAudio && newTab != 'music') {
+                                  _audioPlayer.pause();
+                                  _isPlayingAudio = false;
+                                }
+                                _currentTab = newTab;
+                              });
+                            },
                           )
                         else ...[
                           SnapsReorderStrip(
@@ -1076,7 +1146,19 @@ class HomeScreenState extends State<HomeScreen> {
                                 label: "PROCEED TO RENDER OPTIONS",
                                 subtitle: "${_photos.length} photos curated and ready",
                                 icon: Icons.movie_creation_rounded,
-                                onTap: () => setState(() => _currentTab = "render"),
+                                onTap: () {
+                                  if (_scrollController.hasClients) {
+                                    _scrollController.jumpTo(0.0);
+                                  }
+                                  setState(() {
+                                    const newTab = "render";
+                                    if (_isPlayingAudio && newTab != 'music') {
+                                      _audioPlayer.pause();
+                                      _isPlayingAudio = false;
+                                    }
+                                    _currentTab = newTab;
+                                  });
+                                },
                               ),
                             ),
                         ],
@@ -1085,18 +1167,42 @@ class HomeScreenState extends State<HomeScreen> {
                         if (_selectedMusic == null)
                           _buildGatedCard(
                             icon: Icons.library_music_rounded,
-                            title: "MUSIC REQUIRED FIRST",
+                            title: "Music Required",
                             description: "Please select a music track in Step 1 before configuring render options.",
                             buttonText: "GO TO MUSIC",
-                            onButtonTap: () => setState(() => _currentTab = "music"),
+                            onButtonTap: () {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(0.0);
+                              }
+                              setState(() {
+                                const newTab = "music";
+                                if (_isPlayingAudio && newTab != 'music') {
+                                  _audioPlayer.pause();
+                                  _isPlayingAudio = false;
+                                }
+                                _currentTab = newTab;
+                              });
+                            },
                           )
                         else if (_photos.isEmpty)
                           _buildGatedCard(
                             icon: Icons.photo_library_rounded,
                             title: "PHOTOS REQUIRED FIRST",
-                            description: "Please add at least one photo in Step 2 before configuring render options.",
+                            description: "Please add at least 2 photos in Step 2 before configuring render options.",
                             buttonText: "GO TO PHOTOS",
-                            onButtonTap: () => setState(() => _currentTab = "photos"),
+                            onButtonTap: () {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(0.0);
+                              }
+                              setState(() {
+                                const newTab = "photos";
+                                if (_isPlayingAudio && newTab != 'music') {
+                                  _audioPlayer.pause();
+                                  _isPlayingAudio = false;
+                                }
+                                _currentTab = newTab;
+                              });
+                            },
                           )
                         else
                           _buildRenderOptionsView(),
@@ -1112,14 +1218,20 @@ class HomeScreenState extends State<HomeScreen> {
                 MasterActionDeck(
                   currentMode: _currentTab,
                   onSelectMode: (tab) {
+                    if (_isPlayingAudio && tab != 'music') {
+                      _audioPlayer.pause();
+                      _isPlayingAudio = false;
+                    }
+                    if (_scrollController.hasClients) {
+                      _scrollController.jumpTo(0.0);
+                    }
                     setState(() {
                       _currentTab = tab;
                       if (tab == "render" && _renderMode == "auto") {
-                        _rollAutoTemplate();
+                        _assignAutoTemplate();
                       }
                     });
                   },
-                  hasMusic: _selectedMusic != null,
                   isPhotosEnabled: _selectedMusic != null,
                   isRenderEnabled: _selectedMusic != null && _photos.isNotEmpty,
                   activeJobsCount: qm.activeJobs.length,
@@ -1129,7 +1241,7 @@ class HomeScreenState extends State<HomeScreen> {
                     } else if (tab == 'render') {
                       final msg = _selectedMusic == null
                           ? "🎵 Select a music track first!"
-                          : "📸 Add at least one photo to configure render options!";
+                          : "📸 Add at least 2 photos to configure render options!";
                       _showNotice(msg);
                     }
                   },
@@ -1139,7 +1251,8 @@ class HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildProceedButton({
@@ -1299,7 +1412,7 @@ class HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 4),
                 _buildRenderModeSwitchOption(
                   mode: "pro",
-                  label: "PRO CONTROLS",
+                  label: "PRO MODE",
                   icon: Icons.tune_rounded,
                   isSelected: _renderMode == "pro",
                 ),
@@ -1382,7 +1495,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                "READY TO SYNC ${_photos.length} SNAPS TO BEAT",
+                "READY TO SYNC ${_photos.length} ${_photos.length == 1 ? 'PHOTO' : 'PHOTOS'} TO BEAT",
                 style: const TextStyle(
                   fontFamily: 'Montserrat',
                   fontSize: 10,
@@ -1411,7 +1524,7 @@ class HomeScreenState extends State<HomeScreen> {
           setState(() {
             _renderMode = mode;
             if (mode == "auto") {
-              _rollAutoTemplate();
+              _assignAutoTemplate();
             }
           });
         },
@@ -1532,7 +1645,7 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               _buildSummaryPill(
                 cm.isWatermarkRemoved ? Icons.verified_rounded : Icons.branding_watermark_rounded,
-                cm.isWatermarkRemoved ? "NO WATERMARK (CLEAN)" : "SNAPBEAT WATERMARK ACTIVE",
+                cm.isWatermarkRemoved ? "WATERMARK: NONE" : "WATERMARK: SNAPBEAT",
                 highlight: !cm.isWatermarkRemoved,
               ),
             ],
@@ -1626,7 +1739,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${_currentAutoTemplate.emoji} ${_currentAutoTemplate.subtitle} (changes each render)',
+                  '${_currentAutoTemplate.emoji} ${_currentAutoTemplate.subtitle} (tap dice to change)',
                   style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                 ),
               ],
@@ -1666,7 +1779,7 @@ class HomeScreenState extends State<HomeScreen> {
             const Icon(Icons.movie_creation_outlined, size: 48, color: AppColors.textMuted),
             const SizedBox(height: 12),
             const Text(
-              "NO REELS YET",
+              "No Reels Yet",
               style: TextStyle(
                 fontFamily: 'Montserrat',
                 fontSize: 13,
@@ -1690,15 +1803,21 @@ class HomeScreenState extends State<HomeScreen> {
               ),
               icon: const Icon(Icons.auto_awesome, size: 16),
               label: const Text("CREATE REEL", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-              onPressed: () => setState(() {
-                if (_selectedMusic == null) {
-                  _currentTab = "music";
-                } else if (_photos.isEmpty) {
-                  _currentTab = "photos";
-                } else {
-                  _currentTab = "render";
+              onPressed: () {
+                final newTab = _selectedMusic == null
+                    ? "music"
+                    : _photos.isEmpty
+                        ? "photos"
+                        : "render";
+                if (_isPlayingAudio && newTab != 'music') {
+                  _audioPlayer.pause();
+                  _isPlayingAudio = false;
                 }
-              }),
+                if (_scrollController.hasClients) {
+                  _scrollController.jumpTo(0.0);
+                }
+                setState(() => _currentTab = newTab);
+              },
             ),
           ],
         ),
@@ -1784,15 +1903,21 @@ class HomeScreenState extends State<HomeScreen> {
                     const SizedBox(width: 8),
                   ],
                   GestureDetector(
-                    onTap: () => setState(() {
-                      if (_selectedMusic == null) {
-                        _currentTab = "music";
-                      } else if (_photos.isEmpty) {
-                        _currentTab = "photos";
-                      } else {
-                        _currentTab = "render";
+                    onTap: () {
+                      final newTab = _selectedMusic == null
+                          ? "music"
+                          : _photos.isEmpty
+                              ? "photos"
+                              : "render";
+                      if (_isPlayingAudio && newTab != 'music') {
+                        _audioPlayer.pause();
+                        _isPlayingAudio = false;
                       }
-                    }),
+                      if (_scrollController.hasClients) {
+                        _scrollController.jumpTo(0.0);
+                      }
+                      setState(() => _currentTab = newTab);
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
@@ -2084,7 +2209,7 @@ class HomeScreenState extends State<HomeScreen> {
                     if (job.videoPath != null) ...[
                       const SizedBox(height: 3),
                       Text(
-                        "Status: Ready for export & playback",
+                        "Status: Ready to play and export",
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 10.5,

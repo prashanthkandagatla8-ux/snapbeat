@@ -102,7 +102,7 @@ class ProControlsCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'PRO SETTINGS',
+                    'PRO MODE',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 11,
@@ -138,7 +138,7 @@ class ProControlsCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        selectedQuality == '1080p' ? '1080p 60fps' : '720p Std',
+                        selectedQuality == '1080p' ? '1080p 60fps' : '720p Standard',
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
@@ -278,6 +278,7 @@ class ProControlsCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   // Title Text Field
                   TextFormField(
+                    key: ValueKey(titleText),
                     initialValue: titleText,
                     onChanged: onTitleTextChanged,
                     style: const TextStyle(color: AppColors.textEngraved, fontSize: 13, fontWeight: FontWeight.bold),
@@ -326,7 +327,7 @@ class ProControlsCard extends StatelessWidget {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      _buildChip('great_vibes', '✨ Great Vibes', titleFont == 'great_vibes', onSelectTitleFont),
+                      _buildChip('great_vibes', 'Great Vibes', titleFont == 'great_vibes', onSelectTitleFont),
                       _buildChip('allura', 'Allura', titleFont == 'allura', onSelectTitleFont),
                       _buildChip('alex_brush', 'Alex Brush', titleFont == 'alex_brush', onSelectTitleFont),
                       _buildChip('bodoni_moda', 'Bodoni Moda', titleFont == 'bodoni_moda', onSelectTitleFont),
@@ -504,7 +505,7 @@ class ProControlsCard extends StatelessWidget {
                         Text(
                           titleAudio == 'with_audio'
                               ? '• Music starts from 0:00 immediately as the title card appears.'
-                              : '• Title plays in cinematic silence for ${titleDuration}s; music kicks in with photos.',
+                              : '• Title plays in cinematic silence for ${titleDuration}s; music starts when photos begin.',
                           style: TextStyle(
                             fontSize: 8.5,
                             fontStyle: FontStyle.italic,
@@ -551,7 +552,7 @@ class ProControlsCard extends StatelessWidget {
                           children: [
                             _buildSmallRocker('black', 'Black', titleBg == 'black', onSelectTitleBg),
                             const SizedBox(width: 6),
-                            _buildSmallRocker('video', 'Overlay (Video)', titleBg == 'video', onSelectTitleBg),
+                            _buildSmallRocker('video', 'Video Overlay', titleBg == 'video', onSelectTitleBg),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -901,15 +902,20 @@ class ProControlsCard extends StatelessWidget {
               ],
             ),
           // Text
-          Container(
-            padding: badgeDecoration != null ? const EdgeInsets.symmetric(horizontal: 8, vertical: 3) : null,
-            decoration: badgeDecoration,
-            child: Text(
-              titleStyle == "cinematic" ? displayText.toUpperCase() : displayText,
-              textAlign: TextAlign.center,
-              style: baseStyle.copyWith(
-                color: textColor,
-                shadows: shadows,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 44),
+            child: Container(
+              padding: badgeDecoration != null ? const EdgeInsets.symmetric(horizontal: 8, vertical: 3) : null,
+              decoration: badgeDecoration,
+              child: Text(
+                titleStyle == "cinematic" ? displayText.toUpperCase() : displayText,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: baseStyle.copyWith(
+                  color: textColor,
+                  shadows: shadows,
+                ),
               ),
             ),
           ),

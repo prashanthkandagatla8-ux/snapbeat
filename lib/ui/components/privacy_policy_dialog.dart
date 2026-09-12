@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
-class PrivacyPolicyDialog extends StatelessWidget {
+class PrivacyPolicyDialog extends StatefulWidget {
   const PrivacyPolicyDialog({super.key});
 
   static Future<void> show(BuildContext context) {
@@ -10,6 +10,19 @@ class PrivacyPolicyDialog extends StatelessWidget {
       barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (ctx) => const PrivacyPolicyDialog(),
     );
+  }
+
+  @override
+  State<PrivacyPolicyDialog> createState() => _PrivacyPolicyDialogState();
+}
+
+class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -72,7 +85,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'Google Play 2026 Compliant',
+                          'Google Play Policy Compliant',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -97,7 +110,9 @@ class PrivacyPolicyDialog extends StatelessWidget {
             Flexible(
               child: Scrollbar(
                 thumbVisibility: true,
+                controller: _scrollController,
                 child: SingleChildScrollView(
+                  controller: _scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +154,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
 
                       _buildSectionItem(
                         icon: '🗑️',
-                        title: 'Instant Deletion (delete_after=true)',
+                        title: 'Instant File Deletion',
                         description:
                             'Input files are processed in volatile temporary storage and purged permanently immediately upon render completion. No user images or songs are ever archived on servers.',
                       ),
@@ -166,7 +181,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       ),
 
                       _buildSectionItem(
-                        icon: '👶',
+                        icon: '⚖️',
                         title: 'COPPA & GDPR Compliance',
                         description:
                             'Because no personal identifiers or media are permanently retained, SnapBeat complies with COPPA and GDPR regulations for user privacy.',

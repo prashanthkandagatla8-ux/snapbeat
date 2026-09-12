@@ -64,107 +64,120 @@ class _Tactile3DButtonState extends State<Tactile3DButton> {
   Widget build(BuildContext context) {
     final double translateY = _isPressed ? widget.bevelHeight : 0.0;
 
-    Widget buttonContent = SizedBox(
-      height: widget.height,
-      width: widget.width,
-      child: Stack(
-        children: [
-          // Bottom 3D shadow layer (anchored at base)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              height: widget.height - widget.bevelHeight,
-              decoration: BoxDecoration(
-                color: widget.shadowColor,
-                borderRadius: BorderRadius.circular(widget.borderRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 6,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+    Widget buttonContent = AnimatedOpacity(
+      opacity: widget.onTap != null ? 1.0 : 0.45,
+      duration: const Duration(milliseconds: 200),
+      child: SizedBox(
+        height: widget.height,
+        width: widget.isExpanded ? double.infinity : (widget.width ?? 120),
+        child: Stack(
+          children: [
+            // Bottom 3D shadow layer (anchored at base)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: widget.height - widget.bevelHeight,
+                decoration: BoxDecoration(
+                  color: widget.shadowColor,
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 6,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Tactile button top face that translates downward on press
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 60),
-            curve: Curves.easeOutQuad,
-            top: translateY,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: widget.height - widget.bevelHeight,
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(widget.borderRadius),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    widget.highlightColor,
-                    widget.baseColor,
-                    widget.shadowColor.withValues(alpha: 0.8),
-                  ],
-                  stops: const [0.0, 0.6, 1.0],
-                ),
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    width: 1.5,
+            // Tactile button top face that translates downward on press
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 60),
+              curve: Curves.easeOutQuad,
+              top: translateY,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: widget.height - widget.bevelHeight,
+                padding: widget.padding,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      widget.highlightColor,
+                      widget.baseColor,
+                      widget.shadowColor.withValues(alpha: 0.8),
+                    ],
+                    stops: const [0.0, 0.6, 1.0],
                   ),
-                  bottom: BorderSide(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    width: 1.0,
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      width: 1.5,
+                    ),
+                    bottom: BorderSide(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      width: 1.0,
+                    ),
                   ),
                 ),
-              ),
-              child: Row(
-                mainAxisSize: widget.isExpanded ? MainAxisSize.max : MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.leading != null) ...[
-                    widget.leading!,
-                    const SizedBox(width: 8),
-                  ] else if (widget.icon != null) ...[
-                    Icon(widget.icon, color: widget.textColor, size: 20),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    widget.label,
-                    style: widget.textStyle ??
-                        TextStyle(
-                          color: widget.textColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          shadows: [
-                            Shadow(
-                              color: Colors.white.withValues(alpha: 0.4),
-                              offset: const Offset(0, 1),
-                              blurRadius: 1,
+                child: Row(
+                  mainAxisSize: widget.isExpanded ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.leading != null) ...[
+                      widget.leading!,
+                      const SizedBox(width: 8),
+                    ] else if (widget.icon != null) ...[
+                      Icon(widget.icon, color: widget.textColor, size: 20),
+                      const SizedBox(width: 8),
+                    ],
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: widget.textStyle ??
+                            TextStyle(
+                              color: widget.textColor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                  offset: const Offset(0, 1),
+                                  blurRadius: 1,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                  ),
-                ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      onTapUp: _handleTapUp,
-      onTapCancel: _handleTapCancel,
-      behavior: HitTestBehavior.opaque,
-      child: buttonContent,
+    return Semantics(
+      button: true,
+      label: widget.label,
+      enabled: widget.onTap != null,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        onTapUp: _handleTapUp,
+        onTapCancel: _handleTapCancel,
+        behavior: HitTestBehavior.opaque,
+        child: buttonContent,
+      ),
     );
   }
 }

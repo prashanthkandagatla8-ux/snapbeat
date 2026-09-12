@@ -7,7 +7,6 @@ class RetroTapeDeck extends StatefulWidget {
   final bool isPlaying;
   final String trackTitle;
   final double currentSeconds;
-  final double totalSeconds;
   final VoidCallback onTogglePlay;
   final VoidCallback onPickAudio;
   final VoidCallback onLoadSample;
@@ -17,7 +16,6 @@ class RetroTapeDeck extends StatefulWidget {
     required this.isPlaying,
     required this.trackTitle,
     required this.currentSeconds,
-    required this.totalSeconds,
     required this.onTogglePlay,
     required this.onPickAudio,
     required this.onLoadSample,
@@ -47,7 +45,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
     super.didUpdateWidget(oldWidget);
     if (widget.isPlaying != oldWidget.isPlaying) {
       if (widget.isPlaying) {
-        _reelController.repeat();
+        _reelController.repeat(min: _reelController.value, max: 1.0);
       } else {
         _reelController.stop();
       }
@@ -63,8 +61,9 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     final hasTrack = widget.trackTitle.trim().isNotEmpty && widget.trackTitle != "No soundtrack selected";
-    final mins = hasTrack ? (widget.currentSeconds ~/ 60).toString().padLeft(2, '0') : '--';
-    final secs = hasTrack ? (widget.currentSeconds % 60).toInt().toString().padLeft(2, '0') : '--';
+    final safeSeconds = (widget.currentSeconds.isNaN || widget.currentSeconds.isInfinite || widget.currentSeconds < 0) ? 0.0 : widget.currentSeconds;
+    final mins = hasTrack ? (safeSeconds ~/ 60).toString().padLeft(2, '0') : '--';
+    final secs = hasTrack ? (safeSeconds.toInt() % 60).toString().padLeft(2, '0') : '--';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -248,7 +247,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            hasTrack ? widget.trackTitle : 'CHOOSE SOUNDTRACK',
+                            hasTrack ? widget.trackTitle : 'CHOOSE MUSIC',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -280,12 +279,12 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
 
                 const SizedBox(height: 12),
 
-                // Row 2: Audio Source Buttons (LIBRARY, CHOOSE YOUR MUSIC)
+                // Row 2: Audio Source Buttons (MUSIC LIBRARY, MY DEVICE)
                 Row(
                   children: [
                     Expanded(
                       child: _RetroMiniButton(
-                        label: 'LIBRARY',
+                        label: 'MUSIC LIBRARY',
                         icon: Icons.library_music_rounded,
                         onTap: widget.onLoadSample,
                       ),
@@ -293,7 +292,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                     const SizedBox(width: 10),
                     Expanded(
                       child: _RetroMiniButton(
-                        label: 'CHOOSE YOUR MUSIC',
+                        label: 'MY DEVICE',
                         icon: Icons.audio_file_rounded,
                         onTap: widget.onPickAudio,
                       ),
