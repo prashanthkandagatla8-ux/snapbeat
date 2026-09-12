@@ -10,11 +10,19 @@ class QueueManager with ChangeNotifier {
   QueueManager._internal();
 
   final List<QueueJobItem> _jobs = [];
+  final Set<String> _cancelledJobIds = {};
+
   List<QueueJobItem> get jobs => List.unmodifiable(_jobs);
   List<QueueJobItem> get activeJobs => _jobs.where((j) {
     final s = j.status.toLowerCase();
     return s == 'processing' || s == 'rendering' || s == 'queued';
   }).toList();
+
+  bool isCancelled(String id) => _cancelledJobIds.contains(id);
+
+  void markCancelled(String id) {
+    _cancelledJobIds.add(id);
+  }
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
@@ -36,6 +44,7 @@ class QueueManager with ChangeNotifier {
   }
 
   void updateJobProgress(String id, double progress) {
+    if (_cancelledJobIds.contains(id)) return;
     final idx = _jobs.indexWhere((j) => j.id == id);
     if (idx != -1) {
       _jobs[idx] = _jobs[idx].copyWith(progress: progress);
@@ -44,6 +53,7 @@ class QueueManager with ChangeNotifier {
   }
 
   Future<void> updateJob(String id, {String? status, String? videoPath, double? progress, String? error}) async {
+    if (_cancelledJobIds.contains(id)) return;
     final idx = _jobs.indexWhere((j) => j.id == id);
     if (idx != -1) {
       _jobs[idx] = _jobs[idx].copyWith(
@@ -58,7 +68,21 @@ class QueueManager with ChangeNotifier {
   }
 
   Future<void> deleteJob(String id) async {
+    _cancelledJobIds.add(id);
     _jobs.removeWhere((j) => j.id == id);
+    notifyListeners();
+    await _save();
+  }
+
+  Future<void> cancelJob(String id) async {
+    await deleteJob(id);
+  }
+
+  Future<void> clearAll() async {
+    for (final j in _jobs) {
+      _cancelledJobIds.add(j.id);
+    }
+    _jobs.clear();
     notifyListeners();
     await _save();
   }

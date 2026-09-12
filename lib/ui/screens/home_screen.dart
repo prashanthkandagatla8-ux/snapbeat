@@ -145,6 +145,93 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _showNotice(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
+            color: Color(0xFF1E1A10),
+          ),
+        ),
+        backgroundColor: const Color(0xFFFFD54F),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(20, 0, 20, 95),
+        duration: const Duration(milliseconds: 1400),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: Color(0xFFBF8A00), width: 1),
+        ),
+      ),
+    );
+  }
+
+  void _cancelAndRemoveJob(String jobId) {
+    qm.markCancelled(jobId);
+    qm.deleteJob(jobId);
+    if (_focusedJobId == jobId) {
+      _focusedJobId = null;
+    }
+    setState(() {});
+  }
+
+  void _showClearQueueDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.panelCream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppColors.chassisBevelDark, width: 1.5),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.delete_sweep_rounded, color: AppColors.brassGold, size: 22),
+            SizedBox(width: 8),
+            Text(
+              "Clear Queue?",
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w900,
+                fontSize: 15,
+                color: AppColors.textEngraved,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to cancel any active renders and remove all reel items from the queue?",
+          style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("CANCEL", style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8B2525),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              qm.clearAll();
+              _focusedJobId = null;
+              setState(() {});
+            },
+            child: const Text("CLEAR ALL", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _autoShufflePhotos() {
     if (_photos.isEmpty) return;
     setState(() {
@@ -153,12 +240,6 @@ class HomeScreenState extends State<HomeScreen> {
         _photos[i].order = i + 1;
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("✨ Auto beat-sequence shuffled!"),
-        duration: Duration(milliseconds: 1500),
-      ),
-    );
   }
 
   @override
@@ -200,15 +281,6 @@ class HomeScreenState extends State<HomeScreen> {
         _audioStart = 0.0;
         _audioEnd = math.min(15.0, track.durationSeconds);
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('🎵 Selected: ${track.title} (${track.bpm}) — Photos unlocked!'),
-            duration: const Duration(seconds: 2),
-            backgroundColor: AppColors.panelCream,
-          ),
-        );
-      }
     } catch (e) {
       debugPrint('Error loading sample track: $e');
     }
@@ -254,37 +326,19 @@ class HomeScreenState extends State<HomeScreen> {
           _audioStart = 0.0;
           _audioEnd = math.min(15.0, track.durationSeconds);
         });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("🎵 Selected: ${track.title}", style: const TextStyle(color: AppColors.textEngraved)),
-              backgroundColor: AppColors.panelCream,
-            ),
-          );
-        }
       },
     );
   }
 
   Future<void> _pickPhotos() async {
     if (_selectedMusic == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Step 1: Please select a music track first!"),
-          backgroundColor: AppColors.panelCream,
-        ),
-      );
+      _showNotice("Step 1: Please select a music track first!");
       return;
     }
 
     final maxAllowed = maxPhotosForTrack;
     if (_photos.length >= maxAllowed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Maximum $maxAllowed photos already reached for this track duration."),
-          backgroundColor: AppColors.panelCream,
-        ),
-      );
+      _showNotice("Maximum $maxAllowed photos already reached for this track.");
       return;
     }
 
@@ -304,24 +358,14 @@ class HomeScreenState extends State<HomeScreen> {
       }
       setState(() {});
       if (pickedList.length > added && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Added $added photos (capped at $maxAllowed for this track length)."),
-            backgroundColor: AppColors.panelCream,
-          ),
-        );
+        _showNotice("Added $added photos (capped at $maxAllowed).");
       }
     }
   }
 
   Future<void> _loadSamplePhotos() async {
     if (_selectedMusic == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Step 1: Please select a music track first!"),
-          backgroundColor: AppColors.panelCream,
-        ),
-      );
+      _showNotice("Step 1: Please select a music track first!");
       return;
     }
 
@@ -359,14 +403,6 @@ class HomeScreenState extends State<HomeScreen> {
       _photos.clear();
       _photos.addAll(loadedPhotos);
       setState(() {});
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("✨ Added ${_photos.length} demo photos (Max: $maxAllowed for track)!", style: const TextStyle(color: AppColors.textEngraved)),
-            backgroundColor: AppColors.panelCream,
-          ),
-        );
-      }
     } catch (e) {
       debugPrint('Error loading sample photos: $e');
     }
@@ -391,21 +427,11 @@ class HomeScreenState extends State<HomeScreen> {
 
   void _triggerMasterReel() async {
     if (_selectedMusic == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Step 1: Please select a music track first!"),
-          backgroundColor: AppColors.panelCream,
-        ),
-      );
+      _showNotice("Step 1: Please select a music track first!");
       return;
     }
     if (_photos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Step 2: Add at least one photo first!"),
-          backgroundColor: AppColors.panelCream,
-        ),
-      );
+      _showNotice("Step 2: Add at least one photo first!");
       return;
     }
 
@@ -419,15 +445,11 @@ class HomeScreenState extends State<HomeScreen> {
 
   void _executeRender({required bool isInstant}) {
     if (_selectedMusic == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Step 1: Please select a music track first.")),
-      );
+      _showNotice("Step 1: Please select a music track first.");
       return;
     }
     if (_photos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Step 2: Please select photos before rendering.")),
-      );
+      _showNotice("Step 2: Please select photos before rendering.");
       return;
     }
 
@@ -491,30 +513,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.hardwareGunmetal,
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(color: AppColors.brassGold, strokeWidth: 2),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                "🎬 Rendering '$tDisplayName' in background...",
-                style: const TextStyle(color: AppColors.panelCream, fontWeight: FontWeight.bold, fontSize: 12),
-              ),
-            ),
-          ],
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-
-    // Launch background execution (non-blocking)
+    // Launch background execution (non-blocking, zero intrusive popups)
     _runBackgroundRenderTask(
       jobId: jobId,
       templateId: tId,
@@ -556,11 +555,15 @@ class HomeScreenState extends State<HomeScreen> {
     required String titleFrame,
   }) async {
     try {
+      if (qm.isCancelled(jobId)) return;
+
       final photoFiles = photos.map((p) => File(p.path)).toList();
       File musicFile = music ?? await SoundTrack.builtInLibrary.first.getCachedFile();
       if (!musicFile.existsSync()) {
         musicFile = await SoundTrack.builtInLibrary.first.getCachedFile();
       }
+
+      if (qm.isCancelled(jobId)) return;
 
       final videoPath = await api.renderReel(
         musicFile: musicFile,
@@ -579,9 +582,13 @@ class HomeScreenState extends State<HomeScreen> {
         titleStyle: titleStyle,
         titleFrame: titleFrame,
         onProgress: (p) {
-          qm.updateJobProgress(jobId, p);
+          if (!qm.isCancelled(jobId)) {
+            qm.updateJobProgress(jobId, p);
+          }
         },
       );
+
+      if (qm.isCancelled(jobId)) return;
 
       await qm.updateJob(
         jobId,
@@ -589,60 +596,14 @@ class HomeScreenState extends State<HomeScreen> {
         videoPath: videoPath,
         progress: 1.0,
       );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFF1E2818),
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded, color: AppColors.vuGreen, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "'$templateName' is ready to watch!",
-                    style: const TextStyle(color: AppColors.panelCream, fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    VideoPreviewDialog.show(
-                      context,
-                      videoPath: videoPath,
-                      templateName: templateName,
-                      quality: quality,
-                    );
-                  },
-                  child: const Text("PLAY ▶", style: TextStyle(color: AppColors.brassGold, fontWeight: FontWeight.w900)),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-      }
     } catch (e) {
+      if (qm.isCancelled(jobId)) return;
       final cleanMsg = e.toString().replaceAll("Exception: ", "").trim();
       await qm.updateJob(
         jobId,
         status: "FAILED",
         error: cleanMsg,
       );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFF381414),
-            content: Text("Render failed: $cleanMsg", style: const TextStyle(color: Colors.white, fontSize: 12)),
-            action: SnackBarAction(
-              label: "DISMISS",
-              textColor: AppColors.brassGold,
-              onPressed: () {},
-            ),
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
     }
   }
 
@@ -861,24 +822,12 @@ class HomeScreenState extends State<HomeScreen> {
                   activeJobsCount: qm.activeJobs.length,
                   onDisabledTabTap: (tab) {
                     if (tab == 'photos') {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("🎵 Select a music track first to unlock photos!"),
-                          backgroundColor: AppColors.hardwareGunmetal,
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      _showNotice("🎵 Select a music track first to unlock photos!");
                     } else if (tab == 'render') {
                       final msg = _selectedMusic == null
                           ? "🎵 Select a music track first!"
                           : "📸 Add at least one photo to configure render options!";
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(msg),
-                          backgroundColor: AppColors.hardwareGunmetal,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
+                      _showNotice(msg);
                     }
                   },
                 ),
@@ -1451,9 +1400,15 @@ class HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    final activeJobs = jobs.where((j) => j.status == "PROCESSING").toList();
-    final completedJobs = jobs.where((j) => j.status == "READY").toList();
-    final failedJobs = jobs.where((j) => j.status == "FAILED").toList();
+    final activeJobs = jobs.where((j) {
+      final s = j.status.toUpperCase();
+      return s == "PROCESSING" || s == "RENDERING" || s == "QUEUED";
+    }).toList();
+    final completedJobs = jobs.where((j) {
+      final s = j.status.toUpperCase();
+      return s == "READY" || s == "DONE" || s == "COMPLETED";
+    }).toList();
+    final failedJobs = jobs.where((j) => !activeJobs.contains(j) && !completedJobs.contains(j)).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1486,38 +1441,72 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              GestureDetector(
-                onTap: () => setState(() {
-                  if (_selectedMusic == null) {
-                    _currentTab = "music";
-                  } else if (_photos.isEmpty) {
-                    _currentTab = "photos";
-                  } else {
-                    _currentTab = "render";
-                  }
-                }),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.brassGold,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.add_rounded, size: 14, color: AppColors.hardwareGunmetal),
-                      SizedBox(width: 2),
-                      Text(
-                        "NEW REEL",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.hardwareGunmetal,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (jobs.isNotEmpty) ...[
+                    GestureDetector(
+                      onTap: _showClearQueueDialog,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.vuRed.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5), width: 1),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.clear_all_rounded, size: 13, color: AppColors.vuRed),
+                            SizedBox(width: 3),
+                            Text(
+                              "CLEAR QUEUE",
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.vuRed,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  GestureDetector(
+                    onTap: () => setState(() {
+                      if (_selectedMusic == null) {
+                        _currentTab = "music";
+                      } else if (_photos.isEmpty) {
+                        _currentTab = "photos";
+                      } else {
+                        _currentTab = "render";
+                      }
+                    }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.brassGold,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.add_rounded, size: 14, color: AppColors.hardwareGunmetal),
+                          SizedBox(width: 2),
+                          Text(
+                            "NEW REEL",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.hardwareGunmetal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -1632,41 +1621,81 @@ class HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(color: AppColors.brassGold, strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        job.templateName.toUpperCase(),
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                          color: AppColors.textEngraved,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(color: AppColors.brassGold, strokeWidth: 2),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isFocused ? const Color(0xFFFF3366).withValues(alpha: 0.2) : AppColors.amberJewel.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel, width: 1),
+                    ),
+                    child: Text(
+                      "$percent%",
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    job.templateName.toUpperCase(),
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                      color: AppColors.textEngraved,
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => _cancelAndRemoveJob(job.id),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.vuRed.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.6), width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.close_rounded, size: 12, color: AppColors.vuRed),
+                          SizedBox(width: 3),
+                          Text(
+                            "CANCEL",
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.4,
+                              color: AppColors.vuRed,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isFocused ? const Color(0xFFFF3366).withValues(alpha: 0.2) : AppColors.amberJewel.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel, width: 1),
-                ),
-                child: Text(
-                  "$percent%",
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel,
-                  ),
-                ),
               ),
             ],
           ),
@@ -1872,7 +1901,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  job.error ?? "Render error occurred",
+                  job.error ?? (job.status == "CANCELLED" ? "Render cancelled by user" : "Incomplete or failed render"),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 10, color: AppColors.vuRed),
@@ -1883,7 +1912,7 @@ class HomeScreenState extends State<HomeScreen> {
           RetroMechanicalButton(
             variant: RetroButtonVariant.delete,
             height: 36,
-            onTap: () => qm.deleteJob(job.id),
+            onTap: () => _cancelAndRemoveJob(job.id),
           ),
         ],
       ),

@@ -73,6 +73,7 @@ class ExportService {
   }
 
   static void _showToast(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -80,17 +81,18 @@ class ExportService {
           style: const TextStyle(
             fontFamily: 'Montserrat',
             fontWeight: FontWeight.w700,
-            fontSize: 12,
+            fontSize: 11.5,
             color: Color(0xFF2B2B2D),
           ),
         ),
         backgroundColor: const Color(0xFFFAF6EE),
         behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(20, 0, 20, 95),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: const BorderSide(color: Color(0xFFC8A232), width: 1.5),
         ),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(milliseconds: 1800),
       ),
     );
   }
