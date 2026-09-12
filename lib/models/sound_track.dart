@@ -36,8 +36,18 @@ class SoundTrack {
     return file;
   }
 
-  /// Curated library of 8 built-in studio analog tapes
+  /// Curated library of built-in studio analog tapes
   static const List<SoundTrack> builtInLibrary = [
+    SoundTrack(
+      id: 'little_do_you_know',
+      title: 'Little Do You Know',
+      genre: 'Cinematic / Emotional Beat',
+      bpm: '74 BPM',
+      vibe: 'Atmospheric piano chords and emotive slow-burn rhythm for storytelling',
+      assetPath: 'assets/audio/little_do_you_know.mp3',
+      durationSeconds: 154.0,
+      fileName: 'little_do_you_know.mp3',
+    ),
     SoundTrack(
       id: 'funk_smooth_party',
       title: 'Funk Smooth Party',
@@ -117,16 +127,6 @@ class SoundTrack {
       assetPath: 'assets/audio/heavy_bass_dubstep.mp3',
       durationSeconds: 126.0,
       fileName: 'heavy_bass_dubstep.mp3',
-    ),
-    SoundTrack(
-      id: 'little_do_you_know',
-      title: 'Little Do You Know',
-      genre: 'Cinematic / Emotional Beat',
-      bpm: '74 BPM',
-      vibe: 'Atmospheric piano chords and emotive slow-burn rhythm for storytelling',
-      assetPath: 'assets/audio/little_do_you_know.mp3',
-      durationSeconds: 154.0,
-      fileName: 'little_do_you_know.mp3',
     ),
   ];
 }

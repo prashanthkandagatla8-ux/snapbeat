@@ -14,13 +14,12 @@ class BeatTemplate {
   });
 
   static const List<BeatTemplate> allTemplates = [
+    BeatTemplate(id: "pendulum", name: "Pendulum", subtitle: "Swinging cuts with mirrored borders", emoji: "🪞", isPro: false),
     BeatTemplate(id: "beat-cut", name: "Beat Cut", subtitle: "Classic snappy beat drop transitions", emoji: "⚡"),
     BeatTemplate(id: "beat-bounce", name: "Bounce", subtitle: "Kinetic bassline scale bounces", emoji: "🏀", isPro: true),
     BeatTemplate(id: "cinematic-zoom", name: "Cine Zoom", subtitle: "Dynamic optical punch-in zooms", emoji: "🎬", isPro: true),
     BeatTemplate(id: "beat-fade", name: "Fade", subtitle: "Silk crossfades for ambient beats", emoji: "🌊", isPro: true),
     BeatTemplate(id: "glide-pan", name: "Glide", subtitle: "Lateral gliding pan motion", emoji: "🛹", isPro: true),
-    BeatTemplate(id: "pendulum", name: "Pendulum", subtitle: "Rhythmic swinging physics cuts", emoji: "⏱️", isPro: true),
-    BeatTemplate(id: "pendulum-mirror-any", name: "Pendulum Mirror", subtitle: "Swinging cuts with mirrored borders for any music", emoji: "🪞", isPro: true),
     BeatTemplate(id: "beat-pulse", name: "Pulse", subtitle: "Pulsing emotional sub-bass pump", emoji: "💓", isPro: true),
     BeatTemplate(id: "punch-cut", name: "Punch", subtitle: "High-impact rhythmic punch cuts", emoji: "🥊", isPro: true),
     BeatTemplate(id: "reveal-tiles", name: "Reveal Boxes", subtitle: "Geometric box tile mosaic reveals", emoji: "🔲", isPro: true),

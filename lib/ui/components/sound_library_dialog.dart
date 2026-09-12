@@ -181,8 +181,11 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
               itemCount: tracks.length,
               itemBuilder: (context, index) {
                 final track = tracks[index];
-                final isSelected = widget.currentTrackTitle.toLowerCase().contains(track.title.toLowerCase()) ||
-                    track.title.toLowerCase().contains(widget.currentTrackTitle.toLowerCase());
+                final cleanCurrentTitle = widget.currentTrackTitle.trim().toLowerCase();
+                final isSelected = cleanCurrentTitle.isNotEmpty &&
+                    (cleanCurrentTitle == track.title.toLowerCase() ||
+                     cleanCurrentTitle.startsWith(track.title.toLowerCase()) ||
+                     (cleanCurrentTitle.contains(track.title.toLowerCase()) && track.title.length > 3));
                 final isCurrentPreview = (_previewingId == track.id && _isPlaying);
 
                 return Container(

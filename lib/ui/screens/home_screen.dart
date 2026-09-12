@@ -87,7 +87,7 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
   final List<PhotoItem> _photos = [];
-  String _selectedTemplate = "beat-cut";
+  String _selectedTemplate = "pendulum";
   String _selectedAspectRatio = "9:16";
   String _selectedQuality = "1080p";
   String _arrangementMode = "sequential";
@@ -265,6 +265,9 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _initData() async {
     await cm.init();
     await qm.init();
+    if (widget.initialMusic == null && _selectedMusic == null) {
+      await _loadDefaultSampleTrack();
+    }
     if (mounted) setState(() {});
   }
 
