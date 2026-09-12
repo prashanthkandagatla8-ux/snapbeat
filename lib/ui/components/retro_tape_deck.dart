@@ -207,15 +207,15 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
 
                 const SizedBox(height: 14),
 
-                // Track Title Bar & Action Buttons
+                // Row 1: Transport Play/Pause Lever + Track Title & Subtitle
                 Row(
                   children: [
                     // Transport Play/Pause Lever
                     GestureDetector(
                       onTap: widget.onTogglePlay,
                       child: Container(
-                        width: 44,
-                        height: 44,
+                        width: 46,
+                        height: 46,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: AppColors.brassKnobGradient,
@@ -254,41 +254,51 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            hasTrack ? 'Step 1 Ready • Tap play to preview' : 'Step 1 • Pick track to unlock Step 2 Photos',
+                            hasTrack ? 'Step 1 Ready • Tap play to preview audio' : 'Step 1 • Pick track to unlock Step 2 Photos',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textMuted,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ],
                       ),
                     ),
+                  ],
+                ),
 
-                    // Audio Source Buttons
-                    Row(
-                      children: [
-                        if (widget.onQuickDemo != null) ...[
-                          _RetroMiniButton(
-                            label: 'DEMO',
-                            icon: Icons.auto_awesome,
-                            onTap: widget.onQuickDemo!,
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        _RetroMiniButton(
-                          label: 'LIBRARY',
-                          icon: Icons.library_music_rounded,
-                          onTap: widget.onLoadSample,
+                const SizedBox(height: 12),
+
+                // Row 2: Audio Source Buttons (DEMO, LIBRARY, FILES) below audio description
+                Row(
+                  children: [
+                    if (widget.onQuickDemo != null) ...[
+                      Expanded(
+                        child: _RetroMiniButton(
+                          label: 'DEMO',
+                          icon: Icons.auto_awesome,
+                          onTap: widget.onQuickDemo!,
                         ),
-                        const SizedBox(width: 6),
-                        _RetroMiniButton(
-                          label: 'FILES',
-                          icon: Icons.file_upload_outlined,
-                          onTap: widget.onPickAudio,
-                        ),
-                      ],
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: _RetroMiniButton(
+                        label: 'LIBRARY',
+                        icon: Icons.library_music_rounded,
+                        onTap: widget.onLoadSample,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _RetroMiniButton(
+                        label: 'FILES',
+                        icon: Icons.file_upload_outlined,
+                        onTap: widget.onPickAudio,
+                      ),
                     ),
                   ],
                 ),
@@ -476,11 +486,12 @@ class _RetroMiniButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.metalBrushedDark,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.chassisBevelLight, width: 1),
           boxShadow: [
             BoxShadow(
@@ -496,17 +507,21 @@ class _RetroMiniButton extends StatelessWidget {
           ],
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 12, color: AppColors.textSecondary),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: AppColors.textEngraved,
+            Icon(icon, size: 13, color: AppColors.brassGold),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: AppColors.textEngraved,
+                ),
               ),
             ),
           ],

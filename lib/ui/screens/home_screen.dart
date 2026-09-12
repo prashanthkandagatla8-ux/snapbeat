@@ -19,7 +19,7 @@ import '../components/interactive_waveform.dart';
 import '../components/snaps_reorder_strip.dart';
 import '../components/pro_controls_card.dart';
 import '../components/master_action_deck.dart';
-import '../components/store_dialog.dart';
+import '../components/splash_master_red_button.dart';
 import '../components/video_preview_dialog.dart';
 import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
@@ -356,80 +356,13 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // All templates and Pro features unlocked for closed testing
-    _showRenderChoiceDialog();
+    // Direct single render execution for testing (holding instant modal for now)
+    _executeRender(isInstant: false);
   }
 
 
-  void _showRenderChoiceDialog() {
-    final watermarkClean = cm.isWatermarkRemoved;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.panelCream,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(top: BorderSide(color: AppColors.chassisBevelLight, width: 2)),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Render Options",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: AppColors.textEngraved),
-            ),
-            const SizedBox(height: 12),
-            // Instant Fast Server
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.brassKnobGradient,
-                ),
-                child: const Icon(Icons.bolt_rounded, size: 20, color: AppColors.hardwareGunmetal),
-              ),
-              title: const Text("⚡ Instant Render (1 Credit)", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textEngraved)),
-              subtitle: const Text("No watermark · Fast processing", style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _executeRender(isInstant: true);
-              },
-            ),
-            const Divider(color: AppColors.chassisBevelDark),
-            // Free Queue
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.panelInset,
-                  border: Border.all(color: AppColors.chassisBevelDark),
-                ),
-                child: const Icon(Icons.cloud_download_outlined, size: 20, color: AppColors.textSecondary),
-              ),
-              title: Text(
-                watermarkClean ? "Free Render (No Watermark)" : "Free Render",
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textEngraved),
-              ),
-              subtitle: Text(
-                watermarkClean ? "Clean video output" : "Includes SnapBeat watermark",
-                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _executeRender(isInstant: false);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Reserved for instant render & credits pack workflow (temporarily held):
+  // void _showRenderChoiceDialog() { ... }
 
   void _executeRender({required bool isInstant}) {
     if (_selectedMusic == null) {
@@ -698,50 +631,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Right Action Group: Privacy Policy Shield + Credit Passes Badge
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
-                            tooltip: 'Privacy Policy',
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.all(6),
-                            constraints: const BoxConstraints(),
-                            onPressed: () => PrivacyPolicyDialog.show(context),
-                          ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () => StoreBottomSheet.show(context, onPurchaseComplete: () => setState(() {})),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: AppColors.panelCream,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.borderBrass, width: 1),
-                                boxShadow: const [
-                                  BoxShadow(color: Colors.black12, offset: Offset(1, 1), blurRadius: 2),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text('⚡', style: TextStyle(fontSize: 12)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${cm.credits} PASSES',
-                                    style: const TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.textEngraved,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      // Right Action Group: Privacy Policy Shield (credits pack held for now)
+                      IconButton(
+                        icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
+                        tooltip: 'Privacy Policy',
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.all(6),
+                        constraints: const BoxConstraints(),
+                        onPressed: () => PrivacyPolicyDialog.show(context),
                       ),
                     ],
                   ),
@@ -899,10 +796,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     });
                   },
-                  photoCount: _photos.length,
                   hasMusic: _selectedMusic != null,
                   isPhotosEnabled: _selectedMusic != null,
                   isRenderEnabled: _selectedMusic != null && _photos.isNotEmpty,
+                  activeJobsCount: qm.activeJobs.length,
                   onDisabledTabTap: (tab) {
                     if (tab == 'photos') {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -925,8 +822,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
                   },
-                  onTriggerMaster: _triggerMasterReel,
-                  activeJobsCount: qm.activeJobs.length,
                 ),
               ],
             ),
@@ -1156,48 +1051,67 @@ class _HomeScreenState extends State<HomeScreen> {
         // 3. Job Summary Badge
         _buildJobSummaryCard(),
 
-        // 4. Start Render Tactile Button
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-          child: InkWell(
-            onTap: _triggerMasterReel,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFF3366), Color(0xFFD6184C)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFB0103C), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF3366).withValues(alpha: 0.35),
-                    offset: const Offset(0, 3),
-                    blurRadius: 8,
-                  ),
-                ],
+        // 4. Master Launch Deck with Iconic Red Button
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            color: AppColors.panelCreamDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.brassGold, width: 1.5),
+            boxShadow: const [
+              BoxShadow(color: Colors.black12, offset: Offset(0, 3), blurRadius: 6),
+            ],
+          ),
+          child: Column(
+            children: [
+              SplashMasterRedButton(
+                size: 100,
+                isEnabled: _selectedMusic != null && _photos.isNotEmpty,
+                onTap: _triggerMasterReel,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.bolt_rounded, size: 20, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    "RENDER REEL NOW (${_photos.length} SNAPS)",
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.0,
-                      color: Colors.white,
+              const SizedBox(height: 14),
+              InkWell(
+                onTap: _triggerMasterReel,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFFF3366), Color(0xFFD6184C)],
                     ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFB0103C), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF3366).withValues(alpha: 0.35),
+                        offset: const Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
                   ),
-                ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.bolt_rounded, size: 20, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        "RENDER REEL NOW (${_photos.length} SNAPS)",
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ],

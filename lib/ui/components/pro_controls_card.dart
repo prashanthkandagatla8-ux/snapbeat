@@ -162,52 +162,53 @@ class ProControlsCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Beat Templates in Retro Selector Chips
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: BeatTemplate.allTemplates.length,
-              itemBuilder: (context, index) {
-                final t = BeatTemplate.allTemplates[index];
-                final isSel = t.id == selectedTemplateId;
-                return GestureDetector(
-                  onTap: () => onSelectTemplate(t.id),
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isSel ? AppColors.brassGold : AppColors.panelInset,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSel ? AppColors.brassGold : AppColors.chassisBevelLight,
-                        width: 1.0,
-                      ),
-                      boxShadow: isSel
-                          ? [
-                              const BoxShadow(
-                                color: AppColors.amberGlow,
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
-                            ]
-                          : [],
+          // Beat Templates in Wrap (all 15 styles directly visible, no hidden scrolling)
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: BeatTemplate.allTemplates.map((t) {
+              final isSel = t.id == selectedTemplateId;
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onSelectTemplate(t.id),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isSel ? AppColors.brassGold : AppColors.panelInset,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSel ? AppColors.brassGold : AppColors.chassisBevelLight,
+                      width: 1.0,
                     ),
-                    child: Center(
-                      child: Text(
+                    boxShadow: isSel
+                        ? [
+                            const BoxShadow(
+                              color: AppColors.amberGlow,
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(t.emoji, style: const TextStyle(fontSize: 11)),
+                      const SizedBox(width: 4),
+                      Text(
                         t.name.toUpperCase(),
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
+                          letterSpacing: 0.6,
                           color: isSel ? AppColors.hardwareGunmetal : AppColors.textSecondary,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            }).toList(),
           ),
           const SizedBox(height: 14),
 
@@ -305,51 +306,48 @@ class ProControlsCard extends StatelessWidget {
                   // 1. Font Family Selector
                   const Text('FONT FAMILY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
                   const SizedBox(height: 6),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildChip('impact', 'Impact Bold', titleFont == 'impact', onSelectTitleFont),
-                        _buildChip('serif', 'Editorial Serif', titleFont == 'serif', onSelectTitleFont),
-                        _buildChip('clean', 'Modern Clean', titleFont == 'clean', onSelectTitleFont),
-                        _buildChip('typewriter', 'Typewriter', titleFont == 'typewriter', onSelectTitleFont),
-                        _buildChip('playful', 'Playful', titleFont == 'playful', onSelectTitleFont),
-                      ],
-                    ),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _buildChip('impact', 'Impact Bold', titleFont == 'impact', onSelectTitleFont),
+                      _buildChip('serif', 'Editorial Serif', titleFont == 'serif', onSelectTitleFont),
+                      _buildChip('clean', 'Modern Clean', titleFont == 'clean', onSelectTitleFont),
+                      _buildChip('typewriter', 'Typewriter', titleFont == 'typewriter', onSelectTitleFont),
+                      _buildChip('playful', 'Playful', titleFont == 'playful', onSelectTitleFont),
+                    ],
                   ),
                   const SizedBox(height: 10),
 
                   // 2. Title Style Selector
                   const Text('TITLE STYLE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
                   const SizedBox(height: 6),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildChip('classic', 'Retro Gold 👑', titleStyle == 'classic', onSelectTitleStyle),
-                        _buildChip('neon', 'Neon Glow ⚡', titleStyle == 'neon', onSelectTitleStyle),
-                        _buildChip('3d_retro', '3D Sunset 🌇', titleStyle == '3d_retro', onSelectTitleStyle),
-                        _buildChip('cinematic', 'Cinematic 🎬', titleStyle == 'cinematic', onSelectTitleStyle),
-                        _buildChip('badge', 'Badge Pill 🏷️', titleStyle == 'badge', onSelectTitleStyle),
-                      ],
-                    ),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _buildChip('classic', 'Retro Gold 👑', titleStyle == 'classic', onSelectTitleStyle),
+                      _buildChip('neon', 'Neon Glow ⚡', titleStyle == 'neon', onSelectTitleStyle),
+                      _buildChip('3d_retro', '3D Sunset 🌇', titleStyle == '3d_retro', onSelectTitleStyle),
+                      _buildChip('cinematic', 'Cinematic 🎬', titleStyle == 'cinematic', onSelectTitleStyle),
+                      _buildChip('badge', 'Badge Pill 🏷️', titleStyle == 'badge', onSelectTitleStyle),
+                    ],
                   ),
                   const SizedBox(height: 10),
 
                   // 3. Frame Style Selector
                   const Text('FRAME BORDER', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
                   const SizedBox(height: 6),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildChip('none', 'No Frame', titleFrame == 'none', onSelectTitleFrame),
-                        _buildChip('viewfinder', 'Viewfinder 🎯', titleFrame == 'viewfinder', onSelectTitleFrame),
-                        _buildChip('film_bars', 'Film Bars 🎞️', titleFrame == 'film_bars', onSelectTitleFrame),
-                        _buildChip('box', 'Clean Box 🔲', titleFrame == 'box', onSelectTitleFrame),
-                        _buildChip('double_line', 'Double Line ═', titleFrame == 'double_line', onSelectTitleFrame),
-                      ],
-                    ),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _buildChip('none', 'No Frame', titleFrame == 'none', onSelectTitleFrame),
+                      _buildChip('viewfinder', 'Viewfinder 🎯', titleFrame == 'viewfinder', onSelectTitleFrame),
+                      _buildChip('film_bars', 'Film Bars 🎞️', titleFrame == 'film_bars', onSelectTitleFrame),
+                      _buildChip('box', 'Clean Box 🔲', titleFrame == 'box', onSelectTitleFrame),
+                      _buildChip('double_line', 'Double Line ═', titleFrame == 'double_line', onSelectTitleFrame),
+                    ],
                   ),
                   const SizedBox(height: 10),
 

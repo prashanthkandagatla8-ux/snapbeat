@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import 'snapbeat_pink_dot.dart';
-import 'splash_master_red_button.dart';
 
 class MasterActionDeck extends StatelessWidget {
   final String currentMode; // 'music', 'photos', 'render', 'queue'
   final Function(String mode) onSelectMode;
-  final int photoCount;
   final bool hasMusic;
   final bool isPhotosEnabled;
   final bool isRenderEnabled;
-  final VoidCallback onTriggerMaster;
   final int activeJobsCount;
   final Function(String mode)? onDisabledTabTap;
 
@@ -18,31 +15,15 @@ class MasterActionDeck extends StatelessWidget {
     super.key,
     required this.currentMode,
     required this.onSelectMode,
-    required this.photoCount,
     required this.hasMusic,
     required this.isPhotosEnabled,
     required this.isRenderEnabled,
-    required this.onTriggerMaster,
     this.activeJobsCount = 0,
     this.onDisabledTabTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool isQueue = currentMode == 'queue';
-    final bool canRender = isRenderEnabled && !isQueue;
-
-    String statusText;
-    if (isQueue) {
-      statusText = 'DISABLED IN QUEUE';
-    } else if (!hasMusic) {
-      statusText = 'SELECT MUSIC FIRST';
-    } else if (photoCount == 0) {
-      statusText = 'ADD PHOTOS FIRST';
-    } else {
-      statusText = 'RENDER NOW • $photoCount SNAPS';
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: AppColors.metalBase,
@@ -52,106 +33,62 @@ class MasterActionDeck extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.35),
-            offset: const Offset(0, -4),
-            blurRadius: 10,
+            offset: const Offset(0, -3),
+            blurRadius: 8,
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 1. Render Button on Top (Centered, tactile feedback, enabled when ready)
-              SplashMasterRedButton(
-                size: 58,
-                onTap: canRender ? onTriggerMaster : null,
-                isEnabled: canRender,
-              ),
-
-              // 2. Status text below button
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SnapBeatPinkDot(size: 8, withGlow: canRender),
-                  const SizedBox(width: 6),
-                  Text(
-                    statusText,
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 9.0,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      color: canRender ? const Color(0xFF2E2B27) : const Color(0xFF8A857D),
-                      shadows: canRender
-                          ? const [
-                              Shadow(color: Color(0x88FFFFFF), offset: Offset(0, 1), blurRadius: 1),
-                            ]
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 6),
-
-              // 3. Lower 4-Stage Navigation Switcher: [MUSIC, PHOTOS, RENDER, QUEUE]
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFB8AE9F),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFDED8CE), width: 1),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        offset: Offset(0, 1),
-                        blurRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      _buildTab(
-                        mode: 'music',
-                        label: 'MUSIC',
-                        icon: Icons.library_music_rounded,
-                        isEnabled: true,
-                      ),
-                      const SizedBox(width: 3),
-                      _buildTab(
-                        mode: 'photos',
-                        label: 'PHOTOS',
-                        icon: Icons.photo_library_rounded,
-                        isEnabled: isPhotosEnabled,
-                        badgeCount: photoCount > 0 ? photoCount : 0,
-                      ),
-                      const SizedBox(width: 3),
-                      _buildTab(
-                        mode: 'render',
-                        label: 'RENDER',
-                        icon: Icons.movie_creation_rounded,
-                        isEnabled: isRenderEnabled,
-                      ),
-                      const SizedBox(width: 3),
-                      _buildTab(
-                        mode: 'queue',
-                        label: 'QUEUE',
-                        icon: Icons.video_collection_rounded,
-                        isEnabled: true,
-                        badgeCount: activeJobsCount,
-                      ),
-                    ],
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Container(
+            height: 42,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFB8AE9F),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFDED8CE), width: 1),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Row(
+              children: [
+                _buildTab(
+                  mode: 'music',
+                  label: 'MUSIC',
+                  icon: Icons.library_music_rounded,
+                  isEnabled: true,
+                ),
+                const SizedBox(width: 3),
+                _buildTab(
+                  mode: 'photos',
+                  label: 'PHOTOS',
+                  icon: Icons.photo_library_rounded,
+                  isEnabled: isPhotosEnabled,
+                ),
+                const SizedBox(width: 3),
+                _buildTab(
+                  mode: 'render',
+                  label: 'RENDER',
+                  icon: Icons.movie_creation_rounded,
+                  isEnabled: isRenderEnabled,
+                ),
+                const SizedBox(width: 3),
+                _buildTab(
+                  mode: 'queue',
+                  label: 'QUEUE',
+                  icon: Icons.video_collection_rounded,
+                  isEnabled: true,
+                  badgeCount: activeJobsCount,
+                ),
+              ],
+            ),
           ),
         ),
       ),
