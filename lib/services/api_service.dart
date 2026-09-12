@@ -35,6 +35,7 @@ class ApiService {
     String? titleFont,
     String? titleStyle,
     String? titleFrame,
+    String? titleAudio,
     Function(double progress)? onProgress,
   }) async {
     final formData = FormData();
@@ -88,6 +89,9 @@ class ApiService {
       }
       if (titleFrame != null && titleFrame.isNotEmpty) {
         formData.fields.add(MapEntry("title_frame", titleFrame));
+      }
+      if (titleAudio != null && titleAudio.isNotEmpty) {
+        formData.fields.add(MapEntry("title_audio", titleAudio));
       }
     }
 

@@ -1,0 +1,462 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
+import '../../theme/app_colors.dart';
+import '../components/snapbeat_pink_dot.dart';
+import 'home_screen.dart';
+
+class SampleReelShowcaseScreen extends StatefulWidget {
+  const SampleReelShowcaseScreen({super.key});
+
+  @override
+  State<SampleReelShowcaseScreen> createState() => _SampleReelShowcaseScreenState();
+}
+
+class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
+  VideoPlayerController? _controller;
+  bool _isReady = false;
+  bool _isMuted = false;
+  bool _hasNavigated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _initVideo();
+  }
+
+  Future<void> _initVideo() async {
+    try {
+      final controller = VideoPlayerController.asset('assets/videos/showcase_reel.mp4');
+      _controller = controller;
+      await controller.initialize();
+      await controller.setLooping(false);
+      await controller.setVolume(1.0);
+      controller.addListener(_videoListener);
+      if (!mounted) return;
+      setState(() => _isReady = true);
+      await controller.play();
+    } catch (e) {
+      debugPrint('Showcase video error: $e');
+      _navigateToHome();
+    }
+  }
+
+  void _videoListener() {
+    final c = _controller;
+    if (c == null || !c.value.isInitialized || _hasNavigated) return;
+    final pos = c.value.position;
+    final dur = c.value.duration;
+    if (dur > Duration.zero && pos >= (dur - const Duration(milliseconds: 300))) {
+      _navigateToHome();
+    }
+  }
+
+  void _togglePlay() {
+    final c = _controller;
+    if (c == null || !c.value.isInitialized) return;
+    setState(() {
+      if (c.value.isPlaying) {
+        c.pause();
+      } else {
+        c.play();
+      }
+    });
+  }
+
+  void _toggleMute() {
+    final c = _controller;
+    if (c == null || !c.value.isInitialized) return;
+    setState(() {
+      _isMuted = !_isMuted;
+      c.setVolume(_isMuted ? 0.0 : 1.0);
+    });
+  }
+
+  void _navigateToHome() {
+    if (_hasNavigated || !mounted) return;
+    _hasNavigated = true;
+
+    try {
+      _controller?.removeListener(_videoListener);
+      _controller?.pause();
+      _controller?.dispose();
+    } catch (_) {}
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 350),
+        pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(fromShowcase: true),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    try {
+      _controller?.removeListener(_videoListener);
+      _controller?.pause();
+      _controller?.dispose();
+    } catch (_) {}
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller;
+    final isPlaying = controller?.value.isPlaying ?? false;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1. Video Player Surface
+          if (_isReady && controller != null && controller.value.isInitialized)
+            GestureDetector(
+              onTap: _togglePlay,
+              behavior: HitTestBehavior.opaque,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: controller.value.aspectRatio,
+                  child: VideoPlayer(controller),
+                ),
+              ),
+            )
+          else
+            const Center(
+              child: CircularProgressIndicator(color: AppColors.brassGold),
+            ),
+
+          // 2. Subtle Dark Vignette & Gradient Overlays
+          IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.65),
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.85),
+                  ],
+                  stops: const [0.0, 0.18, 0.60, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Play / Pause Center Flash Indicator
+          if (!isPlaying && _isReady)
+            Center(
+              child: GestureDetector(
+                onTap: _togglePlay,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.brassGold, width: 2),
+                  ),
+                  child: const Icon(Icons.play_arrow_rounded, color: AppColors.brassGold, size: 38),
+                ),
+              ),
+            ),
+
+          // 4. Top Header Bar
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // App Branding Pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1A16).withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.6)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        SnapBeatPinkDot(size: 8, withGlow: true),
+                        SizedBox(width: 6),
+                        Text(
+                          'SAMPLE REEL SHOWCASE',
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                            color: AppColors.amberJewel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Skip to Studio Action Button
+                  GestureDetector(
+                    onTap: _navigateToHome,
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.brassKnobGradient,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            offset: const Offset(0, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'SKIP TO STUDIO',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                              color: AppColors.hardwareGunmetal,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.hardwareGunmetal),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 5. Bottom Metadata & Creator Action Deck
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 24,
+            child: SafeArea(
+              top: false,
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.panelCream.withValues(alpha: 0.96),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderBrass, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      offset: const Offset(0, 6),
+                      blurRadius: 16,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Info Row: Template & Soundtrack Badges
+                    Row(
+                      children: [
+                        // Template Pill
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.panelInset,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.chassisBevelDark),
+                            ),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.motion_photos_auto_rounded, size: 13, color: AppColors.brassGold),
+                                SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'TEMPLATE: PENDULUM',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.textEngraved,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Track Pill
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.panelInset,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.chassisBevelDark),
+                            ),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.music_note_rounded, size: 13, color: AppColors.amberJewel),
+                                SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'TRACK: Little Do You Know',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.textEngraved,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Video Progress / Transport Bar
+                    if (controller != null && controller.value.isInitialized)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: VideoProgressIndicator(
+                          controller,
+                          allowScrubbing: true,
+                          colors: const VideoProgressColors(
+                            playedColor: AppColors.brassGold,
+                            bufferedColor: Colors.black26,
+                            backgroundColor: Colors.black12,
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 10),
+
+                    // Controls & Master Call-to-Action
+                    Row(
+                      children: [
+                        // Mute / Unmute Toggle Button
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _toggleMute,
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: AppColors.panelInset,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.chassisBevelDark),
+                            ),
+                            child: Icon(
+                              _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                              size: 18,
+                              color: AppColors.brassGold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+
+                        // Play / Pause Toggle Button
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _togglePlay,
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: AppColors.panelInset,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.chassisBevelDark),
+                            ),
+                            child: Icon(
+                              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                              size: 20,
+                              color: AppColors.textEngraved,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+
+                        // Primary Action: CREATE YOUR REEL (Pre-loads template & track)
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _navigateToHome,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 3),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF1E1A10)),
+                                  SizedBox(width: 8),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'CREATE YOUR OWN REEL ❯',
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 0.8,
+                                          color: Color(0xFF1E1A10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

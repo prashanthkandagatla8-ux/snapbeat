@@ -27,6 +27,8 @@ class ProControlsCard extends StatelessWidget {
   final Function(String style) onSelectTitleStyle;
   final String titleFrame;
   final Function(String frame) onSelectTitleFrame;
+  final String titleAudio;
+  final Function(String audio) onSelectTitleAudio;
 
   const ProControlsCard({
     super.key,
@@ -50,6 +52,8 @@ class ProControlsCard extends StatelessWidget {
     required this.onSelectTitleStyle,
     required this.titleFrame,
     required this.onSelectTitleFrame,
+    required this.titleAudio,
+    required this.onSelectTitleAudio,
   });
 
   @override
@@ -304,20 +308,38 @@ class ProControlsCard extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   // 1. Font Family Selector
-                  const Text('FONT FAMILY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'FONT FAMILY',
+                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+                      ),
+                      Text(
+                        titleFont.toUpperCase().replaceAll('_', ' '),
+                        style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppColors.brassGold),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
                     children: [
+                      _buildChip('great_vibes', '✨ Great Vibes', titleFont == 'great_vibes', onSelectTitleFont),
+                      _buildChip('allura', 'Allura', titleFont == 'allura', onSelectTitleFont),
+                      _buildChip('alex_brush', 'Alex Brush', titleFont == 'alex_brush', onSelectTitleFont),
+                      _buildChip('bodoni_moda', 'Bodoni Moda', titleFont == 'bodoni_moda', onSelectTitleFont),
+                      _buildChip('cormorant_garamond', 'Cormorant', titleFont == 'cormorant_garamond', onSelectTitleFont),
+                      _buildChip('cinzel', 'Cinzel', titleFont == 'cinzel', onSelectTitleFont),
                       _buildChip('impact', 'Impact Bold', titleFont == 'impact', onSelectTitleFont),
-                      _buildChip('serif', 'Editorial Serif', titleFont == 'serif', onSelectTitleFont),
                       _buildChip('clean', 'Modern Clean', titleFont == 'clean', onSelectTitleFont),
+                      _buildChip('serif', 'Editorial Serif', titleFont == 'serif', onSelectTitleFont),
                       _buildChip('typewriter', 'Typewriter', titleFont == 'typewriter', onSelectTitleFont),
                       _buildChip('playful', 'Playful', titleFont == 'playful', onSelectTitleFont),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
                   // 2. Title Style Selector
                   const Text('TITLE STYLE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
@@ -333,7 +355,7 @@ class ProControlsCard extends StatelessWidget {
                       _buildChip('badge', 'Badge Pill 🏷️', titleStyle == 'badge', onSelectTitleStyle),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
                   // 3. Frame Style Selector
                   const Text('FRAME BORDER', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
@@ -349,49 +371,212 @@ class ProControlsCard extends StatelessWidget {
                       _buildChip('double_line', 'Double Line ═', titleFrame == 'double_line', onSelectTitleFrame),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
 
-                  // 4. Background & Duration Row
-                  Row(
-                    children: [
-                      // Background Type
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  // 4. Title Duration Slider
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.panelCreamDark.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.chassisBevelDark.withValues(alpha: 0.7)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('BACKGROUND', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
-                            const SizedBox(height: 4),
                             Row(
-                              children: [
-                                _buildSmallRocker('black', 'Black', titleBg == 'black', onSelectTitleBg),
-                                const SizedBox(width: 4),
-                                _buildSmallRocker('video', 'Overlay', titleBg == 'video', onSelectTitleBg),
+                              children: const [
+                                Icon(Icons.timer_outlined, size: 13, color: AppColors.textSecondary),
+                                SizedBox(width: 6),
+                                Text(
+                                  'TITLE DURATION',
+                                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: AppColors.textSecondary),
+                                ),
                               ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.hardwareGunmetal,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.borderBrass),
+                              ),
+                              child: Text(
+                                '$titleDuration SECONDS',
+                                style: const TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                  color: AppColors.amberJewel,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Duration
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('DURATION', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                _buildSmallRocker('1s', '1s', titleDuration == 1, (_) => onTitleDurationChanged(1)),
-                                const SizedBox(width: 4),
-                                _buildSmallRocker('2s', '2s', titleDuration == 2, (_) => onTitleDurationChanged(2)),
-                                const SizedBox(width: 4),
-                                _buildSmallRocker('3s', '3s', titleDuration == 3, (_) => onTitleDurationChanged(3)),
-                              ],
+                        const SizedBox(height: 2),
+                        SliderTheme(
+                          data: SliderThemeData(
+                            trackHeight: 4.0,
+                            activeTrackColor: AppColors.brassGold,
+                            inactiveTrackColor: AppColors.chassisBevelDark,
+                            thumbColor: AppColors.brassGold,
+                            overlayColor: AppColors.amberGlow.withValues(alpha: 0.25),
+                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7.0),
+                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14.0),
+                            activeTickMarkColor: AppColors.hardwareGunmetal,
+                            inactiveTickMarkColor: AppColors.textMuted.withValues(alpha: 0.5),
+                          ),
+                          child: Slider(
+                            value: titleDuration.toDouble().clamp(1.0, 6.0),
+                            min: 1.0,
+                            max: 6.0,
+                            divisions: 5,
+                            onChanged: (val) => onTitleDurationChanged(val.round()),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(6, (i) {
+                              final sec = i + 1;
+                              final isCurrent = sec == titleDuration;
+                              return Text(
+                                '${sec}s',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w600,
+                                  color: isCurrent ? AppColors.amberJewel : AppColors.textMuted,
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 5. Audio Timing Selector
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.panelCreamDark.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.chassisBevelDark.withValues(alpha: 0.7)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.music_note_rounded, size: 13, color: AppColors.textSecondary),
+                            SizedBox(width: 6),
+                            Text(
+                              'AUDIO TIMING',
+                              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildSmallRocker(
+                              'before_audio',
+                              'Before Music ⏳',
+                              titleAudio == 'before_audio',
+                              onSelectTitleAudio,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildSmallRocker(
+                              'with_audio',
+                              'With Music 🎵',
+                              titleAudio == 'with_audio',
+                              onSelectTitleAudio,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          titleAudio == 'with_audio'
+                              ? '• Music starts from 0:00 immediately as the title card appears.'
+                              : '• Title plays in cinematic silence for ${titleDuration}s; music kicks in with photos.',
+                          style: TextStyle(
+                            fontSize: 8.5,
+                            fontStyle: FontStyle.italic,
+                            color: AppColors.textMuted.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 6. Background Selector & Curated Palette
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.panelCreamDark.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.chassisBevelDark.withValues(alpha: 0.7)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: const [
+                                Icon(Icons.palette_outlined, size: 13, color: AppColors.textSecondary),
+                                SizedBox(width: 6),
+                                Text(
+                                  'BACKGROUND',
+                                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              titleBg == 'video' ? 'OVER VIDEO' : (titleBg == 'black' ? 'BLACK' : titleBg.toUpperCase()),
+                              style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppColors.brassGold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildSmallRocker('black', 'Black', titleBg == 'black', onSelectTitleBg),
+                            const SizedBox(width: 6),
+                            _buildSmallRocker('video', 'Overlay (Video)', titleBg == 'video', onSelectTitleBg),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'COLOR TONES',
+                          style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: AppColors.textMuted),
+                        ),
+                        const SizedBox(height: 6),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _buildColorSwatch('#000000', 'Black', const Color(0xFF000000)),
+                              _buildColorSwatch('#18181B', 'Charcoal', const Color(0xFF18181B)),
+                              _buildColorSwatch('#1E1B4B', 'Indigo', const Color(0xFF1E1B4B)),
+                              _buildColorSwatch('#3B0764', 'Velvet', const Color(0xFF3B0764)),
+                              _buildColorSwatch('#2C1810', 'Sepia', const Color(0xFF2C1810)),
+                              _buildColorSwatch('#450A0A', 'Crimson', const Color(0xFF450A0A)),
+                              _buildColorSwatch('#064E3B', 'Emerald', const Color(0xFF064E3B)),
+                              _buildColorSwatch('#0F172A', 'Navy', const Color(0xFF0F172A)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ],
@@ -455,9 +640,69 @@ class ProControlsCard extends StatelessWidget {
     );
   }
 
+  Widget _buildColorSwatch(String hex, String label, Color color) {
+    final isSelected = titleBg.toLowerCase() == hex.toLowerCase();
+    return GestureDetector(
+      onTap: () => onSelectTitleBg(hex),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.brassGold.withValues(alpha: 0.2) : AppColors.panelInset,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white30, width: 1),
+              ),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 8.5,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                color: isSelected ? AppColors.brassGold : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTitlePreview() {
     TextStyle baseStyle;
     switch (titleFont) {
+      case 'great_vibes':
+        baseStyle = GoogleFonts.greatVibes(fontSize: 22, fontWeight: FontWeight.normal);
+        break;
+      case 'allura':
+        baseStyle = GoogleFonts.allura(fontSize: 22, fontWeight: FontWeight.normal);
+        break;
+      case 'alex_brush':
+        baseStyle = GoogleFonts.alexBrush(fontSize: 22, fontWeight: FontWeight.normal);
+        break;
+      case 'bodoni_moda':
+        baseStyle = GoogleFonts.bodoniModa(fontSize: 16, fontWeight: FontWeight.bold);
+        break;
+      case 'cormorant_garamond':
+        baseStyle = GoogleFonts.cormorantGaramond(fontSize: 17, fontWeight: FontWeight.w700);
+        break;
+      case 'cinzel':
+        baseStyle = GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1.2);
+        break;
       case 'serif':
         baseStyle = GoogleFonts.playfairDisplay(fontSize: 15, fontWeight: FontWeight.bold);
         break;
@@ -471,8 +716,10 @@ class ProControlsCard extends StatelessWidget {
         baseStyle = GoogleFonts.fredoka(fontSize: 15, fontWeight: FontWeight.w600);
         break;
       case 'impact':
-      default:
         baseStyle = GoogleFonts.oswald(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.0);
+        break;
+      default:
+        baseStyle = GoogleFonts.greatVibes(fontSize: 22, fontWeight: FontWeight.normal);
     }
 
     Color textColor = const Color(0xFFFFE14D);
@@ -518,11 +765,22 @@ class ProControlsCard extends StatelessWidget {
 
     final displayText = titleText.trim().isEmpty ? "SNAPBEAT" : titleText.trim();
 
+    Color cardBgColor = Colors.black;
+    if (titleBg.startsWith('#') && titleBg.length == 7) {
+      final hex = titleBg.substring(1);
+      final val = int.tryParse(hex, radix: 16);
+      if (val != null) {
+        cardBgColor = Color(0xFF000000 | val);
+      }
+    } else if (titleBg == "video") {
+      cardBgColor = const Color(0xFF2C2825);
+    }
+
     return Container(
-      height: 80,
+      height: 84,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: titleBg == "video" ? const Color(0xFF2C2825) : Colors.black,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.chassisBevelDark),
       ),
@@ -539,6 +797,51 @@ class ProControlsCard extends StatelessWidget {
                 ),
               ),
             ),
+          // Top Badges
+          Positioned(
+            top: 5,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.4), width: 0.8),
+              ),
+              child: Text(
+                titleFont.toUpperCase().replaceAll('_', ' '),
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.brassGold,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 5,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.4), width: 0.8),
+              ),
+              child: Text(
+                '${titleDuration}s • ${titleAudio == "with_audio" ? "WITH MUSIC" : "SILENT INTRO"}',
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.amberJewel,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ),
           // Frame borders
           if (titleFrame == "box")
             Positioned.fill(

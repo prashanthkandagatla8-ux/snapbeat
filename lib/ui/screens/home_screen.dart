@@ -33,6 +33,7 @@ class HomeScreen extends StatefulWidget {
   final File? initialMusic;
   final String? initialMusicTitle;
   final List<PhotoItem>? initialPhotos;
+  final bool fromShowcase;
 
   static ui.Image? logoUiImage;
 
@@ -43,6 +44,7 @@ class HomeScreen extends StatefulWidget {
     this.initialMusic,
     this.initialMusicTitle,
     this.initialPhotos,
+    this.fromShowcase = false,
   });
 
   @override
@@ -118,7 +120,7 @@ class HomeScreenState extends State<HomeScreen> {
   // Audio Trim
   double _audioDuration = 30.0;
   double _audioStart = 0.0;
-  double _audioEnd = 15.0;
+  double _audioEnd = 30.0;
   bool _isPlayingAudio = false;
 
   // Title Intro
@@ -126,9 +128,10 @@ class HomeScreenState extends State<HomeScreen> {
   String _titleText = "";
   String _titleBg = "black";
   int _titleDuration = 2;
-  String _titleFont = "impact";
+  String _titleFont = "great_vibes";
   String _titleStyle = "classic";
   String _titleFrame = "none";
+  String _titleAudio = "before_audio";
 
   // Auto Mode Template Rotation
   BeatTemplate _currentAutoTemplate = BeatTemplate.allTemplates.first;
@@ -251,23 +254,290 @@ class HomeScreenState extends State<HomeScreen> {
     _showNotice("Photo selection reset");
   }
 
+  void _showShowcaseWelcomeModal() {
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        decoration: BoxDecoration(
+          color: AppColors.panelCream,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppColors.borderBrass, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.7),
+              offset: const Offset(0, -4),
+              blurRadius: 20,
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Drag Handle & Branding Pill
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.chassisBevelDark,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Welcome Badge
+              Row(
+                children: [
+                  const SnapBeatPinkDot(size: 14, withGlow: true),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.brassGold,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'WELCOME TO SNAPBEAT',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.hardwareGunmetal,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Headline
+              const Text(
+                'Create Videos Like This With YOUR Photos & Music!',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textEngraved,
+                  letterSpacing: -0.2,
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Friendly guidance text
+              const Text(
+                'You just saw the Pendulum beat-sync sample. You can create the exact same cinematic reel using your personal gallery photos and favorite soundtrack in seconds!',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: AppColors.textSecondary,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // 3 Quick Steps Container
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.panelInset,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.chassisBevelDark),
+                ),
+                child: Column(
+                  children: [
+                    _buildWelcomeStepRow(
+                      icon: Icons.photo_library_rounded,
+                      step: 'STEP 1',
+                      title: 'Pick Your Photos',
+                      desc: 'Select 5 to 30 photos or test with Sample Photos.',
+                    ),
+                    const Divider(color: AppColors.chassisBevelDark, height: 16),
+                    _buildWelcomeStepRow(
+                      icon: Icons.music_note_rounded,
+                      step: 'STEP 2',
+                      title: 'Choose Music',
+                      desc: 'Pick your own MP3 or choose from the sound library.',
+                    ),
+                    const Divider(color: AppColors.chassisBevelDark, height: 16),
+                    _buildWelcomeStepRow(
+                      icon: Icons.motion_photos_auto_rounded,
+                      step: 'STEP 3',
+                      title: 'Render Pendulum Reel',
+                      desc: 'Pre-selected for you! Tap Render and let AI sync the beat.',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Call to Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() => _currentTab = "photos");
+                        _pickPhotos();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 4),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.add_photo_alternate_rounded, size: 16, color: Color(0xFF1E1A10)),
+                            SizedBox(width: 8),
+                            Text(
+                              'CHOOSE MY PHOTOS ❯',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.6,
+                                color: Color(0xFF1E1A10),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.panelCreamDark,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.borderBrass),
+                      ),
+                      child: const Text(
+                        'EXPLORE STUDIO',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeStepRow({
+    required IconData icon,
+    required String step,
+    required String title,
+    required String desc,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.brassGold.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.5)),
+          ),
+          child: Icon(icon, size: 14, color: AppColors.brassGold),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    step,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.amberJewel,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textEngraved,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                desc,
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  color: AppColors.textMuted,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _currentTab = widget.initialTab;
     _renderMode = widget.initialRenderMode;
+    if (widget.fromShowcase) {
+      _selectedTemplate = "pendulum";
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showShowcaseWelcomeModal();
+      });
+    }
     if (widget.initialMusic != null) {
       _selectedMusic = widget.initialMusic;
       _selectedMusicTitle = widget.initialMusicTitle ?? "";
       _audioDuration = 58.0;
       _audioStart = 0.0;
-      _audioEnd = 15.0;
+      _audioEnd = 58.0;
     } else {
       final defaultTrack = SoundTrack.builtInLibrary.first;
       _selectedMusicTitle = '${defaultTrack.title} (${defaultTrack.bpm})';
       _audioDuration = defaultTrack.durationSeconds;
       _audioStart = 0.0;
-      _audioEnd = math.min(15.0, defaultTrack.durationSeconds);
+      _audioEnd = defaultTrack.durationSeconds;
     }
     if (widget.initialPhotos != null) {
       _photos.addAll(widget.initialPhotos!);
@@ -297,7 +567,7 @@ class HomeScreenState extends State<HomeScreen> {
         _selectedMusicTitle = '${track.title} (${track.bpm})';
         _audioDuration = track.durationSeconds;
         _audioStart = 0.0;
-        _audioEnd = math.min(15.0, track.durationSeconds);
+        _audioEnd = track.durationSeconds;
       });
     } catch (e) {
       debugPrint('Error loading sample track: $e');
@@ -319,12 +589,22 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _pickMusic() async {
     final result = await FilePicker.pickFiles(type: FileType.audio);
     if (result.isNotEmpty && result.first.path != null) {
-      _selectedMusic = File(result.first.path!);
-      _selectedMusicTitle = result.first.name;
-      _audioDuration = 60.0;
-      _audioStart = 0.0;
-      _audioEnd = 15.0;
-      setState(() {});
+      final file = File(result.first.path!);
+      double dur = 60.0;
+      try {
+        await _audioPlayer.setSource(DeviceFileSource(file.path));
+        final d = await _audioPlayer.getDuration();
+        if (d != null && d.inSeconds > 0) {
+          dur = d.inSeconds.toDouble();
+        }
+      } catch (_) {}
+      setState(() {
+        _selectedMusic = file;
+        _selectedMusicTitle = result.first.name;
+        _audioDuration = dur;
+        _audioStart = 0.0;
+        _audioEnd = dur;
+      });
     }
   }
 
@@ -342,7 +622,7 @@ class HomeScreenState extends State<HomeScreen> {
           _selectedMusicTitle = '${track.title} (${track.bpm})';
           _audioDuration = track.durationSeconds;
           _audioStart = 0.0;
-          _audioEnd = math.min(15.0, track.durationSeconds);
+          _audioEnd = track.durationSeconds;
         });
       },
     );
@@ -500,6 +780,7 @@ class HomeScreenState extends State<HomeScreen> {
     final titleFontSnapshot = _titleFont;
     final titleStyleSnapshot = _titleStyle;
     final titleFrameSnapshot = _titleFrame;
+    final titleAudioSnapshot = _titleAudio;
 
     // Immediately create and record the processing job in QueueManager
     qm.addJob(QueueJobItem(
@@ -550,6 +831,7 @@ class HomeScreenState extends State<HomeScreen> {
       titleFont: titleFontSnapshot,
       titleStyle: titleStyleSnapshot,
       titleFrame: titleFrameSnapshot,
+      titleAudio: titleAudioSnapshot,
     );
   }
 
@@ -571,6 +853,7 @@ class HomeScreenState extends State<HomeScreen> {
     required String titleFont,
     required String titleStyle,
     required String titleFrame,
+    required String titleAudio,
   }) async {
     try {
       if (qm.isCancelled(jobId)) return;
@@ -599,6 +882,7 @@ class HomeScreenState extends State<HomeScreen> {
         titleFont: titleFont,
         titleStyle: titleStyle,
         titleFrame: titleFrame,
+        titleAudio: titleAudio,
         onProgress: (p) {
           if (!qm.isCancelled(jobId)) {
             qm.updateJobProgress(jobId, p);
@@ -738,7 +1022,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      "Loading default soundtrack... Tap LIBRARY or OWN TRACK if you want to change it.",
+                                      "Loading default soundtrack... Tap LIBRARY or CHOOSE YOUR MUSIC if you want to change it.",
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -782,11 +1066,12 @@ class HomeScreenState extends State<HomeScreen> {
                             onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
                             onLoadSample: _loadSamplePhotos,
                             onAutoShuffle: _autoShufflePhotos,
+                            onClearAll: _resetPhotos,
                             onResetPhotos: _resetPhotos,
                           ),
                           if (_photos.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               child: _buildProceedButton(
                                 label: "PROCEED TO RENDER OPTIONS",
                                 subtitle: "${_photos.length} photos curated and ready",
@@ -1075,6 +1360,8 @@ class HomeScreenState extends State<HomeScreen> {
             onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
             titleFrame: _titleFrame,
             onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
+            titleAudio: _titleAudio,
+            onSelectTitleAudio: (a) => setState(() => _titleAudio = a),
           ),
         ],
 
@@ -1540,24 +1827,6 @@ class HomeScreenState extends State<HomeScreen> {
 
         // Active Rendering Jobs (shown at top with live progress)
         if (activeJobs.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
-            child: Row(
-              children: const [
-                SnapBeatPinkDot(size: 9, withGlow: true),
-                SizedBox(width: 6),
-                Text(
-                  "PROCESSING IN BACKGROUND",
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                    color: AppColors.amberJewel,
-                  ),
-                ),
-              ],
-            ),
-          ),
           ...activeJobs.map((job) => _buildActiveJobCard(job)),
         ],
 

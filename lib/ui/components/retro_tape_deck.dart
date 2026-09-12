@@ -87,19 +87,21 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          // Corner Brass Screws
-          const Positioned(top: 8, left: 8, child: _ScrewHead()),
-          const Positioned(top: 8, right: 8, child: _ScrewHead()),
-          const Positioned(bottom: 8, left: 8, child: _ScrewHead()),
-          const Positioned(bottom: 8, right: 8, child: _ScrewHead()),
+      child: IntrinsicHeight(
+        child: Stack(
+          children: [
+            // Corner Brass Screws
+            const Positioned(top: 8, left: 8, child: _ScrewHead()),
+            const Positioned(top: 8, right: 8, child: _ScrewHead()),
+            const Positioned(bottom: 8, left: 8, child: _ScrewHead()),
+            const Positioned(bottom: 8, right: 8, child: _ScrewHead()),
 
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Header Nameplate
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -278,7 +280,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
 
                 const SizedBox(height: 12),
 
-                // Row 2: Audio Source Buttons (LIBRARY, OWN TRACK)
+                // Row 2: Audio Source Buttons (LIBRARY, CHOOSE YOUR MUSIC)
                 Row(
                   children: [
                     Expanded(
@@ -291,7 +293,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                     const SizedBox(width: 10),
                     Expanded(
                       child: _RetroMiniButton(
-                        label: 'OWN TRACK',
+                        label: 'CHOOSE YOUR MUSIC',
                         icon: Icons.audio_file_rounded,
                         onTap: widget.onPickAudio,
                       ),
@@ -303,8 +305,9 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _TapeReelSpool extends StatelessWidget {
