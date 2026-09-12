@@ -242,6 +242,15 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _resetPhotos() {
+    if (_photos.isEmpty) return;
+    setState(() {
+      _photos.clear();
+      SnapsReorderStrip.photoImageCache.clear();
+    });
+    _showNotice("Photo selection reset");
+  }
+
   @override
   void initState() {
     super.initState();
@@ -773,6 +782,7 @@ class HomeScreenState extends State<HomeScreen> {
                             onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
                             onLoadSample: _loadSamplePhotos,
                             onAutoShuffle: _autoShufflePhotos,
+                            onResetPhotos: _resetPhotos,
                           ),
                           if (_photos.isNotEmpty)
                             Padding(
@@ -1433,21 +1443,26 @@ class HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: const [
-                  SnapBeatPinkDot(size: 13, withGlow: true),
-                  SizedBox(width: 8),
-                  Text(
-                    "MY REELS & QUEUE",
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                      color: AppColors.textEngraved,
+              Expanded(
+                child: Row(
+                  children: const [
+                    SnapBeatPinkDot(size: 11, withGlow: true),
+                    SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        "QUEUE",
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                          color: AppColors.textEngraved,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1456,19 +1471,19 @@ class HomeScreenState extends State<HomeScreen> {
                     GestureDetector(
                       onTap: _showClearQueueDialog,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                         decoration: BoxDecoration(
                           color: AppColors.vuRed.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5), width: 1),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: const [
-                            Icon(Icons.clear_all_rounded, size: 13, color: AppColors.vuRed),
+                            Icon(Icons.delete_sweep_rounded, size: 13, color: AppColors.vuRed),
                             SizedBox(width: 3),
                             Text(
-                              "CLEAR QUEUE",
+                              "CLEAR ALL",
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w900,
@@ -1479,7 +1494,7 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                   ],
                   GestureDetector(
                     onTap: () => setState(() {
@@ -1492,16 +1507,19 @@ class HomeScreenState extends State<HomeScreen> {
                       }
                     }),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: AppColors.brassGold,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black26, offset: Offset(0, 1), blurRadius: 2),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
                           Icon(Icons.add_rounded, size: 14, color: AppColors.hardwareGunmetal),
-                          SizedBox(width: 2),
+                          SizedBox(width: 3),
                           Text(
                             "NEW REEL",
                             style: TextStyle(
