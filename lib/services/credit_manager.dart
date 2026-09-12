@@ -3,7 +3,7 @@ import '../models/models.dart';
 
 class CreditManager {
   static const String keyCredits = "snapbeat_credits_balance";
-  static const String keyWatermark = "snapbeat_watermark_removed_v2";
+  static const String keyWatermark = "snapbeat_watermark_removed_v4";
   static const String keyProMode = "snapbeat_pro_mode_enabled";
   static const String keyRegion = "snapbeat_active_region";
   static const String keyWelcomeGiven = "snapbeat_welcome_credits_given";
@@ -61,6 +61,10 @@ class CreditManager {
     final prefs = await SharedPreferences.getInstance();
     _watermarkRemoved = removed;
     await prefs.setBool(keyWatermark, removed);
+  }
+
+  Future<void> toggleWatermarkRemoved() async {
+    await setWatermarkRemoved(!_watermarkRemoved);
   }
 
   Future<void> setProModeEnabled(bool enabled) async {

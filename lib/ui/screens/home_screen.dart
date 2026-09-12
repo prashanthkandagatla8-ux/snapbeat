@@ -1273,35 +1273,47 @@ class HomeScreenState extends State<HomeScreen> {
               _buildSummaryPill(Icons.style_outlined, "$styleName • $_selectedAspectRatio • $_selectedQuality"),
             ],
           ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              _buildSummaryPill(
+                cm.isWatermarkRemoved ? Icons.verified_rounded : Icons.branding_watermark_rounded,
+                cm.isWatermarkRemoved ? "NO WATERMARK (CLEAN)" : "SNAPBEAT WATERMARK ACTIVE",
+                highlight: !cm.isWatermarkRemoved,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryPill(IconData icon, String text) {
+  Widget _buildSummaryPill(IconData icon, String text, {bool highlight = false}) {
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 3),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.panelInset,
+          color: highlight ? const Color(0xFF2E2614) : AppColors.panelInset,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.chassisBevelDark.withValues(alpha: 0.5)),
+          border: Border.all(
+            color: highlight ? const Color(0xFFD4AF37) : AppColors.chassisBevelDark.withValues(alpha: 0.5),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12, color: AppColors.brassGold),
+            Icon(icon, size: 12, color: highlight ? const Color(0xFFFFD54F) : AppColors.brassGold),
             const SizedBox(width: 5),
             Expanded(
               child: Text(
                 text,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textEngraved,
+                  color: highlight ? const Color(0xFFFFE082) : AppColors.textEngraved,
                 ),
               ),
             ),

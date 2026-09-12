@@ -155,13 +155,26 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
           _buildPlanTile(
             title: 'Remove Watermark',
             price: p.removeWatermarkPrice,
-            subtitle: p.removeWatermarkSubtitle,
+            subtitle: cm.isWatermarkRemoved
+                ? "Active • Clean renders without watermark (Tap to toggle)"
+                : p.removeWatermarkSubtitle,
             isActive: cm.isWatermarkRemoved,
             onBuy: () {
-              cm.setWatermarkRemoved(true);
+              final newStatus = !cm.isWatermarkRemoved;
+              cm.setWatermarkRemoved(newStatus);
               widget.onPurchaseComplete();
               setState(() {});
-              _showTestingSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    newStatus
+                        ? "✨ Watermarks removed for future renders!"
+                        : "🏷️ Watermarks re-enabled for future renders!",
+                  ),
+                  backgroundColor: AppColors.hardwareGunmetal,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
             },
           ),
           const SizedBox(height: 10),
