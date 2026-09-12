@@ -136,6 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
   // Title Intro
   bool _enableTitle = false;
   String _titleText = "";
+  late final TextEditingController _titleTextController;
   String _titleBg = "black";
   int _titleDuration = 2;
   String _titleFont = "great_vibes";
@@ -504,6 +505,7 @@ class HomeScreenState extends State<HomeScreen> {
     super.initState();
     _currentTab = widget.initialTab;
     _renderMode = widget.initialRenderMode;
+    _titleTextController = TextEditingController(text: _titleText);
     if (widget.fromShowcase) {
       _selectedTemplate = 'pendulum';
       _currentAutoTemplate = BeatTemplate.allTemplates.firstWhere(
@@ -583,6 +585,7 @@ class HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _playerCompleteSubscription?.cancel();
     _playerPositionSubscription?.cancel();
+    _titleTextController.dispose();
     _scrollController.dispose();
     qm.removeListener(_onQueueChanged);
     _audioPlayer.dispose();
@@ -912,6 +915,20 @@ class HomeScreenState extends State<HomeScreen> {
         onProgress: (p) {
           if (!qm.isCancelled(jobId)) {
             qm.updateJobProgress(jobId, p);
+          }
+        },
+        onStatusUpdate: (status, stage, queuePos, p) {
+          if (!qm.isCancelled(jobId)) {
+            final mappedStatus = (status == "queued")
+                ? "QUEUED"
+                : (status == "rendering" ? "RENDERING" : "PROCESSING");
+            qm.updateJobProgress(
+              jobId,
+              p,
+              queuePosition: queuePos,
+              stage: stage,
+              status: mappedStatus,
+            );
           }
         },
       );
@@ -1462,6 +1479,7 @@ class HomeScreenState extends State<HomeScreen> {
             enableTitle: _enableTitle,
             onToggleTitle: (v) => setState(() => _enableTitle = v),
             titleText: _titleText,
+            titleController: _titleTextController,
             onTitleTextChanged: (t) => setState(() => _titleText = t),
             titleBg: _titleBg,
             onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
@@ -2019,7 +2037,51 @@ class HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isFocused) ...[
+          // Header Status Badge: In Queue vs In Progress
+          if (job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED") ...[
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1A16),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.brassGold, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.hourglass_top_rounded, size: 10, color: AppColors.amberJewel),
+                      const SizedBox(width: 4),
+                      Text(
+                        "IN QUEUE • POSITION #${job.queuePosition > 0 ? job.queuePosition : 1}",
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                          color: AppColors.amberJewel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isFocused) ...[
+                  const SizedBox(width: 6),
+                  const Text(
+                    "WAITING IN LINE",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 8),
+          ] else if (isFocused || job.status.toUpperCase() == "RENDERING" || job.status.toUpperCase() == "PROCESSING") ...[
             Row(
               children: const [
                 SnapBeatPinkDot(size: 11, withGlow: true),
@@ -2077,7 +2139,9 @@ class HomeScreenState extends State<HomeScreen> {
                       border: Border.all(color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel, width: 1),
                     ),
                     child: Text(
-                      "$percent%",
+                      job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED"
+                          ? "QUEUE #${job.queuePosition > 0 ? job.queuePosition : 1}"
+                          : "$percent%",
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 10,
@@ -2123,7 +2187,7 @@ class HomeScreenState extends State<HomeScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: job.progress.clamp(0.05, 1.0),
+              value: (job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED") ? null : job.progress.clamp(0.05, 1.0),
               backgroundColor: AppColors.panelInset,
               color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel,
               minHeight: 6,
@@ -2133,10 +2197,19 @@ class HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Quality: ${job.quality} • Syncing frames & beats...",
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+              Expanded(
+                child: Text(
+                  job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED"
+                      ? "Queue Position #${job.queuePosition > 0 ? job.queuePosition : 1} • Waiting for active render..."
+                      : (job.stage != null && job.stage!.isNotEmpty
+                          ? "Quality: ${job.quality} • ${job.stage}"
+                          : "Quality: ${job.quality} • Syncing frames & beats..."),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 DateFormat('hh:mm a').format(job.createdAt),
                 style: const TextStyle(fontSize: 9, color: AppColors.textMuted),

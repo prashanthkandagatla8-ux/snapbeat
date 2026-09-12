@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import '../../theme/app_colors.dart';
-import '../components/snapbeat_pink_dot.dart';
 import 'home_screen.dart';
 
 class SampleReelShowcaseScreen extends StatefulWidget {
@@ -178,80 +177,6 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
               ),
             ),
 
-          // 4. Top Header Bar
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // App Branding Pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E1A16).withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.6)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        SnapBeatPinkDot(size: 8, withGlow: true),
-                        SizedBox(width: 6),
-                        Text(
-                          'SNAPBEAT SHOWCASE',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                            color: AppColors.amberJewel,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Skip to Studio Action Button
-                  GestureDetector(
-                    onTap: () => _navigateToHome(fromShowcase: false),
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                      decoration: BoxDecoration(
-                        gradient: AppColors.brassKnobGradient,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(0, 2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text(
-                            'SKIP TO STUDIO',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.6,
-                              color: AppColors.hardwareGunmetal,
-                            ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.hardwareGunmetal),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
 
           // 5. Bottom Metadata & Creator Action Deck
           Positioned(

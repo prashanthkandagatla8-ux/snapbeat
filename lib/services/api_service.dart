@@ -41,6 +41,7 @@ class ApiService {
     String? titleFrame,
     String? titleAudio,
     Function(double progress)? onProgress,
+    Function(String status, String stage, int queuePosition, double progress)? onStatusUpdate,
   }) async {
     if (!musicFile.existsSync()) {
       throw Exception('Music file not found. Please re-select your track.');
@@ -149,11 +150,21 @@ class ApiService {
       if (statusResp.statusCode == 200 && statusResp.data is Map) {
         final sData = statusResp.data;
         final status = (sData["status"] ?? "").toString().toLowerCase();
+        final stage = (sData["stage"] ?? "").toString();
+        final queuePos = (sData["queue_position"] as num?)?.toInt() ?? 0;
         final rawProg = (sData["progress"] ?? 0) as num;
         
+        double calcProg = 0.3 + (rawProg / 100.0) * 0.6; // 30% to 90%
+        if (status == "queued") {
+          calcProg = 0.3;
+        }
+        final finalProg = calcProg.clamp(0.0, 0.95);
+
         if (onProgress != null) {
-          double calcProg = 0.3 + (rawProg / 100.0) * 0.6; // 30% to 90%
-          onProgress(calcProg.clamp(0.0, 0.95));
+          onProgress(finalProg);
+        }
+        if (onStatusUpdate != null) {
+          onStatusUpdate(status, stage, queuePos, finalProg);
         }
 
         if (status == "done" || status == "completed" || status == "success") {

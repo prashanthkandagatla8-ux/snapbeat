@@ -54,16 +54,35 @@ class QueueManager with ChangeNotifier {
     await _save();
   }
 
-  void updateJobProgress(String id, double progress) {
+  void updateJobProgress(
+    String id,
+    double progress, {
+    int? queuePosition,
+    String? stage,
+    String? status,
+  }) {
     if (_cancelledJobIds.contains(id)) return;
     final idx = _jobs.indexWhere((j) => j.id == id);
     if (idx != -1) {
-      _jobs[idx] = _jobs[idx].copyWith(progress: progress);
+      _jobs[idx] = _jobs[idx].copyWith(
+        progress: progress,
+        queuePosition: queuePosition,
+        stage: stage,
+        status: status,
+      );
       notifyListeners();
     }
   }
 
-  Future<void> updateJob(String id, {String? status, String? videoPath, double? progress, String? error}) async {
+  Future<void> updateJob(
+    String id, {
+    String? status,
+    String? videoPath,
+    double? progress,
+    String? error,
+    int? queuePosition,
+    String? stage,
+  }) async {
     if (_cancelledJobIds.contains(id)) return;
     final idx = _jobs.indexWhere((j) => j.id == id);
     if (idx != -1) {
@@ -72,6 +91,8 @@ class QueueManager with ChangeNotifier {
         videoPath: videoPath,
         progress: progress,
         error: error,
+        queuePosition: queuePosition,
+        stage: stage,
       );
       notifyListeners();
       await _save();

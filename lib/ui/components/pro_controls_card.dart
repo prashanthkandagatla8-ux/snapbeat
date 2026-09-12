@@ -16,6 +16,7 @@ class ProControlsCard extends StatelessWidget {
   final bool enableTitle;
   final Function(bool enabled) onToggleTitle;
   final String titleText;
+  final TextEditingController? titleController;
   final Function(String text) onTitleTextChanged;
   final String titleBg;
   final Function(String bg) onSelectTitleBg;
@@ -41,6 +42,7 @@ class ProControlsCard extends StatelessWidget {
     required this.enableTitle,
     required this.onToggleTitle,
     required this.titleText,
+    this.titleController,
     required this.onTitleTextChanged,
     required this.titleBg,
     required this.onSelectTitleBg,
@@ -278,8 +280,8 @@ class ProControlsCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   // Title Text Field
                   TextFormField(
-                    key: ValueKey(titleText),
-                    initialValue: titleText,
+                    controller: titleController,
+                    initialValue: titleController == null ? titleText : null,
                     onChanged: onTitleTextChanged,
                     style: const TextStyle(color: AppColors.textEngraved, fontSize: 13, fontWeight: FontWeight.bold),
                     decoration: InputDecoration(

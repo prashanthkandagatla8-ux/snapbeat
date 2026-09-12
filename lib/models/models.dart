@@ -52,6 +52,8 @@ class QueueJobItem {
   final String quality;
   final double progress;
   final String? error;
+  final int queuePosition;
+  final String? stage;
 
   QueueJobItem({
     required this.id,
@@ -62,6 +64,8 @@ class QueueJobItem {
     this.quality = "1080p",
     this.progress = 0.0,
     this.error,
+    this.queuePosition = 0,
+    this.stage,
   });
 
   QueueJobItem copyWith({
@@ -69,6 +73,8 @@ class QueueJobItem {
     String? videoPath,
     double? progress,
     String? error,
+    int? queuePosition,
+    String? stage,
   }) {
     return QueueJobItem(
       id: id,
@@ -79,6 +85,8 @@ class QueueJobItem {
       quality: quality,
       progress: progress ?? this.progress,
       error: error ?? this.error,
+      queuePosition: queuePosition ?? this.queuePosition,
+      stage: stage ?? this.stage,
     );
   }
 
@@ -91,6 +99,8 @@ class QueueJobItem {
     'quality': quality,
     'progress': progress,
     'error': error,
+    'queuePosition': queuePosition,
+    'stage': stage,
   };
 
   factory QueueJobItem.fromJson(Map<String, dynamic> json) {
@@ -103,6 +113,8 @@ class QueueJobItem {
       videoPath: json['videoPath']?.toString(),
       error: json['error']?.toString(),
       progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
+      queuePosition: (json['queuePosition'] as num?)?.toInt() ?? 0,
+      stage: json['stage']?.toString(),
     );
   }
 }
