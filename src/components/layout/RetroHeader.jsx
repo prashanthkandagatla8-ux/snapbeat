@@ -202,10 +202,20 @@ export function RetroHeader({
           {user ? (
             <div className="flex items-center gap-1.5 pl-1 sm:pl-2 border-l border-[#8f8677]/60">
               <div
-                className="flex items-center gap-1 px-2 py-1 rounded-lg metal-inset text-[#2b2b2d]"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg metal-inset text-[#2b2b2d]"
                 title={`Signed in as ${user.email}${user.isPro ? " (Pro Account)" : ""}`}
               >
-                <User className="w-3 h-3 text-[#5a5752] shrink-0" />
+                {user.picture ? (
+                  <img
+                    src={user.picture}
+                    alt={user.name || user.email}
+                    className="w-4 h-4 rounded-full object-cover border border-amber-500 shrink-0"
+                  />
+                ) : (
+                  <div className="w-4 h-4 rounded-full bg-amber-500/30 text-amber-950 flex items-center justify-center font-black text-[9px] shrink-0">
+                    {(user.name || user.email || "U")[0].toUpperCase()}
+                  </div>
+                )}
                 <span className="text-[10px] sm:text-[11px] font-black max-w-[80px] sm:max-w-[120px] truncate">
                   {user.name || user.email.split("@")[0]}
                 </span>

@@ -4,11 +4,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
 import RetroAdBanner from "@/components/ads/RetroAdBanner";
-import { Volume2, VolumeX, Play, Sparkles, Crown, Zap, Music, Image as ImageIcon, Video, ArrowRight, ShieldCheck, User } from "lucide-react";
+import { Volume2, VolumeX, Play, Pause, Square, Sparkles, Crown, Zap, Music, Image as ImageIcon, Video, ArrowRight, ShieldCheck, User } from "lucide-react";
 
 export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   const { user, openAuthModal, signOut } = useAuth();
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const videoRef = useRef(null);
 
   // Initialize video autoplay safely across all browser policies
@@ -18,9 +19,12 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
       videoRef.current.muted = true;
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Autoplay prevented until user interacts with the page
-        });
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch(() => {
+            // Autoplay prevented until user interacts with the page
+            setIsPlaying(false);
+          });
       }
     }
   }, []);
@@ -31,8 +35,27 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
       videoRef.current.muted = nextMuted;
       setIsMuted(nextMuted);
       if (!nextMuted) {
-        videoRef.current.play().catch(() => {});
+        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
       }
+    }
+  };
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const stopVideo = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+      setIsPlaying(false);
     }
   };
 
@@ -75,18 +98,31 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-black text-[#2b2b2d]">{user.name || user.email}</p>
-                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                  user.isPro ? "bg-amber-400 text-black" : "bg-black/10 text-[#4a4743]"
-                }`}>
-                  {user.isPro ? "PRO SUBSCRIBER" : "FREE USER"}
-                </span>
+              <div className="flex items-center gap-2">
+                {user.picture ? (
+                  <img
+                    src={user.picture}
+                    alt={user.name || user.email}
+                    className="w-7 h-7 rounded-full object-cover border border-amber-500 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-amber-500/25 text-amber-900 border border-amber-600/40 flex items-center justify-center font-black text-xs shrink-0">
+                    {(user.name || user.email || "U")[0].toUpperCase()}
+                  </div>
+                )}
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs font-black text-[#2b2b2d] max-w-[120px] truncate">{user.name || user.email}</p>
+                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                    user.isPro ? "bg-amber-400 text-black" : "bg-black/10 text-[#4a4743]"
+                  }`}>
+                    {user.isPro ? "PRO SUBSCRIBER" : "FREE USER"}
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={onEnterStudio}
-                className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider btn-brass text-[#2b2820] shadow flex items-center gap-1"
+                className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider btn-brass text-[#2b2820] shadow flex items-center gap-1 hover:brightness-110 active:scale-95 transition"
               >
                 <span>STUDIO</span>
                 <ArrowRight className="w-3 h-3" />
@@ -94,7 +130,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
               <button
                 type="button"
                 onClick={signOut}
-                className="text-[10px] font-bold text-[#5a5752] hover:text-[#2b2b2d] px-2 py-1.5 rounded metal-inset hover:bg-black/5 transition"
+                className="text-[10px] font-bold text-[#5a5752] hover:text-red-700 px-2 py-1.5 rounded-lg metal-inset hover:bg-black/5 transition active:scale-95"
               >
                 Sign Out
               </button>
@@ -123,22 +159,63 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             <div className="metal-screw bottom-3 left-3 pointer-events-none" />
             <div className="metal-screw bottom-3 right-3 pointer-events-none" />
 
-            {/* Top Vent Plate Decoration */}
-            <div className="flex items-center justify-between px-2 pb-3 mb-2 border-b border-[#7a766f]/40">
+            {/* Top Control Bar with Play, Pause, Stop, and Mute */}
+            <div className="flex items-center justify-between px-2 pb-3 mb-2 border-b border-[#7a766f]/40 gap-2 flex-wrap">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                <span className="font-mono text-[10px] font-black text-[#4a4743] tracking-widest">SHOWCASE REEL • 1080P</span>
+                <span className={`w-2.5 h-2.5 rounded-full shadow-md ${
+                  isPlaying ? "bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-amber-500"
+                }`} />
+                <span className="font-mono text-[10px] font-black text-[#4a4743] tracking-widest hidden sm:inline">
+                  SHOWCASE REEL • 1080P
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={toggleSound}
-                className="p-1.5 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-bold"
-                title={isMuted ? "Click to unmute audio" : "Click to mute audio"}
-                aria-label={isMuted ? "Click to unmute audio" : "Click to mute audio"}
-              >
-                {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-600" /> : <Volume2 className="w-3.5 h-3.5 text-green-700" />}
-                <span className="hidden sm:inline">{isMuted ? "UNMUTE" : "MUTE"}</span>
-              </button>
+
+              <div className="flex items-center gap-1.5 ml-auto">
+                {/* Play / Pause Toggle Button */}
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                  title={isPlaying ? "Pause Sample Reel" : "Play Sample Reel"}
+                  aria-label={isPlaying ? "Pause Sample Reel" : "Play Sample Reel"}
+                >
+                  {isPlaying ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5 fill-current text-amber-600" />
+                      <span>PAUSE</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current text-green-700" />
+                      <span>PLAY</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Stop Button */}
+                <button
+                  type="button"
+                  onClick={stopVideo}
+                  className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                  title="Stop and Rewind Sample Reel"
+                  aria-label="Stop Sample Reel"
+                >
+                  <Square className="w-3.5 h-3.5 fill-current text-[#d62828]" />
+                  <span>STOP</span>
+                </button>
+
+                {/* Audio Mute/Unmute */}
+                <button
+                  type="button"
+                  onClick={toggleSound}
+                  className="px-2 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                  title={isMuted ? "Click to unmute audio" : "Click to mute audio"}
+                  aria-label={isMuted ? "Click to unmute audio" : "Click to mute audio"}
+                >
+                  {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-600" /> : <Volume2 className="w-3.5 h-3.5 text-green-700" />}
+                  <span className="hidden sm:inline">{isMuted ? "UNMUTE" : "MUTE"}</span>
+                </button>
+              </div>
             </div>
 
             {/* The Video CRT Viewport */}
@@ -151,6 +228,8 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 loop
                 muted
                 playsInline
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 className="w-full h-full object-cover"
               />
 
@@ -169,13 +248,28 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 </div>
               </div>
 
-              {/* Tap to Unmute Overlay for Mobile */}
-              {isMuted && (
+              {/* Paused State Overlay */}
+              {!isPlaying && (
+                <div
+                  onClick={togglePlay}
+                  className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] transition cursor-pointer z-20 space-y-3"
+                >
+                  <div className="w-16 h-16 rounded-full bg-[#ffc72c] text-[#2b2820] flex items-center justify-center shadow-2xl border-2 border-white hover:scale-105 transition">
+                    <Play className="w-8 h-8 fill-current ml-1" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-black/80 text-white font-mono text-xs font-bold border border-white/20 tracking-wider">
+                    SAMPLE PAUSED • TAP TO RESUME
+                  </span>
+                </div>
+              )}
+
+              {/* Tap to Unmute Overlay for Mobile (when playing but muted) */}
+              {isMuted && isPlaying && (
                 <button
                   type="button"
                   onClick={toggleSound}
                   aria-label="Tap for audio"
-                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition group-hover:opacity-100 cursor-pointer"
+                  className="absolute inset-0 flex items-center justify-center bg-black/25 hover:bg-black/15 transition group-hover:opacity-100 cursor-pointer"
                 >
                   <div className="px-4 py-2 rounded-2xl bg-black/80 backdrop-blur-md border border-amber-400/50 text-white text-xs font-black flex items-center gap-2 shadow-2xl">
                     <Volume2 className="w-4 h-4 text-amber-400 animate-bounce" />
@@ -185,17 +279,40 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
               )}
             </div>
 
-            {/* Bottom Deck Badge */}
-            <div className="flex items-center justify-between pt-3 mt-2 border-t border-[#7a766f]/40 text-[10px] font-bold text-[#5a5752]">
-              <div className="flex items-center gap-1.5">
-                <img
-                  src="/assets/images/snapbeat_app_icon.png"
-                  alt="SnapBeat App Icon"
-                  className="w-3.5 h-3.5 rounded object-contain"
-                />
-                <span className="font-mono text-[9px] tracking-wider text-[#5a5752]">SYNCHRONIZED DECK</span>
+            {/* Bottom Deck Badge & Direct Sign In Button ON Player */}
+            <div className="pt-3 mt-2 border-t border-[#7a766f]/40 space-y-2.5">
+              <div className="flex items-center justify-between text-[10px] font-bold text-[#5a5752]">
+                <div className="flex items-center gap-1.5">
+                  <img
+                    src="/assets/images/snapbeat_app_icon.png"
+                    alt="SnapBeat App Icon"
+                    className="w-3.5 h-3.5 rounded object-contain"
+                  />
+                  <span className="font-mono text-[9px] tracking-wider text-[#5a5752]">SYNCHRONIZED DECK</span>
+                </div>
+                <span className="font-mono text-amber-600">CHOREO V2.0</span>
               </div>
-              <span className="font-mono text-amber-600">CHOREO V2.0</span>
+
+              {/* Prominent Sign In / Studio Button directly on Home Page Player */}
+              {!user ? (
+                <button
+                  type="button"
+                  onClick={openAuthModal}
+                  className="w-full py-3 rounded-2xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition cursor-pointer"
+                >
+                  <User className="w-4 h-4 text-[#2b2820]" />
+                  <span>SIGN IN TO CREATE REEL ❯</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onEnterStudio}
+                  className="w-full py-3 rounded-2xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition cursor-pointer"
+                >
+                  <span>OPEN STUDIO WORKSTATION ❯</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>

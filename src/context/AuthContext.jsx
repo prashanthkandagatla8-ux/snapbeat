@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const signIn = (email, name = "") => {
+  const signIn = (email, name = "", picture = "") => {
     const cleanEmail = email.trim().toLowerCase();
     // Check if we have records for this user in accounts DB (stored in localStorage under all_users)
     let allUsers = {};
@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
         id: `usr_${Date.now()}`,
         email: cleanEmail,
         name: name.trim() || cleanEmail.split("@")[0],
+        picture: picture || null,
         isPro: false,
         planId: null,
         expiresAt: null,
@@ -59,9 +60,12 @@ export function AuthProvider({ children }) {
           existing.planId = null;
         }
       }
-      // Update name if provided
+      // Update name and picture if provided
       if (name && name.trim()) {
         existing.name = name.trim();
+      }
+      if (picture && picture.trim()) {
+        existing.picture = picture.trim();
       }
     }
 
