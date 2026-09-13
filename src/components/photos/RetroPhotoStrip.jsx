@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { Images, Plus, Trash2, Shuffle, Wand2, GripVertical, Sparkles, Loader2 } from "lucide-react";
+import { Images, Plus, Shuffle, Wand2, GripVertical, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { SAMPLE_PHOTOS } from "@/lib/constants";
 import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
 
 export function RetroPhotoStrip({
@@ -9,22 +10,34 @@ export function RetroPhotoStrip({
   addPhotos,
   removePhoto,
   reorderPhotos,
+  shufflePhotos,
   clearPhotos,
   autoArrange,
   setAutoArrange,
 }) {
   const fileInputRef = useRef(null);
   const [loadingSamples, setLoadingSamples] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
-  const shufflePhotos = () => {
+  const handleShuffle = () => {
+    if (typeof shufflePhotos === "function") {
+      shufflePhotos();
+      return;
+    }
     if (photos.length < 2) return;
-    const shuffled = [...photos].sort(() => Math.random() - 0.5);
-    shuffled.forEach((p, i) => reorderPhotos(photos.indexOf(p), i));
+    for (let i = photos.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      if (j !== i) {
+        reorderPhotos(j, i);
+      }
+    }
   };
 
   const loadSamplePhotos = async () => {
     setLoadingSamples(true);
-    const samplePaths = [
+    setLoadError(null);
+
+    const samplePaths = SAMPLE_PHOTOS && SAMPLE_PHOTOS.length > 0 ? SAMPLE_PHOTOS : [
       "/assets/sample_photos/sample_01.jpg",
       "/assets/sample_photos/sample_02.jpg",
       "/assets/sample_photos/sample_03.jpg",
@@ -39,13 +52,18 @@ export function RetroPhotoStrip({
       const files = await Promise.all(
         samplePaths.map(async (path, idx) => {
           const res = await fetch(path);
+          if (!res.ok) {
+            throw new Error(`Failed to load ${path} (status ${res.status})`);
+          }
           const blob = await res.blob();
-          return new File([blob], `sample_0${idx + 1}.jpg`, { type: "image/jpeg" });
+          const fileName = path.split("/").pop() || `sample_0${idx + 1}.jpg`;
+          return new File([blob], fileName, { type: blob.type || "image/jpeg" });
         })
       );
       addPhotos(files);
     } catch (err) {
-      console.error("Failed to load sample photos", err);
+      console.error("Failed to load sample photos:", err);
+      setLoadError("Could not load sample photos. Please upload your own images.");
     } finally {
       setLoadingSamples(false);
     }
@@ -75,10 +93,11 @@ export function RetroPhotoStrip({
           <div className="flex items-center gap-2 flex-wrap">
             {/* Load Sample Photos Button */}
             <button
+              type="button"
               onClick={loadSamplePhotos}
               disabled={loadingSamples}
-              className="px-3 py-1.5 rounded-xl btn-brass text-[#2b2820] text-xs font-black flex items-center gap-1.5 shadow hover:brightness-110 active:scale-95 transition"
-              title="Load 8 sample photos from the mobile app"
+              className="px-3 py-1.5 rounded-xl btn-brass text-[#2b2820] text-xs font-black flex items-center gap-1.5 shadow hover:brightness-110 active:scale-95 transition disabled:opacity-50"
+              title="Load 8 sample photos with 1-click"
             >
               {loadingSamples ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -90,8 +109,10 @@ export function RetroPhotoStrip({
 
             {photos.length > 1 && (
               <button
-                onClick={shufflePhotos}
-                className="px-3 py-1.5 rounded-xl metal-inset text-xs font-bold text-[#2b2b2d] flex items-center gap-1.5 hover:bg-black/10 transition shadow-inner"
+                type="button"
+                onClick={handleShuffle}
+                className="px-3 py-1.5 rounded-xl metal-inset text-xs font-bold text-[#2b2b2d] flex items-center gap-1.5 hover:bg-black/10 active:scale-95 transition shadow-inner"
+                title="Shuffle Photo Sequence"
               >
                 <Shuffle className="w-3.5 h-3.5 text-[#bf8a00]" />
                 <span>SHUFFLE</span>
@@ -109,12 +130,21 @@ export function RetroPhotoStrip({
           </div>
         </div>
 
+        {loadError && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 text-xs font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{loadError}</span>
+          </div>
+        )}
+
         {/* Photos Well */}
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
-            if (e.dataTransfer.files) addPhotos(e.dataTransfer.files);
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              addPhotos(e.dataTransfer.files);
+            }
           }}
           className="metal-inset rounded-2xl p-5 min-h-[320px] max-h-[500px] overflow-y-auto"
         >
@@ -138,21 +168,22 @@ export function RetroPhotoStrip({
               {/* Instant 1-Click Sample Photos Option */}
               <div className="pt-2 border-t border-[#8f8677]/40 w-full max-w-xs">
                 <button
+                  type="button"
                   onClick={loadSamplePhotos}
                   disabled={loadingSamples}
-                  className="w-full py-2.5 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider shadow hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider shadow hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loadingSamples ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Sparkles className="w-4 h-4 text-amber-600" />
                   )}
-                  <span>OR LOAD 8 SAMPLE PHOTOS</span>
+                  <span>LOAD 8 SAMPLE PHOTOS</span>
                 </button>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {photos.map((p, index) => (
                 <div
                   key={p.id}
@@ -161,45 +192,69 @@ export function RetroPhotoStrip({
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
                     if (!isNaN(fromIndex) && fromIndex !== index) {
                       reorderPhotos(fromIndex, index);
                     }
                   }}
-                  className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#2a2826] border-2 border-[#5a5752] hover:border-[#ffc72c] transition-all cursor-grab active:cursor-grabbing shadow-lg"
+                  className="group relative rounded-xl bg-white p-2 pb-6 shadow-md hover:shadow-2xl border border-[#d4cdc0] transition-all cursor-grab active:cursor-grabbing hover:-translate-y-1"
+                  style={{
+                    transform: `rotate(${index % 2 === 0 ? "-0.75deg" : "0.75deg"})`,
+                  }}
                 >
-                  <img
-                    src={p.previewUrl}
-                    alt={`Photo ${index + 1}`}
-                    className="w-full h-full object-cover select-none"
-                  />
-                  {/* Stamped Number Pill */}
-                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-[#ffc72c] text-[#2b2820] font-mono font-black text-[11px] shadow-md border border-[#bf8a00]">
-                    #{index + 1}
+                  <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden bg-[#2a2826] border border-black/10">
+                    <img
+                      src={p.previewUrl}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-full object-cover select-none pointer-events-none"
+                    />
+                    {/* Stamped Number Pill */}
+                    <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-[#ffc72c] text-[#2b2820] font-mono font-black text-[10px] shadow-md border border-[#bf8a00]">
+                      #{index + 1}
+                    </div>
+
+                    {/* Delete Button with btn_delete.png asset */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePhoto(p.id);
+                      }}
+                      className="absolute top-1.5 right-1.5 w-7 h-7 rounded-lg overflow-hidden opacity-0 group-hover:opacity-100 transition shadow-lg hover:scale-110 active:scale-90 focus:opacity-100 bg-[#1e1c1a]/90 p-0.5 border border-white/30 cursor-pointer"
+                      title="Remove Photo"
+                    >
+                      <img
+                        src="/assets/images/btn_delete.png"
+                        alt="Delete"
+                        className="w-full h-full object-contain pointer-events-none"
+                      />
+                    </button>
+
+                    <div className="absolute bottom-1.5 right-1.5 text-white/90 opacity-0 group-hover:opacity-100 bg-black/50 rounded p-0.5 pointer-events-none">
+                      <GripVertical className="w-3.5 h-3.5" />
+                    </div>
                   </div>
-                  {/* Delete Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removePhoto(p.id);
-                    }}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#d62828] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md font-black"
-                  >
-                    ×
-                  </button>
-                  <div className="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-75">
-                    <GripVertical className="w-4 h-4" />
+
+                  {/* Polaroid Stamped Footer */}
+                  <div className="mt-1 px-1 flex items-center justify-between text-[9px] font-mono text-[#7a766e] font-bold select-none">
+                    <span>35MM SNAP</span>
+                    <span className="text-amber-700">SLIDE {index + 1}</span>
                   </div>
                 </div>
               ))}
 
               {photos.length < 20 && (
                 <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="aspect-[3/4] rounded-2xl border-2 border-dashed border-[#7a766f] hover:border-[#2b2b2d] flex flex-col items-center justify-center p-4 text-[#5a5752] hover:text-[#2b2b2d] transition bg-white/10 hover:bg-white/20"
+                  className="aspect-[3/4] rounded-xl border-2 border-dashed border-[#7a766f] hover:border-[#2b2b2d] flex flex-col items-center justify-center p-4 text-[#5a5752] hover:text-[#2b2b2d] transition bg-white/20 hover:bg-white/40 shadow-sm"
                 >
-                  <Plus className="w-8 h-8 mb-1 text-[#bf8a00]" />
-                  <span className="text-xs font-black uppercase tracking-wider">ADD MORE</span>
+                  <div className="w-10 h-10 rounded-xl bg-[#ffc72c]/30 border border-[#bf8a00]/40 flex items-center justify-center text-[#2b2820] mb-2 shadow-sm">
+                    <Plus className="w-6 h-6 stroke-[3]" />
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-wider">ADD SLIDE</span>
+                  <span className="text-[9px] font-bold text-[#7a766e] mt-0.5">JPEG / PNG</span>
                 </button>
               )}
             </div>

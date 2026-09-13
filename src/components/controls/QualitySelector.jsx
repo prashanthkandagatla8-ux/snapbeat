@@ -1,36 +1,42 @@
-﻿"use client";
+"use client";
 
 import { Crown, Sparkles } from "lucide-react";
 
 export function QualitySelector({ quality, setQuality, watermark, setWatermark, isPro, onOpenPricing }) {
   return (
-    <div className="space-y-3 pt-2 border-t border-[#242b38]/60">
+    <div className="space-y-3 pt-2 border-t border-[#a89f90]/50">
       {/* Quality Picker */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+          <span className="text-[11px] font-black text-[#5a5752] uppercase tracking-wider">
             Export Quality
           </span>
           {!isPro && (
-            <span className="text-[10px] text-amber-400 font-semibold cursor-pointer" onClick={onOpenPricing}>
-              1080p requires Pro
+            <span
+              type="button"
+              className="text-[10px] font-bold text-[#bf8a00] hover:underline cursor-pointer"
+              onClick={onOpenPricing}
+            >
+              1080p requires Pro 👑
             </span>
           )}
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
+            type="button"
             onClick={() => setQuality("fast")}
-            className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center justify-center ${
+            className={`py-2 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center justify-center ${
               quality === "fast"
-                ? "bg-amber-500/20 border-amber-400 text-amber-300"
-                : "bg-[#1a202c]/60 border-[#2d3748] text-gray-400 hover:text-white"
+                ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
+                : "metal-inset text-[#4a4743] hover:text-[#2b2b2d]"
             }`}
           >
-            <span>720p HD</span>
-            <span className="text-[9px] font-normal text-gray-400">Fast Render</span>
+            <span>480p Standard</span>
+            <span className="text-[9px] font-semibold text-[#5a5752]">Free Tier</span>
           </button>
 
           <button
+            type="button"
             onClick={() => {
               if (!isPro) {
                 onOpenPricing();
@@ -38,42 +44,48 @@ export function QualitySelector({ quality, setQuality, watermark, setWatermark, 
                 setQuality("master");
               }
             }}
-            className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center justify-center relative ${
+            className={`py-2 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center justify-center relative ${
               quality === "master"
-                ? "bg-amber-500/20 border-amber-400 text-amber-300"
-                : "bg-[#1a202c]/60 border-[#2d3748] text-gray-400 hover:text-white"
+                ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
+                : "metal-inset text-[#4a4743] hover:text-[#2b2b2d]"
             }`}
           >
             <div className="flex items-center gap-1">
               <span>1080p Master</span>
-              {!isPro && <Crown className="w-3 h-3 text-amber-400" />}
+              {!isPro && <Crown className="w-3 h-3 text-[#bf8a00]" />}
             </div>
-            <span className="text-[9px] font-normal text-gray-400">Crisp Quality</span>
+            <span className="text-[9px] font-semibold text-[#5a5752]">Studio Crisp</span>
           </button>
         </div>
       </div>
 
-      {/* Watermark Toggle */}
-      <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#1a202c]/60 border border-[#2d3748]/60">
+      {/* Watermark Status (No toggle - Informative status pill only) */}
+      <div className="flex items-center justify-between p-2.5 rounded-xl metal-inset gap-2">
         <div>
-          <p className="text-xs font-bold text-white">SnapBeat Watermark</p>
-          <p className="text-[10px] text-gray-400">
-            {isPro ? "Removed on export" : "Upgrade to Pro to remove"}
+          <p className="text-xs font-black text-[#2b2b2d]">SnapBeat Watermark</p>
+          <p className="text-[10px] text-[#5a5752]">
+            {isPro ? "Clean output • Watermark removed" : "Included on Free tier"}
           </p>
         </div>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={watermark}
-            disabled={!isPro}
-            onChange={(e) => {
-              if (isPro) setWatermark(e.target.checked);
-              else onOpenPricing();
-            }}
-            className="sr-only peer"
-          />
-          <div className="w-9 h-5 bg-[#2d3748] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
-        </label>
+        {isPro ? (
+          <span className="px-2.5 py-1 rounded-full bg-[#00c853]/20 text-[#00c853] text-[10px] font-black uppercase tracking-wider border border-[#00c853]/40 shrink-0">
+            WATERMARK: REMOVED
+          </span>
+        ) : (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="px-2 py-0.5 rounded-full bg-[#ffc72c]/30 text-[#4a3b00] text-[9px] font-black uppercase tracking-wider border border-[#bf8a00]/40">
+              WATERMARK: APPLIED
+            </span>
+            <button
+              type="button"
+              onClick={onOpenPricing}
+              className="px-2.5 py-1 rounded-full btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0"
+            >
+              <Crown className="w-2.5 h-2.5" />
+              <span>REMOVE (PRO)</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

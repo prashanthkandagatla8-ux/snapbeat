@@ -1,4 +1,4 @@
-﻿export const SOUND_TRACKS = [
+export const SOUND_TRACKS = [
   {
     id: "little_do_you_know",
     title: "Little Do You Know",
@@ -89,6 +89,27 @@
     durationSeconds: 126.0,
     fileName: "heavy_bass_dubstep.mp3",
   },
+  {
+    id: "sample_beat",
+    title: "Sample Beat Groove",
+    genre: "Nu-Funk / Party",
+    bpm: "124 BPM",
+    vibe: "Energetic brass hits and driving retro groove for fast party cuts",
+    assetPath: "/assets/audio/sample_beat.mp3",
+    durationSeconds: 58.0,
+    fileName: "sample_beat.mp3",
+  },
+];
+
+export const SAMPLE_PHOTOS = [
+  "/assets/sample_photos/sample_01.jpg",
+  "/assets/sample_photos/sample_02.jpg",
+  "/assets/sample_photos/sample_03.jpg",
+  "/assets/sample_photos/sample_04.jpg",
+  "/assets/sample_photos/sample_05.jpg",
+  "/assets/sample_photos/sample_06.jpg",
+  "/assets/sample_photos/sample_07.jpg",
+  "/assets/sample_photos/sample_08.jpg",
 ];
 
 export const TEMPLATES = [
@@ -113,7 +134,8 @@ export const PRICING_PLANS = [
     id: "weekly",
     name: "Weekly Pass",
     price: 99,
-    period: "7 days",
+    period: "week",
+    durationDays: 7,
     description: "Great for weekend creators & one-off events",
     badge: null,
     features: [
@@ -128,7 +150,8 @@ export const PRICING_PLANS = [
     id: "monthly",
     name: "Monthly Pro",
     price: 199,
-    period: "30 days",
+    period: "month",
+    durationDays: 30,
     description: "Our most popular plan for active creators",
     badge: "MOST POPULAR",
     features: [
@@ -144,7 +167,8 @@ export const PRICING_PLANS = [
     id: "annual",
     name: "Annual Studio",
     price: 999,
-    period: "365 days",
+    period: "year",
+    durationDays: 365,
     description: "Best value for agencies & power creators",
     badge: "SAVE 58%",
     features: [

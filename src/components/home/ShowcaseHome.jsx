@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
 import RetroAdBanner from "@/components/ads/RetroAdBanner";
@@ -11,10 +11,28 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
 
+  // Initialize video autoplay safely across all browser policies
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay prevented until user interacts with the page
+        });
+      }
+    }
+  }, []);
+
   const toggleSound = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
+      const nextMuted = !videoRef.current.muted;
+      videoRef.current.muted = nextMuted;
+      setIsMuted(nextMuted);
+      if (!nextMuted) {
+        videoRef.current.play().catch(() => {});
+      }
     }
   };
 
@@ -34,7 +52,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           <div className="w-10 h-10 rounded-xl metal-inset p-1 flex items-center justify-center">
             <img
               src="/assets/images/snapbeat_app_icon.png"
-              alt="SnapBeat Icon"
+              alt="SnapBeat App Icon"
               className="w-full h-full object-contain rounded-lg"
             />
           </div>
@@ -42,7 +60,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             <div className="flex items-center gap-2">
               <img
                 src="/assets/images/snapbeat_logo_crop.png"
-                alt="SnapBeat"
+                alt="SnapBeat Logo"
                 className="h-7 sm:h-8 w-auto object-contain"
               />
               <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest shadow-sm">
@@ -56,7 +74,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
         {/* User Account Controls */}
         <div className="flex items-center gap-3">
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-xs font-black text-[#2b2b2d]">{user.name || user.email}</p>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
@@ -66,16 +84,26 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 </span>
               </div>
               <button
+                type="button"
+                onClick={onEnterStudio}
+                className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider btn-brass text-[#2b2820] shadow flex items-center gap-1"
+              >
+                <span>STUDIO</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
                 onClick={signOut}
-                className="text-[10px] font-bold text-[#5a5752] hover:text-[#2b2b2d] px-2 py-1 rounded metal-inset hover:bg-black/5 transition"
+                className="text-[10px] font-bold text-[#5a5752] hover:text-[#2b2b2d] px-2 py-1.5 rounded metal-inset hover:bg-black/5 transition"
               >
                 Sign Out
               </button>
             </div>
           ) : (
             <button
+              type="button"
               onClick={openAuthModal}
-              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider btn-brass text-[#2b2820] shadow flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider btn-brass text-[#2b2820] shadow flex items-center gap-1.5 hover:brightness-110 transition"
             >
               <User className="w-3.5 h-3.5" />
               <span>SIGN IN</span>
@@ -90,10 +118,10 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
         <div className="lg:col-span-6 flex flex-col items-center">
           <div className="relative w-full max-w-[340px] sm:max-w-[380px] metal-panel rounded-3xl p-4 sm:p-5 border-4 border-[#7a766f] shadow-2xl">
             {/* Chassis Screws */}
-            <div className="metal-screw top-3 left-3" />
-            <div className="metal-screw top-3 right-3" />
-            <div className="metal-screw bottom-3 left-3" />
-            <div className="metal-screw bottom-3 right-3" />
+            <div className="metal-screw top-3 left-3 pointer-events-none" />
+            <div className="metal-screw top-3 right-3 pointer-events-none" />
+            <div className="metal-screw bottom-3 left-3 pointer-events-none" />
+            <div className="metal-screw bottom-3 right-3 pointer-events-none" />
 
             {/* Top Vent Plate Decoration */}
             <div className="flex items-center justify-between px-2 pb-3 mb-2 border-b border-[#7a766f]/40">
@@ -102,12 +130,14 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 <span className="font-mono text-[10px] font-black text-[#4a4743] tracking-widest">SHOWCASE REEL • 1080P</span>
               </div>
               <button
+                type="button"
                 onClick={toggleSound}
                 className="p-1.5 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-bold"
-                title={isMuted ? "Click to unmute music" : "Click to mute"}
+                title={isMuted ? "Click to unmute audio" : "Click to mute audio"}
+                aria-label={isMuted ? "Click to unmute audio" : "Click to mute audio"}
               >
                 {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-600" /> : <Volume2 className="w-3.5 h-3.5 text-green-700" />}
-                <span className="hidden sm:inline">{isMuted ? "UNMUTE" : "MUTED"}</span>
+                <span className="hidden sm:inline">{isMuted ? "UNMUTE" : "MUTE"}</span>
               </button>
             </div>
 
@@ -142,8 +172,10 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
               {/* Tap to Unmute Overlay for Mobile */}
               {isMuted && (
                 <button
+                  type="button"
                   onClick={toggleSound}
-                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition group-hover:opacity-100"
+                  aria-label="Tap for audio"
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition group-hover:opacity-100 cursor-pointer"
                 >
                   <div className="px-4 py-2 rounded-2xl bg-black/80 backdrop-blur-md border border-amber-400/50 text-white text-xs font-black flex items-center gap-2 shadow-2xl">
                     <Volume2 className="w-4 h-4 text-amber-400 animate-bounce" />
@@ -155,7 +187,14 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
 
             {/* Bottom Deck Badge */}
             <div className="flex items-center justify-between pt-3 mt-2 border-t border-[#7a766f]/40 text-[10px] font-bold text-[#5a5752]">
-              <span>SYNCHRONIZED BY SNAPBEAT</span>
+              <div className="flex items-center gap-1.5">
+                <img
+                  src="/assets/images/snapbeat_app_icon.png"
+                  alt="SnapBeat App Icon"
+                  className="w-3.5 h-3.5 rounded object-contain"
+                />
+                <span className="font-mono text-[9px] tracking-wider text-[#5a5752]">SYNCHRONIZED DECK</span>
+              </div>
               <span className="font-mono text-amber-600">CHOREO V2.0</span>
             </div>
           </div>
@@ -216,6 +255,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
               />
               <div className="text-left">
                 <button
+                  type="button"
                   onClick={handleAction}
                   className="px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider btn-brass text-[#2b2820] shadow-xl hover:brightness-110 active:scale-95 transition flex items-center gap-2"
                 >
@@ -227,14 +267,12 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
               </div>
             </div>
 
-            {/* Quick Guest Link if not signed in */}
+            {/* Reassurance note requiring sign-in to enter studio */}
             {!user && (
-              <button
-                onClick={onEnterStudio}
-                className="text-xs font-bold text-[#4a4743] hover:text-[#2b2b2d] underline decoration-[#8f8677] hover:decoration-black transition"
-              >
-                Or try the Studio as Guest ❯
-              </button>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full metal-inset text-[11px] font-bold text-[#5a5752]">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>1-Click Google or Email sign-in unlocks the Studio Workstation</span>
+              </div>
             )}
           </div>
         </div>
@@ -273,16 +311,17 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 </li>
                 <li className="flex items-center gap-2 text-[#6e695f]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#8f8677]" />
-                  <span>SnapBeat corner watermark</span>
+                  <span>Subtle corner watermark (removable with Pro)</span>
                 </li>
               </ul>
             </div>
 
             <button
-              onClick={onEnterStudio}
-              className="w-full py-2.5 rounded-xl metal-inset hover:bg-black/5 text-[#2b2b2d] font-black text-xs uppercase tracking-wider transition"
+              type="button"
+              onClick={handleAction}
+              className="w-full py-3 rounded-xl metal-inset hover:bg-black/5 text-[#2b2b2d] font-black text-xs uppercase tracking-wider transition shadow-sm"
             >
-              USE FREE TIER
+              {user ? "ENTER STUDIO (FREE TIER) ❯" : "SIGN IN FOR FREE TIER ❯"}
             </button>
           </div>
 
@@ -295,9 +334,26 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             <div>
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-500" />
-                <span className="text-lg font-black text-[#2b2b2d] uppercase">SNAPBEAT PRO</span>
+                <img
+                  src="/assets/images/snapbeat_logo_crop.png"
+                  alt="SnapBeat Logo"
+                  className="h-5 w-auto object-contain"
+                />
+                <span className="text-sm font-black text-amber-600 uppercase tracking-wider">PRO PASS</span>
               </div>
-              <p className="text-xs text-[#bf8a00] font-bold mt-1">₹99/week • ₹199/month • ₹999/year</p>
+
+              {/* Three Distinct Pricing Badges */}
+              <div className="flex flex-wrap gap-2 mt-2.5 mb-1">
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-[11px] font-black text-[#2b2820]">
+                  ₹99 <span className="font-semibold text-[10px] text-[#5a5752]">/ week</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500/30 border border-amber-500/60 text-[11px] font-black text-[#2b2820] shadow-sm">
+                  ₹199 <span className="font-semibold text-[10px] text-[#5a5752]">/ month</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-[11px] font-black text-[#2b2820]">
+                  ₹999 <span className="font-semibold text-[10px] text-[#5a5752]">/ year</span>
+                </div>
+              </div>
 
               <ul className="mt-4 space-y-2.5 text-xs font-black text-[#2b2b2d]">
                 <li className="flex items-center gap-2">
@@ -320,11 +376,20 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             </div>
 
             <button
-              onClick={onEnterStudio}
+              type="button"
+              onClick={() => {
+                if (!user) {
+                  openAuthModal();
+                } else if (onOpenPricing) {
+                  onOpenPricing();
+                } else {
+                  onEnterStudio();
+                }
+              }}
               className="w-full py-3 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2"
             >
               <Crown className="w-3.5 h-3.5 text-amber-600" />
-              <span>EXPLORE PRO IN STUDIO</span>
+              <span>{user ? "UPGRADE TO PRO ❯" : "SIGN IN & UPGRADE TO PRO ❯"}</span>
             </button>
           </div>
         </div>

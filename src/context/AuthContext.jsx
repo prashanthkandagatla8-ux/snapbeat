@@ -51,23 +51,54 @@ export function AuthProvider({ children }) {
         expiresAt: null,
         createdAt: new Date().toISOString(),
       };
-      allUsers[cleanEmail] = existing;
+    } else {
+      // Check Pro expiry
+      if (existing.isPro && existing.expiresAt) {
+        if (new Date(existing.expiresAt) < new Date()) {
+          existing.isPro = false;
+          existing.planId = null;
+        }
+      }
+      // Update name if provided
+      if (name && name.trim()) {
+        existing.name = name.trim();
+      }
+    }
+
+    // Sync with any device-level subscription active on this machine
+    try {
+      const cachedSub = localStorage.getItem("snapbeat_pro_subscription");
+      if (cachedSub) {
+        const parsedSub = JSON.parse(cachedSub);
+        if (parsedSub?.isPro && parsedSub.expiresAt && parsedSub.expiresAt > Date.now()) {
+          existing.isPro = true;
+          existing.planId = parsedSub.plan || existing.planId || "weekly";
+          existing.expiresAt = new Date(parsedSub.expiresAt).toISOString();
+        }
+      }
+    } catch (_) {}
+
+    allUsers[cleanEmail] = existing;
+    try {
       localStorage.setItem("snapbeat_all_accounts", JSON.stringify(allUsers));
+      localStorage.setItem("snapbeat_user", JSON.stringify(existing));
+    } catch (err) {
+      console.warn("Storage write failed", err);
     }
 
     setUser(existing);
-    localStorage.setItem("snapbeat_user", JSON.stringify(existing));
     setIsAuthModalOpen(false);
     return existing;
   };
 
   const signOut = () => {
     setUser(null);
-    localStorage.removeItem("snapbeat_user");
+    try {
+      localStorage.removeItem("snapbeat_user");
+    } catch (_) {}
   };
 
   const upgradeToPro = (planId, paymentDetails = {}) => {
-    if (!user) return;
     const now = new Date();
     let days = 7;
     if (planId === "monthly") days = 30;
@@ -75,8 +106,15 @@ export function AuthProvider({ children }) {
 
     const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
 
+    const baseUser = user || {
+      id: `usr_${Date.now()}`,
+      email: "creator@snapbeat.app",
+      name: "SnapBeat Creator",
+      createdAt: now.toISOString(),
+    };
+
     const updatedUser = {
-      ...user,
+      ...baseUser,
       isPro: true,
       planId,
       expiresAt,
@@ -88,20 +126,30 @@ export function AuthProvider({ children }) {
     };
 
     setUser(updatedUser);
-    localStorage.setItem("snapbeat_user", JSON.stringify(updatedUser));
-
-    // Update global accounts map
     try {
+      localStorage.setItem("snapbeat_user", JSON.stringify(updatedUser));
       const allUsers = JSON.parse(localStorage.getItem("snapbeat_all_accounts") || "{}");
-      allUsers[user.email] = updatedUser;
+      allUsers[updatedUser.email] = updatedUser;
       localStorage.setItem("snapbeat_all_accounts", JSON.stringify(allUsers));
+      localStorage.setItem(
+        "snapbeat_pro_subscription",
+        JSON.stringify({
+          isPro: true,
+          plan: planId,
+          expiresAt: new Date(expiresAt).getTime(),
+          paymentId: paymentDetails.paymentId || "demo_pay",
+        })
+      );
     } catch (_) {}
+
+    return updatedUser;
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        isPro: Boolean(user?.isPro),
         loading,
         isAuthModalOpen,
         openAuthModal: () => setIsAuthModalOpen(true),

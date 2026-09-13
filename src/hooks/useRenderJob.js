@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { DEFAULT_SERVER_URL } from "@/lib/constants";
 
 export function useRenderJob() {
@@ -20,6 +20,27 @@ export function useRenderJob() {
     }
   }, []);
 
+  const resetJob = useCallback(() => {
+    cancelPolling();
+    setIsRendering(false);
+    setProgress(0);
+    setStage("");
+    setQueuePosition(0);
+    setError(null);
+    setVideoUrl(null);
+    setJobId(null);
+  }, [cancelPolling]);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const submitJob = useCallback(
     async (studioState, serverUrl = DEFAULT_SERVER_URL) => {
       const {
@@ -32,12 +53,13 @@ export function useRenderJob() {
         audioTrim,
         titleCard,
         autoArrange,
+        isPro,
       } = studioState;
 
       if (!audioFile) {
         throw new Error("Please upload an audio track before rendering.");
       }
-      if (photos.length < 2) {
+      if (!photos || photos.length < 2) {
         throw new Error("Please upload at least 2 photos.");
       }
 
@@ -54,23 +76,26 @@ export function useRenderJob() {
         "16:9": "landscape",
       };
 
+      const userIsPro = Boolean(isPro);
+      const applyWatermark = userIsPro ? false : Boolean(watermark);
+
       const formData = new FormData();
       formData.append("audio", audioFile);
       photos.forEach((p) => {
-        formData.append("photos", p.file);
+        if (p.file) formData.append("photos", p.file);
       });
 
-      formData.append("template", selectedTemplate);
+      formData.append("template", selectedTemplate || "pendulum");
       formData.append("frame", frameMap[aspectRatio] || "portrait");
-      formData.append("quality", quality || "fast");
-      formData.append("watermark", watermark ? "true" : "false");
-      formData.append("render_type", "free_queue");
-      formData.append("audio_start", String(audioTrim.start || 0));
-      formData.append("audio_end", String(audioTrim.end || 0));
-      formData.append("full_track", audioTrim.isFullTrack ? "true" : "false");
+      formData.append("quality", userIsPro && quality === "master" ? "master" : "fast");
+      formData.append("watermark", applyWatermark ? "true" : "false");
+      formData.append("render_type", userIsPro ? "pro_priority" : "free_queue");
+      formData.append("audio_start", String(audioTrim?.start || 0));
+      formData.append("audio_end", String(audioTrim?.end || 0));
+      formData.append("full_track", audioTrim?.isFullTrack ? "true" : "false");
       formData.append("auto_arrange", autoArrange ? "auto" : "none");
 
-      if (titleCard.enabled && titleCard.text.trim()) {
+      if (titleCard?.enabled && userIsPro && titleCard?.text?.trim()) {
         formData.append("title_text", titleCard.text.trim());
         formData.append("title_font", titleCard.font || "great_vibes");
         formData.append("title_duration", String(titleCard.duration || 2));
@@ -78,6 +103,9 @@ export function useRenderJob() {
         formData.append("title_style", titleCard.style || "classic");
         formData.append("title_frame", titleCard.frame || "none");
         formData.append("title_audio", titleCard.timing || "before_audio");
+        if (titleCard.subtitle?.trim()) {
+          formData.append("title_subtitle", titleCard.subtitle.trim());
+        }
       }
 
       try {
@@ -93,16 +121,31 @@ export function useRenderJob() {
 
         const data = await response.json();
         const newJobId = data.job_id;
+        if (!newJobId) {
+          throw new Error("Server did not return a valid job ID");
+        }
+
         setJobId(newJobId);
         setStage("Queued in render pipeline...");
 
         // Start polling
         cancelPolling();
+        let consecutiveFailures = 0;
+
         pollTimerRef.current = setInterval(async () => {
           try {
             const statusRes = await fetch(`${serverUrl}/api/render/status/${newJobId}`);
-            if (!statusRes.ok) return;
+            if (!statusRes.ok) {
+              consecutiveFailures += 1;
+              if (consecutiveFailures > 15) {
+                cancelPolling();
+                setIsRendering(false);
+                setError("Lost communication with render server. Please try again.");
+              }
+              return;
+            }
 
+            consecutiveFailures = 0;
             const statusData = await statusRes.json();
             setProgress(statusData.progress || 0);
             setStage(statusData.stage || statusData.status);
@@ -120,7 +163,13 @@ export function useRenderJob() {
               setError(statusData.error || "Render job failed on server");
             }
           } catch (pollErr) {
+            consecutiveFailures += 1;
             console.warn("Polling error:", pollErr);
+            if (consecutiveFailures > 15) {
+              cancelPolling();
+              setIsRendering(false);
+              setError("Network error communicating with render server.");
+            }
           }
         }, 1200);
       } catch (err) {
@@ -142,5 +191,6 @@ export function useRenderJob() {
     error,
     submitJob,
     cancelPolling,
+    resetJob,
   };
 }

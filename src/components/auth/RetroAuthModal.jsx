@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { X, Mail, User, ShieldCheck, Sparkles } from "lucide-react";
 
@@ -9,6 +9,23 @@ export default function RetroAuthModal({ onSuccess }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+
+  const handleClose = () => {
+    setError("");
+    closeAuthModal();
+  };
+
+  // Keyboard escape listener to dismiss modal
+  useEffect(() => {
+    if (!isAuthModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAuthModalOpen]);
 
   if (!isAuthModalOpen) return null;
 
@@ -24,44 +41,54 @@ export default function RetroAuthModal({ onSuccess }) {
   };
 
   const handleGoogleSignIn = () => {
-    // Fast 1-click Google OAuth / Sign-in prompt
-    const promptEmail = window.prompt("Sign in with Google Account (enter your Google email):", "creator@gmail.com");
-    if (promptEmail && promptEmail.includes("@")) {
-      const loggedUser = signIn(promptEmail, "Google Creator");
-      if (onSuccess) onSuccess(loggedUser);
-    }
+    setError("");
+    // Fast 1-click Google OAuth placeholder
+    const emailToUse = email.trim() && email.includes("@") ? email.trim() : "creator.google@gmail.com";
+    const nameToUse = name.trim() || (emailToUse.includes("google") ? "Google Creator" : emailToUse.split("@")[0]);
+    const loggedUser = signIn(emailToUse, nameToUse);
+    if (onSuccess) onSuccess(loggedUser);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-title"
+    >
       <div className="relative w-full max-w-md metal-panel rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-[#7a766f] animate-scaleUp">
         {/* Brass Screws */}
-        <div className="metal-screw top-3 left-3" />
-        <div className="metal-screw top-3 right-3" />
-        <div className="metal-screw bottom-3 left-3" />
-        <div className="metal-screw bottom-3 right-3" />
+        <div className="metal-screw top-3 left-3 pointer-events-none" />
+        <div className="metal-screw top-3 right-3 pointer-events-none" />
+        <div className="metal-screw bottom-3 left-3 pointer-events-none" />
+        <div className="metal-screw bottom-3 right-3 pointer-events-none" />
 
         {/* Close Button */}
         <button
-          onClick={closeAuthModal}
+          type="button"
+          onClick={handleClose}
+          aria-label="Close sign-in modal"
           className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-black/10 text-[#4a4743] hover:text-[#2b2b2d] transition"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header with cut-off PNG logo */}
+        {/* Header with PNG logo */}
         <div className="text-center space-y-2 mb-6">
           <div className="inline-flex items-center justify-center p-2 rounded-2xl metal-inset shadow-inner mx-auto mb-1">
             <img
               src="/assets/images/snapbeat_app_icon.png"
-              alt="SnapBeat"
+              alt="SnapBeat App Icon"
               className="w-12 h-12 rounded-xl object-contain drop-shadow"
             />
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center" id="auth-modal-title">
             <img
               src="/assets/images/snapbeat_logo_crop.png"
-              alt="SnapBeat"
+              alt="SnapBeat Logo"
               className="h-9 w-auto object-contain drop-shadow"
             />
           </div>
@@ -108,14 +135,16 @@ export default function RetroAuthModal({ onSuccess }) {
           {/* Email Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
             <div>
-              <label className="block text-[11px] font-black text-[#4a4743] uppercase tracking-wider mb-1">
+              <label htmlFor="auth-email-input" className="block text-[11px] font-black text-[#4a4743] uppercase tracking-wider mb-1">
                 Your Email Address <span className="text-amber-600">*</span>
               </label>
               <div className="relative flex items-center">
                 <Mail className="w-4 h-4 absolute left-3.5 text-[#6e695f] pointer-events-none" />
                 <input
+                  id="auth-email-input"
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
@@ -125,13 +154,15 @@ export default function RetroAuthModal({ onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-[11px] font-black text-[#4a4743] uppercase tracking-wider mb-1">
+              <label htmlFor="auth-name-input" className="block text-[11px] font-black text-[#4a4743] uppercase tracking-wider mb-1">
                 Your Name / Creator Handle (Optional)
               </label>
               <div className="relative flex items-center">
                 <User className="w-4 h-4 absolute left-3.5 text-[#6e695f] pointer-events-none" />
                 <input
+                  id="auth-name-input"
                   type="text"
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Alex"

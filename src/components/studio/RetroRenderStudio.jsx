@@ -28,6 +28,22 @@ export function RetroRenderStudio({
   const currentTemplateObj = TEMPLATES.find((t) => t.id === selectedTemplate) || TEMPLATES[0];
   const [monitorMode, setMonitorMode] = useState("title"); // 'title' | 'video'
 
+  const getTitleCardFontClass = (fontId) => {
+    switch (fontId) {
+      case "great_vibes":
+        return "font-serif italic tracking-wider";
+      case "cinzel":
+        return "font-serif tracking-[0.2em] uppercase font-black";
+      case "bebas_neue":
+        return "font-sans font-black tracking-widest uppercase scale-y-110";
+      case "playfair":
+        return "font-serif italic font-bold tracking-wide";
+      case "montserrat":
+      default:
+        return "font-sans font-black tracking-tight uppercase";
+    }
+  };
+
   const handleTitleToggle = (checked) => {
     if (!isPro) {
       onOpenPricing();
@@ -50,7 +66,7 @@ export function RetroRenderStudio({
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
             <h3 className="font-black text-xs text-[#2b2b2d] uppercase tracking-wider">
-              {videoUrl && monitorMode === "video" ? "FINAL REEL PLAYBACK" : "TITLE CARD PREVIEW MONITOR"}
+              {videoUrl && monitorMode === "video" ? "FINAL REEL PLAYBACK" : "LIVE TITLE CARD CRT MONITOR"}
             </h3>
           </div>
 
@@ -58,6 +74,7 @@ export function RetroRenderStudio({
             {videoUrl && (
               <div className="flex items-center bg-[#b8ae9e] rounded-lg p-0.5 border border-[#8f8677]">
                 <button
+                  type="button"
                   onClick={() => setMonitorMode("title")}
                   className={`px-2 py-0.5 rounded text-[9px] font-black transition ${
                     monitorMode === "title" ? "bg-[#ffc72c] text-[#2b2820]" : "text-[#4a4743]"
@@ -66,6 +83,7 @@ export function RetroRenderStudio({
                   TITLE INTRO
                 </button>
                 <button
+                  type="button"
                   onClick={() => setMonitorMode("video")}
                   className={`px-2 py-0.5 rounded text-[9px] font-black transition ${
                     monitorMode === "video" ? "bg-[#ffc72c] text-[#2b2820]" : "text-[#4a4743]"
@@ -76,7 +94,7 @@ export function RetroRenderStudio({
               </div>
             )}
             <span className="px-2 py-0.5 rounded bg-[#1e1c1a] text-amber-400 font-mono text-[10px] font-bold">
-              FRAME: {aspectRatio} • {quality === "master" ? "1080P" : "720P"}
+              FRAME: {aspectRatio} • {quality === "master" ? "1080P" : "480P"}
             </span>
           </div>
         </div>
@@ -100,68 +118,77 @@ export function RetroRenderStudio({
               className="w-full h-full object-cover"
             />
           ) : (
-            /* Live Title Card Preview */
+            /* Live Title Card CRT Stage - Always Live, Never Just Placeholder */
             <div className="w-full h-full relative flex flex-col items-center justify-between p-6 bg-gradient-to-b from-[#18181b] via-[#09090b] to-[#18181b] text-center select-none overflow-hidden">
-              {/* Scanlines and Vignette Effect */}
+              {/* Scanlines and Vignette CRT Effect */}
               <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_transparent_40%,_rgba(0,0,0,0.85)_100%)] z-10" />
-              <div className="absolute inset-0 pointer-events-none opacity-20 bg-[repeating-linear-gradient(0deg,#000,#000_2px,transparent_2px,transparent_4px)] z-10" />
+              <div className="absolute inset-0 pointer-events-none opacity-25 bg-[repeating-linear-gradient(0deg,#000,#000_2px,transparent_2px,transparent_4px)] z-10" />
 
               {/* Top Letterbox Bar */}
-              <div className="w-full z-20 flex items-center justify-between text-[9px] font-mono text-amber-400/70 border-b border-amber-400/20 pb-1">
+              <div className="w-full z-20 flex items-center justify-between text-[9px] font-mono text-amber-400/80 border-b border-amber-400/20 pb-1">
                 <span>INT. OPENING • SCENE 1</span>
-                <span>00:00 - 00:0{titleCard.duration || 3}</span>
+                <span>00:00 - 00:0{titleCard?.duration || 3}</span>
               </div>
 
-              {/* Center Content: Title Card Typography */}
-              <div className="z-20 my-auto space-y-3 px-2">
-                {titleCard.enabled ? (
-                  <>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest">
+              {/* Center Content: Live Title Card Typography */}
+              <div className="z-20 my-auto space-y-3 px-2 w-full flex flex-col items-center">
+                {/* Mode Indicator Badge */}
+                {isPro ? (
+                  titleCard?.enabled ? (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest">
                       <Sparkles className="w-3 h-3 text-amber-400" />
-                      <span>OPENING TITLE</span>
+                      <span>OPENING TITLE CARD ACTIVE</span>
                     </div>
-
-                    <h2
-                      className={`text-2xl sm:text-3xl font-black uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.4)] ${
-                        titleCard.font === "retro"
-                          ? "font-mono"
-                          : titleCard.font === "serif"
-                          ? "font-serif"
-                          : "font-sans"
-                      }`}
-                    >
-                      {titleCard.text.trim() || "YOUR REEL TITLE"}
-                    </h2>
-
-                    <p className="text-[11px] font-mono font-bold tracking-widest text-amber-400/80 uppercase">
-                      {titleCard.subtitle?.trim() || "A SNAPBEAT PRODUCTION • 2026"}
-                    </p>
-
-                    <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-2" />
-                  </>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-gray-300 text-[10px] font-black uppercase tracking-widest">
+                      <Type className="w-3 h-3 text-amber-400" />
+                      <span>TITLE PREVIEW (OFFLINE)</span>
+                    </div>
+                  )
                 ) : (
-                  <div className="space-y-3 p-4">
-                    <div className="w-12 h-12 rounded-2xl metal-inset flex items-center justify-center mx-auto text-[#8f8677]">
-                      <Type className="w-6 h-6" />
-                    </div>
-                    <p className="text-xs font-black text-gray-300 uppercase tracking-wider">
-                      TITLE CARD DISABLED
-                    </p>
-                    <p className="text-[11px] text-gray-500 max-w-[200px] mx-auto leading-relaxed">
-                      {isPro
-                        ? "Toggle 'OPENING TITLE CARD' under Pro Controls to customize this intro."
-                        : "Opening Title Cards are an exclusive Pro feature. Upgrade to Pro to customize."}
-                    </p>
-                    {!isPro && (
-                      <button
-                        onClick={onOpenPricing}
-                        className="px-3 py-1.5 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow"
-                      >
-                        UNLOCK WITH PRO
-                      </button>
-                    )}
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/80 border border-amber-500/60 text-amber-300 text-[10px] font-black uppercase tracking-wider backdrop-blur-sm shadow-lg">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span>PRO TITLE CARD PREVIEW</span>
                   </div>
                 )}
+
+                {/* Primary Cinematic Title Headline */}
+                <h2
+                  className={`text-2xl sm:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.4)] ${getTitleCardFontClass(
+                    titleCard?.font
+                  )}`}
+                >
+                  {titleCard?.text?.trim() || "YOUR REEL TITLE"}
+                </h2>
+
+                {/* Subtitle / Dateline */}
+                <p className="text-[11px] font-mono font-bold tracking-widest text-amber-400/80 uppercase">
+                  {titleCard?.subtitle?.trim() || "A SNAPBEAT PRODUCTION • 2026"}
+                </p>
+
+                {/* Accent Divider Bar */}
+                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-2" />
+
+                {/* Pro Lock Prompt Overlay when not Pro */}
+                {!isPro ? (
+                  <div className="pt-2 flex flex-col items-center gap-1.5">
+                    <span className="text-[9px] font-mono text-amber-300/80 uppercase tracking-wider">
+                      Title cards render on Pro reels only
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onOpenPricing}
+                      className="px-3 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1"
+                    >
+                      <Crown className="w-2.5 h-2.5" />
+                      <span>UNLOCK WITH PRO</span>
+                    </button>
+                  </div>
+                ) : !titleCard?.enabled ? (
+                  <p className="text-[9px] font-mono text-gray-400 uppercase tracking-wide">
+                    Toggle "OPENING TITLE CARD" under controls to attach to export
+                  </p>
+                ) : null}
               </div>
 
               {/* Bottom Letterbox Bar */}
@@ -264,6 +291,7 @@ export function RetroRenderStudio({
           <div className="grid grid-cols-3 gap-2">
             {ASPECT_RATIOS.map((item) => (
               <button
+                type="button"
                 key={item.id}
                 onClick={() => setAspectRatio(item.id)}
                 className={`py-1.5 px-2 rounded-xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 ${
@@ -296,6 +324,7 @@ export function RetroRenderStudio({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
+              type="button"
               onClick={() => setQuality("fast")}
               className={`py-1.5 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center ${
                 quality === "fast"
@@ -303,11 +332,12 @@ export function RetroRenderStudio({
                   : "metal-inset text-[#4a4743] hover:text-[#2b2b2d]"
               }`}
             >
-              <span>720p Fast HD</span>
-              <span className="text-[9px] font-semibold text-[#5a5752]">Free Standard</span>
+              <span>480p Standard</span>
+              <span className="text-[9px] font-semibold text-[#5a5752]">Free Tier</span>
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 if (!isPro) onOpenPricing();
                 else setQuality("master");
@@ -327,30 +357,36 @@ export function RetroRenderStudio({
           </div>
         </div>
 
-        {/* Watermark Status (No toggle needed) */}
-        <div className="flex items-center justify-between p-2.5 rounded-2xl metal-inset">
+        {/* Watermark Status (No toggle - Informative status pill only) */}
+        <div className="flex items-center justify-between p-2.5 rounded-2xl metal-inset gap-2">
           <div>
             <p className="text-xs font-black text-[#2b2b2d]">SNAPBEAT WATERMARK</p>
             <p className="text-[10px] text-[#5a5752]">
-              {isPro ? "Clean video output • No watermark" : "Included on Free tier (Removed with Pro)"}
+              {isPro ? "Clean video output • No watermark" : "Free output includes watermark"}
             </p>
           </div>
           {isPro ? (
-            <span className="px-2.5 py-1 rounded-full bg-[#00c853]/20 text-[#00c853] text-[10px] font-black uppercase tracking-wider border border-[#00c853]/40">
-              REMOVED
+            <span className="px-2.5 py-1 rounded-full bg-[#00c853]/20 text-[#00c853] text-[10px] font-black uppercase tracking-wider border border-[#00c853]/40 shrink-0">
+              WATERMARK: REMOVED
             </span>
           ) : (
-            <button
-              onClick={onOpenPricing}
-              className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-800 text-[10px] font-black uppercase tracking-wider border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center gap-1"
-            >
-              <Crown className="w-2.5 h-2.5" />
-              <span>REMOVE (PRO)</span>
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="px-2 py-0.5 rounded-full bg-[#ffc72c]/30 text-[#4a3b00] text-[9px] font-black uppercase tracking-wider border border-[#bf8a00]/40">
+                WATERMARK: APPLIED
+              </span>
+              <button
+                type="button"
+                onClick={onOpenPricing}
+                className="px-2.5 py-1 rounded-full btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0"
+              >
+                <Crown className="w-2.5 h-2.5" />
+                <span>REMOVE (PRO)</span>
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Opening Title Card (PRO FEATURE) */}
+        {/* Opening Title Card (PRO-ONLY FEATURE) */}
         <div className="space-y-2 p-2.5 rounded-2xl metal-inset">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -365,7 +401,7 @@ export function RetroRenderStudio({
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={titleCard.enabled}
+                checked={Boolean(titleCard?.enabled && isPro)}
                 onChange={(e) => handleTitleToggle(e.target.checked)}
                 className="sr-only peer"
               />
@@ -373,7 +409,7 @@ export function RetroRenderStudio({
             </label>
           </div>
 
-          {titleCard.enabled && isPro && (
+          {titleCard?.enabled && isPro && (
             <div className="space-y-2 pt-1">
               <input
                 type="text"
@@ -421,15 +457,25 @@ export function RetroRenderStudio({
                 >
                   <option value="2">2 seconds intro</option>
                   <option value="3">3 seconds intro</option>
+                  <option value="4">4 seconds intro</option>
                 </select>
               </div>
             </div>
           )}
 
           {!isPro && (
-            <p className="text-[10px] text-[#5a5752] font-semibold">
-              Add a cinematic intro title to your video reel. Unlocks with any Pro Pass.
-            </p>
+            <div className="pt-1.5 flex items-center justify-between border-t border-[#a89f90]/50">
+              <p className="text-[10px] text-[#5a5752] font-semibold leading-tight">
+                Cinematic intro cards unlock with any Pro Pass.
+              </p>
+              <button
+                type="button"
+                onClick={onOpenPricing}
+                className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shrink-0 ml-2 shadow hover:brightness-110"
+              >
+                UNLOCK PRO
+              </button>
+            </div>
           )}
         </div>
 

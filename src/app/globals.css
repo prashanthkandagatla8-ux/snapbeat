@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -26,7 +26,11 @@
 
   body {
     background-color: var(--canvas-chassis);
-    background-image: radial-gradient(circle at 50% 0%, #d8d0c2 0%, #c2b8a5 70%, #aba18e 100%);
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(245, 240, 230, 0.55) 0%, rgba(194, 184, 165, 0.35) 60%, rgba(160, 150, 132, 0.45) 100%),
+      url("/assets/images/brushed_metal_background.jpg");
+    background-size: cover;
+    background-attachment: fixed;
     color: var(--text-engraved);
     font-family: -apple-system, BlinkMacSystemFont, "Montserrat", "Segoe UI", Roboto, sans-serif;
     min-height: 100vh;
@@ -40,7 +44,7 @@
   border-left: 2px solid #ebe5dc;
   border-right: 2px solid #948c7e;
   border-bottom: 2px solid #827b6e;
-  box-shadow: 0 8px 24px rgba(42, 40, 38, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px rgba(42, 40, 38, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 /* Inset Well (Cassette Bays, Screen Wells, Sliders) */
@@ -50,47 +54,63 @@
   border-left: 2px solid #756e60;
   border-right: 2px solid #cfc8bd;
   border-bottom: 2px solid #ded9d0;
-  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Deep Recessed Stage / Chassis Well */
+.metal-deep-inset {
+  background: linear-gradient(180deg, #181716 0%, #242220 50%, #2c2927 100%);
+  border-top: 3px solid #0f0e0e;
+  border-left: 3px solid #141312;
+  border-right: 3px solid #4a4743;
+  border-bottom: 3px solid #5a5752;
+  box-shadow: inset 0 6px 16px rgba(0, 0, 0, 0.8);
 }
 
 /* Screw Rivet Detail */
 .metal-screw {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: radial-gradient(circle, #7a7670 0%, #4a4743 70%, #2e2c29 100%);
-  border: 1px solid #948f88;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.4);
+  background: radial-gradient(circle, #8a857e 0%, #524f4a 70%, #2e2c29 100%);
+  border: 1px solid #9e9991;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 2px 3px rgba(0, 0, 0, 0.45);
   position: relative;
+  z-index: 10;
 }
 .metal-screw::after {
   content: "";
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 6px;
+  width: 7px;
   height: 1.5px;
-  background: #252422;
+  background: #1c1b19;
   transform: translate(-50%, -50%) rotate(45deg);
+  box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* 3D Bubbly Brass / Yellow Button */
+/* 3D Bubbly Brass / Gold Action Button */
 .btn-brass {
-  background: linear-gradient(180deg, #ffe082 0%, #ffc72c 50%, #e0a300 100%);
-  border-top: 1.5px solid #fff5cc;
-  border-left: 1.5px solid #ffe899;
-  border-right: 1.5px solid #9e7300;
-  border-bottom: 3px solid #7a5900;
+  background: linear-gradient(180deg, #ffe082 0%, #ffc72c 45%, #e0a300 85%, #b38000 100%);
+  border-top: 1.5px solid #fff8db;
+  border-left: 1.5px solid #ffea9f;
+  border-right: 1.5px solid #8f6500;
+  border-bottom: 3.5px solid #6e4e00;
   color: #2b2820;
   font-weight: 900;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.8);
-  transition: all 0.1s ease;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+  transition: all 0.1s cubic-bezier(0.2, 0, 0, 1);
+}
+.btn-brass:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 16px rgba(255, 199, 44, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 .btn-brass:active {
   transform: translateY(2px);
-  border-bottom-width: 1px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-bottom-width: 1.5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35), inset 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 /* 3D Master Red Lacquer Button */
@@ -99,17 +119,33 @@
   border-top: 1.5px solid #ffa3a3;
   border-left: 1.5px solid #ff8080;
   border-right: 1.5px solid #4a0505;
-  border-bottom: 3px solid #360202;
+  border-bottom: 3.5px solid #2e0101;
   color: #ffffff;
   font-weight: 900;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-  box-shadow: 0 4px 12px rgba(120, 15, 15, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 6px 18px rgba(180, 20, 20, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.65);
   transition: all 0.1s ease;
+}
+.btn-red-lacquer:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 8px 24px rgba(214, 40, 40, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 .btn-red-lacquer:active {
   transform: translateY(2px);
-  border-bottom-width: 1px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), inset 0 2px 6px rgba(0, 0, 0, 0.4);
+  border-bottom-width: 1.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Nixie Tube Glowing Display */
+.nixie-display {
+  background: #121110;
+  border: 1.5px solid #36322e;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: #ffb300;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  text-shadow: 0 0 8px rgba(255, 179, 0, 0.75), 0 0 16px rgba(255, 140, 0, 0.4);
+  letter-spacing: 0.15em;
 }
 
 /* Stamped Metal Typography */
@@ -118,35 +154,152 @@
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 -1px 0 rgba(0, 0, 0, 0.2);
 }
 
-/* Amber LED Jewel */
+/* Polished Gold Text */
+.text-gold-gradient {
+  background: linear-gradient(180deg, #fff2b2 0%, #ffc72c 50%, #c99300 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+/* LEDs with Realistic Atmospheric Halos */
 .led-amber {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: #ff8a00;
-  box-shadow: 0 0 8px #ff8a00, inset 0 1px 1px #fff;
+  background: radial-gradient(circle at 35% 30%, #fff0b3 0%, #ff9d00 50%, #b36b00 100%);
+  box-shadow: 0 0 10px #ff9d00, 0 0 4px #ffa726, inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 .led-green {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: #00c853;
-  box-shadow: 0 0 8px #00c853, inset 0 1px 1px #fff;
+  background: radial-gradient(circle at 35% 30%, #b3ffd9 0%, #00e676 50%, #008f4c 100%);
+  box-shadow: 0 0 10px #00e676, 0 0 4px #69f0ae, inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+.led-red {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffb3b3 0%, #ff1744 50%, #a80024 100%);
+  box-shadow: 0 0 10px #ff1744, 0 0 4px #ff5252, inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+/* Polaroid Card for Photos Bay */
+.polaroid-card {
+  background: #ffffff;
+  padding: 6px 6px 20px 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 1px solid #d4cdc0;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+.polaroid-card:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.32), 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+}
+
+/* Speaker Grill Texture */
+.speaker-grill-bg {
+  background-image: radial-gradient(#2a2826 25%, transparent 25%), radial-gradient(#2a2826 25%, transparent 25%);
+  background-position: 0 0, 4px 4px;
+  background-size: 8px 8px;
+  background-color: #3b3834;
+}
+
+/* Animated Shimmer Ribbon */
+@keyframes shimmerSweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.gold-shimmer {
+  background: linear-gradient(90deg, #ffc72c 0%, #fff9d6 50%, #ffc72c 100%);
+  background-size: 200% 100%;
+  animation: shimmerSweep 3s infinite linear;
+}
+
+/* Custom Styled Range Sliders for Trimmer */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #242220;
+  height: 8px;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3c4 0%, #ffc72c 60%, #b38600 100%);
+  border: 1.5px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
 }
 
 /* Custom Scrollbar for Retro Panels */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: #b8ae9e;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
   background: #7a766f;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #5a5752;
+}
+
+/* Modal and Element Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn,
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* CRT Screen Scanline Overlay for Video & Monitor Previews */
+.crt-scanlines {
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+  background-size: 100% 3px, 4px 100%;
+  pointer-events: none;
 }

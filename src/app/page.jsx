@@ -60,6 +60,16 @@ export default function StudioPage() {
     loadDefaultTrack();
   }, []);
 
+  // Deep-link to studio mode if query param or hash present
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("view") === "studio" || window.location.hash === "#studio") {
+        setViewMode("studio");
+      }
+    }
+  }, []);
+
   // Server health polling
   useEffect(() => {
     const checkServer = async () => {
@@ -98,6 +108,9 @@ export default function StudioPage() {
   const handleStartRender = async () => {
     try {
       setCurrentTab("queue"); // Transition to Queue console
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
       await renderJob.submitJob(studio);
     } catch (err) {
       alert(err.message || "Failed to submit render");
@@ -132,11 +145,10 @@ export default function StudioPage() {
         activatePro(plan, paymentId);
         upgradeToPro(plan, { paymentId });
         setRenderMode("pro");
+        setViewMode("studio");
         alert(`🎉 Pro activated successfully for ${plan.toUpperCase()}! 1080p Master quality, Title Cards, and watermark removal are unlocked.`);
       },
-      () => {
-        console.log("Payment canceled");
-      }
+      () => {}
     );
   };
 
@@ -168,7 +180,7 @@ export default function StudioPage() {
           />
 
           {/* WORKSTATION BODY */}
-          <main className="flex-1 max-w-[1500px] w-full mx-auto p-4 lg:p-8">
+          <main className="flex-1 max-w-[1500px] w-full mx-auto p-3 sm:p-4 lg:p-8">
             {/* TAB 1: MUSIC & TAPE DECK */}
             {currentTab === "music" && (
               <div className="space-y-4">
@@ -189,7 +201,7 @@ export default function StudioPage() {
                 <div className="flex justify-end pt-2">
                   <button
                     onClick={() => setCurrentTab("photos")}
-                    className="btn-brass px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md"
+                    className="btn-brass px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition"
                   >
                     <span>NEXT: CHOOSE PHOTOS</span>
                     <ArrowRight className="w-4 h-4" />
@@ -206,6 +218,7 @@ export default function StudioPage() {
                   addPhotos={studio.addPhotos}
                   removePhoto={studio.removePhoto}
                   reorderPhotos={studio.reorderPhotos}
+                  shufflePhotos={studio.shufflePhotos}
                   clearPhotos={studio.clearPhotos}
                   autoArrange={studio.autoArrange}
                   setAutoArrange={studio.setAutoArrange}
@@ -214,20 +227,20 @@ export default function StudioPage() {
                 <div className="flex items-center justify-between pt-2">
                   <button
                     onClick={() => setCurrentTab("music")}
-                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow"
+                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow hover:bg-black/5 active:scale-95 transition"
                   >
                     ← BACK TO MUSIC
                   </button>
                   <button
                     onClick={() => setCurrentTab("render")}
                     disabled={studio.photos.length < 2}
-                    className={`px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md ${
+                    className={`px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md transition ${
                       studio.photos.length >= 2
-                        ? "btn-brass"
+                        ? "btn-brass hover:brightness-110 active:scale-95 cursor-pointer"
                         : "bg-[#8f8677] text-white opacity-60 cursor-not-allowed"
                     }`}
                   >
-                    <span>NEXT: STUDIO & RENDER</span>
+                    <span>NEXT: RENDER</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -257,6 +270,22 @@ export default function StudioPage() {
                   canRender={canRender}
                   videoUrl={renderJob.videoUrl}
                 />
+                {/* Flow navigation */}
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    onClick={() => setCurrentTab("photos")}
+                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow hover:bg-black/5 active:scale-95 transition"
+                  >
+                    ← BACK TO PHOTOS
+                  </button>
+                  <button
+                    onClick={() => setCurrentTab("queue")}
+                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow flex items-center gap-1.5 hover:bg-black/5 active:scale-95 transition"
+                  >
+                    <span>VIEW QUEUE</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             )}
 
@@ -275,7 +304,18 @@ export default function StudioPage() {
                   onClearCompleted={() => setPastJobs([])}
                   isPro={isPro}
                   onOpenPricing={() => setIsStoreOpen(true)}
+                  onRetry={handleStartRender}
+                  onDismissError={renderJob.resetJob}
                 />
+                {/* Flow navigation */}
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    onClick={() => setCurrentTab("render")}
+                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow hover:bg-black/5 active:scale-95 transition"
+                  >
+                    ← BACK TO RENDER
+                  </button>
+                </div>
               </div>
             )}
 
@@ -286,9 +326,9 @@ export default function StudioPage() {
       )}
 
       {/* HARDWARE FOOTER */}
-      <footer className="w-full metal-panel border-t-2 border-[#7a766f] py-4 px-6 text-center text-xs text-[#5a5752] flex flex-col sm:flex-row items-center justify-between gap-3 mt-auto">
+      <footer className="w-full metal-panel border-t-2 border-[#7a766f] py-4 px-4 sm:px-6 text-center text-xs text-[#5a5752] flex flex-col sm:flex-row items-center justify-between gap-3 mt-auto">
         <p className="font-bold">© 2026 SnapBeat Studio. Tactile Audio-Visual Reel Maker.</p>
-        <div className="flex items-center gap-4 font-black">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-black">
           <a href="/privacy" className="hover:text-[#2b2b2d] transition">Privacy Policy</a>
           <a href="/terms" className="hover:text-[#2b2b2d] transition">Terms & Refunds</a>
           <a href="/join" className="hover:text-[#2b2b2d] transition">Beta Testers Group</a>

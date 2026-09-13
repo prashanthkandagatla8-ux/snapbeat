@@ -17,32 +17,42 @@ export function RetroQueueConsole({
   onClearCompleted,
   isPro = false,
   onOpenPricing,
+  onRetry,
+  onDismissError,
 }) {
   const [isAdOpen, setIsAdOpen] = useState(false);
   const [adWatched, setAdWatched] = useState(false);
+  const [pendingDownload, setPendingDownload] = useState(null);
 
-  const handleDownloadClick = (e, targetUrl) => {
+  const handleDownloadClick = (e, targetUrl, fileName) => {
     // Pro users download immediately!
     if (isPro || adWatched) {
       return; // allow normal link navigation
     }
     // Free tier users see the 5-second sponsored video ad first
     e.preventDefault();
+    setPendingDownload({
+      url: targetUrl || videoUrl,
+      fileName: fileName || `SnapBeat_${jobId || "Reel"}.mp4`,
+    });
     setIsAdOpen(true);
   };
 
   const handleAdComplete = () => {
     setAdWatched(true);
     setIsAdOpen(false);
+    const targetUrl = pendingDownload?.url || videoUrl;
+    const downloadName = pendingDownload?.fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
     // Trigger download
-    if (videoUrl) {
+    if (targetUrl) {
       const link = document.createElement("a");
-      link.href = videoUrl;
-      link.download = `SnapBeat_${jobId || "Reel"}.mp4`;
+      link.href = targetUrl;
+      link.download = downloadName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
+    setPendingDownload(null);
   };
 
   return (
@@ -123,11 +133,34 @@ export function RetroQueueConsole({
             </div>
           </div>
         ) : error ? (
-          <div className="p-4 rounded-2xl bg-[#d62828]/15 border border-[#d62828]/40 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-[#d62828] shrink-0" />
-            <div>
-              <p className="font-black text-xs text-[#d62828] uppercase">RENDER INTERRUPTED</p>
-              <p className="text-xs text-[#5a5752] mt-0.5">{error}</p>
+          <div className="metal-inset rounded-2xl p-5 space-y-3">
+            <div className="p-4 rounded-xl bg-[#d62828]/15 border border-[#d62828]/40 flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-[#d62828] shrink-0" />
+              <div className="flex-1">
+                <p className="font-black text-xs text-[#d62828] uppercase">RENDER INTERRUPTED</p>
+                <p className="text-xs text-[#5a5752] mt-0.5">{error}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              {onDismissError && (
+                <button
+                  type="button"
+                  onClick={onDismissError}
+                  className="px-3 py-1.5 rounded-xl bg-[#7a766f]/30 hover:bg-[#7a766f]/50 text-[#2b2b2d] font-black text-xs uppercase transition"
+                >
+                  DISMISS
+                </button>
+              )}
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="px-4 py-1.5 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase shadow hover:brightness-110 transition flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>RETRY RENDER</span>
+                </button>
+              )}
             </div>
           </div>
         ) : videoUrl ? (
@@ -141,7 +174,7 @@ export function RetroQueueConsole({
                 <p className="text-xs text-[#5a5752]">
                   {isPro
                     ? "Your clean 1080p Master MP4 video is ready."
-                    : "Free 720p output ready. Click below to download."}
+                    : "Free 480p output ready. Click below to download."}
                 </p>
               </div>
             </div>
@@ -149,8 +182,8 @@ export function RetroQueueConsole({
             <div className="flex items-center gap-2">
               <a
                 href={videoUrl}
-                download="SnapBeat_Reel.mp4"
-                onClick={(e) => handleDownloadClick(e, videoUrl)}
+                download={`SnapBeat_${jobId || "Reel"}.mp4`}
+                onClick={(e) => handleDownloadClick(e, videoUrl, `SnapBeat_${jobId || "Reel"}.mp4`)}
                 className="inline-flex items-center"
               >
                 <RetroMechanicalButton variant="download" height="44px" />
@@ -177,6 +210,7 @@ export function RetroQueueConsole({
             </h3>
             {onClearCompleted && (
               <button
+                type="button"
                 onClick={onClearCompleted}
                 className="text-xs font-bold text-[#d62828] hover:underline flex items-center gap-1"
               >
@@ -197,7 +231,7 @@ export function RetroQueueConsole({
                     Job #{job.id} • {job.templateName || "Reel"}
                   </p>
                   <p className="text-[10px] text-[#5a5752]">
-                    {job.quality || "720p"} • {job.createdAt ? new Date(job.createdAt).toLocaleTimeString() : "Recent"}
+                    {job.quality === "master" ? "1080p Master" : "480p Standard"} • {job.createdAt ? new Date(job.createdAt).toLocaleTimeString() : "Recent"}
                   </p>
                 </div>
 
@@ -205,7 +239,7 @@ export function RetroQueueConsole({
                   <a
                     href={job.videoUrl}
                     download={`SnapBeat_${job.id}.mp4`}
-                    onClick={(e) => handleDownloadClick(e, job.videoUrl)}
+                    onClick={(e) => handleDownloadClick(e, job.videoUrl, `SnapBeat_${job.id}.mp4`)}
                     className="inline-flex items-center"
                   >
                     <RetroMechanicalButton variant="download" height="34px" />

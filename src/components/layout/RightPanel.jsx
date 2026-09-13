@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { TemplateGrid } from "@/components/templates/TemplateGrid";
 import { AspectRatioPicker } from "@/components/controls/AspectRatioPicker";
@@ -50,6 +50,8 @@ export function RightPanel({
         <TitleCardEditor
           titleCard={titleCard}
           setTitleCard={setTitleCard}
+          isPro={isPro}
+          onOpenPricing={onOpenPricing}
         />
       </div>
 

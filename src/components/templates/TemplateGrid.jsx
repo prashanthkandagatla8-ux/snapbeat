@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { TEMPLATES } from "@/lib/constants";
 import { Sparkles, Crown } from "lucide-react";
@@ -7,47 +7,58 @@ export function TemplateGrid({ selectedTemplate, onSelectTemplate, isPro, onOpen
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="font-bold text-xs text-gray-300 uppercase tracking-wider">
+        <span className="font-black text-xs text-[#2b2b2d] uppercase tracking-wider">
           Motion Templates ({TEMPLATES.length})
         </span>
-        <span className="text-[11px] text-amber-400 font-semibold">
+        <span className="text-[11px] text-[#bf8a00] font-black">
           {TEMPLATES.find((t) => t.id === selectedTemplate)?.name || "Select"}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 max-h-[220px] overflow-y-auto p-1 rounded-xl bg-[#11141c]/50 border border-[#242b38]/50">
+      <div className="grid grid-cols-2 gap-2 max-h-[220px] overflow-y-auto p-1.5 rounded-2xl metal-inset">
         {TEMPLATES.map((tmpl) => {
           const isSelected = tmpl.id === selectedTemplate;
           const isLocked = tmpl.isPro && !isPro;
 
+          const handleSelect = () => {
+            if (isLocked) {
+              if (onOpenPricing) onOpenPricing();
+            } else {
+              onSelectTemplate(tmpl.id);
+            }
+          };
+
           return (
             <div
               key={tmpl.id}
-              onClick={() => {
-                if (isLocked) {
-                  onOpenPricing();
-                } else {
-                  onSelectTemplate(tmpl.id);
+              role="button"
+              tabIndex={0}
+              aria-selected={isSelected}
+              onClick={handleSelect}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleSelect();
                 }
               }}
-              className={`relative p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+              className={`relative p-2.5 rounded-xl border-2 transition cursor-pointer flex flex-col justify-between select-none ${
                 isSelected
-                  ? "bg-amber-500/15 border-amber-400 shadow-md shadow-amber-500/10"
-                  : "bg-[#1a202c]/70 border-[#2d3748] hover:border-gray-500 hover:bg-[#1a202c]"
+                  ? "bg-[#ffc72c]/25 border-[#ffc72c] shadow-md text-[#2b2820]"
+                  : "bg-[#d4cdc0] border-[#9e9688] hover:border-[#2b2b2d] text-[#2b2b2d]"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xl">{tmpl.emoji}</span>
                 {tmpl.isPro && (
-                  <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-500 to-yellow-400 text-black">
+                  <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-black bg-[#ffc72c] text-[#2b2820] border border-[#bf8a00]">
                     <Crown className="w-2.5 h-2.5" />
                     PRO
                   </span>
                 )}
               </div>
               <div>
-                <p className="font-bold text-xs text-white leading-tight">{tmpl.name}</p>
-                <p className="text-[10px] text-gray-400 line-clamp-1 mt-0.5">
+                <p className="font-black text-xs text-[#2b2b2d] leading-tight truncate">{tmpl.name}</p>
+                <p className="text-[10px] text-[#5a5752] line-clamp-1 mt-0.5">
                   {tmpl.subtitle}
                 </p>
               </div>
