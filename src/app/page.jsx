@@ -9,6 +9,7 @@ import { RetroRenderStudio } from "@/components/studio/RetroRenderStudio";
 import { RetroQueueConsole } from "@/components/queue/RetroQueueConsole";
 import { RetroStoreModal } from "@/components/billing/RetroStoreModal";
 import RetroAuthModal from "@/components/auth/RetroAuthModal";
+import RetroAdBanner from "@/components/ads/RetroAdBanner";
 import { initializeRazorpayCheckout } from "@/components/billing/RazorpayCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useStudioState } from "@/hooks/useStudioState";
@@ -145,7 +146,10 @@ export default function StudioPage() {
     <div className="min-h-screen flex flex-col bg-[#c2b8a5] text-[#2b2b2d] selection:bg-[#ffc72c] selection:text-[#2b2820]">
       {/* SHOWCASE HOME PAGE */}
       {viewMode === "showcase" ? (
-        <ShowcaseHome onEnterStudio={() => setViewMode("studio")} />
+        <ShowcaseHome
+          onEnterStudio={() => setViewMode("studio")}
+          onOpenPricing={() => setIsStoreOpen(true)}
+        />
       ) : (
         /* CREATIVE STUDIO WORKSTATION */
         <>
@@ -269,9 +273,14 @@ export default function StudioPage() {
                   videoUrl={renderJob.videoUrl}
                   pastJobs={pastJobs}
                   onClearCompleted={() => setPastJobs([])}
+                  isPro={isPro}
+                  onOpenPricing={() => setIsStoreOpen(true)}
                 />
               </div>
             )}
+
+            {/* NEAT RETRO SPONSOR BANNER (HIDDEN FOR PRO SUBSCRIBERS) */}
+            <RetroAdBanner isPro={isPro} onOpenPricing={() => setIsStoreOpen(true)} />
           </main>
         </>
       )}

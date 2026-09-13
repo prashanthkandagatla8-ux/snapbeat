@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
-import { Clock, Download, Trash2, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw } from "lucide-react";
+import React, { useState } from "react";
+import { Clock, Download, Trash2, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw, Sparkles, Play } from "lucide-react";
 import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
+import RetroVideoAdModal from "@/components/ads/RetroVideoAdModal";
 
 export function RetroQueueConsole({
   jobId,
@@ -14,7 +15,36 @@ export function RetroQueueConsole({
   videoUrl,
   pastJobs = [],
   onClearCompleted,
+  isPro = false,
+  onOpenPricing,
 }) {
+  const [isAdOpen, setIsAdOpen] = useState(false);
+  const [adWatched, setAdWatched] = useState(false);
+
+  const handleDownloadClick = (e, targetUrl) => {
+    // Pro users download immediately!
+    if (isPro || adWatched) {
+      return; // allow normal link navigation
+    }
+    // Free tier users see the 5-second sponsored video ad first
+    e.preventDefault();
+    setIsAdOpen(true);
+  };
+
+  const handleAdComplete = () => {
+    setAdWatched(true);
+    setIsAdOpen(false);
+    // Trigger download
+    if (videoUrl) {
+      const link = document.createElement("a");
+      link.href = videoUrl;
+      link.download = `SnapBeat_${jobId || "Reel"}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Beta Notice Banner (matching mobile app) */}
@@ -109,18 +139,23 @@ export function RetroQueueConsole({
                   REEL RENDER COMPLETED!
                 </p>
                 <p className="text-xs text-[#5a5752]">
-                  Your beat-synchronized MP4 video is ready to download.
+                  {isPro
+                    ? "Your clean 1080p Master MP4 video is ready."
+                    : "Free 720p output ready. Click below to download."}
                 </p>
               </div>
             </div>
 
-            <a
-              href={videoUrl}
-              download="SnapBeat_Reel.mp4"
-              className="inline-flex items-center"
-            >
-              <RetroMechanicalButton variant="download" height="42px" />
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href={videoUrl}
+                download="SnapBeat_Reel.mp4"
+                onClick={(e) => handleDownloadClick(e, videoUrl)}
+                className="inline-flex items-center"
+              >
+                <RetroMechanicalButton variant="download" height="44px" />
+              </a>
+            </div>
           </div>
         ) : (
           <div className="p-8 text-center text-[#7a766f]">
@@ -170,6 +205,7 @@ export function RetroQueueConsole({
                   <a
                     href={job.videoUrl}
                     download={`SnapBeat_${job.id}.mp4`}
+                    onClick={(e) => handleDownloadClick(e, job.videoUrl)}
                     className="inline-flex items-center"
                   >
                     <RetroMechanicalButton variant="download" height="34px" />
@@ -180,6 +216,14 @@ export function RetroQueueConsole({
           </div>
         </div>
       )}
+
+      {/* INTERSTITIAL VIDEO AD MODAL FOR FREE TIER */}
+      <RetroVideoAdModal
+        isOpen={isAdOpen}
+        onComplete={handleAdComplete}
+        onClose={() => setIsAdOpen(false)}
+        onOpenPricing={onOpenPricing}
+      />
     </div>
   );
 }

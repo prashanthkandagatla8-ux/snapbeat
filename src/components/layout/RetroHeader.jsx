@@ -45,10 +45,12 @@ export function RetroHeader({
               />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-lg lg:text-xl font-black text-[#2b2b2d] tracking-tight uppercase">
-                  Snap<span className="text-[#bf8a00]">Beat</span>
-                </h1>
+              <div className="flex items-center gap-2">
+                <img
+                  src="/assets/images/snapbeat_logo_crop.png"
+                  alt="SnapBeat"
+                  className="h-7 lg:h-8 w-auto object-contain"
+                />
                 <span className="px-1.5 py-0.2 rounded bg-[#ffc72c] text-[#2b2820] font-black text-[9px] tracking-wider shadow-sm border border-[#bf8a00]">
                   STUDIO
                 </span>

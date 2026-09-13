@@ -327,27 +327,27 @@ export function RetroRenderStudio({
           </div>
         </div>
 
-        {/* Watermark Toggle */}
+        {/* Watermark Status (No toggle needed) */}
         <div className="flex items-center justify-between p-2.5 rounded-2xl metal-inset">
           <div>
             <p className="text-xs font-black text-[#2b2b2d]">SNAPBEAT WATERMARK</p>
             <p className="text-[10px] text-[#5a5752]">
-              {isPro ? "No watermark on Pro exports" : "Upgrade to Pro to remove"}
+              {isPro ? "Clean video output • No watermark" : "Included on Free tier (Removed with Pro)"}
             </p>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={watermark}
-              disabled={!isPro}
-              onChange={(e) => {
-                if (isPro) setWatermark(e.target.checked);
-                else onOpenPricing();
-              }}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-[#7a766f] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#d62828]"></div>
-          </label>
+          {isPro ? (
+            <span className="px-2.5 py-1 rounded-full bg-[#00c853]/20 text-[#00c853] text-[10px] font-black uppercase tracking-wider border border-[#00c853]/40">
+              REMOVED
+            </span>
+          ) : (
+            <button
+              onClick={onOpenPricing}
+              className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-800 text-[10px] font-black uppercase tracking-wider border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center gap-1"
+            >
+              <Crown className="w-2.5 h-2.5" />
+              <span>REMOVE (PRO)</span>
+            </button>
+          )}
         </div>
 
         {/* Opening Title Card (PRO FEATURE) */}

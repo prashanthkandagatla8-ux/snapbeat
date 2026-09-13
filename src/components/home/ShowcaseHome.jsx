@@ -3,9 +3,10 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
+import RetroAdBanner from "@/components/ads/RetroAdBanner";
 import { Volume2, VolumeX, Play, Sparkles, Crown, Zap, Music, Image as ImageIcon, Video, ArrowRight, ShieldCheck, User } from "lucide-react";
 
-export default function ShowcaseHome({ onEnterStudio }) {
+export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   const { user, openAuthModal, signOut } = useAuth();
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
@@ -39,7 +40,11 @@ export default function ShowcaseHome({ onEnterStudio }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-sm text-[#2b2b2d] tracking-wider uppercase">SnapBeat Studio</span>
+              <img
+                src="/assets/images/snapbeat_logo_crop.png"
+                alt="SnapBeat"
+                className="h-7 sm:h-8 w-auto object-contain"
+              />
               <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest shadow-sm">
                 BETA
               </span>
@@ -324,6 +329,9 @@ export default function ShowcaseHome({ onEnterStudio }) {
           </div>
         </div>
       </div>
+
+      {/* TASTEFUL SPONSOR BROADCAST BANNER (HIDDEN FOR PRO USERS) */}
+      <RetroAdBanner isPro={user?.isPro} onOpenPricing={onOpenPricing} />
     </div>
   );
 }
