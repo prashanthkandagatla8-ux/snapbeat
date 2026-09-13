@@ -4,62 +4,149 @@
 
 @layer base {
   :root {
-    --bg-main: #0e1117;
-    --bg-surface: #161b22;
-    --bg-card: #1f2633;
-    --border-color: #30363d;
-    --accent: #e6a100;
-    --text-primary: #f0f6fc;
-    --text-muted: #8b949e;
+    --canvas-chassis: #c2b8a5;
+    --chassis-bevel-light: #e2ddd5;
+    --chassis-bevel-dark: #7a766f;
+    --panel-cream: #d4cdc0;
+    --panel-cream-dark: #b8ae9e;
+    --panel-inset: #a89f90;
+    --hardware-gunmetal: #2a2826;
+    --text-engraved: #2b2b2d;
+    --text-secondary: #5a5752;
+    --text-muted: #7a766e;
+    --brass-gold: #ffc72c;
+    --brass-highlight: #ffe082;
+    --brass-dark: #bf8a00;
+    --red-surface: #d62828;
+    --red-gloss: #ff4d4d;
+    --red-socket: #7a0000;
+    --pink-accent: #ff3366;
+    --amber-jewel: #ff8a00;
   }
 
   body {
-    background-color: var(--bg-main);
-    color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    overflow-x: hidden;
+    background-color: var(--canvas-chassis);
+    background-image: radial-gradient(circle at 50% 0%, #d8d0c2 0%, #c2b8a5 70%, #aba18e 100%);
+    color: var(--text-engraved);
+    font-family: -apple-system, BlinkMacSystemFont, "Montserrat", "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
   }
 }
 
-/* Custom scrollbar */
+/* Tactile Metal Card with 3D Bevel Edge */
+.metal-panel {
+  background: linear-gradient(180deg, #ded8cc 0%, #d4cdc0 40%, #c8c0b1 100%);
+  border-top: 2px solid #f2ede5;
+  border-left: 2px solid #ebe5dc;
+  border-right: 2px solid #948c7e;
+  border-bottom: 2px solid #827b6e;
+  box-shadow: 0 8px 24px rgba(42, 40, 38, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Inset Well (Cassette Bays, Screen Wells, Sliders) */
+.metal-inset {
+  background: linear-gradient(180deg, #999080 0%, #a89f90 20%, #b3aa9b 100%);
+  border-top: 2px solid #6b6457;
+  border-left: 2px solid #756e60;
+  border-right: 2px solid #cfc8bd;
+  border-bottom: 2px solid #ded9d0;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Screw Rivet Detail */
+.metal-screw {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #7a7670 0%, #4a4743 70%, #2e2c29 100%);
+  border: 1px solid #948f88;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+.metal-screw::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 1.5px;
+  background: #252422;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* 3D Bubbly Brass / Yellow Button */
+.btn-brass {
+  background: linear-gradient(180deg, #ffe082 0%, #ffc72c 50%, #e0a300 100%);
+  border-top: 1.5px solid #fff5cc;
+  border-left: 1.5px solid #ffe899;
+  border-right: 1.5px solid #9e7300;
+  border-bottom: 3px solid #7a5900;
+  color: #2b2820;
+  font-weight: 900;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  transition: all 0.1s ease;
+}
+.btn-brass:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 3D Master Red Lacquer Button */
+.btn-red-lacquer {
+  background: radial-gradient(circle at 35% 30%, #ff6b6b 0%, #d62828 50%, #800f0f 100%);
+  border-top: 1.5px solid #ffa3a3;
+  border-left: 1.5px solid #ff8080;
+  border-right: 1.5px solid #4a0505;
+  border-bottom: 3px solid #360202;
+  color: #ffffff;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 12px rgba(120, 15, 15, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  transition: all 0.1s ease;
+}
+.btn-red-lacquer:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Stamped Metal Typography */
+.text-stamped {
+  color: #2b2b2d;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Amber LED Jewel */
+.led-amber {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff8a00;
+  box-shadow: 0 0 8px #ff8a00, inset 0 1px 1px #fff;
+}
+.led-green {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00c853;
+  box-shadow: 0 0 8px #00c853, inset 0 1px 1px #fff;
+}
+
+/* Custom Scrollbar for Retro Panels */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #11141b;
+  background: #b8ae9e;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2d3340;
-  border-radius: 4px;
+  background: #7a766f;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #e6a100;
-}
-
-/* Glass effect */
-.glass-panel {
-  background: rgba(22, 27, 34, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(48, 54, 61, 0.6);
-}
-
-/* Custom range slider styling */
-input[type="range"] {
-  accent-color: #e6a100;
-}
-
-/* Retro CRT scanline effect (subtle) */
-.scanlines {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
-  );
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
+  background: #5a5752;
 }
