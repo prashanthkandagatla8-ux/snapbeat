@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/join",
+      "destination": "https://groups.google.com/g/snapbeat-testers",
+      "permanent": true
+    },
+    {
+      "source": "/beta",
+      "destination": "https://play.google.com/apps/testing/com.kiro.snapbeat",
+      "permanent": true
+    }
+  ]
+}
