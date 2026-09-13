@@ -1,4 +1,4 @@
-﻿export const metadata = {
+export const metadata = {
   title: "Privacy Policy — SnapBeat",
   description: "Privacy Policy for SnapBeat Studio and Mobile App.",
 };
@@ -28,16 +28,50 @@ export default function PrivacyPage() {
       </section>
 
       <section className="space-y-2 text-sm leading-relaxed">
-        <h2 className="text-lg font-bold text-white">3. Data Security</h2>
+        <h2 className="text-lg font-bold text-white">3. Third-Party Advertising & Cookies (Google AdSense)</h2>
+        <p>
+          We use third-party advertising companies (such as Google AdSense) to serve ads when you visit our website. Google, as a third-party vendor, uses cookies to serve ads on our site. Google's use of advertising cookies (such as the DoubleClick DART cookie) enables it and its partners to serve ads to our users based on their visit to our site and/or other sites on the Internet.
+        </p>
+        <p>
+          Users may opt out of personalized advertising by visiting{" "}
+          <a
+            href="https://www.google.com/settings/ads"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-400 underline hover:text-amber-300"
+          >
+            Google Ads Settings
+          </a>{" "}
+          or by visiting{" "}
+          <a
+            href="https://www.aboutads.info/choices/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-400 underline hover:text-amber-300"
+          >
+            aboutads.info
+          </a>.
+        </p>
+      </section>
+
+      <section className="space-y-2 text-sm leading-relaxed">
+        <h2 className="text-lg font-bold text-white">4. Affiliate Disclosure</h2>
+        <p>
+          SnapBeat participates in various affiliate marketing programs, including the Amazon Associates Program. As an Amazon Associate, SnapBeat earns from qualifying purchases made through links on our site. These links do not increase the price you pay, but provide support for our development and server rendering cluster.
+        </p>
+      </section>
+
+      <section className="space-y-2 text-sm leading-relaxed">
+        <h2 className="text-lg font-bold text-white">5. Data Security</h2>
         <p>
           All data transmitted between your browser or mobile device and our rendering servers is encrypted using standard HTTPS/TLS protocols.
         </p>
       </section>
 
       <section className="space-y-2 text-sm leading-relaxed">
-        <h2 className="text-lg font-bold text-white">4. Contact Us</h2>
+        <h2 className="text-lg font-bold text-white">6. Contact Us</h2>
         <p>
-          If you have questions about this policy, please contact us at support@snapbeat.app.
+          If you have questions about this policy or wish to request data deletion, contact us at support@snapbeat.app.
         </p>
       </section>
     </div>
