@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
-import { useRef } from "react";
-import { Images, Plus, Trash2, Shuffle, Wand2, GripVertical } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { Images, Plus, Trash2, Shuffle, Wand2, GripVertical, Sparkles, Loader2 } from "lucide-react";
+import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
 
 export function RetroPhotoStrip({
   photos,
@@ -13,6 +14,7 @@ export function RetroPhotoStrip({
   setAutoArrange,
 }) {
   const fileInputRef = useRef(null);
+  const [loadingSamples, setLoadingSamples] = useState(false);
 
   const shufflePhotos = () => {
     if (photos.length < 2) return;
@@ -20,8 +22,37 @@ export function RetroPhotoStrip({
     shuffled.forEach((p, i) => reorderPhotos(photos.indexOf(p), i));
   };
 
+  const loadSamplePhotos = async () => {
+    setLoadingSamples(true);
+    const samplePaths = [
+      "/assets/sample_photos/sample_01.jpg",
+      "/assets/sample_photos/sample_02.jpg",
+      "/assets/sample_photos/sample_03.jpg",
+      "/assets/sample_photos/sample_04.jpg",
+      "/assets/sample_photos/sample_05.jpg",
+      "/assets/sample_photos/sample_06.jpg",
+      "/assets/sample_photos/sample_07.jpg",
+      "/assets/sample_photos/sample_08.jpg",
+    ];
+
+    try {
+      const files = await Promise.all(
+        samplePaths.map(async (path, idx) => {
+          const res = await fetch(path);
+          const blob = await res.blob();
+          return new File([blob], `sample_0${idx + 1}.jpg`, { type: "image/jpeg" });
+        })
+      );
+      addPhotos(files);
+    } catch (err) {
+      console.error("Failed to load sample photos", err);
+    } finally {
+      setLoadingSamples(false);
+    }
+  };
+
   return (
-    <div className="metal-panel rounded-3xl p-6 relative">
+    <div className="metal-panel rounded-3xl p-6 relative shadow-xl">
       <div className="absolute top-3 left-3 metal-screw" />
       <div className="absolute top-3 right-3 metal-screw" />
       <div className="absolute bottom-3 left-3 metal-screw" />
@@ -36,12 +67,27 @@ export function RetroPhotoStrip({
               PHOTO REORDER BAY ({photos.length} / 20)
             </h2>
             <p className="text-xs text-[#5a5752]">
-              Drag and drop cards to adjust the chronological sequence of beat transitions.
+              Drag and drop Polaroid cards to adjust the rhythmic sequence of cuts.
             </p>
           </div>
 
-          {/* Action Chips */}
-          <div className="flex items-center gap-2">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Load Sample Photos Button */}
+            <button
+              onClick={loadSamplePhotos}
+              disabled={loadingSamples}
+              className="px-3 py-1.5 rounded-xl btn-brass text-[#2b2820] text-xs font-black flex items-center gap-1.5 shadow hover:brightness-110 active:scale-95 transition"
+              title="Load 8 sample photos from the mobile app"
+            >
+              {loadingSamples ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              )}
+              <span>LOAD SAMPLE PHOTOS</span>
+            </button>
+
             {photos.length > 1 && (
               <button
                 onClick={shufflePhotos}
@@ -53,13 +99,12 @@ export function RetroPhotoStrip({
             )}
 
             {photos.length > 0 && (
-              <button
+              <RetroMechanicalButton
+                variant="delete"
                 onClick={clearPhotos}
-                className="px-3 py-1.5 rounded-xl bg-[#d62828]/15 border border-[#d62828]/40 text-[#d62828] text-xs font-bold flex items-center gap-1.5 hover:bg-[#d62828]/25 transition"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>CLEAR ALL</span>
-              </button>
+                height="32px"
+                title="Clear All Photos"
+              />
             )}
           </div>
         </div>
@@ -74,17 +119,37 @@ export function RetroPhotoStrip({
           className="metal-inset rounded-2xl p-5 min-h-[320px] max-h-[500px] overflow-y-auto"
         >
           {photos.length === 0 ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-[#7a766f] rounded-2xl p-12 flex flex-col items-center justify-center cursor-pointer hover:border-[#2b2b2d] transition bg-white/20 hover:bg-white/30"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-[#ffc72c] border-2 border-[#bf8a00] flex items-center justify-center text-[#2b2820] mb-3 shadow-md">
+            <div className="border-2 border-dashed border-[#7a766f] rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 bg-white/20">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-16 h-16 rounded-2xl bg-[#ffc72c] border-2 border-[#bf8a00] flex items-center justify-center text-[#2b2820] shadow-md cursor-pointer hover:scale-105 transition"
+              >
                 <Plus className="w-8 h-8 stroke-[3]" />
               </div>
-              <p className="font-black text-sm text-[#2b2b2d] uppercase tracking-wider">
-                Click or Drop Photos Here
-              </p>
-              <p className="text-xs text-[#5a5752] mt-1">Select between 2 and 20 JPEG, PNG, or WebP images</p>
+              <div>
+                <p className="font-black text-sm text-[#2b2b2d] uppercase tracking-wider">
+                  Click or Drop Photos Here
+                </p>
+                <p className="text-xs text-[#5a5752] mt-1">
+                  Select between 2 and 20 JPEG, PNG, or WebP images
+                </p>
+              </div>
+
+              {/* Instant 1-Click Sample Photos Option */}
+              <div className="pt-2 border-t border-[#8f8677]/40 w-full max-w-xs">
+                <button
+                  onClick={loadSamplePhotos}
+                  disabled={loadingSamples}
+                  className="w-full py-2.5 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider shadow hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2"
+                >
+                  {loadingSamples ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 text-amber-600" />
+                  )}
+                  <span>OR LOAD 8 SAMPLE PHOTOS</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">

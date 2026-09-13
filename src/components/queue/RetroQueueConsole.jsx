@@ -1,6 +1,8 @@
-﻿"use client";
+"use client";
 
-import { Clock, Play, Download, Trash2, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw } from "lucide-react";
+import React from "react";
+import { Clock, Download, Trash2, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw } from "lucide-react";
+import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
 
 export function RetroQueueConsole({
   jobId,
@@ -29,7 +31,7 @@ export function RetroQueueConsole({
       </div>
 
       {/* ACTIVE JOB CONSOLE */}
-      <div className="metal-panel rounded-3xl p-6 relative">
+      <div className="metal-panel rounded-3xl p-6 relative shadow-xl">
         <div className="absolute top-3 left-3 metal-screw" />
         <div className="absolute top-3 right-3 metal-screw" />
         <div className="absolute bottom-3 left-3 metal-screw" />
@@ -115,10 +117,9 @@ export function RetroQueueConsole({
             <a
               href={videoUrl}
               download="SnapBeat_Reel.mp4"
-              className="btn-brass px-5 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow"
+              className="inline-flex items-center"
             >
-              <Download className="w-4 h-4 stroke-[3]" />
-              <span>DOWNLOAD MP4</span>
+              <RetroMechanicalButton variant="download" height="42px" />
             </a>
           </div>
         ) : (
@@ -126,7 +127,7 @@ export function RetroQueueConsole({
             <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="font-black text-xs uppercase tracking-wider">QUEUE IS CURRENTLY EMPTY</p>
             <p className="text-[11px] text-[#5a5752] mt-0.5">
-              Switch to Studio or Music tab and hit Render Reel to start!
+              Insert a track and photos, then hit Render Reel to start!
             </p>
           </div>
         )}
@@ -134,7 +135,7 @@ export function RetroQueueConsole({
 
       {/* COMPLETED RENDERS HISTORY */}
       {pastJobs.length > 0 && (
-        <div className="metal-panel rounded-3xl p-6 relative">
+        <div className="metal-panel rounded-3xl p-6 relative shadow-xl">
           <div className="flex items-center justify-between border-b border-[#a89f90] pb-2 mb-4">
             <h3 className="font-black text-sm text-[#2b2b2d] uppercase tracking-wider">
               RENDER HISTORY
@@ -169,10 +170,9 @@ export function RetroQueueConsole({
                   <a
                     href={job.videoUrl}
                     download={`SnapBeat_${job.id}.mp4`}
-                    className="px-3 py-1.5 rounded-lg btn-brass font-black text-xs flex items-center gap-1"
+                    className="inline-flex items-center"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>DOWNLOAD</span>
+                    <RetroMechanicalButton variant="download" height="34px" />
                   </a>
                 )}
               </div>
