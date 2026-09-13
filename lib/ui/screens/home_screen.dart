@@ -199,6 +199,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void _showClearQueueDialog() {
+    final hasActive = qm.activeJobs.isNotEmpty;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -212,7 +213,7 @@ class HomeScreenState extends State<HomeScreen> {
             Icon(Icons.delete_sweep_rounded, color: AppColors.brassGold, size: 22),
             SizedBox(width: 8),
             Text(
-              "Clear Queue?",
+              "Clear Completed?",
               style: TextStyle(
                 fontFamily: 'Montserrat',
                 fontWeight: FontWeight.w900,
@@ -222,9 +223,11 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        content: const Text(
-          "Are you sure you want to cancel any active renders and remove all reel items from the queue?",
-          style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.4),
+        content: Text(
+          hasActive
+              ? "Remove completed and finished reels from queue history? Your active render in progress will continue safely."
+              : "Remove completed reel history from the queue?",
+          style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.4),
         ),
         actions: [
           TextButton(
@@ -239,11 +242,13 @@ class HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () {
               Navigator.pop(ctx);
-              qm.clearAll();
-              _focusedJobId = null;
+              qm.clearCompleted();
+              if (_focusedJobId != null && !qm.jobs.any((j) => j.id == _focusedJobId)) {
+                _focusedJobId = null;
+              }
               setState(() {});
             },
-            child: const Text("CLEAR ALL", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+            child: const Text("CLEAR COMPLETED", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
           ),
         ],
       ),
@@ -1940,7 +1945,10 @@ class HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (jobs.isNotEmpty) ...[
+                  if (jobs.any((j) {
+                    final s = j.status.toLowerCase();
+                    return s != 'processing' && s != 'rendering' && s != 'queued' && s != 'uploading';
+                  })) ...[
                     GestureDetector(
                       onTap: _showClearQueueDialog,
                       child: Container(
@@ -1956,7 +1964,7 @@ class HomeScreenState extends State<HomeScreen> {
                             Icon(Icons.delete_sweep_rounded, size: 13, color: AppColors.vuRed),
                             SizedBox(width: 3),
                             Text(
-                              "CLEAR ALL",
+                              "CLEAR COMPLETED",
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w900,

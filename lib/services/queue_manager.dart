@@ -120,6 +120,30 @@ class QueueManager with ChangeNotifier {
     await deleteJob(id);
   }
 
+  Future<void> clearCompleted() async {
+    final completed = _jobs.where((j) {
+      final s = j.status.toLowerCase();
+      return s != 'processing' && s != 'rendering' && s != 'queued' && s != 'uploading';
+    }).toList();
+
+    for (final j in completed) {
+      if (j.videoPath != null) {
+        try {
+          final f = File(j.videoPath!);
+          if (await f.exists()) await f.delete();
+        } catch (_) {}
+      }
+    }
+
+    _jobs.removeWhere((j) {
+      final s = j.status.toLowerCase();
+      return s != 'processing' && s != 'rendering' && s != 'queued' && s != 'uploading';
+    });
+
+    notifyListeners();
+    await _save();
+  }
+
   Future<void> clearAll() async {
     for (final j in _jobs) {
       _cancelledJobIds.add(j.id);
