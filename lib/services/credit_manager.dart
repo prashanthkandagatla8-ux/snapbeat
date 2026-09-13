@@ -95,7 +95,7 @@ class CreditManager with ChangeNotifier {
   }
 
   bool shouldWatermark(bool isInstant) {
-    if (_watermarkRemoved || _proModeEnabled) return false;
+    // Current beta release: Watermark is strictly enforced on every generated video
     return true;
   }
 }

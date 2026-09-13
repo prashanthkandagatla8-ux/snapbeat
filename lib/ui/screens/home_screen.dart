@@ -24,6 +24,7 @@ import '../components/master_action_deck.dart';
 import '../components/video_preview_dialog.dart';
 import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
+import '../components/tester_feedback_dialog.dart';
 import '../components/metal_chassis_scaffold.dart';
 import '../components/snapbeat_pink_dot.dart';
 import '../components/retro_mechanical_button.dart';
@@ -1022,7 +1023,16 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Right Action Group: Privacy Policy Shield (credits pack held for now)
+                      // Right Action Group: Feedback & Privacy Policy
+                      IconButton(
+                        icon: const Icon(Icons.rate_review_outlined, color: AppColors.brassGold, size: 20),
+                        tooltip: 'Send Tester Feedback',
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.all(6),
+                        constraints: const BoxConstraints(),
+                        onPressed: () => TesterFeedbackDialog.show(context),
+                      ),
+                      const SizedBox(width: 4),
                       IconButton(
                         icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
                         tooltip: 'Privacy Policy',
@@ -1716,9 +1726,9 @@ class HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               _buildSummaryPill(
-                cm.isWatermarkRemoved ? Icons.verified_rounded : Icons.branding_watermark_rounded,
-                cm.isWatermarkRemoved ? "WATERMARK: NONE" : "WATERMARK: SNAPBEAT",
-                highlight: !cm.isWatermarkRemoved,
+                !cm.shouldWatermark(false) ? Icons.verified_rounded : Icons.branding_watermark_rounded,
+                !cm.shouldWatermark(false) ? "WATERMARK: NONE" : "WATERMARK: SNAPBEAT",
+                highlight: cm.shouldWatermark(false),
               ),
             ],
           ),
@@ -2106,6 +2116,55 @@ class HomeScreenState extends State<HomeScreen> {
           ),
           ...failedJobs.map((job) => _buildFailedJobCard(job)),
         ],
+
+        // Closed Beta Tester Feedback & Bug Report Action Bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.panelCreamDark,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.chassisBevelLight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.rate_review_rounded, size: 14, color: AppColors.amberJewel),
+                    SizedBox(width: 8),
+                    Text(
+                      "TESTER FEEDBACK & BUG REPORT",
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: AppColors.textEngraved,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () => TesterFeedbackDialog.show(context),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.brassGold,
+                    foregroundColor: AppColors.textEngraved,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  ),
+                  child: const Text(
+                    "FEEDBACK",
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
