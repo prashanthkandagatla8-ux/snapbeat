@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../theme/app_colors.dart';
@@ -48,8 +48,13 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
       return;
     }
 
-    final shareText = "SnapBeat Beta Feedback:\n\n\n\nSent to: snapbeat-testers@googlegroups.com";
-    Share.share(shareText, subject: "SnapBeat Beta Feedback");
+    final shareText = "SnapBeat Beta Feedback:\n\n$text\n\nSent to: snapbeat-testers@googlegroups.com";
+    SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        subject: "SnapBeat Beta Feedback",
+      ),
+    );
     Navigator.of(context).pop();
   }
 
