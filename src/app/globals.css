@@ -10,16 +10,16 @@
 
 @layer base {
   :root {
-    --canvas-chassis: #c2b8a5;
-    --chassis-bevel-light: #e2ddd5;
-    --chassis-bevel-dark: #7a766f;
-    --panel-cream: #d4cdc0;
-    --panel-cream-dark: #b8ae9e;
-    --panel-inset: #a89f90;
-    --hardware-gunmetal: #2a2826;
-    --text-engraved: #2b2b2d;
-    --text-secondary: #5a5752;
-    --text-muted: #7a766e;
+    --canvas-chassis: #0b0d10;
+    --chassis-bevel-light: #203c46;
+    --chassis-bevel-dark: #071317;
+    --panel-cream: #0c242c;
+    --panel-cream-dark: #081a20;
+    --panel-inset: #051419;
+    --hardware-gunmetal: #0a1b22;
+    --text-engraved: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
     --brass-gold: #ffc72c;
     --brass-highlight: #ffe082;
     --brass-dark: #bf8a00;
@@ -31,36 +31,107 @@
   }
 
   body {
-    background-color: var(--canvas-chassis);
+    background-color: #0b0d10;
     background-image: 
-      radial-gradient(circle at 50% 0%, rgba(245, 240, 230, 0.55) 0%, rgba(194, 184, 165, 0.35) 60%, rgba(160, 150, 132, 0.45) 100%),
-      url("/assets/images/brushed_metal_background.jpg");
+      radial-gradient(circle at 50% 10%, rgba(26, 42, 48, 0.4) 0%, rgba(11, 13, 16, 0.95) 75%),
+      radial-gradient(circle at 50% 100%, rgba(18, 20, 24, 0.8) 0%, rgba(8, 9, 11, 1) 100%);
     background-size: cover;
     background-attachment: fixed;
-    color: var(--text-engraved);
+    color: #f1f1f1;
     font-family: -apple-system, BlinkMacSystemFont, "Montserrat", "Segoe UI", Roboto, sans-serif;
     min-height: 100vh;
   }
 }
 
-/* Tactile Metal Card with 3D Bevel Edge */
+/* =========================================================================
+   SIGNATURE SMOOTH ROUND EDGE TABLET FRAME CHASSIS (FROM UI REFERENCE)
+   ========================================================================= */
+.tablet-frame {
+  position: relative;
+  border-radius: 36px;
+  border: 3.5px solid rgba(212, 175, 55, 0.82);
+  box-shadow: 
+    0 0 0 1.5px rgba(20, 18, 14, 0.9),
+    0 0 0 3.5px rgba(70, 58, 35, 0.35),
+    0 30px 100px rgba(0, 0, 0, 0.92),
+    0 12px 40px rgba(0, 0, 0, 0.7),
+    inset 0 1.5px 3px rgba(255, 235, 170, 0.45);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .tablet-frame {
+    border-radius: 46px;
+    border-width: 4px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tablet-frame {
+    border-radius: 54px;
+    border-width: 4.5px;
+  }
+}
+
+/* Atmospheric Sky Canvas inside the Tablet Frame */
+.sky-canvas {
+  background-color: #0b1f24;
+  background-image: 
+    linear-gradient(180deg, rgba(8, 24, 29, 0.45) 0%, rgba(13, 37, 43, 0.15) 35%, rgba(16, 42, 48, 0.3) 70%, rgba(10, 20, 24, 0.85) 100%),
+    url('/assets/images/snapbeat_sky_bg.jpg');
+  background-position: top center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* Frosted Glass Panels matching the Sky Theme */
+.sky-glass-panel {
+  background: rgba(12, 34, 40, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.sky-glass-card {
+  background: rgba(14, 40, 48, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.sky-glass-inset {
+  background: rgba(6, 17, 20, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.7);
+}
+
+/* Tactile Glass & Titanium Card with 3D Bevel Edge */
 .metal-panel {
-  background: linear-gradient(180deg, #ded8cc 0%, #d4cdc0 40%, #c8c0b1 100%);
-  border-top: 2px solid #f2ede5;
-  border-left: 2px solid #ebe5dc;
-  border-right: 2px solid #948c7e;
-  border-bottom: 2px solid #827b6e;
-  box-shadow: 0 10px 30px rgba(42, 40, 38, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  background: linear-gradient(180deg, rgba(14, 38, 46, 0.88) 0%, rgba(10, 28, 34, 0.92) 50%, rgba(7, 20, 24, 0.96) 100%);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-left: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-right: 1.5px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 2.5px solid rgba(0, 0, 0, 0.75);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #ffffff;
 }
 
 /* Inset Well (Cassette Bays, Screen Wells, Sliders) */
 .metal-inset {
-  background: linear-gradient(180deg, #999080 0%, #a89f90 20%, #b3aa9b 100%);
-  border-top: 2px solid #6b6457;
-  border-left: 2px solid #756e60;
-  border-right: 2px solid #cfc8bd;
-  border-bottom: 2px solid #ded9d0;
-  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(180deg, rgba(5, 14, 17, 0.88) 0%, rgba(8, 20, 24, 0.78) 50%, rgba(12, 28, 34, 0.84) 100%);
+  border-top: 1.5px solid rgba(0, 0, 0, 0.85);
+  border-left: 1.5px solid rgba(0, 0, 0, 0.75);
+  border-right: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.75);
+  color: #f1f5f9;
 }
 
 /* Deep Recessed Stage / Chassis Well */

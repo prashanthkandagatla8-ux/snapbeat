@@ -155,186 +155,195 @@ export default function StudioPage() {
   const canRender = Boolean(studio.audioFile && studio.photos.length >= 2);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#c2b8a5] text-[#2b2b2d] selection:bg-[#ffc72c] selection:text-[#2b2820]">
-      {/* SHOWCASE HOME PAGE */}
-      {viewMode === "showcase" ? (
-        <ShowcaseHome
-          onEnterStudio={() => setViewMode("studio")}
-          onOpenPricing={() => setIsStoreOpen(true)}
-        />
-      ) : (
-        /* CREATIVE STUDIO WORKSTATION */
-        <>
-          {/* RETRO HARDWARE HEADER */}
-          <RetroHeader
-            currentTab={currentTab}
-            setCurrentTab={setCurrentTab}
-            renderMode={renderMode}
-            setRenderMode={setRenderMode}
-            isPro={isPro}
-            daysRemaining={daysRemaining}
+    <div className="min-h-screen w-full flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 lg:p-8 select-none relative overflow-x-hidden">
+      {/* Outer ambient studio desk backdrop glow */}
+      <div className="fixed inset-0 pointer-events-none bg-radial from-amber-500/5 via-transparent to-black/80 -z-10" />
+
+      {/* MASTER TABLET FRAME: Smooth round edge chassis with golden bezel & sky canvas background */}
+      <div className="tablet-frame sky-canvas w-full max-w-[1440px] flex flex-col min-h-[92vh] relative text-white shadow-2xl">
+        {/* VIEW 1: SHOWCASE HOME PAGE */}
+        {viewMode === "showcase" ? (
+          <ShowcaseHome
+            onEnterStudio={() => setViewMode("studio")}
             onOpenPricing={() => setIsStoreOpen(true)}
-            serverOnline={serverOnline}
-            activeQueueCount={renderJob.isRendering ? 1 : 0}
-            onShowcaseClick={() => setViewMode("showcase")}
           />
+        ) : (
+          /* VIEW 2: CREATIVE STUDIO WORKSTATION */
+          <div className="flex-1 flex flex-col w-full">
+            {/* RETRO SKY HEADER */}
+            <RetroHeader
+              currentTab={currentTab}
+              setCurrentTab={setCurrentTab}
+              renderMode={renderMode}
+              setRenderMode={setRenderMode}
+              isPro={isPro}
+              daysRemaining={daysRemaining}
+              onOpenPricing={() => setIsStoreOpen(true)}
+              serverOnline={serverOnline}
+              activeQueueCount={renderJob.isRendering ? 1 : 0}
+              onShowcaseClick={() => setViewMode("showcase")}
+            />
 
-          {/* WORKSTATION BODY */}
-          <main className="flex-1 max-w-[1500px] w-full mx-auto p-3 sm:p-4 lg:p-8">
-            {/* TAB 1: MUSIC & TAPE DECK */}
-            {currentTab === "music" && (
-              <div className="space-y-4">
-                <RetroTapeDeck
-                  selectedTrack={selectedBuiltInTrack}
-                  onSelectBuiltInTrack={handleSelectBuiltInTrack}
-                  audioFile={studio.audioFile}
-                  audioUrl={studio.audioUrl}
-                  audioDuration={studio.audioDuration}
-                  audioTrim={studio.audioTrim}
-                  setAudio={(file) => {
-                    setSelectedBuiltInTrack(null);
-                    studio.setAudio(file);
-                  }}
-                  setAudioTrim={studio.setAudioTrim}
-                />
-                {/* Quick Flow Next Step */}
-                <div className="flex justify-end pt-2">
-                  <button
-                    onClick={() => setCurrentTab("photos")}
-                    className="btn-brass px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition"
-                  >
-                    <span>NEXT: CHOOSE PHOTOS</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+            {/* WORKSTATION BODY */}
+            <main className="flex-1 max-w-[1400px] w-full mx-auto p-3 sm:p-5 lg:p-8">
+              {/* TAB 1: MUSIC & TAPE DECK */}
+              {currentTab === "music" && (
+                <div className="space-y-4">
+                  <RetroTapeDeck
+                    selectedTrack={selectedBuiltInTrack}
+                    onSelectBuiltInTrack={handleSelectBuiltInTrack}
+                    audioFile={studio.audioFile}
+                    audioUrl={studio.audioUrl}
+                    audioDuration={studio.audioDuration}
+                    audioTrim={studio.audioTrim}
+                    setAudio={(file) => {
+                      setSelectedBuiltInTrack(null);
+                      studio.setAudio(file);
+                    }}
+                    setAudioTrim={studio.setAudioTrim}
+                  />
+                  {/* Quick Flow Next Step */}
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={() => setCurrentTab("photos")}
+                      className="btn-brass px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition"
+                    >
+                      <span>NEXT: CHOOSE PHOTOS</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* TAB 2: PHOTOS BAY */}
-            {currentTab === "photos" && (
-              <div className="space-y-4">
-                <RetroPhotoStrip
-                  photos={studio.photos}
-                  addPhotos={studio.addPhotos}
-                  removePhoto={studio.removePhoto}
-                  reorderPhotos={studio.reorderPhotos}
-                  shufflePhotos={studio.shufflePhotos}
-                  clearPhotos={studio.clearPhotos}
-                  autoArrange={studio.autoArrange}
-                  setAutoArrange={studio.setAutoArrange}
-                />
-                {/* Quick Flow Navigation */}
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    onClick={() => setCurrentTab("music")}
-                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow hover:bg-black/5 active:scale-95 transition"
-                  >
-                    ← BACK TO MUSIC
-                  </button>
-                  <button
-                    onClick={() => setCurrentTab("render")}
-                    disabled={studio.photos.length < 2}
-                    className={`px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md transition ${
-                      studio.photos.length >= 2
-                        ? "btn-brass hover:brightness-110 active:scale-95 cursor-pointer"
-                        : "bg-[#8f8677] text-white opacity-60 cursor-not-allowed"
-                    }`}
-                  >
-                    <span>NEXT: RENDER</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+              {/* TAB 2: PHOTOS BAY */}
+              {currentTab === "photos" && (
+                <div className="space-y-4">
+                  <RetroPhotoStrip
+                    photos={studio.photos}
+                    addPhotos={studio.addPhotos}
+                    removePhoto={studio.removePhoto}
+                    reorderPhotos={studio.reorderPhotos}
+                    shufflePhotos={studio.shufflePhotos}
+                    clearPhotos={studio.clearPhotos}
+                    autoArrange={studio.autoArrange}
+                    setAutoArrange={studio.setAutoArrange}
+                  />
+                  {/* Quick Flow Navigation */}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setCurrentTab("music")}
+                      className="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black text-xs shadow backdrop-blur-md active:scale-95 transition border border-white/10"
+                    >
+                      ← BACK TO MUSIC
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab("render")}
+                      disabled={studio.photos.length < 2}
+                      className={`px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-md transition ${
+                        studio.photos.length >= 2
+                          ? "btn-brass hover:brightness-110 active:scale-95 cursor-pointer"
+                          : "bg-white/10 text-white/40 border border-white/5 cursor-not-allowed"
+                      }`}
+                    >
+                      <span>NEXT: RENDER</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* TAB 3: RENDER STUDIO */}
-            {currentTab === "render" && (
-              <div className="space-y-4">
-                <RetroRenderStudio
-                  renderMode={renderMode}
-                  setRenderMode={setRenderMode}
-                  selectedTemplate={studio.selectedTemplate}
-                  setSelectedTemplate={studio.setSelectedTemplate}
-                  aspectRatio={studio.aspectRatio}
-                  setAspectRatio={studio.setAspectRatio}
-                  quality={studio.quality}
-                  setQuality={studio.setQuality}
-                  watermark={studio.watermark}
-                  setWatermark={studio.setWatermark}
-                  titleCard={studio.titleCard}
-                  setTitleCard={studio.setTitleCard}
-                  isPro={isPro}
-                  onOpenPricing={() => setIsStoreOpen(true)}
-                  onRender={handleStartRender}
-                  isRendering={renderJob.isRendering}
-                  canRender={canRender}
-                  videoUrl={renderJob.videoUrl}
-                />
-                {/* Flow navigation */}
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    onClick={() => setCurrentTab("photos")}
-                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow hover:bg-black/5 active:scale-95 transition"
-                  >
-                    ← BACK TO PHOTOS
-                  </button>
-                  <button
-                    onClick={() => setCurrentTab("queue")}
-                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow flex items-center gap-1.5 hover:bg-black/5 active:scale-95 transition"
-                  >
-                    <span>VIEW QUEUE</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+              {/* TAB 3: RENDER STUDIO */}
+              {currentTab === "render" && (
+                <div className="space-y-4">
+                  <RetroRenderStudio
+                    renderMode={renderMode}
+                    setRenderMode={setRenderMode}
+                    selectedTemplate={studio.selectedTemplate}
+                    setSelectedTemplate={studio.setSelectedTemplate}
+                    aspectRatio={studio.aspectRatio}
+                    setAspectRatio={studio.setAspectRatio}
+                    quality={studio.quality}
+                    setQuality={studio.setQuality}
+                    watermark={studio.watermark}
+                    setWatermark={studio.setWatermark}
+                    titleCard={studio.titleCard}
+                    setTitleCard={studio.setTitleCard}
+                    isPro={isPro}
+                    onOpenPricing={() => setIsStoreOpen(true)}
+                    onRender={handleStartRender}
+                    isRendering={renderJob.isRendering}
+                    canRender={canRender}
+                    videoUrl={renderJob.videoUrl}
+                  />
+                  {/* Flow navigation */}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setCurrentTab("photos")}
+                      className="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black text-xs shadow backdrop-blur-md active:scale-95 transition border border-white/10"
+                    >
+                      ← BACK TO PHOTOS
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab("queue")}
+                      className="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black text-xs shadow backdrop-blur-md flex items-center gap-1.5 active:scale-95 transition border border-white/10"
+                    >
+                      <span>VIEW QUEUE</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* TAB 4: QUEUE CONSOLE */}
-            {currentTab === "queue" && (
-              <div className="space-y-4">
-                <RetroQueueConsole
-                  jobId={renderJob.jobId}
-                  isRendering={renderJob.isRendering}
-                  progress={renderJob.progress}
-                  stage={renderJob.stage}
-                  queuePosition={renderJob.queuePosition}
-                  error={renderJob.error}
-                  videoUrl={renderJob.videoUrl}
-                  pastJobs={pastJobs}
-                  onClearCompleted={() => setPastJobs([])}
-                  isPro={isPro}
-                  onOpenPricing={() => setIsStoreOpen(true)}
-                  onRetry={handleStartRender}
-                  onDismissError={renderJob.resetJob}
-                />
-                {/* Flow navigation */}
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    onClick={() => setCurrentTab("render")}
-                    className="px-5 py-2.5 rounded-2xl metal-panel font-black text-xs text-[#2b2b2d] shadow hover:bg-black/5 active:scale-95 transition"
-                  >
-                    ← BACK TO RENDER
-                  </button>
+              {/* TAB 4: QUEUE CONSOLE */}
+              {currentTab === "queue" && (
+                <div className="space-y-4">
+                  <RetroQueueConsole
+                    jobId={renderJob.jobId}
+                    isRendering={renderJob.isRendering}
+                    progress={renderJob.progress}
+                    stage={renderJob.stage}
+                    queuePosition={renderJob.queuePosition}
+                    error={renderJob.error}
+                    videoUrl={renderJob.videoUrl}
+                    pastJobs={pastJobs}
+                    onClearCompleted={() => setPastJobs([])}
+                    isPro={isPro}
+                    onOpenPricing={() => setIsStoreOpen(true)}
+                    onRetry={handleStartRender}
+                    onDismissError={renderJob.resetJob}
+                  />
+                  {/* Flow navigation */}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setCurrentTab("render")}
+                      className="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black text-xs shadow backdrop-blur-md active:scale-95 transition border border-white/10"
+                    >
+                      ← BACK TO RENDER
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* NEAT RETRO SPONSOR BANNER (HIDDEN FOR PRO SUBSCRIBERS) */}
-            <RetroAdBanner isPro={isPro} onOpenPricing={() => setIsStoreOpen(true)} />
-          </main>
-        </>
-      )}
+              {/* RETRO SPONSOR BANNER (HIDDEN FOR PRO SUBSCRIBERS) */}
+              <RetroAdBanner isPro={isPro} onOpenPricing={() => setIsStoreOpen(true)} />
+            </main>
+          </div>
+        )}
 
-      {/* HARDWARE FOOTER */}
-      <footer className="w-full metal-panel border-t-2 border-[#7a766f] py-4 px-4 sm:px-6 text-center text-xs text-[#5a5752] flex flex-col sm:flex-row items-center justify-between gap-3 mt-auto">
-        <p className="font-bold">© 2026 SnapBeat Studio. Tactile Audio-Visual Reel Maker.</p>
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-black">
-          <a href="/privacy" className="hover:text-[#2b2b2d] transition">Privacy Policy</a>
-          <a href="/terms" className="hover:text-[#2b2b2d] transition">Terms & Refunds</a>
-          <a href="/join" className="hover:text-[#2b2b2d] transition">Beta Testers Group</a>
-          <a href="/beta" className="hover:text-[#2b2b2d] transition">Google Play App</a>
-        </div>
-      </footer>
+        {/* SLEEK FROSTED GLASS FOOTER INSIDE THE TABLET FRAME */}
+        <footer className="w-full bg-[#08181d]/85 backdrop-blur-xl border-t border-[#d4af37]/25 py-4 px-4 sm:px-8 text-center text-xs text-white/70 flex flex-col sm:flex-row items-center justify-between gap-3 mt-auto relative z-10">
+          <p className="font-bold flex items-center justify-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span>© 2026 SnapBeat Studio. Tactile Audio-Visual Reel Maker.</span>
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-black text-amber-300/90">
+            <a href="/privacy" className="hover:text-amber-200 hover:underline transition">Privacy Policy</a>
+            <a href="/terms" className="hover:text-amber-200 hover:underline transition">Terms & Refunds</a>
+            <a href="/join" className="hover:text-amber-200 hover:underline transition">Beta Testers Group</a>
+            <a href="/beta" className="hover:text-amber-200 hover:underline transition">Google Play App</a>
+          </div>
+        </footer>
+      </div>
 
       {/* PRO STORE MODAL */}
       <RetroStoreModal

@@ -64,7 +64,6 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
         videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
       } else {
         videoRef.current.pause();
-        setIsPlaying(false);
       }
     }
   };
@@ -93,17 +92,17 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   };
 
   return (
-    <div className="w-full flex flex-col items-center py-6 px-3 sm:px-6 max-w-6xl mx-auto space-y-12 animate-fadeIn select-none">
+    <div className="w-full flex flex-col items-center py-4 sm:py-6 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto space-y-12 animate-fadeIn select-none">
       
       {/* =========================================================================
-          SECTION 1: THE SIGNATURE TABLET LANDING PAGE (MATCHING UI REFERENCE)
+          SECTION 1: THE SIGNATURE HERO STAGE (MATCHING UI REFERENCE)
           ========================================================================= */}
       <section
         id="hero"
-        className="w-full relative rounded-[32px] sm:rounded-[44px] border-[3px] border-[#d4af37]/80 shadow-[0_25px_80px_rgba(0,0,0,0.65)] overflow-hidden bg-gradient-to-b from-[#162a2e] via-[#1a3338] to-[#121e22] text-white p-4 sm:p-7 md:p-9"
+        className="w-full relative overflow-hidden text-white pt-2 sm:pt-4 pb-8"
       >
-        {/* Subtle Ambient Background Lighting */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 bg-radial from-amber-400/15 via-emerald-400/5 to-transparent blur-3xl pointer-events-none" />
+        {/* Subtle Ambient Lighting Flare */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-72 bg-radial from-amber-400/20 via-emerald-400/5 to-transparent blur-3xl pointer-events-none" />
 
         {/* 1.1 TOP NAVIGATION BAR */}
         <header className="relative z-10 flex items-center justify-between gap-4 pb-4 border-b border-white/10">
@@ -124,28 +123,28 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             <button
               type="button"
               onClick={() => scrollToSection("hero")}
-              className="text-[#ffc72c] font-bold border-b-2 border-[#ffc72c] pb-0.5 cursor-pointer"
+              className="text-[#ffc72c] font-black border-b-2 border-[#ffc72c] pb-0.5 cursor-pointer"
             >
               Home
             </button>
             <button
               type="button"
               onClick={handleAction}
-              className="text-amber-100/80 hover:text-white transition cursor-pointer"
+              className="text-amber-100/80 hover:text-white font-bold transition cursor-pointer"
             >
               Create
             </button>
             <button
               type="button"
               onClick={() => scrollToSection("showcase-player")}
-              className="text-amber-100/80 hover:text-white transition cursor-pointer"
+              className="text-amber-100/80 hover:text-white font-bold transition cursor-pointer"
             >
               Explore
             </button>
             <button
               type="button"
               onClick={() => scrollToSection("pricing")}
-              className="text-amber-100/80 hover:text-white transition cursor-pointer"
+              className="text-amber-100/80 hover:text-white font-bold transition cursor-pointer"
             >
               About
             </button>
@@ -178,24 +177,17 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 <button
                   type="button"
                   onClick={onEnterStudio}
-                  className="px-3.5 py-1.5 rounded-full bg-[#ffc72c] text-[#2b2820] font-black text-xs uppercase tracking-wider shadow hover:brightness-110 active:scale-95 transition flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-amber-400 text-[#2b2820] font-black text-xs hover:brightness-110 active:scale-95 transition flex items-center gap-1 shadow-sm cursor-pointer"
                 >
                   <span>STUDIO</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={signOut}
-                  className="text-[10px] font-bold text-amber-200/70 hover:text-red-400 px-2 py-1 rounded-md transition"
-                >
-                  Sign Out
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={openAuthModal}
-                className="px-5 py-2 rounded-full bg-[#ffc72c] hover:bg-[#ffd54f] text-[#2b2820] font-black text-xs sm:text-sm tracking-wide shadow-md transition flex items-center gap-2 active:scale-95 cursor-pointer"
+                className="px-4 sm:px-5 py-2 rounded-full bg-gradient-to-r from-[#ffc72c] via-[#ffb800] to-[#f59e0b] text-[#2b2820] font-black text-xs sm:text-sm tracking-wide shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-105 active:scale-95 transition flex items-center gap-1.5 cursor-pointer border border-[#fff2b2]"
               >
                 <User className="w-4 h-4 fill-current text-[#2b2820]" />
                 <span>Sign In</span>
@@ -205,7 +197,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
         </header>
 
         {/* 1.2 HERO CONTENT (3D TITLE + SCRIPT TAGLINE + START CREATING CTA) */}
-        <div className="relative z-10 flex flex-col items-center text-center mt-7 sm:mt-9 space-y-4">
+        <div className="relative z-10 flex flex-col items-center text-center mt-6 sm:mt-8 space-y-4">
           {/* Big 3D Logo Header */}
           <div className="relative inline-block hover:scale-[1.02] transition-transform duration-300">
             <img
@@ -260,7 +252,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 </div>
               </button>
             </div>
-            <p className="text-[11px] text-amber-200/60 font-mono text-center mt-2">
+            <p className="text-[11px] text-amber-200/70 font-mono text-center mt-2 tracking-wide">
               ▲ TAP CAMERA SCREEN TO PREVIEW AUDIO-VISUAL REEL ▲
             </p>
           </div>
@@ -311,20 +303,14 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           ========================================================================= */}
       <section
         id="showcase-player"
-        className="w-full metal-panel rounded-3xl p-6 sm:p-8 border-2 border-[#7a766f] shadow-xl"
+        className="w-full sky-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl"
       >
         <div className="flex flex-col lg:flex-row items-center gap-8">
           {/* Left: The CRT Framed Video Player */}
           <div className="w-full lg:w-1/2 flex flex-col items-center">
-            <div className="relative w-full max-w-[340px] sm:max-w-[380px] metal-panel rounded-3xl p-4 sm:p-5 border-4 border-[#7a766f] shadow-2xl">
-              {/* Chassis Screws */}
-              <div className="metal-screw top-3 left-3 pointer-events-none" />
-              <div className="metal-screw top-3 right-3 pointer-events-none" />
-              <div className="metal-screw bottom-3 left-3 pointer-events-none" />
-              <div className="metal-screw bottom-3 right-3 pointer-events-none" />
-
+            <div className="relative w-full max-w-[340px] sm:max-w-[380px] bg-[#07171c]/90 rounded-3xl p-4 sm:p-5 border-2 border-[#d4af37]/40 shadow-2xl">
               {/* Player Top Controls */}
-              <div className="flex items-center justify-between px-2 pb-3 mb-2 border-b border-[#7a766f]/40 gap-2 flex-wrap">
+              <div className="flex items-center justify-between px-2 pb-3 mb-2 border-b border-white/10 gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <span
                     className={`w-2.5 h-2.5 rounded-full shadow-md ${
@@ -333,7 +319,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                         : "bg-amber-500"
                     }`}
                   />
-                  <span className="font-mono text-[10px] font-black text-[#4a4743] tracking-widest">
+                  <span className="font-mono text-[10px] font-black text-amber-300 tracking-widest">
                     SAMPLE REEL • 1080P
                   </span>
                 </div>
@@ -342,16 +328,16 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                   <button
                     type="button"
                     onClick={togglePlay}
-                    className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                    className="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-white hover:bg-white/10 transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
                   >
                     {isPlaying ? (
                       <>
-                        <Pause className="w-3.5 h-3.5 fill-current text-amber-600" />
+                        <Pause className="w-3.5 h-3.5 fill-current text-amber-400" />
                         <span>PAUSE</span>
                       </>
                     ) : (
                       <>
-                        <Play className="w-3.5 h-3.5 fill-current text-green-700" />
+                        <Play className="w-3.5 h-3.5 fill-current text-emerald-400" />
                         <span>PLAY</span>
                       </>
                     )}
@@ -360,25 +346,25 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                   <button
                     type="button"
                     onClick={stopVideo}
-                    className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                    className="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-white hover:bg-white/10 transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
                   >
-                    <Square className="w-3.5 h-3.5 fill-current text-[#d62828]" />
+                    <Square className="w-3.5 h-3.5 fill-current text-red-400" />
                     <span>STOP</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={toggleSound}
-                    className="px-2 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                    className="px-2 py-1 rounded-lg bg-black/40 border border-white/10 text-white hover:bg-white/10 transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
                   >
-                    {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-600" /> : <Volume2 className="w-3.5 h-3.5 text-green-700" />}
+                    {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
                     <span className="hidden sm:inline">{isMuted ? "UNMUTE" : "MUTE"}</span>
                   </button>
                 </div>
               </div>
 
               {/* Viewport */}
-              <div className="relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-black border-2 border-[#2b2b2d] shadow-inner group">
+              <div className="relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-black border-2 border-white/15 shadow-inner group">
                 <video
                   ref={videoRef}
                   src="/assets/videos/showcase_reel.mp4"
@@ -397,11 +383,11 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
 
                 {/* Floating Track Badge */}
                 <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1.5 pointer-events-none">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-white text-xs font-black shadow-lg w-max">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-white/20 text-white text-xs font-black shadow-lg w-max">
                     <Music className="w-3.5 h-3.5 text-amber-400" />
                     <span>Little Do You Know • 128 BPM</span>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-amber-300 text-[11px] font-bold shadow-lg w-max">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-white/20 text-amber-300 text-[11px] font-bold shadow-lg w-max">
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                     <span>Pendulum Motion &amp; Beat Flash</span>
                   </div>
@@ -442,37 +428,37 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           {/* Right: Pitch & Direct Studio Launcher */}
           <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
             <div className="space-y-2">
-              <span className="font-mono text-xs font-black text-amber-600 uppercase tracking-widest">
+              <span className="font-mono text-xs font-black text-amber-400 uppercase tracking-widest">
                 AUTOMATED CHOREOGRAPHY
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#2b2b2d] tracking-tight uppercase leading-none">
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase leading-none">
                 Turn Still Photos Into High-Impact Reels
               </h2>
-              <p className="text-sm sm:text-base text-[#4a4743] font-semibold leading-relaxed">
+              <p className="text-sm sm:text-base text-amber-100/80 font-semibold leading-relaxed">
                 No complex timelines or manual keyframing. Insert a music tape, drop your favorite photos, and let SnapBeat engineer a rhythmically locked video with camera sweeps, zooms, and drop flashes.
               </p>
             </div>
 
             {/* 3 Steps */}
             <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-3.5 rounded-2xl metal-inset text-left">
-                <Music className="w-5 h-5 text-amber-700 mb-1" />
-                <h4 className="font-black text-xs text-[#2b2b2d] uppercase">1. Pick Track</h4>
-                <p className="text-[10px] text-[#5a5752] mt-0.5">9 built-in tapes or custom MP3</p>
+              <div className="p-3.5 rounded-2xl sky-glass-inset text-left">
+                <Music className="w-5 h-5 text-amber-400 mb-1" />
+                <h4 className="font-black text-xs text-white uppercase">1. Pick Track</h4>
+                <p className="text-[10px] text-amber-100/70 mt-0.5">9 built-in tapes or custom MP3</p>
               </div>
-              <div className="p-3.5 rounded-2xl metal-inset text-left">
-                <ImageIcon className="w-5 h-5 text-amber-700 mb-1" />
-                <h4 className="font-black text-xs text-[#2b2b2d] uppercase">2. Add Photos</h4>
-                <p className="text-[10px] text-[#5a5752] mt-0.5">Sample photos or your gallery</p>
+              <div className="p-3.5 rounded-2xl sky-glass-inset text-left">
+                <ImageIcon className="w-5 h-5 text-amber-400 mb-1" />
+                <h4 className="font-black text-xs text-white uppercase">2. Add Photos</h4>
+                <p className="text-[10px] text-amber-100/70 mt-0.5">Sample photos or your gallery</p>
               </div>
-              <div className="p-3.5 rounded-2xl metal-inset text-left">
-                <Video className="w-5 h-5 text-amber-700 mb-1" />
-                <h4 className="font-black text-xs text-[#2b2b2d] uppercase">3. Render Reel</h4>
-                <p className="text-[10px] text-[#5a5752] mt-0.5">14 cinematic motion templates</p>
+              <div className="p-3.5 rounded-2xl sky-glass-inset text-left">
+                <Video className="w-5 h-5 text-amber-400 mb-1" />
+                <h4 className="font-black text-xs text-white uppercase">3. Render Reel</h4>
+                <p className="text-[10px] text-amber-100/70 mt-0.5">14 cinematic motion templates</p>
               </div>
             </div>
 
-            {/* Red Master Button CTA */}
+            {/* Master Button CTA */}
             <div className="flex items-center gap-4 pt-2">
               <RetroMechanicalButton
                 variant="redMaster"
@@ -483,11 +469,11 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 <button
                   type="button"
                   onClick={handleAction}
-                  className="px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider btn-brass text-[#2b2820] shadow-xl hover:brightness-110 active:scale-95 transition flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider btn-brass text-[#261b02] shadow-xl hover:brightness-110 active:scale-95 transition flex items-center gap-2 cursor-pointer"
                 >
                   <span>{user ? "ENTER STUDIO ❯" : "SIGN IN TO CREATE REEL ❯"}</span>
                 </button>
-                <p className="text-[10px] font-bold text-[#6e695f] mt-1">
+                <p className="text-[10px] font-bold text-amber-200/70 mt-1">
                   Free unlimited 720p renders • No card required
                 </p>
               </div>
@@ -501,45 +487,45 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           ========================================================================= */}
       <section
         id="pricing"
-        className="w-full metal-panel rounded-3xl p-6 sm:p-8 border-2 border-[#7a766f] shadow-lg"
+        className="w-full sky-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl"
       >
         <div className="text-center space-y-1 mb-6">
-          <span className="font-mono text-xs font-black text-amber-600 uppercase tracking-widest">
+          <span className="font-mono text-xs font-black text-amber-400 uppercase tracking-widest">
             PLANS &amp; PASSES
           </span>
-          <h3 className="text-2xl font-black text-[#2b2b2d] uppercase">Choose Free or Upgrade to Pro</h3>
-          <p className="text-xs text-[#5a5752] font-semibold">Instant upgrades starting at just ₹99 / week</p>
+          <h3 className="text-2xl font-black text-white uppercase">Choose Free or Upgrade to Pro</h3>
+          <p className="text-xs text-amber-100/70 font-semibold">Instant upgrades starting at just ₹99 / week</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Free Tier */}
-          <div className="rounded-2xl p-6 metal-inset border-2 border-[#8f8677]/60 flex flex-col justify-between space-y-4">
+          <div className="rounded-2xl p-6 sky-glass-inset border border-white/10 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-lg font-black text-[#2b2b2d] uppercase">FREE TIER</span>
-                <span className="px-3 py-1 rounded-full bg-black/10 text-xs font-black text-[#3b3834]">
+                <span className="text-lg font-black text-white uppercase">FREE TIER</span>
+                <span className="px-3 py-1 rounded-full bg-white/10 text-xs font-black text-amber-300">
                   ALWAYS ₹0
                 </span>
               </div>
-              <p className="text-xs text-[#5a5752] font-semibold mt-1">
+              <p className="text-xs text-amber-100/70 font-semibold mt-1">
                 Perfect for casual creators and trying out SnapBeat
               </p>
 
-              <ul className="mt-4 space-y-2.5 text-xs font-bold text-[#3b3834]">
+              <ul className="mt-4 space-y-2.5 text-xs font-bold text-white/90">
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   <span>Unlimited 720p HD Video Exports</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   <span>Shared 1-at-a-time serialized render queue</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   <span>All 14 motion choreography templates included</span>
                 </li>
-                <li className="flex items-center gap-2 text-[#6e695f]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#8f8677]" />
+                <li className="flex items-center gap-2 text-white/50">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
                   <span>Subtle corner watermark (removable with Pro)</span>
                 </li>
               </ul>
@@ -548,56 +534,56 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             <button
               type="button"
               onClick={handleAction}
-              className="w-full py-3 rounded-xl metal-inset hover:bg-black/5 text-[#2b2b2d] font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer"
+              className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer border border-white/10"
             >
               {user ? "ENTER STUDIO (FREE TIER) ❯" : "SIGN IN FOR FREE TIER ❯"}
             </button>
           </div>
 
           {/* Pro Pass */}
-          <div className="rounded-2xl p-6 metal-panel border-2 border-amber-500 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 px-4 py-1 bg-gradient-to-l from-amber-500 to-amber-600 text-black text-[10px] font-black uppercase tracking-wider rounded-bl-xl shadow">
+          <div className="rounded-2xl p-6 bg-gradient-to-b from-[#0f343e]/90 to-[#091f26]/95 border-2 border-amber-400 shadow-[0_10px_35px_rgba(255,199,44,0.3)] flex flex-col justify-between space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 px-4 py-1 bg-gradient-to-l from-amber-400 to-amber-500 text-black text-[10px] font-black uppercase tracking-wider rounded-bl-xl shadow">
               PRO STUDIO PASS
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <Crown className="w-5 h-5 text-amber-500" />
+                <Crown className="w-5 h-5 text-amber-400" />
                 <img
                   src="/assets/images/snapbeat_logo_3d.png"
                   alt="SnapBeat"
                   className="h-5 w-auto object-contain"
                 />
-                <span className="text-sm font-black text-amber-600 uppercase tracking-wider">PRO PASS</span>
+                <span className="text-sm font-black text-amber-400 uppercase tracking-wider">PRO PASS</span>
               </div>
 
               <div className="flex flex-wrap gap-2 mt-2.5 mb-1">
-                <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-[11px] font-black text-[#2b2820]">
-                  ₹99 <span className="font-semibold text-[10px] text-[#5a5752]">/ week</span>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-[11px] font-black text-amber-200">
+                  ₹99 <span className="font-semibold text-[10px] text-amber-300/70">/ week</span>
                 </div>
-                <div className="px-2.5 py-1 rounded-lg bg-amber-500/30 border border-amber-500/60 text-[11px] font-black text-[#2b2820] shadow-sm">
-                  ₹199 <span className="font-semibold text-[10px] text-[#5a5752]">/ month</span>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-400/30 border border-amber-400/70 text-[11px] font-black text-amber-200 shadow-sm">
+                  ₹199 <span className="font-semibold text-[10px] text-amber-300/70">/ month</span>
                 </div>
-                <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-[11px] font-black text-[#2b2820]">
-                  ₹999 <span className="font-semibold text-[10px] text-[#5a5752]">/ year</span>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-[11px] font-black text-amber-200">
+                  ₹999 <span className="font-semibold text-[10px] text-amber-300/70">/ year</span>
                 </div>
               </div>
 
-              <ul className="mt-4 space-y-2.5 text-xs font-black text-[#2b2b2d]">
+              <ul className="mt-4 space-y-2.5 text-xs font-black text-white">
                 <li className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+                  <Zap className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>1080p Master Crisp Full HD Quality</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+                  <Zap className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>No SnapBeat Watermark (Clean Export)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+                  <Zap className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>Opening Title Cards with custom typography</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+                  <Zap className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>Priority Render Processing</span>
                 </li>
               </ul>
@@ -614,9 +600,9 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                   onEnterStudio();
                 }
               }}
-              className="w-full py-3 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 rounded-xl btn-brass text-[#261b02] font-black text-xs uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Crown className="w-3.5 h-3.5 text-amber-600" />
+              <Crown className="w-3.5 h-3.5 text-amber-700" />
               <span>{user ? "UPGRADE TO PRO ❯" : "SIGN IN & UPGRADE TO PRO ❯"}</span>
             </button>
           </div>
@@ -626,9 +612,9 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
       {/* =========================================================================
           SECTION 4: ANDROID CLOSED BETA ACCESS & TESTER TUTORIAL
           ========================================================================= */}
-      <section className="w-full metal-panel rounded-3xl p-6 sm:p-8 border-2 border-[#7a766f] shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
+      <section className="w-full sky-glass-card rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl metal-inset p-1.5 flex items-center justify-center shrink-0">
+          <div className="w-16 h-16 rounded-2xl bg-black/40 border border-[#d4af37]/30 p-1.5 flex items-center justify-center shrink-0 shadow-inner">
             <img
               src="/assets/images/snapbeat_app_icon.png"
               alt="SnapBeat Icon"
@@ -636,11 +622,11 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             />
           </div>
           <div>
-            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[9px] font-black uppercase tracking-wider">
+            <span className="px-2 py-0.5 rounded-full bg-amber-400 text-black text-[9px] font-black uppercase tracking-wider">
               GOOGLE PLAY TESTING
             </span>
-            <h3 className="text-xl font-black text-[#2b2b2d] uppercase mt-1">Get SnapBeat on Android</h3>
-            <p className="text-xs text-[#5a5752] font-semibold mt-0.5">
+            <h3 className="text-xl font-black text-white uppercase mt-1">Get SnapBeat on Android</h3>
+            <p className="text-xs text-amber-100/70 font-semibold mt-0.5">
               Join our closed tester community to install early builds directly from Google Play.
             </p>
           </div>
@@ -651,16 +637,16 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             href="/join"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl metal-inset hover:bg-black/5 font-black text-xs text-[#2b2b2d] flex items-center justify-center gap-2 transition"
+            className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 font-black text-xs text-white border border-white/15 backdrop-blur-md flex items-center justify-center gap-2 transition active:scale-95 shadow-sm"
           >
             <span>1. JOIN GROUP</span>
-            <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+            <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
           </a>
           <a
             href="/beta"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl btn-brass font-black text-xs text-[#2b2820] flex items-center justify-center gap-2 shadow hover:brightness-105 transition"
+            className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl btn-brass font-black text-xs text-[#261b02] flex items-center justify-center gap-2 shadow-md hover:brightness-105 transition active:scale-95"
           >
             <span>2. INSTALL APP</span>
             <Download className="w-3.5 h-3.5" />
