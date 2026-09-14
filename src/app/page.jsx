@@ -156,29 +156,30 @@ export default function StudioPage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 lg:p-8 select-none relative overflow-x-hidden">
-      {/* Outer ambient studio desk backdrop glow */}
-      <div className="fixed inset-0 pointer-events-none bg-radial from-amber-500/5 via-transparent to-black/80 -z-10" />
+      {/* Outer ambient studio desk backdrop depth */}
+      <div className="fixed inset-0 pointer-events-none bg-radial from-amber-500/5 via-transparent to-black/60 -z-10" />
 
-      {/* MASTER TABLET FRAME: Smooth round edge chassis with golden bezel & sky canvas background */}
-      <div className="tablet-frame sky-canvas w-full max-w-[1440px] flex flex-col min-h-[92vh] relative text-white shadow-2xl">
-        {/* TOP ANNOUNCEMENT BANNER: Free Beta & Queue Transparency */}
-        <aside
-          aria-label="Public Beta Announcement"
-          className="w-full bg-gradient-to-r from-amber-500/25 via-amber-400/20 to-amber-500/25 border-b border-amber-400/30 px-3 sm:px-6 py-2.5 backdrop-blur-md flex items-center justify-between gap-3 text-white text-xs font-semibold select-none z-20"
-        >
-          <div className="flex items-center gap-2 flex-wrap mx-auto text-center justify-center">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] font-black text-[10px] uppercase tracking-wider shadow">
-              🚀 PUBLIC BETA LIVE
-            </span>
-            <span className="text-amber-200">
-              <strong>100% Free Unlimited Video Renders Today!</strong>
-            </span>
-            <span className="hidden lg:inline text-white/40">•</span>
-            <span className="text-amber-100/90 text-[11px]">
-              Free renders process sequentially 1-at-a-time in our shared GPU cluster (~30–60s) • Pro dedicated cluster coming soon!
-            </span>
-          </div>
-        </aside>
+      {/* TOP ANNOUNCEMENT BANNER: Free Beta & Queue Transparency (Overlayed on Dark Grey Background) */}
+      <aside
+        aria-label="Public Beta Announcement"
+        className={`w-full ${viewMode === "showcase" ? "max-w-[857px]" : "max-w-[1240px]"} mb-3 sm:mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/15 to-amber-500/20 border border-amber-400/40 rounded-2xl px-4 py-2.5 backdrop-blur-md flex items-center justify-center gap-3 text-white text-xs font-semibold select-none shadow-[0_10px_25px_rgba(0,0,0,0.5)] transition-all duration-300 z-20`}
+      >
+        <div className="flex items-center gap-2 flex-wrap mx-auto text-center justify-center">
+          <span className="px-2.5 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] font-black text-[10px] uppercase tracking-wider shadow">
+            🚀 PUBLIC BETA LIVE
+          </span>
+          <span className="text-amber-200 font-bold">
+            100% Free Unlimited Video Renders Today!
+          </span>
+          <span className="hidden sm:inline text-white/40">•</span>
+          <span className="text-amber-100/90 text-[11px]">
+            Free renders process sequentially 1-at-a-time in our shared GPU cluster (~30–60s) • Pro dedicated cluster coming soon!
+          </span>
+        </div>
+      </aside>
+
+      {/* MASTER TABLET FRAME: Smooth round edge metallic chassis overlayed on dark grey background */}
+      <div className={`tablet-frame sky-canvas w-full ${viewMode === "showcase" ? "max-w-[857px]" : "max-w-[1240px]"} flex flex-col min-h-[92vh] relative text-white shadow-2xl transition-all duration-500`}>
 
         {/* VIEW 1: SHOWCASE HOME PAGE */}
         {viewMode === "showcase" ? (

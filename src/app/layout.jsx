@@ -36,7 +36,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#0b0c0e] text-[#f1f1f1] flex flex-col antialiased selection:bg-[#ffc72c] selection:text-[#1c1303]">
+      <body className="min-h-screen bg-[#1a1c1e] text-[#f1f1f1] flex flex-col antialiased selection:bg-[#ffc72c] selection:text-[#1c1303]">
         <AuthProvider>
           {children}
         </AuthProvider>

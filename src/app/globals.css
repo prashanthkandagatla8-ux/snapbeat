@@ -31,11 +31,12 @@
   }
 
   body {
-    background-color: #0b0d10;
+    background-color: #1a1c1e;
     background-image: 
-      radial-gradient(circle at 50% 10%, rgba(26, 42, 48, 0.4) 0%, rgba(11, 13, 16, 0.95) 75%),
-      radial-gradient(circle at 50% 100%, rgba(18, 20, 24, 0.8) 0%, rgba(8, 9, 11, 1) 100%);
+      radial-gradient(circle at 50% 15%, rgba(40, 44, 50, 0.4) 0%, rgba(20, 22, 25, 0.92) 80%),
+      url('/assets/images/dark_grey_desk_bg.jpg');
     background-size: cover;
+    background-position: center;
     background-attachment: fixed;
     color: #f1f1f1;
     font-family: -apple-system, BlinkMacSystemFont, "Montserrat", "Segoe UI", Roboto, sans-serif;
@@ -44,20 +45,22 @@
 }
 
 /* =========================================================================
-   SIGNATURE SMOOTH ROUND EDGE TABLET FRAME CHASSIS (FROM UI REFERENCE)
+   SIGNATURE SMOOTH ROUND EDGE METALLIC TABLET FRAME (FROM UI REFERENCE)
    ========================================================================= */
 .tablet-frame {
   position: relative;
-  border-radius: 36px;
-  border: 3.5px solid rgba(212, 175, 55, 0.82);
+  border-radius: 40px;
+  border: 3.5px solid #d4af37;
+  border-color: #f0cb64 #9c7c34 #634b1c #e2bd54;
   box-shadow: 
-    0 0 0 1.5px rgba(20, 18, 14, 0.9),
-    0 0 0 3.5px rgba(70, 58, 35, 0.35),
-    0 30px 100px rgba(0, 0, 0, 0.92),
-    0 12px 40px rgba(0, 0, 0, 0.7),
-    inset 0 1.5px 3px rgba(255, 235, 170, 0.45);
+    0 0 0 1px #14120e,
+    0 0 0 2.5px rgba(80, 65, 35, 0.45),
+    0 35px 95px -10px rgba(0, 0, 0, 0.96),
+    0 15px 40px rgba(0, 0, 0, 0.85),
+    inset 0 2px 4px rgba(255, 242, 195, 0.55),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.85);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 640px) {
@@ -69,7 +72,7 @@
 
 @media (min-width: 1024px) {
   .tablet-frame {
-    border-radius: 54px;
+    border-radius: 50px;
     border-width: 4.5px;
   }
 }

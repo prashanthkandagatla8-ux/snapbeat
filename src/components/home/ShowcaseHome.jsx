@@ -23,13 +23,18 @@ import {
   Share2,
   Download,
   ExternalLink,
+  X,
 } from "lucide-react";
 
 export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   const { user, openAuthModal, signOut } = useAuth();
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isReelModalOpen, setIsReelModalOpen] = useState(false);
+  const [modalMuted, setModalMuted] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState(null);
   const videoRef = useRef(null);
+  const modalVideoRef = useRef(null);
 
   // Initialize video autoplay safely across all browser policies
   useEffect(() => {
@@ -92,209 +97,197 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   };
 
   return (
-    <div className="w-full flex flex-col items-center py-4 sm:py-6 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto space-y-12 animate-fadeIn select-none">
+    <div className="w-full flex flex-col items-center py-2 sm:py-4 px-2 sm:px-4 max-w-7xl mx-auto space-y-10 animate-fadeIn select-none">
       
       {/* =========================================================================
-          SECTION 1: THE SIGNATURE HERO STAGE (MATCHING UI REFERENCE)
+          SECTION 1: THE SIGNATURE TABLET HOME SCREEN (1:1 UI REFERENCE)
           ========================================================================= */}
       <section
         id="hero"
-        className="w-full relative overflow-hidden text-white pt-2 sm:pt-4 pb-8"
+        className="w-full relative max-w-[857px] mx-auto rounded-[36px] sm:rounded-[44px] overflow-hidden shadow-2xl group"
       >
-        {/* Subtle Ambient Lighting Flare */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-72 bg-radial from-amber-400/20 via-emerald-400/5 to-transparent blur-3xl pointer-events-none" />
+        {/* Full-Bleed Reference Artwork Canvas */}
+        <div className="relative w-full aspect-[857/1324] overflow-hidden">
+          <img
+            src="/assets/images/snapbeat_tablet_homescreen.png"
+            alt="SnapBeat Studio Tablet Home Screen"
+            className="w-full h-full object-cover select-none pointer-events-none"
+          />
 
-        {/* 1.1 TOP NAVIGATION BAR */}
-        <header className="relative z-10 flex items-center justify-between gap-4 pb-4 border-b border-white/10">
-          {/* 3D SnapBeat Logo on Left */}
-          <div
+          {/* -------------------------------------------------------------
+              INTERACTIVE OVERLAY 1: TOP NAVIGATION BAR
+              ------------------------------------------------------------- */}
+          {/* 1.1 Left Logo Hotspot */}
+          <button
+            type="button"
             onClick={() => scrollToSection("hero")}
-            className="flex items-center gap-2 cursor-pointer group"
-          >
-            <img
-              src="/assets/images/snapbeat_logo_3d.png"
-              alt="SnapBeat Logo"
-              className="h-9 sm:h-11 md:h-12 w-auto object-contain drop-shadow-lg group-hover:scale-105 transition-transform"
-            />
-          </div>
+            title="SnapBeat Home"
+            aria-label="SnapBeat Home"
+            className="absolute top-[2.2%] left-[4.5%] w-[20%] h-[5%] rounded-xl cursor-pointer hover:bg-white/10 transition-colors z-20"
+          />
 
-          {/* Nav Links in Center */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-semibold tracking-wide">
+          {/* 1.2 Center Nav Links Hotspot */}
+          <div className="absolute top-[2.2%] left-[34%] w-[42%] h-[5%] flex items-center justify-center gap-3 sm:gap-5 z-20">
             <button
               type="button"
               onClick={() => scrollToSection("hero")}
-              className="text-[#ffc72c] font-black border-b-2 border-[#ffc72c] pb-0.5 cursor-pointer"
+              className="px-2 py-1 text-xs sm:text-sm font-black text-transparent hover:text-amber-200 transition-colors cursor-pointer rounded-lg hover:bg-black/20"
+              title="Home"
             >
-              Home
+              <span className="sr-only">Home</span>
             </button>
             <button
               type="button"
               onClick={handleAction}
-              className="text-amber-100/80 hover:text-white font-bold transition cursor-pointer"
+              className="px-2 py-1 text-xs sm:text-sm font-black text-transparent hover:text-amber-200 transition-colors cursor-pointer rounded-lg hover:bg-black/20"
+              title="Create Video Reel"
             >
-              Create
+              <span className="sr-only">Create</span>
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection("showcase-player")}
-              className="text-amber-100/80 hover:text-white font-bold transition cursor-pointer"
+              onClick={() => setIsReelModalOpen(true)}
+              className="px-2 py-1 text-xs sm:text-sm font-black text-transparent hover:text-amber-200 transition-colors cursor-pointer rounded-lg hover:bg-black/20"
+              title="Explore Sample Reels"
             >
-              Explore
+              <span className="sr-only">Explore</span>
             </button>
             <button
               type="button"
               onClick={() => scrollToSection("pricing")}
-              className="text-amber-100/80 hover:text-white font-bold transition cursor-pointer"
+              className="px-2 py-1 text-xs sm:text-sm font-black text-transparent hover:text-amber-200 transition-colors cursor-pointer rounded-lg hover:bg-black/20"
+              title="About & Pricing"
             >
-              About
+              <span className="sr-only">About</span>
             </button>
-          </nav>
+          </div>
 
-          {/* User Account Button on Right */}
-          <div className="flex items-center gap-3">
+          {/* 1.3 Right Sign In / User Profile Hotspot */}
+          <div className="absolute top-[2.2%] right-[4%] z-20 flex items-center">
             {user ? (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex items-center gap-2">
-                  {user.picture ? (
-                    <img
-                      src={user.picture}
-                      alt={user.name || user.email}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-[#ffc72c] shadow"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-[#ffc72c] text-[#2b2820] font-black text-xs flex items-center justify-center shadow">
-                      {(user.name || user.email || "U")[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div className="text-right hidden sm:block">
-                    <p className="text-xs font-bold text-white max-w-[120px] truncate">{user.name || user.email}</p>
-                    <span className="text-[9px] font-black uppercase text-amber-300">
-                      {user.isPro ? "PRO PASS" : "FREE TIER"}
-                    </span>
+              <div className="flex items-center gap-1.5 bg-[#2b2820]/90 backdrop-blur-md px-2 sm:px-3 py-1 rounded-full border border-[#ffc72c] shadow-lg">
+                {user.picture ? (
+                  <img
+                    src={user.picture}
+                    alt={user.name || "User"}
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover border border-[#ffc72c]"
+                  />
+                ) : (
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#ffc72c] text-[#2b2820] font-black text-[10px] flex items-center justify-center">
+                    {(user.name || user.email || "U")[0].toUpperCase()}
                   </div>
-                </div>
-
+                )}
                 <button
                   type="button"
                   onClick={onEnterStudio}
-                  className="px-3 py-1.5 rounded-xl bg-amber-400 text-[#2b2820] font-black text-xs hover:brightness-110 active:scale-95 transition flex items-center gap-1 shadow-sm cursor-pointer"
+                  className="text-[10px] sm:text-xs font-black text-amber-300 hover:text-white uppercase tracking-wider pl-1 cursor-pointer flex items-center gap-1"
                 >
                   <span>STUDIO</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={openAuthModal}
-                className="px-4 sm:px-5 py-2 rounded-full bg-gradient-to-r from-[#ffc72c] via-[#ffb800] to-[#f59e0b] text-[#2b2820] font-black text-xs sm:text-sm tracking-wide shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-105 active:scale-95 transition flex items-center gap-1.5 cursor-pointer border border-[#fff2b2]"
+                className="w-[96px] sm:w-[110px] md:w-[124px] h-[30px] sm:h-[36px] md:h-[40px] rounded-full hover:bg-amber-400/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center border border-transparent hover:border-[#fffae8]/50 shadow-sm"
+                title="Sign In to SnapBeat"
+                aria-label="Sign In"
               >
-                <User className="w-4 h-4 fill-current text-[#2b2820]" />
-                <span>Sign In</span>
+                <span className="sr-only">Sign In</span>
               </button>
             )}
           </div>
-        </header>
 
-        {/* 1.2 HERO CONTENT (3D TITLE + SCRIPT TAGLINE + START CREATING CTA) */}
-        <div className="relative z-10 flex flex-col items-center text-center mt-6 sm:mt-8 space-y-4">
-          {/* Big 3D Logo Header */}
-          <div className="relative inline-block hover:scale-[1.02] transition-transform duration-300">
-            <img
-              src="/assets/images/snapbeat_logo_3d.png"
-              alt="SnapBeat 3D Title"
-              className="h-20 sm:h-28 md:h-36 w-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]"
-            />
-          </div>
+          {/* -------------------------------------------------------------
+              INTERACTIVE OVERLAY 2: RADIANT "START CREATING" CTA BUTTON
+              ------------------------------------------------------------- */}
+          <button
+            type="button"
+            onClick={handleAction}
+            aria-label="Start Creating Videos"
+            title="Start Creating Beat-Synced Reel"
+            className="absolute top-[36.2%] left-[33.2%] w-[33.6%] h-[4.8%] rounded-full cursor-pointer z-20 group/btn flex items-center justify-center transition-all duration-300 hover:scale-[1.03] active:scale-95 shadow-[0_0_20px_rgba(255,199,44,0.3)] hover:shadow-[0_0_35px_rgba(255,199,44,0.8)]"
+          >
+            {/* Ambient hover glow halo */}
+            <span className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-400/0 via-amber-300/30 to-amber-400/0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <span className="sr-only">Start Creating</span>
+          </button>
 
-          {/* Script Tagline (From UI Reference) */}
-          <h2 className="font-script text-2xl sm:text-3xl md:text-4xl text-[#fffae8] font-bold tracking-wide drop-shadow-md">
-            Not just a video... It's your story in motion.
-          </h2>
+          {/* -------------------------------------------------------------
+              INTERACTIVE OVERLAY 3: CAMERA SCREEN INTERACTIVE PLAY BUTTON
+              ------------------------------------------------------------- */}
+          <button
+            type="button"
+            onClick={() => setIsReelModalOpen(true)}
+            aria-label="Play Sample Reel on Camera Screen"
+            title="Tap to Play Beat-Synced Reel Sample"
+            className="absolute top-[57.5%] left-[44.5%] w-[11%] h-[7.2%] rounded-full cursor-pointer z-20 flex items-center justify-center group/cam transition-transform duration-300 hover:scale-115 active:scale-90"
+          >
+            {/* Glowing lens pulse ring on hover */}
+            <span className="absolute inset-0 rounded-full bg-amber-400/30 animate-ping opacity-0 group-hover/cam:opacity-100 transition-opacity pointer-events-none" />
+            <span className="sr-only">Play Sample Reel</span>
+          </button>
 
-          {/* "Start Creating" Golden Radiate CTA Button */}
-          <div className="flex items-center justify-center gap-3 pt-2">
-            <span className="text-amber-300 font-mono text-base tracking-widest hidden sm:inline select-none">
-              \ \
-            </span>
+          {/* -------------------------------------------------------------
+              INTERACTIVE OVERLAY 4: BOTTOM 4 NEON DOCK HOTSPOTS
+              ------------------------------------------------------------- */}
+          <div className="absolute bottom-[2.5%] left-[3%] right-[3%] h-[10.5%] grid grid-cols-4 gap-1 sm:gap-2 z-20">
+            {/* 4.1 Create Videos */}
             <button
               type="button"
               onClick={handleAction}
-              className="px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-[#ffc72c] via-[#ffb800] to-[#f59e0b] text-[#2b2820] font-black text-base sm:text-lg tracking-wide shadow-[0_10px_35px_rgba(245,158,11,0.55)] hover:brightness-105 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 border border-[#fff0a6] cursor-pointer"
+              onMouseEnter={() => setActiveTooltip("Create beat-synced reels from your photos in seconds")}
+              onMouseLeave={() => setActiveTooltip(null)}
+              className="w-full h-full rounded-2xl cursor-pointer hover:bg-amber-400/10 active:scale-95 transition-all flex flex-col items-center justify-end pb-1 sm:pb-2 border border-transparent hover:border-amber-400/30"
+              title="Create Videos"
             >
-              <Play className="w-5 h-5 fill-current ml-0.5" />
-              <span>Start Creating</span>
+              <span className="sr-only">Create Videos</span>
             </button>
-            <span className="text-amber-300 font-mono text-base tracking-widest hidden sm:inline select-none">
-              / /
-            </span>
+
+            {/* 4.2 AI Powered */}
+            <button
+              type="button"
+              onClick={handleAction}
+              onMouseEnter={() => setActiveTooltip("Automated beat and onset rhythm detection algorithm")}
+              onMouseLeave={() => setActiveTooltip(null)}
+              className="w-full h-full rounded-2xl cursor-pointer hover:bg-pink-400/10 active:scale-95 transition-all flex flex-col items-center justify-end pb-1 sm:pb-2 border border-transparent hover:border-pink-400/30"
+              title="AI Powered"
+            >
+              <span className="sr-only">AI Powered</span>
+            </button>
+
+            {/* 4.3 Stunning Templates */}
+            <button
+              type="button"
+              onClick={() => scrollToSection("showcase-player")}
+              onMouseEnter={() => setActiveTooltip("14 cinematic camera motion choreography presets")}
+              onMouseLeave={() => setActiveTooltip(null)}
+              className="w-full h-full rounded-2xl cursor-pointer hover:bg-emerald-400/10 active:scale-95 transition-all flex flex-col items-center justify-end pb-1 sm:pb-2 border border-transparent hover:border-emerald-400/30"
+              title="Stunning Templates"
+            >
+              <span className="sr-only">Stunning Templates</span>
+            </button>
+
+            {/* 4.4 Easy Sharing */}
+            <button
+              type="button"
+              onClick={() => scrollToSection("showcase-player")}
+              onMouseEnter={() => setActiveTooltip("Direct export to MP4 ready for Reels, Shorts, and Status")}
+              onMouseLeave={() => setActiveTooltip(null)}
+              className="w-full h-full rounded-2xl cursor-pointer hover:bg-sky-400/10 active:scale-95 transition-all flex flex-col items-center justify-end pb-1 sm:pb-2 border border-transparent hover:border-sky-400/30"
+              title="Easy Sharing"
+            >
+              <span className="sr-only">Easy Sharing</span>
+            </button>
           </div>
 
-          {/* 1.3 CENTERPIECE ARTWORK: VINTAGE CAMERA & 35MM FILM STRIP */}
-          <div className="relative w-full max-w-2xl mx-auto pt-4 group">
-            <div className="relative overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/15">
-              <img
-                src="/assets/images/snapbeat_camera_filmstrip.png"
-                alt="SnapBeat Camera with 35mm Filmstrip"
-                className="w-full h-auto object-contain rounded-3xl transition-transform duration-500 group-hover:scale-[1.02]"
-              />
-
-              {/* Interactive Play Overlay right on the Camera Screen */}
-              <button
-                type="button"
-                onClick={() => scrollToSection("showcase-player")}
-                className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/25 transition cursor-pointer"
-                title="Watch Sample Reel in Player"
-                aria-label="Watch Sample Reel"
-              >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#ffc72c]/90 text-[#2b2820] flex items-center justify-center shadow-[0_0_35px_rgba(255,199,44,0.9)] border-2 border-white/80 group-hover:scale-110 transition duration-300">
-                  <Play className="w-8 h-8 fill-current ml-1" />
-                </div>
-              </button>
+          {/* Floating Neon Tooltip Badge */}
+          {activeTooltip && (
+            <div className="absolute bottom-[13.5%] left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/85 border border-[#ffc72c]/70 text-amber-200 text-[11px] font-bold shadow-2xl pointer-events-none animate-fadeIn z-30">
+              {activeTooltip}
             </div>
-            <p className="text-[11px] text-amber-200/70 font-mono text-center mt-2 tracking-wide">
-              ▲ TAP CAMERA SCREEN TO PREVIEW AUDIO-VISUAL REEL ▲
-            </p>
-          </div>
-
-          {/* 1.4 BOTTOM 4 FEATURE CARDS (NEON DOCK FROM UI REFERENCE) */}
-          <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-3.5 p-4 sm:p-5 bg-black/45 backdrop-blur-md rounded-3xl border border-white/10 shadow-inner mt-6">
-            {/* Feature 1 */}
-            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-2 shadow-sm">
-                <Video className="w-5 h-5" />
-              </div>
-              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Create Videos</h4>
-              <p className="text-[11px] text-amber-100/70 mt-0.5">Beat-synced reels from photos in seconds</p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
-              <div className="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center mb-2 shadow-sm">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">AI Powered</h4>
-              <p className="text-[11px] text-amber-100/70 mt-0.5">Automated audio beat & onset detection</p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2 shadow-sm">
-                <Film className="w-5 h-5" />
-              </div>
-              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Stunning Templates</h4>
-              <p className="text-[11px] text-amber-100/70 mt-0.5">14 cinematic motion choreography presets</p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
-              <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center mb-2 shadow-sm">
-                <Share2 className="w-5 h-5" />
-              </div>
-              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Easy Sharing</h4>
-              <p className="text-[11px] text-amber-100/70 mt-0.5">Instant MP4 export for Reels, Shorts & Status</p>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -303,7 +296,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           ========================================================================= */}
       <section
         id="showcase-player"
-        className="w-full sky-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl"
+        className="w-full sky-glass-panel rounded-3xl p-5 sm:p-7 md:p-8 shadow-2xl"
       >
         <div className="flex flex-col lg:flex-row items-center gap-8">
           {/* Left: The CRT Framed Video Player */}
@@ -389,7 +382,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                   </div>
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-white/20 text-amber-300 text-[11px] font-bold shadow-lg w-max">
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Pendulum Motion &amp; Beat Flash</span>
+                    <span>Pendulum Motion & Beat Flash</span>
                   </div>
                 </div>
 
@@ -487,11 +480,11 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           ========================================================================= */}
       <section
         id="pricing"
-        className="w-full sky-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl"
+        className="w-full sky-glass-panel rounded-3xl p-5 sm:p-7 md:p-8 shadow-2xl"
       >
         <div className="text-center space-y-1 mb-6">
           <span className="font-mono text-xs font-black text-amber-400 uppercase tracking-widest">
-            PLANS &amp; PASSES
+            PLANS & PASSES
           </span>
           <h3 className="text-2xl font-black text-white uppercase">Choose Free or Upgrade to Pro</h3>
           <p className="text-xs text-amber-100/70 font-semibold">Instant upgrades starting at just ₹99 / week</p>
@@ -612,7 +605,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
       {/* =========================================================================
           SECTION 4: ANDROID CLOSED BETA ACCESS & TESTER TUTORIAL
           ========================================================================= */}
-      <section className="w-full sky-glass-card rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      <section className="w-full sky-glass-card rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-black/40 border border-[#d4af37]/30 p-1.5 flex items-center justify-center shrink-0 shadow-inner">
             <img
@@ -656,6 +649,65 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
 
       {/* SPONSOR BROADCAST BANNER (HIDDEN FOR PRO SUBSCRIBERS) */}
       <RetroAdBanner isPro={user?.isPro} onOpenPricing={onOpenPricing} />
+
+      {/* =========================================================================
+          SHOWCASE REEL VIDEO MODAL (TRIGGERED BY "EXPLORE" OR CAMERA SCREEN)
+          ========================================================================= */}
+      {isReelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 animate-fadeIn">
+          <div className="relative w-full max-w-[440px] bg-[#07171c] rounded-3xl border-2 border-[#d4af37] shadow-[0_25px_80px_rgba(0,0,0,0.95)] p-4 sm:p-5 flex flex-col items-center space-y-4">
+            {/* Modal Header */}
+            <div className="w-full flex items-center justify-between pb-2 border-b border-white/15">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="font-mono text-xs font-black text-amber-300 tracking-wider uppercase">
+                  SNAPBEAT SAMPLE REEL
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsReelModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Video Viewport */}
+            <div className="relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-black border border-white/20 shadow-inner">
+              <video
+                ref={modalVideoRef}
+                src="/assets/videos/showcase_reel.mp4"
+                autoPlay
+                loop
+                playsInline
+                muted={modalMuted}
+                className="w-full h-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setModalMuted(!modalMuted)}
+                className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-black/70 backdrop-blur-md border border-white/20 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg cursor-pointer hover:bg-black/90"
+              >
+                {modalMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+                <span>{modalMuted ? "UNMUTE" : "MUTED"}</span>
+              </button>
+            </div>
+
+            {/* Modal Action CTA */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsReelModalOpen(false);
+                handleAction();
+              }}
+              className="w-full py-3.5 rounded-2xl btn-brass text-[#261b02] font-black text-sm uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>CREATE YOUR OWN REEL NOW ❯</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
