@@ -1,0 +1,3 @@
+# ads.txt for SnapBeat Web (https://snapbeat.app)
+# Replace with your Publisher ID from Google AdSense or your Ad Network
+# Example: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

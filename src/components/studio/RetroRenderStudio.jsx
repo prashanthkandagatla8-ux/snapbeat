@@ -53,15 +53,15 @@ export function RetroRenderStudio({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      {/* LEFT: Title Card Preview & Monitor Console (7 cols) */}
-      <div className="lg:col-span-7 sky-glass-panel text-white rounded-3xl p-6 relative flex flex-col items-center shadow-xl">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+      {/* LEFT: Title Card Preview & Monitor Console (6 cols) */}
+      <div className="md:col-span-6 sky-glass-panel text-white rounded-3xl p-4 sm:p-5 relative flex flex-col items-center shadow-xl">
         {/* Top Header of Monitor */}
-        <div className="w-full flex items-center justify-between border-b border-white/10 pb-2 mb-4">
+        <div className="w-full flex items-center justify-between border-b border-white/10 pb-2 mb-3">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
             <h3 className="font-black text-xs text-white uppercase tracking-wider">
-              {videoUrl && monitorMode === "video" ? "FINAL REEL PLAYBACK" : "LIVE TITLE CARD CRT MONITOR"}
+              LIVE TITLE CARD CRT MONITOR
             </h3>
           </div>
 
@@ -87,10 +87,10 @@ export function RetroRenderStudio({
         <div
           className={`w-full ${
             aspectRatio === "1:1"
-              ? "aspect-square max-w-[380px]"
+              ? "aspect-square max-w-[340px]"
               : aspectRatio === "16:9"
-              ? "aspect-video max-w-[540px]"
-              : "aspect-[9/16] max-w-[320px]"
+              ? "aspect-video max-w-[440px]"
+              : "aspect-[9/16] max-w-[280px]"
           } rounded-2xl overflow-hidden relative shadow-2xl border-4 border-[#3a3734] bg-[#0d0c0b] flex items-center justify-center transition-all duration-300 group`}
         >
           {/* Live Title Card CRT Stage - Always Live, Never Just Placeholder */}
@@ -190,8 +190,8 @@ export function RetroRenderStudio({
         )}
       </div>
 
-      {/* RIGHT: Master Controls Rack (5 cols) */}
-      <div className="lg:col-span-5 sky-glass-panel text-white rounded-3xl p-6 relative space-y-4 shadow-xl">
+      {/* RIGHT: Master Controls Rack (6 cols) */}
+      <div className="md:col-span-6 sky-glass-panel text-white rounded-3xl p-4 sm:p-5 relative space-y-3.5 shadow-xl">
         {/* Header */}
         <div className="border-b border-white/10 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -233,56 +233,43 @@ export function RetroRenderStudio({
             <div className="space-y-2">
               {/* Active Auto-Selected Template Banner */}
               <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#ffc72c]/10 to-amber-500/20 border border-[#ffc72c]/50 shadow-inner flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-black/50 border border-amber-400/40 flex items-center justify-center text-xl shadow">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-black/50 border border-amber-400/40 flex items-center justify-center text-lg shadow shrink-0">
                     {currentTemplateObj.emoji}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-black text-sm text-white">{currentTemplateObj.name}</h4>
-                      <span className="px-2 py-0.5 rounded-full bg-amber-400 text-[#241903] font-black text-[9px] uppercase tracking-wider shadow-sm">
-                        AUTO-SELECTED
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="font-black text-xs sm:text-sm text-white truncate">{currentTemplateObj.name}</h4>
+                      <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-[#241903] font-black text-[8px] uppercase tracking-wider shrink-0 shadow-sm">
+                        AUTO
                       </span>
                     </div>
-                    <p className="text-[11px] text-amber-100/80">{currentTemplateObj.subtitle}</p>
+                    <p className="text-[10px] text-amber-100/80 truncate">{currentTemplateObj.subtitle}</p>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-[10px] text-amber-300 font-bold block">Free Tier</span>
-                  <span className="text-[9px] text-white/60 block">Changes each render</span>
+                  <span className="text-[9px] text-amber-300 font-bold block">Free Tier</span>
+                  <span className="text-[8px] text-white/60 block">Auto-Rotates</span>
                 </div>
               </div>
 
-              {/* Locked Manual Selector Box with Upgrade CTA */}
-              <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-2">
-                {/* Non-clickable dimmed background grid */}
-                <div className="grid grid-cols-2 gap-1.5 opacity-20 pointer-events-none select-none filter blur-[0.5px]">
-                  {TEMPLATES.slice(0, 4).map((tmpl) => (
-                    <div key={tmpl.id} className="p-2 rounded-xl bg-black/60 border border-white/10 text-white flex items-center gap-2">
-                      <span className="text-sm">{tmpl.emoji}</span>
-                      <span className="text-xs font-black truncate">{tmpl.name}</span>
-                    </div>
-                  ))}
+              {/* Locked Manual Selector Box with Upgrade CTA - Inline, No Overflow */}
+              <div className="p-3 rounded-2xl border border-white/10 bg-black/50 flex flex-col items-center text-center space-y-2">
+                <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black">
+                  <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>MANUAL TEMPLATES (PRO FEATURE)</span>
                 </div>
-
-                {/* Frosted Lock Overlay */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/85 backdrop-blur-[2px] p-3 text-center">
-                  <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black mb-1">
-                    <Lock className="w-3.5 h-3.5 text-amber-400" />
-                    <span>MANUAL TEMPLATE SELECTION (PRO ONLY)</span>
-                  </div>
-                  <p className="text-[11px] text-amber-100/80 mb-2 max-w-[340px] font-medium leading-snug">
-                    Free users get a different surprise template automatically chosen for each video. Upgrade to Pro to choose any template manually!
-                  </p>
-                  <button
-                    type="button"
-                    onClick={onOpenPricing}
-                    className="btn-brass px-4 py-1.5 rounded-xl font-black text-xs text-[#2b2820] shadow-md hover:brightness-110 active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Crown className="w-3.5 h-3.5 text-amber-800" />
-                    <span>UNLOCK MANUAL TEMPLATES (COMING SOON) ❯</span>
-                  </button>
-                </div>
+                <p className="text-[11px] text-amber-100/80 max-w-[320px] font-medium leading-tight">
+                  Free users get a different motion style auto-assigned per reel. Upgrade to choose any of 14 templates manually!
+                </p>
+                <button
+                  type="button"
+                  onClick={onOpenPricing}
+                  className="btn-brass px-3 py-1.5 rounded-xl font-black text-[11px] text-[#2b2820] shadow-md hover:brightness-110 active:scale-95 transition flex items-center gap-1.5 cursor-pointer max-w-full"
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                  <span className="truncate">UNLOCK MANUAL TEMPLATES (SOON)</span>
+                </button>
               </div>
             </div>
           ) : (
@@ -391,29 +378,36 @@ export function RetroRenderStudio({
           </div>
         </div>
 
-        {/* Watermark Status (No toggle - Informative status pill only) */}
-        <div className="flex items-center justify-between p-2.5 rounded-2xl bg-black/40 border border-white/10 text-white gap-2">
-          <div>
-            <p className="text-xs font-black text-white">SNAPBEAT WATERMARK</p>
-            <p className="text-[10px] text-amber-100/60">
-              {isPro ? "Clean video output • No watermark" : "Free output includes watermark"}
-            </p>
-          </div>
-          {isPro ? (
-            <span className="px-2.5 py-1 rounded-full bg-[#00c853]/20 text-[#00c853] text-[10px] font-black uppercase tracking-wider border border-[#00c853]/40 shrink-0">
-              WATERMARK: REMOVED
-            </span>
-          ) : (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="px-2 py-0.5 rounded-full bg-[#ffc72c]/30 text-[#4a3b00] text-[9px] font-black uppercase tracking-wider border border-[#bf8a00]/40">
-                WATERMARK: APPLIED
+        {/* Watermark Status */}
+        <div className="p-3 rounded-2xl bg-black/40 border border-white/10 text-white space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-black text-white uppercase tracking-wide">SNAPBEAT WATERMARK</p>
+              <p className="text-[10px] text-amber-100/60">
+                {isPro ? "Clean video output • Zero watermark" : "Free output includes watermark badge"}
+              </p>
+            </div>
+            {isPro ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-[#00c853]/20 text-[#00c853] text-[9px] font-black uppercase tracking-wider border border-[#00c853]/40 shrink-0">
+                REMOVED
               </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-black uppercase tracking-wider border border-amber-400/40 shrink-0">
+                APPLIED
+              </span>
+            )}
+          </div>
+
+          {!isPro && (
+            <div className="pt-1.5 border-t border-white/10 flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-[10px] text-amber-100/70 font-medium">Remove watermark on all reels:</span>
               <button
                 type="button"
                 onClick={onOpenPricing}
-                className="px-2.5 py-1 rounded-full btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0 cursor-pointer"
+                className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0 cursor-pointer"
+                title="Remove watermark with Pro Pass (Coming Soon)"
               >
-                <Crown className="w-2.5 h-2.5" />
+                <Crown className="w-3 h-3 text-amber-800" />
                 <span>REMOVE (PRO - SOON)</span>
               </button>
             </div>
@@ -498,7 +492,7 @@ export function RetroRenderStudio({
           )}
 
           {!isPro && (
-            <div className="pt-1.5 flex items-center justify-between border-t border-white/10/50">
+            <div className="pt-1.5 flex items-center justify-between border-t border-white/10">
               <p className="text-[10px] text-amber-100/60 font-semibold leading-tight">
                 Cinematic intro cards unlock with any Pro Pass.
               </p>
