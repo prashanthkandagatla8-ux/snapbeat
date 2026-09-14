@@ -3,9 +3,8 @@
 # Hybrid Ad Network Configuration: Google AdSense + Monetag (PropellerAds)
 # ==============================================================================
 
-# 1. Google AdSense / Google Ad Manager
-# Replace pub-XXXXXXXXXXXXXXXX with your 16-digit AdSense Publisher ID once registered:
-google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+# 1. Google AdSense
+google.com, pub-7850833794586490, DIRECT, f08c47fec0942fa0
 
 # 2. Monetag (PropellerAds)
 # Once you add snapbeat.app in Monetag, paste their domain verification line below:

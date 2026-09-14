@@ -32,9 +32,8 @@ export const metadata = {
     type: "website",
   },
 };
-
 export default function RootLayout({ children }) {
-  const adSenseId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  const adSenseId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-7850833794586490";
   const monetagScriptUrl = process.env.NEXT_PUBLIC_MONETAG_SCRIPT_URL;
 
   return (
