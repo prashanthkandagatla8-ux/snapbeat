@@ -1,9 +1,10 @@
-# ==============================================================================
-# SnapBeat Studio (https://snapbeat.app) — Authorized Digital Sellers (ads.txt)
+ï»¿# ==============================================================================
+# SnapBeat Studio (https://snapbeat.app) - Authorized Digital Sellers (ads.txt)
 # Hybrid Ad Network Configuration: Google AdSense + Monetag (PropellerAds)
 # ==============================================================================
 
 # 1. Google AdSense
+google.com, pub-2850833794586490, DIRECT, f08c47fec0942fa0
 google.com, pub-7850833794586490, DIRECT, f08c47fec0942fa0
 
 # 2. Monetag (PropellerAds)

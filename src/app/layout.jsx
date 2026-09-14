@@ -31,14 +31,20 @@ export const metadata = {
     ],
     type: "website",
   },
+  other: {
+    "google-adsense-account": "ca-pub-2850833794586490",
+  },
 };
 export default function RootLayout({ children }) {
-  const adSenseId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-7850833794586490";
-  const monetagScriptUrl = process.env.NEXT_PUBLIC_MONETAG_SCRIPT_URL;
+  const adSenseId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-2850833794586490";
+  const monetagZoneId = process.env.NEXT_PUBLIC_MONETAG_ZONE_ID || "11799505";
 
   return (
     <html lang="en" className="dark">
       <head>
+        {/* Google AdSense Account Verification Meta Tag */}
+        <meta name="google-adsense-account" content="ca-pub-2850833794586490" />
+
         {/* HYBRID AD NETWORK 1: Google AdSense / Google Ad Manager */}
         {adSenseId && (
           <script
@@ -48,11 +54,12 @@ export default function RootLayout({ children }) {
           />
         )}
 
-        {/* HYBRID AD NETWORK 2: Monetag In-Stream & Rewarded Interstitial Tag */}
-        {monetagScriptUrl && (
+        {/* HYBRID AD NETWORK 2: Monetag Vignette Interstitial Tag */}
+        {monetagZoneId && (
           <script
-            async
-            src={monetagScriptUrl}
+            dangerouslySetInnerHTML={{
+              __html: `(function(s){s.dataset.zone='${monetagZoneId}',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));`,
+            }}
           />
         )}
       </head>
