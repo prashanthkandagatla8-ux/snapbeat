@@ -174,13 +174,6 @@ export default function RetroAuthModal({ onSuccess }) {
 
         {/* Header with PNG logo */}
         <div className="text-center space-y-2 mb-6">
-          <div className="inline-flex items-center justify-center p-2 rounded-2xl bg-black/40 border border-[#d4af37]/30 shadow-inner mx-auto mb-1">
-            <img
-              src="/assets/images/snapbeat_app_icon.png"
-              alt="SnapBeat App Icon"
-              className="w-12 h-12 rounded-xl object-contain drop-shadow"
-            />
-          </div>
           <div className="flex justify-center" id="auth-modal-title">
             <img
               src="/assets/images/snapbeat_logo_3d.png"

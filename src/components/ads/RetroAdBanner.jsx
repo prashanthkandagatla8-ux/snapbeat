@@ -24,12 +24,8 @@ export default function RetroAdBanner({ isPro, onOpenPricing, slotId = "banner_d
         {/* Ad Body */}
         <div className="bg-black/40 backdrop-blur-md rounded-xl p-3.5 sm:p-4 min-h-[80px] flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10">
           <div className="flex items-center gap-3.5 w-full sm:w-auto">
-            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-inner shrink-0 border border-white/15 bg-black/30 flex items-center justify-center p-1">
-              <img
-                src="/assets/images/snapbeat_app_icon.png"
-                alt="SnapBeat Icon"
-                className="w-full h-full object-contain rounded-lg"
-              />
+            <div className="w-10 h-10 rounded-xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center shrink-0 shadow-inner">
+              <Sparkles className="w-5 h-5 text-amber-300" />
             </div>
             <div className="text-left">
               <span className="text-[10px] font-mono font-black text-amber-300 uppercase tracking-wider">

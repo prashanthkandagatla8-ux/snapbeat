@@ -18,7 +18,7 @@ export function initializeRazorpayCheckout(planId, onPaymentSuccess, onPaymentCa
           currency: "INR",
           name: "SnapBeat Pro Studio",
           description: `${plan.name} (₹${plan.price}/${periodLabel}) - 1080p Master & No Watermark`,
-          image: "/assets/images/snapbeat_app_icon.png",
+          image: "/assets/images/snapbeat_logo_crop.png",
           theme: { color: "#ffc72c" },
           handler: function (response) {
             if (response?.razorpay_payment_id && typeof onPaymentSuccess === "function") {

@@ -45,13 +45,6 @@ export function RetroHeader({
               }
             }}
           >
-            <div className="w-9 h-9 rounded-xl bg-black/40 border border-[#d4af37]/30 p-1 flex items-center justify-center shadow-inner group-hover:brightness-110 transition">
-              <img
-                src="/assets/images/snapbeat_app_icon.png"
-                alt="SnapBeat App Icon"
-                className="w-full h-full object-contain rounded-lg"
-              />
-            </div>
             <div>
               <div className="flex items-center gap-2">
                 <img

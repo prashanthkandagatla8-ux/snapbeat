@@ -12,9 +12,9 @@ export const metadata = {
   title: "SnapBeat Studio — AI Beat-Synced Video Reel Maker",
   description: "Create high-impact, beat-synced video reels from your photos in seconds with motion choreography and dynamic zooms.",
   icons: {
-    icon: "/assets/images/snapbeat_app_icon.png",
-    shortcut: "/assets/images/snapbeat_app_icon.png",
-    apple: "/assets/images/snapbeat_app_icon.png",
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
   },
   openGraph: {
     title: "SnapBeat Studio — AI Beat-Synced Video Reel Maker",

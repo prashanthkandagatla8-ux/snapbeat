@@ -359,8 +359,6 @@ export default function StudioPage() {
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-black text-amber-300/90">
                 <a href="/privacy" className="hover:text-amber-200 hover:underline transition">Privacy Policy</a>
                 <a href="/terms" className="hover:text-amber-200 hover:underline transition">Terms & Refunds</a>
-                <a href="/join" className="hover:text-amber-200 hover:underline transition">Beta Testers Group</a>
-                <a href="/beta" className="hover:text-amber-200 hover:underline transition">Google Play App</a>
               </div>
             </footer>
           </div>
