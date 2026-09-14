@@ -12,6 +12,8 @@ import {
   Sparkles,
   Play,
   Film,
+  Lock,
+  Crown,
 } from "lucide-react";
 import RetroVideoAdModal from "@/components/ads/RetroVideoAdModal";
 
@@ -32,46 +34,89 @@ export function RetroQueueConsole({
   onNewReel,
 }) {
   const [isAdOpen, setIsAdOpen] = useState(false);
-  const [adWatched, setAdWatched] = useState(false);
+  const [unlockedJobs, setUnlockedJobs] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = sessionStorage.getItem("snapbeat_unlocked_jobs");
+        return stored ? JSON.parse(stored) : {};
+      } catch (_) {
+        return {};
+      }
+    }
+    return {};
+  });
   const [pendingDownload, setPendingDownload] = useState(null);
 
   // Active preview state (can be current render or selected from history)
   const [activePreviewUrl, setActivePreviewUrl] = useState(videoUrl);
   const [activePreviewTitle, setActivePreviewTitle] = useState(null);
   const previewVideoRef = useRef(null);
+  const autoPromptTriggered = useRef(false);
 
-  // Sync activePreviewUrl when a new videoUrl finishes rendering
+  const markJobUnlocked = (key) => {
+    if (!key) return;
+    setUnlockedJobs((prev) => {
+      const updated = { ...prev, [key]: true };
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem("snapbeat_unlocked_jobs", JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+  };
+
+  // Sync activePreviewUrl when a new videoUrl finishes rendering & auto-prompt ad for free users
   useEffect(() => {
     if (videoUrl) {
       setActivePreviewUrl(videoUrl);
       setActivePreviewTitle(`SnapBeat Job #${jobId || "Reel"}`);
+      // Free users auto-see full video ad to unlock output when render completes
+      if (
+        !isPro &&
+        !unlockedJobs[videoUrl] &&
+        !(jobId && unlockedJobs[jobId]) &&
+        !autoPromptTriggered.current
+      ) {
+        autoPromptTriggered.current = true;
+        setPendingDownload(null);
+        setIsAdOpen(true);
+      }
     }
-  }, [videoUrl, jobId]);
+  }, [videoUrl, jobId, isPro, unlockedJobs]);
+
+  const currentDisplayVideo = activePreviewUrl || videoUrl;
+  const currentKey = currentDisplayVideo || (jobId ? `job_${jobId}` : null);
+  const isCurrentUnlocked =
+    isPro ||
+    (currentKey && Boolean(unlockedJobs[currentKey] || (jobId && unlockedJobs[jobId])));
 
   const handleDownloadClick = (e, targetUrl, fileName) => {
-    // Pro users download immediately!
-    if (isPro || adWatched) {
-      return; // allow normal link navigation
+    const url = targetUrl || currentDisplayVideo;
+    const name = fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
+    const isUnlocked =
+      isPro || Boolean(unlockedJobs[url] || (jobId && unlockedJobs[jobId]));
+
+    if (!isUnlocked) {
+      if (e) e.preventDefault();
+      setPendingDownload({ url, fileName: name });
+      setIsAdOpen(true);
+      return;
     }
-    // Free tier users see the 5-second sponsored video ad first
-    e.preventDefault();
-    setPendingDownload({
-      url: targetUrl || activePreviewUrl || videoUrl,
-      fileName: fileName || `SnapBeat_${jobId || "Reel"}.mp4`,
-    });
-    setIsAdOpen(true);
   };
 
   const handleAdComplete = () => {
-    setAdWatched(true);
     setIsAdOpen(false);
-    const targetUrl = pendingDownload?.url || activePreviewUrl || videoUrl;
-    const downloadName = pendingDownload?.fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
-    // Trigger download
-    if (targetUrl) {
+    const key = pendingDownload?.url || currentDisplayVideo || (jobId ? `job_${jobId}` : "current");
+    markJobUnlocked(key);
+    if (currentDisplayVideo) markJobUnlocked(currentDisplayVideo);
+    if (jobId) markJobUnlocked(jobId);
+
+    // If download was pending, trigger it immediately
+    if (pendingDownload?.url) {
       const link = document.createElement("a");
-      link.href = targetUrl;
-      link.download = downloadName;
+      link.href = pendingDownload.url;
+      link.download = pendingDownload.fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -86,8 +131,6 @@ export function RetroQueueConsole({
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
-
-  const currentDisplayVideo = activePreviewUrl || videoUrl;
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto select-none">
@@ -214,40 +257,132 @@ export function RetroQueueConsole({
                   {activePreviewTitle || "REEL RENDER COMPLETED!"}
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/40">
-                {isPro ? "1080P MASTER OUTPUT" : "480P STANDARD • WATERMARKED"}
+              <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold border ${
+                isCurrentUnlocked
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                  : "bg-amber-500/20 text-amber-300 border-amber-500/40"
+              }`}>
+                {isPro
+                  ? "1080P MASTER OUTPUT"
+                  : isCurrentUnlocked
+                  ? "480P STANDARD • UNLOCKED"
+                  : "480P STANDARD • LOCKED"}
               </span>
             </div>
 
-            {/* Live Video Preview Screen */}
-            <div className="relative aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] rounded-2xl overflow-hidden bg-black border-2 border-amber-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.15)] group">
-              <video
-                ref={previewVideoRef}
-                src={currentDisplayVideo}
-                controls
-                autoPlay
-                loop
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              {/* Scanlines Effect */}
-              <div className="absolute inset-0 pointer-events-none crt-scanlines opacity-25" />
-            </div>
+            {/* Video Screen: Locked vs Unlocked */}
+            {isCurrentUnlocked ? (
+              /* Unlocked Live Video Screen */
+              <div className="relative aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] rounded-2xl overflow-hidden bg-black border-2 border-amber-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.15)] group">
+                <video
+                  ref={previewVideoRef}
+                  src={currentDisplayVideo}
+                  controls
+                  controlsList="nodownload"
+                  autoPlay
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                {/* Scanlines Effect */}
+                <div className="absolute inset-0 pointer-events-none crt-scanlines opacity-25" />
+              </div>
+            ) : (
+              /* Locked Sponsor Screen */
+              <div className="relative aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] rounded-2xl overflow-hidden bg-[#090e11] border-2 border-amber-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.15)] flex flex-col items-center justify-between p-6 text-center select-none group">
+                {/* Scanlines Effect */}
+                <div className="absolute inset-0 pointer-events-none crt-scanlines opacity-30" />
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(0,0,0,0.85)_100%)] z-10" />
+
+                {/* Top Header Tag */}
+                <div className="z-20 w-full flex items-center justify-between border-b border-amber-400/20 pb-2 text-[9px] font-mono font-bold text-amber-300/80">
+                  <span>SNAPBEAT SPONSOR VAULT</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-black">
+                    FREE TIER
+                  </span>
+                </div>
+
+                {/* Center Lock Graphic & Call to Action */}
+                <div className="z-20 my-auto flex flex-col items-center space-y-3 px-2 w-full">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-500/20 to-amber-300/30 border border-amber-400/60 flex items-center justify-center text-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.3)] animate-pulse">
+                      <Lock className="w-8 h-8" />
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-amber-500 text-black text-[9px]">
+                      <Sparkles className="w-3 h-3" />
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">
+                      OUTPUT VIDEO LOCKED
+                    </h3>
+                    <p className="text-[11px] text-amber-100/70 font-medium leading-relaxed max-w-[220px]">
+                      Watch a 5-second sponsor video to unlock preview & MP4 download!
+                    </p>
+                  </div>
+
+                  {/* Primary Radiant Unlock Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingDownload(null);
+                      setIsAdOpen(true);
+                    }}
+                    className="w-full py-3 px-4 rounded-xl btn-gold-radiant text-[#261b02] font-black text-xs uppercase tracking-wider shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer border border-[#fff4b8]"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>WATCH AD TO UNLOCK (5S)</span>
+                  </button>
+
+                  {/* Skip with Pro */}
+                  <button
+                    type="button"
+                    onClick={onOpenPricing}
+                    className="text-[10px] text-amber-300/70 hover:text-amber-200 font-bold uppercase tracking-wider flex items-center gap-1 transition cursor-pointer pt-1"
+                  >
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span>OR SKIP ADS WITH PRO PASS</span>
+                  </button>
+                </div>
+
+                {/* Bottom CRT telemetry */}
+                <div className="z-20 w-full flex items-center justify-between border-t border-white/10 pt-2 text-[8px] font-mono text-white/40">
+                  <span>ENCODED: 480P MP4</span>
+                  <span>LOCKED OUTPUT</span>
+                </div>
+              </div>
+            )}
 
             {/* Action Bar: Download & Create Another Reel */}
             <div className="flex items-center justify-center gap-3 pt-1 flex-wrap w-full">
-              <a
-                href={currentDisplayVideo}
-                download={`SnapBeat_${jobId || "Reel"}.mp4`}
-                onClick={(e) =>
-                  handleDownloadClick(e, currentDisplayVideo, `SnapBeat_${jobId || "Reel"}.mp4`)
-                }
-                className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
-                title="Download MP4 to your device"
-              >
-                <Download className="w-4 h-4" />
-                <span>DOWNLOAD REEL MP4</span>
-              </a>
+              {isCurrentUnlocked ? (
+                <a
+                  href={currentDisplayVideo}
+                  download={`SnapBeat_${jobId || "Reel"}.mp4`}
+                  className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
+                  title="Download MP4 to your device"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>DOWNLOAD REEL MP4</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPendingDownload({
+                      url: currentDisplayVideo,
+                      fileName: `SnapBeat_${jobId || "Reel"}.mp4`,
+                    });
+                    setIsAdOpen(true);
+                  }}
+                  className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
+                  title="Watch sponsored video ad to unlock download"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>UNLOCK WITH AD TO DOWNLOAD</span>
+                </button>
+              )}
 
               {onNewReel && (
                 <button
@@ -338,23 +473,46 @@ export function RetroQueueConsole({
                         }`}
                         title="Preview video in player above"
                       >
-                        <Play className="w-3 h-3 fill-current" />
-                        <span>PREVIEW</span>
+                        {isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id] ? (
+                          <Play className="w-3 h-3 fill-current" />
+                        ) : (
+                          <Lock className="w-3 h-3 text-amber-400" />
+                        )}
+                        <span>
+                          {isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id]
+                            ? "PREVIEW"
+                            : "UNLOCK"}
+                        </span>
                       </button>
 
                       {/* Download Button */}
-                      <a
-                        href={job.videoUrl}
-                        download={`SnapBeat_${job.id}.mp4`}
-                        onClick={(e) =>
-                          handleDownloadClick(e, job.videoUrl, `SnapBeat_${job.id}.mp4`)
-                        }
-                        className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer border border-white/15"
-                        title="Download MP4"
-                        aria-label="Download MP4"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                      </a>
+                      {isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id] ? (
+                        <a
+                          href={job.videoUrl}
+                          download={`SnapBeat_${job.id}.mp4`}
+                          className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer border border-white/15"
+                          title="Download MP4"
+                          aria-label="Download MP4"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPendingDownload({
+                              url: job.videoUrl,
+                              fileName: `SnapBeat_${job.id}.mp4`,
+                            });
+                            setIsAdOpen(true);
+                          }}
+                          className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-400 transition cursor-pointer border border-amber-400/30"
+                          title="Unlock with Ad to Download"
+                          aria-label="Unlock with Ad to Download"
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

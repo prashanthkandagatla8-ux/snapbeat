@@ -337,6 +337,7 @@ export default function StudioPage() {
                     isRendering={renderJob.isRendering}
                     canRender={canRender}
                     videoUrl={renderJob.videoUrl}
+                    onNavigateQueue={() => setCurrentTab("queue")}
                   />
                   {/* Flow navigation */}
                   <div className="flex items-center justify-between pt-2">

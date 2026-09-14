@@ -61,13 +61,13 @@ export function RetroHeader({
   };
 
   return (
-    <header className="w-full bg-[#081b20]/80 backdrop-blur-xl border-b border-[#d4af37]/25 px-3 sm:px-6 py-2.5 sticky top-0 z-40 relative shadow-lg select-none text-white">
-      <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
-        {/* Left: SnapBeat 3D Logo + Server Status + Showcase Link */}
-        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto justify-between md:justify-start flex-wrap">
+    <header className="w-full bg-[#081b20]/90 backdrop-blur-xl border-b border-[#d4af37]/25 px-2 sm:px-4 py-2 sticky top-0 z-40 relative shadow-lg select-none text-white">
+      <div className="w-full flex flex-row items-center justify-between gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto no-scrollbar">
+        {/* Left: SnapBeat 3D Logo + STUDIO Badge + Server Status + Showcase Link */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
           <div
             onClick={onShowcaseClick}
-            className={`flex items-center gap-2.5 ${
+            className={`flex items-center gap-1.5 sm:gap-2 ${
               onShowcaseClick ? "cursor-pointer group" : ""
             }`}
             title={onShowcaseClick ? "Return to Showcase Home" : "SnapBeat Studio"}
@@ -79,32 +79,26 @@ export function RetroHeader({
               }
             }}
           >
-            <div>
-              <div className="flex items-center gap-2">
-                <img
-                  src="/assets/images/snapbeat_logo_3d.png"
-                  alt="SnapBeat"
-                  className="h-7 lg:h-8 w-auto object-contain group-hover:brightness-110 transition drop-shadow-md"
-                />
-                <span className="px-1.5 py-0.5 rounded bg-[#ffc72c] text-[#2b2820] font-black text-[9px] tracking-wider shadow-sm border border-[#bf8a00]">
-                  STUDIO
-                </span>
-              </div>
+            <img
+              src="/assets/images/snapbeat_logo_3d.png"
+              alt="SnapBeat"
+              className="h-6 sm:h-7 w-auto object-contain group-hover:brightness-110 transition drop-shadow-md shrink-0"
+            />
+            <span className="px-1.5 py-0.5 rounded bg-[#ffc72c] text-[#2b2820] font-black text-[9px] tracking-wider shadow-sm border border-[#bf8a00] shrink-0">
+              STUDIO
+            </span>
+            <div
+              className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-bold text-emerald-400 shrink-0"
+              title={serverOnline ? "GPU cluster is online" : "GPU render cluster offline"}
+            >
               <div
-                className="flex items-center gap-1.5 text-[9px] text-white/70 font-bold"
-                title={serverOnline ? "GPU cluster is online and operational" : "GPU render server is offline or unreachable"}
-              >
-                <div
-                  className={
-                    serverOnline
-                      ? "w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"
-                      : "w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444] animate-pulse"
-                  }
-                />
-                <span className={serverOnline ? "text-emerald-400" : "text-red-400"}>
-                  {serverOnline ? "SERVER ONLINE" : "SERVER OFFLINE"}
-                </span>
-              </div>
+                className={
+                  serverOnline
+                    ? "w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse"
+                    : "w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_6px_#ef4444] animate-pulse"
+                }
+              />
+              <span>{serverOnline ? "ONLINE" : "OFFLINE"}</span>
             </div>
           </div>
 
@@ -113,19 +107,19 @@ export function RetroHeader({
             <button
               type="button"
               onClick={onShowcaseClick}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[11px] font-black tracking-wide transition border border-amber-500/30 active:scale-95 shadow-sm cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[10px] font-black tracking-wide transition border border-amber-500/30 active:scale-95 shadow-sm cursor-pointer shrink-0"
               title="View Sample Render Showcase Reel"
               aria-label="Return to Showcase Home"
             >
-              <Film className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">SHOWCASE</span>
+              <Film className="w-3 h-3 text-amber-400 shrink-0" />
+              <span>SHOWCASE</span>
             </button>
           )}
         </div>
 
-        {/* Center: Stepper (Prev [ Active Tab 1/4 ] Next) - No Cramping */}
+        {/* Center: Stepper (Prev [ Active Tab 1/4 ] Next) */}
         <nav
-          className="flex items-center gap-1 p-1 rounded-2xl bg-black/50 border border-white/10 backdrop-blur-md"
+          className="flex items-center gap-1 p-0.5 sm:p-1 rounded-xl bg-black/50 border border-white/10 backdrop-blur-md shrink-0"
           aria-label="Workflow Stepper"
         >
           {/* Previous Step Button */}
@@ -133,23 +127,23 @@ export function RetroHeader({
             type="button"
             onClick={handlePrevTab}
             disabled={currentTabIndex === 0}
-            className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center"
+            className="p-1 sm:p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
             title={currentTabIndex > 0 ? `Previous: ${TABS[currentTabIndex - 1].label}` : "First Step"}
             aria-label="Previous Step"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
 
           {/* Active Tab Display (Icon + Name + Step Counter) */}
           <div
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl btn-brass text-[#261b02] shadow-[0_2px_10px_rgba(255,199,44,0.3)] select-none"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg btn-brass text-[#261b02] shadow-[0_2px_10px_rgba(255,199,44,0.3)] select-none shrink-0"
             title={`${activeTab.label}: Step ${currentTabIndex + 1} of 4 — ${activeTab.desc}`}
           >
             <ActiveIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="font-black text-xs uppercase tracking-wider">
+            <span className="font-black text-[11px] sm:text-xs uppercase tracking-wider">
               {activeTab.label}
             </span>
-            <span className="px-1.5 py-0.2 rounded-full bg-black/25 text-[#261b02] font-mono text-[9px] font-black">
+            <span className="px-1.5 py-0.2 rounded-full bg-black/25 text-[#261b02] font-mono text-[9px] font-black shrink-0">
               {currentTabIndex + 1}/4
             </span>
             {activeQueueCount > 0 && activeTab.id === "queue" && (
@@ -162,27 +156,27 @@ export function RetroHeader({
             type="button"
             onClick={handleNextTab}
             disabled={currentTabIndex === TABS.length - 1}
-            className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center"
+            className="p-1 sm:p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
             title={currentTabIndex < TABS.length - 1 ? `Next: ${TABS[currentTabIndex + 1].label}` : "Final Step"}
             aria-label="Next Step"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </nav>
 
-        {/* Right: FREE vs PRO Mode Switcher + User Account + Pro Button */}
-        <div className="flex items-center justify-center md:justify-end gap-2 sm:gap-3 flex-wrap">
+        {/* Right: FREE vs PRO Mode Switcher + Pro Pass + User Account */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
           {/* FREE vs PRO Switcher */}
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/40 border border-white/10"
-            title="Render output tier: Free (720p with watermark) vs Pro (1080p clean)"
+            className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-xl bg-black/40 border border-white/10 shrink-0"
+            title="Render output tier: Free (480p with watermark) vs Pro (1080p clean)"
           >
-            <span className="text-[10px] font-black text-amber-300/80">MODE:</span>
+            <span className="text-[9px] font-black text-amber-300/80 hidden sm:inline">MODE:</span>
             <div className="flex items-center bg-[#0a1e24] rounded-lg p-0.5 border border-white/10">
               <button
                 type="button"
                 onClick={() => handleModeSwitch("free")}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-black transition ${
+                className={`px-1.5 py-0.5 rounded text-[9px] font-black transition ${
                   renderMode === "free"
                     ? "bg-white/20 text-white shadow"
                     : "text-white/50 hover:text-white"
@@ -194,14 +188,14 @@ export function RetroHeader({
               <button
                 type="button"
                 onClick={() => handleModeSwitch("pro")}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-black transition flex items-center gap-0.5 ${
+                className={`px-1.5 py-0.5 rounded text-[9px] font-black transition flex items-center gap-0.5 ${
                   renderMode === "pro"
                     ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow font-black"
                     : "text-white/50 hover:text-white"
                 }`}
-                title="Pro Mode (1080p, no watermark, title cards unlocked)"
+                title="Pro Mode (1080p, no watermark)"
               >
-                <Crown className="w-2.5 h-2.5" />
+                <Crown className="w-2 h-2" />
                 <span>PRO</span>
               </button>
             </div>
@@ -210,22 +204,22 @@ export function RetroHeader({
           {/* Pro Upgrade / Badge Button */}
           {isPro ? (
             <div
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black font-black text-[10px] tracking-wider shadow-[0_4px_15px_rgba(255,199,44,0.4)] cursor-default"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black font-black text-[9px] tracking-wider shadow-[0_4px_15px_rgba(255,199,44,0.4)] cursor-default shrink-0"
               title={daysRemaining ? `Pro Subscription Active — ${daysRemaining} days remaining` : "Pro Subscription Active"}
             >
-              <Crown className="w-3 h-3 fill-current" />
+              <Crown className="w-2.5 h-2.5 fill-current" />
               <span>PRO ACTIVE{daysRemaining ? ` (${daysRemaining}d)` : ""}</span>
             </div>
           ) : (
             <button
               type="button"
               onClick={onOpenPricing}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs btn-brass text-[#261b02] shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-110 active:scale-95 transition cursor-pointer"
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl font-black text-[10px] btn-brass text-[#261b02] shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-110 active:scale-95 transition cursor-pointer shrink-0"
               title="Pro Pass (1080p Master & Watermark Removal) — Coming Soon"
             >
-              <Crown className="w-3.5 h-3.5 text-amber-800 fill-amber-700" />
+              <Crown className="w-3 h-3 text-amber-800 fill-amber-700 shrink-0" />
               <span>PRO PASS</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-black/60 text-amber-300 text-[8px] font-black uppercase tracking-wider">
+              <span className="px-1 py-0.2 rounded bg-black/60 text-amber-300 text-[7px] font-black uppercase tracking-wider shrink-0">
                 SOON
               </span>
             </button>
@@ -233,9 +227,9 @@ export function RetroHeader({
 
           {/* User Sign In / Account Status */}
           {user ? (
-            <div className="flex items-center gap-1.5 pl-1 sm:pl-2 border-l border-white/10">
+            <div className="flex items-center gap-1 pl-1 border-l border-white/10 shrink-0">
               <div
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/40 border border-white/10 text-white"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-black/40 border border-white/10 text-white shrink-0"
                 title={`Signed in as ${user.email}${user.isPro ? " (Pro Account)" : ""}`}
               >
                 {user.picture ? (
@@ -245,15 +239,15 @@ export function RetroHeader({
                     className="w-4 h-4 rounded-full object-cover border border-amber-400 shrink-0"
                   />
                 ) : (
-                  <div className="w-4 h-4 rounded-full bg-amber-400/30 text-amber-300 flex items-center justify-center font-black text-[9px] shrink-0">
+                  <div className="w-4 h-4 rounded-full bg-amber-400/30 text-amber-300 flex items-center justify-center font-black text-[8px] shrink-0">
                     {(user.name || user.email || "U")[0].toUpperCase()}
                   </div>
                 )}
-                <span className="text-[10px] sm:text-[11px] font-black max-w-[80px] sm:max-w-[120px] truncate">
+                <span className="text-[10px] font-black max-w-[65px] sm:max-w-[90px] truncate">
                   {user.name || user.email.split("@")[0]}
                 </span>
                 {user.isGuest && (
-                  <span className="px-1.5 py-0.2 rounded bg-amber-400/30 text-amber-300 text-[8px] font-mono font-black uppercase tracking-wider border border-amber-400/50">
+                  <span className="px-1 py-0.2 rounded bg-amber-400/30 text-amber-300 text-[7px] font-mono font-black uppercase tracking-wider border border-amber-400/50 shrink-0">
                     GUEST
                   </span>
                 )}
@@ -261,22 +255,22 @@ export function RetroHeader({
               <button
                 type="button"
                 onClick={signOut}
-                className="p-1.5 rounded-xl bg-black/40 border border-white/10 text-white/60 hover:text-red-400 hover:bg-white/5 active:scale-95 transition cursor-pointer"
+                className="p-1 rounded-lg bg-black/40 border border-white/10 text-white/60 hover:text-red-400 hover:bg-white/5 active:scale-95 transition cursor-pointer shrink-0"
                 title="Sign Out"
                 aria-label="Sign Out"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-3 h-3" />
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={openAuthModal}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#ffd152] via-[#ffbe1a] to-[#d99700] text-[#261b02] hover:brightness-110 transition flex items-center gap-1.5 text-[11px] font-black shadow-[0_4px_12px_rgba(255,199,44,0.35)] active:scale-95 cursor-pointer"
+              className="px-2.5 py-1 rounded-xl bg-gradient-to-b from-[#ffd152] via-[#ffbe1a] to-[#d99700] text-[#261b02] hover:brightness-110 transition flex items-center gap-1 text-[10px] font-black shadow active:scale-95 cursor-pointer shrink-0"
               title="Sign In with Email or Google"
             >
-              <User className="w-3.5 h-3.5" />
-              <span className="inline">Sign In</span>
+              <User className="w-3 h-3" />
+              <span>Sign In</span>
             </button>
           )}
         </div>

@@ -24,9 +24,9 @@ export function RetroRenderStudio({
   isRendering,
   canRender,
   videoUrl,
+  onNavigateQueue,
 }) {
   const currentTemplateObj = TEMPLATES.find((t) => t.id === selectedTemplate) || TEMPLATES[0];
-  const [monitorMode, setMonitorMode] = useState("title"); // 'title' | 'video'
 
   const getTitleCardFontClass = (fontId) => {
     switch (fontId) {
@@ -67,26 +67,15 @@ export function RetroRenderStudio({
 
           <div className="flex items-center gap-2">
             {videoUrl && (
-              <div className="flex items-center bg-[#b8ae9e] rounded-lg p-0.5 border border-white/15">
-                <button
-                  type="button"
-                  onClick={() => setMonitorMode("title")}
-                  className={`px-2 py-0.5 rounded text-[9px] font-black transition ${
-                    monitorMode === "title" ? "bg-[#ffc72c] text-[#2b2820]" : "text-amber-100/70"
-                  }`}
-                >
-                  TITLE INTRO
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMonitorMode("video")}
-                  className={`px-2 py-0.5 rounded text-[9px] font-black transition ${
-                    monitorMode === "video" ? "bg-[#ffc72c] text-[#2b2820]" : "text-amber-100/70"
-                  }`}
-                >
-                  VIDEO
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={onNavigateQueue}
+                className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black tracking-wide flex items-center gap-1 hover:brightness-110 active:scale-95 transition shadow cursor-pointer"
+                title="Preview & Export Finished Reel in Queue"
+              >
+                <Film className="w-3 h-3" />
+                <span>VIEW REEL IN QUEUE</span>
+              </button>
             )}
             <span className="px-2 py-0.5 rounded bg-[#1e1c1a] text-amber-400 font-mono text-[10px] font-bold">
               FRAME: {aspectRatio} • {quality === "master" ? "1080P" : "480P"}
@@ -104,17 +93,8 @@ export function RetroRenderStudio({
               : "aspect-[9/16] max-w-[320px]"
           } rounded-2xl overflow-hidden relative shadow-2xl border-4 border-[#3a3734] bg-[#0d0c0b] flex items-center justify-center transition-all duration-300 group`}
         >
-          {videoUrl && monitorMode === "video" ? (
-            <video
-              src={videoUrl}
-              controls
-              autoPlay
-              loop
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            /* Live Title Card CRT Stage - Always Live, Never Just Placeholder */
-            <div className="w-full h-full relative flex flex-col items-center justify-between p-6 bg-gradient-to-b from-[#18181b] via-[#09090b] to-[#18181b] text-center select-none overflow-hidden">
+          {/* Live Title Card CRT Stage - Always Live, Never Just Placeholder */}
+          <div className="w-full h-full relative flex flex-col items-center justify-between p-6 bg-gradient-to-b from-[#18181b] via-[#09090b] to-[#18181b] text-center select-none overflow-hidden">
               {/* Scanlines and Vignette CRT Effect */}
               <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_transparent_40%,_rgba(0,0,0,0.85)_100%)] z-10" />
               <div className="absolute inset-0 pointer-events-none opacity-25 bg-[repeating-linear-gradient(0deg,#000,#000_2px,transparent_2px,transparent_4px)] z-10" />
@@ -192,19 +172,20 @@ export function RetroRenderStudio({
                 <span>{currentTemplateObj.name.toUpperCase()}</span>
               </div>
             </div>
-          )}
         </div>
 
-        {/* Download Action Bar if video is rendered */}
+        {/* Queue Preview & Export Action Bar if video is rendered */}
         {videoUrl && (
           <div className="mt-4 flex items-center gap-3">
-            <a
-              href={videoUrl}
-              download="SnapBeat_Reel.mp4"
-              className="inline-flex items-center gap-2"
+            <button
+              type="button"
+              onClick={onNavigateQueue}
+              className="btn-gold-radiant px-5 py-2.5 rounded-2xl text-xs font-black uppercase text-[#261b02] flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition cursor-pointer"
+              title="Open Queue Console to Preview & Download Reel"
             >
-              <RetroMechanicalButton variant="download" height="46px" />
-            </a>
+              <Film className="w-4 h-4" />
+              <span>PREVIEW & EXPORT IN QUEUE</span>
+            </button>
           </div>
         )}
       </div>

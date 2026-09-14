@@ -16,6 +16,14 @@ export default function RetroVideoAdModal({ isOpen, onComplete, onClose, onOpenP
       return;
     }
 
+    setTimeLeft(5);
+    setCanSkip(false);
+
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -144,8 +152,8 @@ export default function RetroVideoAdModal({ isOpen, onComplete, onClose, onOpenP
 
           <p className="text-xs font-medium text-amber-100/80">
             {canSkip
-              ? "Your beat-synchronized MP4 reel is ready for download!"
-              : "Thank you for creating with SnapBeat Free Tier. Your download unlocks momentarily."}
+              ? "Your beat-synchronized MP4 reel is unlocked!"
+              : "Thank you for creating with SnapBeat Free Tier. Your reel preview & download unlock momentarily."}
           </p>
 
           {canSkip ? (
@@ -154,13 +162,13 @@ export default function RetroVideoAdModal({ isOpen, onComplete, onClose, onOpenP
               onClick={handleFinish}
               className="w-full py-3.5 rounded-full font-black text-sm uppercase tracking-wider btn-gold-radiant text-[#241903] shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>DOWNLOAD MP4 REEL</span>
+              <span>UNLOCK REEL & ACCESS OUTPUT</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <div className="w-full py-3.5 rounded-full bg-white/10 text-white/70 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-wait border border-white/10">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping mr-1" />
-              <span>PREPARING DOWNLOAD ({timeLeft}S)...</span>
+              <span>SPONSOR AD PLAYING ({timeLeft}S)...</span>
             </div>
           )}
 
