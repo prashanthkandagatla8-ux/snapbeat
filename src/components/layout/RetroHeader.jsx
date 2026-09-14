@@ -2,7 +2,18 @@
 
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Crown, Music, Images, Sliders, ListOrdered, Film, User, LogOut } from "lucide-react";
+import {
+  Crown,
+  Music,
+  Images,
+  Sliders,
+  ListOrdered,
+  Film,
+  User,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export function RetroHeader({
   currentTab,
@@ -26,10 +37,33 @@ export function RetroHeader({
     setRenderMode(mode);
   };
 
+  const TABS = [
+    { id: "music", label: "MUSIC", icon: Music, desc: "Soundtrack & Audio Trim" },
+    { id: "photos", label: "PHOTOS", icon: Images, desc: "Photo Strips & Auto-Arrange" },
+    { id: "render", label: "RENDER", icon: Sliders, desc: "Templates, Aspect Ratio & Render" },
+    { id: "queue", label: "QUEUE", icon: ListOrdered, desc: "Render Progress & Downloads" },
+  ];
+
+  const currentTabIndex = Math.max(0, TABS.findIndex((t) => t.id === currentTab));
+  const activeTab = TABS[currentTabIndex] || TABS[0];
+  const ActiveIcon = activeTab.icon;
+
+  const handlePrevTab = () => {
+    if (currentTabIndex > 0) {
+      setCurrentTab(TABS[currentTabIndex - 1].id);
+    }
+  };
+
+  const handleNextTab = () => {
+    if (currentTabIndex < TABS.length - 1) {
+      setCurrentTab(TABS[currentTabIndex + 1].id);
+    }
+  };
+
   return (
     <header className="w-full bg-[#081b20]/80 backdrop-blur-xl border-b border-[#d4af37]/25 px-3 sm:px-6 py-2.5 sticky top-0 z-40 relative shadow-lg select-none text-white">
       <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
-        {/* Left: SnapBeat App Icon + Logo + Showcase Link */}
+        {/* Left: SnapBeat 3D Logo + Server Status + Showcase Link */}
         <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto justify-between md:justify-start flex-wrap">
           <div
             onClick={onShowcaseClick}
@@ -79,7 +113,7 @@ export function RetroHeader({
             <button
               type="button"
               onClick={onShowcaseClick}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[11px] font-black tracking-wide transition border border-amber-500/30 active:scale-95 shadow-sm"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[11px] font-black tracking-wide transition border border-amber-500/30 active:scale-95 shadow-sm cursor-pointer"
               title="View Sample Render Showcase Reel"
               aria-label="Return to Showcase Home"
             >
@@ -89,42 +123,51 @@ export function RetroHeader({
           )}
         </div>
 
-        {/* Center: Tabs (Music → Photos → Render → Queue) */}
+        {/* Center: Stepper (Prev [ Active Tab 1/4 ] Next) - No Cramping */}
         <nav
-          className="flex items-center gap-1 p-1 rounded-2xl bg-black/40 border border-white/10 overflow-x-auto max-w-full backdrop-blur-md"
-          aria-label="Workflow Tabs"
+          className="flex items-center gap-1 p-1 rounded-2xl bg-black/50 border border-white/10 backdrop-blur-md"
+          aria-label="Workflow Stepper"
         >
-          {[
-            { id: "music", label: "MUSIC", icon: Music, desc: "Soundtrack & Audio Trim" },
-            { id: "photos", label: "PHOTOS", icon: Images, desc: "Photo Strips & Auto-Arrange" },
-            { id: "render", label: "RENDER", icon: Sliders, desc: "Templates, Aspect Ratio & Render" },
-            { id: "queue", label: "QUEUE", icon: ListOrdered, badge: activeQueueCount, desc: "Render Progress & Downloads" },
-          ].map((tab) => {
-            const isActive = currentTab === tab.id;
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setCurrentTab(tab.id)}
-                title={tab.desc}
-                aria-current={isActive ? "page" : undefined}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                  isActive
-                    ? "btn-brass text-[#261b02] shadow-[0_4px_12px_rgba(255,199,44,0.35)] scale-100"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span>{tab.label}</span>
-                {tab.badge > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[#d62828] text-white text-[9px] font-bold animate-pulse shrink-0">
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          {/* Previous Step Button */}
+          <button
+            type="button"
+            onClick={handlePrevTab}
+            disabled={currentTabIndex === 0}
+            className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center"
+            title={currentTabIndex > 0 ? `Previous: ${TABS[currentTabIndex - 1].label}` : "First Step"}
+            aria-label="Previous Step"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          {/* Active Tab Display (Icon + Name + Step Counter) */}
+          <div
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl btn-brass text-[#261b02] shadow-[0_2px_10px_rgba(255,199,44,0.3)] select-none"
+            title={`${activeTab.label}: Step ${currentTabIndex + 1} of 4 — ${activeTab.desc}`}
+          >
+            <ActiveIcon className="w-3.5 h-3.5 shrink-0" />
+            <span className="font-black text-xs uppercase tracking-wider">
+              {activeTab.label}
+            </span>
+            <span className="px-1.5 py-0.2 rounded-full bg-black/25 text-[#261b02] font-mono text-[9px] font-black">
+              {currentTabIndex + 1}/4
+            </span>
+            {activeQueueCount > 0 && activeTab.id === "queue" && (
+              <span className="w-2 h-2 rounded-full bg-[#d62828] animate-pulse shrink-0" />
+            )}
+          </div>
+
+          {/* Next Step Button */}
+          <button
+            type="button"
+            onClick={handleNextTab}
+            disabled={currentTabIndex === TABS.length - 1}
+            className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center"
+            title={currentTabIndex < TABS.length - 1 ? `Next: ${TABS[currentTabIndex + 1].label}` : "Final Step"}
+            aria-label="Next Step"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </nav>
 
         {/* Right: FREE vs PRO Mode Switcher + User Account + Pro Button */}
@@ -144,7 +187,7 @@ export function RetroHeader({
                     ? "bg-white/20 text-white shadow"
                     : "text-white/50 hover:text-white"
                 }`}
-                title="Free Mode (720p, watermark included)"
+                title="Free Mode (480p, watermark included)"
               >
                 FREE
               </button>
@@ -218,7 +261,7 @@ export function RetroHeader({
               <button
                 type="button"
                 onClick={signOut}
-                className="p-1.5 rounded-xl bg-black/40 border border-white/10 text-white/60 hover:text-red-400 hover:bg-white/5 active:scale-95 transition"
+                className="p-1.5 rounded-xl bg-black/40 border border-white/10 text-white/60 hover:text-red-400 hover:bg-white/5 active:scale-95 transition cursor-pointer"
                 title="Sign Out"
                 aria-label="Sign Out"
               >
@@ -229,7 +272,7 @@ export function RetroHeader({
             <button
               type="button"
               onClick={openAuthModal}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#ffd152] via-[#ffbe1a] to-[#d99700] text-[#261b02] hover:brightness-110 transition flex items-center gap-1.5 text-[11px] font-black shadow-[0_4px_12px_rgba(255,199,44,0.35)] active:scale-95"
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#ffd152] via-[#ffbe1a] to-[#d99700] text-[#261b02] hover:brightness-110 transition flex items-center gap-1.5 text-[11px] font-black shadow-[0_4px_12px_rgba(255,199,44,0.35)] active:scale-95 cursor-pointer"
               title="Sign In with Email or Google"
             >
               <User className="w-3.5 h-3.5" />

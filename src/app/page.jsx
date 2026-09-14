@@ -121,24 +121,84 @@ export default function StudioPage() {
     }
   };
 
-  // Record completed job to history
+  // Account-level and guest-level persistent storage key
+  const getJobsStorageKey = (currentUser) => {
+    if (!currentUser) return "snapbeat_jobs_guest";
+    if (currentUser.email && !currentUser.isGuest) {
+      return `snapbeat_jobs_${currentUser.email.toLowerCase().trim()}`;
+    }
+    return `snapbeat_jobs_${currentUser.id || "guest"}`;
+  };
+
+  // Load account/guest-level queue history whenever user changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const key = getJobsStorageKey(user);
+    try {
+      const stored = localStorage.getItem(key);
+      let jobs = stored ? JSON.parse(stored) : [];
+
+      // If user is a registered user, check if there are any orphaned guest jobs to merge
+      if (user && !user.isGuest && user.email) {
+        const guestJobsRaw = localStorage.getItem("snapbeat_jobs_guest");
+        if (guestJobsRaw) {
+          try {
+            const guestJobs = JSON.parse(guestJobsRaw);
+            if (Array.isArray(guestJobs) && guestJobs.length > 0) {
+              const existingIds = new Set(jobs.map((j) => j.id));
+              const newFromGuest = guestJobs.filter((j) => !existingIds.has(j.id));
+              if (newFromGuest.length > 0) {
+                jobs = [...newFromGuest, ...jobs];
+                localStorage.setItem(key, JSON.stringify(jobs));
+              }
+              localStorage.removeItem("snapbeat_jobs_guest");
+            }
+          } catch (_) {}
+        }
+      }
+
+      setPastJobs(Array.isArray(jobs) ? jobs : []);
+    } catch (e) {
+      console.warn("Could not load account jobs history:", e);
+    }
+  }, [user?.email, user?.id, user?.isGuest]);
+
+  // Record completed job to history & persist to user account or guest session
   useEffect(() => {
     if (renderJob.videoUrl && renderJob.jobId) {
       setPastJobs((prev) => {
         if (prev.some((j) => j.id === renderJob.jobId)) return prev;
-        return [
-          {
-            id: renderJob.jobId,
-            templateName: studio.selectedTemplate,
-            quality: studio.quality,
-            videoUrl: renderJob.videoUrl,
-            createdAt: new Date().toISOString(),
-          },
-          ...prev,
-        ];
+        const newJob = {
+          id: renderJob.jobId,
+          templateName: studio.selectedTemplate,
+          quality: studio.quality,
+          videoUrl: renderJob.videoUrl,
+          createdAt: new Date().toISOString(),
+          aspectRatio: studio.aspectRatio,
+        };
+        const updated = [newJob, ...prev];
+        if (typeof window !== "undefined") {
+          try {
+            const key = getJobsStorageKey(user);
+            localStorage.setItem(key, JSON.stringify(updated));
+          } catch (e) {
+            console.warn("Failed to persist job to storage:", e);
+          }
+        }
+        return updated;
       });
     }
-  }, [renderJob.videoUrl, renderJob.jobId]);
+  }, [renderJob.videoUrl, renderJob.jobId, user, studio.selectedTemplate, studio.quality, studio.aspectRatio]);
+
+  const handleClearPastJobs = () => {
+    setPastJobs([]);
+    if (typeof window !== "undefined") {
+      try {
+        const key = getJobsStorageKey(user);
+        localStorage.removeItem(key);
+      } catch (_) {}
+    }
+  };
 
   // Handle plan purchase (Disabled during merchant review)
   const handleSelectPlan = (planId) => {
@@ -309,11 +369,12 @@ export default function StudioPage() {
                     error={renderJob.error}
                     videoUrl={renderJob.videoUrl}
                     pastJobs={pastJobs}
-                    onClearCompleted={() => setPastJobs([])}
+                    onClearCompleted={handleClearPastJobs}
                     isPro={isPro}
                     onOpenPricing={() => setIsStoreOpen(true)}
                     onRetry={handleStartRender}
                     onDismissError={renderJob.resetJob}
+                    onNewReel={() => setCurrentTab("photos")}
                   />
                   {/* Flow navigation */}
                   <div className="flex items-center justify-between pt-2">
