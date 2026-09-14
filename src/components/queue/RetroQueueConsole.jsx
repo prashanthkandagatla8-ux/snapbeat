@@ -12,10 +12,10 @@ import {
   Sparkles,
   Play,
   Film,
-  Lock,
   Crown,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
-import RetroVideoAdModal from "@/components/ads/RetroVideoAdModal";
 
 export function RetroQueueConsole({
   jobId,
@@ -33,7 +33,7 @@ export function RetroQueueConsole({
   onDismissError,
   onNewReel,
 }) {
-  const [isAdOpen, setIsAdOpen] = useState(false);
+  const [isAdMuted, setIsAdMuted] = useState(true);
   const [unlockedJobs, setUnlockedJobs] = useState(() => {
     if (typeof window !== "undefined") {
       try {
@@ -53,6 +53,13 @@ export function RetroQueueConsole({
   const previewVideoRef = useRef(null);
   const autoPromptTriggered = useRef(false);
 
+  // YouTube-Style Pre-Roll In-Stream Ad State
+  const AD_DURATION = 8;
+  const [isPlayingPreRoll, setIsPlayingPreRoll] = useState(false);
+  const [preRollTimeLeft, setPreRollTimeLeft] = useState(AD_DURATION);
+  const preRollTimerRef = useRef(null);
+  const directLink = process.env.NEXT_PUBLIC_MONETAG_DIRECT_LINK || "https://omg10.com/4/11799879";
+
   const markJobUnlocked = (key) => {
     if (!key) return;
     setUnlockedJobs((prev) => {
@@ -66,37 +73,47 @@ export function RetroQueueConsole({
     });
   };
 
-  // Sync activePreviewUrl when a new videoUrl finishes rendering & auto-prompt ad for free users
-  useEffect(() => {
-    if (videoUrl) {
-      setActivePreviewUrl(videoUrl);
-      setActivePreviewTitle(`SnapBeat Job #${jobId || "Reel"}`);
-      // Free users auto-see full video ad to unlock output when render completes
-      if (
-        !isPro &&
-        !unlockedJobs[videoUrl] &&
-        !(jobId && unlockedJobs[jobId]) &&
-        !autoPromptTriggered.current
-      ) {
-        autoPromptTriggered.current = true;
-        setPendingDownload(null);
-        setIsAdOpen(true);
-      }
-    }
-  }, [videoUrl, jobId, isPro, unlockedJobs]);
-
   const currentDisplayVideo = activePreviewUrl || videoUrl;
   const currentKey = currentDisplayVideo || (jobId ? `job_${jobId}` : null);
   const isCurrentUnlocked =
     isPro ||
     (currentKey && Boolean(unlockedJobs[currentKey] || (jobId && unlockedJobs[jobId])));
 
-  const triggerAdUnlockFlow = (targetUrl, targetName) => {
-    if (targetUrl && targetName) {
-      setPendingDownload({ url: targetUrl, fileName: targetName });
+  const finishPreRollAd = (pending) => {
+    setIsPlayingPreRoll(false);
+    const key = pending?.url || currentDisplayVideo || (jobId ? `job_${jobId}` : "current");
+    markJobUnlocked(key);
+    if (currentDisplayVideo) markJobUnlocked(currentDisplayVideo);
+    if (jobId) markJobUnlocked(jobId);
+
+    // Smoothly start playing the rendered reel now that ad has concluded
+    setTimeout(() => {
+      if (previewVideoRef.current) {
+        previewVideoRef.current.currentTime = 0;
+        previewVideoRef.current.play().catch(() => {});
+      }
+    }, 150);
+
+    // If user clicked download before watching, trigger download now
+    if (pending?.url) {
+      const link = document.createElement("a");
+      link.href = pending.url;
+      link.download = pending.fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-    // Open Monetag direct link in sponsor tab on user gesture
-    const directLink = process.env.NEXT_PUBLIC_MONETAG_DIRECT_LINK || "https://omg10.com/4/11799879";
+    setPendingDownload(null);
+  };
+
+  const triggerPreRollAd = (targetUrl, targetName) => {
+    let pending = null;
+    if (targetUrl && targetName) {
+      pending = { url: targetUrl, fileName: targetName };
+      setPendingDownload(pending);
+    }
+
+    // Open sponsor link in background on click
     if (directLink && typeof window !== "undefined") {
       try {
         window.open(directLink, "_blank", "noopener,noreferrer");
@@ -104,39 +121,73 @@ export function RetroQueueConsole({
         console.warn("Sponsor tab prevented:", e);
       }
     }
-    setIsAdOpen(true);
+
+    // Start 8-second YouTube-style non-skippable pre-roll
+    setIsPlayingPreRoll(true);
+    setPreRollTimeLeft(AD_DURATION);
+
+    if (preRollTimerRef.current) clearInterval(preRollTimerRef.current);
+    preRollTimerRef.current = setInterval(() => {
+      setPreRollTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(preRollTimerRef.current);
+          preRollTimerRef.current = null;
+          finishPreRollAd(pending);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (preRollTimerRef.current) {
+        clearInterval(preRollTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Sync activePreviewUrl when a new videoUrl finishes rendering & trigger pre-roll for free users
+  useEffect(() => {
+    if (videoUrl) {
+      setActivePreviewUrl(videoUrl);
+      setActivePreviewTitle(`SnapBeat Job #${jobId || "Reel"}`);
+      // If free user and not yet unlocked, auto-play the 5s pre-roll like YouTube
+      if (
+        !isPro &&
+        !unlockedJobs[videoUrl] &&
+        !(jobId && unlockedJobs[jobId]) &&
+        !autoPromptTriggered.current
+      ) {
+        autoPromptTriggered.current = true;
+        triggerPreRollAd(null, null);
+      }
+    }
+  }, [videoUrl, jobId, isPro, unlockedJobs]);
 
   const handleDownloadClick = (e, targetUrl, fileName) => {
+    if (e) e.preventDefault();
     const url = targetUrl || currentDisplayVideo;
     const name = fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
-    const isUnlocked =
-      isPro || Boolean(unlockedJobs[url] || (jobId && unlockedJobs[jobId]));
+    const isUnlocked = isPro || Boolean(unlockedJobs[url] || (jobId && unlockedJobs[jobId]));
 
     if (!isUnlocked) {
-      if (e) e.preventDefault();
-      triggerAdUnlockFlow(url, name);
+      if (isPlayingPreRoll) {
+        setPendingDownload({ url, fileName: name });
+        return;
+      }
+      triggerPreRollAd(url, name);
       return;
     }
-  };
 
-  const handleAdComplete = () => {
-    setIsAdOpen(false);
-    const key = pendingDownload?.url || currentDisplayVideo || (jobId ? `job_${jobId}` : "current");
-    markJobUnlocked(key);
-    if (currentDisplayVideo) markJobUnlocked(currentDisplayVideo);
-    if (jobId) markJobUnlocked(jobId);
-
-    // If download was pending, trigger it immediately
-    if (pendingDownload?.url) {
-      const link = document.createElement("a");
-      link.href = pendingDownload.url;
-      link.download = pendingDownload.fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-    setPendingDownload(null);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleSelectPreview = (job) => {
@@ -273,122 +324,113 @@ export function RetroQueueConsole({
                 </span>
               </div>
               <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold border ${
-                isCurrentUnlocked
-                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                  : "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                isPro
+                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
               }`}>
-                {isPro
-                  ? "1080P MASTER OUTPUT"
-                  : isCurrentUnlocked
-                  ? "480P STANDARD • UNLOCKED"
-                  : "480P STANDARD • LOCKED"}
+                {isPro ? "1080P MASTER OUTPUT" : "480P STANDARD OUTPUT"}
               </span>
             </div>
 
-            {/* Video Screen: Locked vs Unlocked */}
-            {isCurrentUnlocked ? (
-              /* Unlocked Live Video Screen */
-              <div className="relative aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] rounded-2xl overflow-hidden bg-black border-2 border-amber-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.15)] group">
-                <video
-                  ref={previewVideoRef}
-                  src={currentDisplayVideo}
-                  controls
-                  controlsList="nodownload"
-                  autoPlay
-                  loop
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-                {/* Scanlines Effect */}
-                <div className="absolute inset-0 pointer-events-none crt-scanlines opacity-25" />
-              </div>
-            ) : (
-              /* Locked Sponsor Screen */
-              <div className="relative aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] rounded-2xl overflow-hidden bg-[#090e11] border-2 border-amber-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.15)] flex flex-col items-center justify-between p-6 text-center select-none group">
-                {/* Scanlines Effect */}
-                <div className="absolute inset-0 pointer-events-none crt-scanlines opacity-30" />
-                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(0,0,0,0.85)_100%)] z-10" />
+            {/* In-Stream YouTube-Style Video Player */}
+            <div className="relative aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] rounded-2xl overflow-hidden bg-black border-2 border-amber-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.15)] group">
+              <video
+                ref={previewVideoRef}
+                key={isPlayingPreRoll ? "ad-video" : currentDisplayVideo}
+                src={isPlayingPreRoll ? "/assets/videos/showcase_reel.mp4" : currentDisplayVideo}
+                controls={!isPlayingPreRoll}
+                controlsList="nodownload"
+                autoPlay
+                loop={isPlayingPreRoll}
+                muted={isPlayingPreRoll ? isAdMuted : false}
+                playsInline
+                className="w-full h-full object-cover"
+              />
 
-                {/* Top Header Tag */}
-                <div className="z-20 w-full flex items-center justify-between border-b border-amber-400/20 pb-2 text-[9px] font-mono font-bold text-amber-300/80">
-                  <span>SNAPBEAT SPONSOR VAULT</span>
-                  <span className="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-black">
-                    FREE TIER
-                  </span>
-                </div>
+              {/* Scanlines Effect */}
+              <div className="absolute inset-0 pointer-events-none crt-scanlines opacity-25 z-10" />
 
-                {/* Center Lock Graphic & Call to Action */}
-                <div className="z-20 my-auto flex flex-col items-center space-y-3 px-2 w-full">
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-500/20 to-amber-300/30 border border-amber-400/60 flex items-center justify-center text-amber-300 shadow-[0_0_25px_rgba(251,191,36,0.3)] animate-pulse">
-                      <Lock className="w-8 h-8" />
+              {/* YouTube In-Stream Non-Skippable Pre-Roll Overlay */}
+              {isPlayingPreRoll && (
+                <div className="absolute inset-0 z-20 flex flex-col justify-between p-3 pointer-events-auto select-none bg-gradient-to-b from-black/80 via-transparent to-black/80">
+                  {/* Top Row: Countdown Tag + Sponsor Link + Mute */}
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/85 backdrop-blur-md border border-white/20 text-white font-mono text-[10px] sm:text-[11px] font-bold shadow">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span>Ad • 0:0{preRollTimeLeft}</span>
                     </div>
-                    <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-amber-500 text-black text-[9px]">
-                      <Sparkles className="w-3 h-3" />
-                    </span>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsAdMuted(!isAdMuted)}
+                        className="p-1.5 rounded-md bg-black/80 hover:bg-black/95 text-white/80 hover:text-white border border-white/20 transition cursor-pointer"
+                        title={isAdMuted ? "Unmute audio" : "Mute audio"}
+                        aria-label={isAdMuted ? "Unmute audio" : "Mute audio"}
+                      >
+                        {isAdMuted ? (
+                          <VolumeX className="w-3.5 h-3.5" />
+                        ) : (
+                          <Volume2 className="w-3.5 h-3.5 text-amber-300" />
+                        )}
+                      </button>
+
+                      {directLink && (
+                        <a
+                          href={directLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#ffc72c] hover:bg-[#ffe082] text-[#241903] font-mono text-[9px] sm:text-[10px] font-black tracking-wider uppercase shadow-md transition cursor-pointer"
+                          title="Visit advertiser website"
+                        >
+                          <span>Visit Sponsor ↗</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">
-                      OUTPUT VIDEO LOCKED
-                    </h3>
-                    <p className="text-[11px] text-amber-100/70 font-medium leading-relaxed max-w-[220px]">
-                      Watch a 5-second sponsor video to unlock preview & MP4 download!
+                  {/* Center Tag: Non-skippable countdown status */}
+                  <div className="my-auto self-center text-center space-y-1">
+                    <div className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-white/90 text-[10px] font-mono font-medium shadow">
+                      Reel begins in 0:0{preRollTimeLeft}s
+                    </div>
+                    <p className="text-[9px] text-amber-200/60 font-mono">
+                      Full sponsor ad plays before export
                     </p>
                   </div>
 
-                  {/* Primary Radiant Unlock Button */}
-                  <button
-                    type="button"
-                    onClick={() => triggerAdUnlockFlow(null, null)}
-                    className="w-full py-3 px-4 rounded-xl btn-gold-radiant text-[#261b02] font-black text-xs uppercase tracking-wider shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer border border-[#fff4b8]"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>WATCH AD TO UNLOCK (5S)</span>
-                  </button>
-
-                  {/* Skip with Pro */}
-                  <button
-                    type="button"
-                    onClick={onOpenPricing}
-                    className="text-[10px] text-amber-300/70 hover:text-amber-200 font-bold uppercase tracking-wider flex items-center gap-1 transition cursor-pointer pt-1"
-                  >
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span>OR SKIP ADS WITH PRO PASS</span>
-                  </button>
+                  {/* Bottom: YouTube Yellow Progress Bar */}
+                  <div className="w-full space-y-1">
+                    <div className="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 transition-all duration-1000 ease-linear shadow-[0_0_8px_#fbbf24]"
+                        style={{
+                          width: `${((AD_DURATION - preRollTimeLeft) / AD_DURATION) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
-
-                {/* Bottom CRT telemetry */}
-                <div className="z-20 w-full flex items-center justify-between border-t border-white/10 pt-2 text-[8px] font-mono text-white/40">
-                  <span>ENCODED: 480P MP4</span>
-                  <span>LOCKED OUTPUT</span>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Action Bar: Download & Create Another Reel */}
             <div className="flex items-center justify-center gap-3 pt-1 flex-wrap w-full">
-              {isCurrentUnlocked ? (
-                <a
-                  href={currentDisplayVideo}
-                  download={`SnapBeat_${jobId || "Reel"}.mp4`}
-                  className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
-                  title="Download MP4 to your device"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>DOWNLOAD REEL MP4</span>
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => triggerAdUnlockFlow(currentDisplayVideo, `SnapBeat_${jobId || "Reel"}.mp4`)}
-                  className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
-                  title="Watch sponsored video ad to unlock download"
-                >
-                  <Lock className="w-4 h-4" />
-                  <span>UNLOCK WITH AD TO DOWNLOAD</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={(e) =>
+                  handleDownloadClick(
+                    e,
+                    currentDisplayVideo,
+                    `SnapBeat_${jobId || "Reel"}.mp4`
+                  )
+                }
+                className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
+                title="Download MP4 to your device"
+              >
+                <Download className="w-4 h-4" />
+                <span>DOWNLOAD REEL MP4</span>
+              </button>
 
               {onNewReel && (
                 <button
@@ -475,7 +517,7 @@ export function RetroQueueConsole({
                           handleSelectPreview(job);
                           const isUnlocked = isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id];
                           if (!isUnlocked) {
-                            setIsAdOpen(true);
+                            triggerPreRollAd(null, null);
                           }
                         }}
                         className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1 ${
@@ -483,42 +525,22 @@ export function RetroQueueConsole({
                             ? "bg-amber-400 text-black shadow"
                             : "bg-white/10 hover:bg-white/20 text-amber-300 border border-amber-400/30"
                         }`}
-                        title="Preview video in player above"
+                        title="Preview reel in player above"
                       >
-                        {isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id] ? (
-                          <Play className="w-3 h-3 fill-current" />
-                        ) : (
-                          <Lock className="w-3 h-3 text-amber-400" />
-                        )}
-                        <span>
-                          {isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id]
-                            ? "PREVIEW"
-                            : "UNLOCK"}
-                        </span>
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>PREVIEW</span>
                       </button>
 
                       {/* Download Button */}
-                      {isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id] ? (
-                        <a
-                          href={job.videoUrl}
-                          download={`SnapBeat_${job.id}.mp4`}
-                          className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer border border-white/15"
-                          title="Download MP4"
-                          aria-label="Download MP4"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                        </a>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => triggerAdUnlockFlow(job.videoUrl, `SnapBeat_${job.id}.mp4`)}
-                          className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-400 transition cursor-pointer border border-amber-400/30"
-                          title="Unlock with Ad to Download"
-                          aria-label="Unlock with Ad to Download"
-                        >
-                          <Lock className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDownloadClick(e, job.videoUrl, `SnapBeat_${job.id}.mp4`)}
+                        className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer border border-white/15"
+                        title="Download MP4"
+                        aria-label="Download MP4"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -527,15 +549,6 @@ export function RetroQueueConsole({
           </div>
         </div>
       )}
-
-      {/* INTERSTITIAL VIDEO AD MODAL FOR FREE TIER DOWNLOADS */}
-      <RetroVideoAdModal
-        isOpen={isAdOpen}
-        onComplete={handleAdComplete}
-        onClose={() => setIsAdOpen(false)}
-        onOpenPricing={onOpenPricing}
-        sponsorUrl={process.env.NEXT_PUBLIC_MONETAG_DIRECT_LINK || "https://omg10.com/4/11799879"}
-      />
     </div>
   );
 }

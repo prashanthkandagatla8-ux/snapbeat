@@ -232,7 +232,7 @@ export default function StudioPage() {
           />
         ) : (
           /* VIEW 2: WORKSTATION SCREENS (MUSIC, PHOTOS, RENDER, QUEUE) */
-          <div className="w-full bg-[#08181c]/95 flex flex-col min-h-[880px] text-white">
+          <div className="w-full sky-canvas flex flex-col min-h-[880px] text-white relative">
           {/* RETRO SKY HEADER */}
           <RetroHeader
             currentTab={currentTab}

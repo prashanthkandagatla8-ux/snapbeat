@@ -45,57 +45,78 @@
 }
 
 /* =========================================================================
-   AUTHENTIC CREAM METAL 3D CHASSIS (SMOOTH THIN UNIBODY CONTAINER)
+   AUTHENTIC 3D METALLIC TABLET CHASSIS (PRECISION CHAMPAGNE BEZEL)
+   Matching Reference Design (snapbeat_tablet_homescreen.png)
    ========================================================================= */
 .tablet-frame {
   position: relative;
-  border-radius: 32px;
-  border: 2.5px solid #ebe4d6;
-  border-color: #faf7f0 #ded4c2 #c6b8a2 #ebe4d6;
+  border-radius: 36px;
+  border: 3.5px solid transparent;
+  background-image: 
+    linear-gradient(#081a20, #081a20),
+    linear-gradient(135deg, 
+      #ffffff 0%, 
+      #fff4d4 12%, 
+      #edd196 28%, 
+      #9e7b44 48%, 
+      #ffdca1 68%, 
+      #f5cb7e 82%, 
+      #5c4118 100%
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.85),
-    0 0 0 2px rgba(214, 203, 186, 0.5),
-    0 25px 70px -10px rgba(0, 0, 0, 0.85),
-    0 12px 30px rgba(0, 0, 0, 0.6),
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.9),
-    inset 0 -1.5px 2px rgba(110, 95, 75, 0.35),
-    inset 0 0 0 1px rgba(195, 183, 165, 0.3);
+    /* 1. Top specular glint */
+    0 -1px 1.5px 0 rgba(255, 255, 255, 0.8),
+    /* 2. Outer chamfer bevel ring */
+    0 0 0 1px rgba(255, 245, 220, 0.75),
+    /* 3. Dark side wall extrusion (tablet thickness) */
+    0 0 0 2.5px #1e170e,
+    /* 4. Inner rubber gasket / screen recess */
+    inset 0 0 0 1.5px rgba(0, 0, 0, 0.92),
+    inset 0 2px 4px rgba(0, 0, 0, 0.75),
+    /* 5. Multi-layer realistic 3D desk drop shadow */
+    0 4px 10px rgba(0, 0, 0, 0.6),
+    0 16px 36px -4px rgba(0, 0, 0, 0.85),
+    0 35px 80px -10px rgba(0, 0, 0, 0.95),
+    0 60px 120px -20px rgba(0, 0, 0, 0.98);
   overflow: hidden;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 640px) {
   .tablet-frame {
-    border-radius: 36px;
-    border-width: 3px;
+    border-radius: 44px;
+    border-width: 4px;
   }
 }
 
 @media (min-width: 1024px) {
   .tablet-frame {
-    border-radius: 40px;
-    border-width: 3px;
+    border-radius: 48px;
+    border-width: 4.5px;
   }
 }
 
-/* Atmospheric Sky Canvas inside the Tablet Frame */
+/* Atmospheric Luminous Sky Canvas (Golden Sunset Clouds from Ref Image) */
 .sky-canvas {
-  background-color: #0b1f24;
+  background-color: #0d2830;
   background-image: 
-    linear-gradient(180deg, rgba(8, 24, 29, 0.45) 0%, rgba(13, 37, 43, 0.15) 35%, rgba(16, 42, 48, 0.3) 70%, rgba(10, 20, 24, 0.85) 100%),
+    linear-gradient(180deg, rgba(8, 24, 32, 0.08) 0%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 75%, rgba(6, 14, 18, 0.35) 100%),
     url('/assets/images/snapbeat_sky_bg.jpg');
-  background-position: top center;
+  background-position: center top;
   background-size: cover;
   background-repeat: no-repeat;
+  background-attachment: scroll;
 }
 
 /* Frosted Glass Panels matching the Sky Theme */
 .sky-glass-panel {
-  background: rgba(12, 34, 40, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  background: rgba(10, 28, 34, 0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .sky-glass-card {
