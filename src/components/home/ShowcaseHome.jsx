@@ -3,6 +3,8 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import RetroAdBanner from "@/components/ads/RetroAdBanner";
+import SeoFooter from "@/components/layout/SeoFooter";
+import { trackStartCreating, trackGuestStarted, trackUpgradeViewed } from "@/lib/analytics";
 import {
   Volume2,
   VolumeX,
@@ -51,6 +53,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
 
   // Studio Gate: Requires Login or 1-Click Guest Login
   const handleStudioAction = () => {
+    trackStartCreating("/", "hero_cta");
     if (user) {
       onEnterStudio();
     } else {
@@ -59,6 +62,8 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   };
 
   const handleInstantGuest = () => {
+    trackStartCreating("/", "guest_cta");
+    trackGuestStarted("hero_guest_btn");
     loginAsGuest();
     onEnterStudio();
   };
@@ -172,12 +177,16 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           2. MINIMAL HERO: TAGLINE & PRIMARY CTA
           ------------------------------------------------------------- */}
       <section className="w-full flex flex-col items-center text-center space-y-2 pt-1 relative z-10">
-        <h2 className="font-script text-2xl sm:text-3xl md:text-4xl text-[#fffae8] font-bold tracking-wide drop-shadow">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase drop-shadow-md max-w-2xl">
+          Turn Photos Into Beat-Synced Videos Automatically
+        </h1>
+
+        <p className="font-script text-xl sm:text-2xl md:text-3xl text-amber-200 font-semibold tracking-wide drop-shadow">
           Not just a video... It's your story in motion.
-        </h2>
+        </p>
 
         <p className="text-xs sm:text-sm text-amber-100/80 font-medium max-w-xl">
-          Turn your photo memories into rhythmically synchronized short-form reels in seconds.
+          Turn your photo memories into rhythmically synchronized short-form reels in seconds with AI beat detection and 14 cinematic kinetic motion styles.
         </p>
       </section>
 

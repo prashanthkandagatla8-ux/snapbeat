@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { DEFAULT_SERVER_URL } from "@/lib/constants";
+import { trackRenderCompleted, trackRenderFailed } from "@/lib/analytics";
 
 export function useRenderJob() {
   const [jobId, setJobId] = useState(null);
@@ -157,10 +158,21 @@ export function useRenderJob() {
               setStage("Render complete!");
               setProgress(100);
               setVideoUrl(`${serverUrl}/api/render/download/${newJobId}`);
+              trackRenderCompleted({
+                jobId: newJobId,
+                template: studioState?.selectedTemplate || "pendulum",
+                outputResolution: userIsPro && quality === "master" ? "1080p" : "480p",
+                isPro: userIsPro,
+              });
             } else if (statusData.status === "failed") {
               cancelPolling();
               setIsRendering(false);
               setError(statusData.error || "Render job failed on server");
+              trackRenderFailed({
+                template: studioState?.selectedTemplate || "pendulum",
+                errorCategory: "processing_error",
+                stage: statusData.stage || "failed",
+              });
             }
           } catch (pollErr) {
             consecutiveFailures += 1;
@@ -169,12 +181,22 @@ export function useRenderJob() {
               cancelPolling();
               setIsRendering(false);
               setError("Network error communicating with render server.");
+              trackRenderFailed({
+                template: studioState?.selectedTemplate || "pendulum",
+                errorCategory: "network_error",
+                stage: "polling",
+              });
             }
           }
         }, 1200);
       } catch (err) {
         setIsRendering(false);
         setError(err.message || "Failed to submit render job");
+        trackRenderFailed({
+          template: studioState?.selectedTemplate || "pendulum",
+          errorCategory: "upload_error",
+          stage: "submission",
+        });
         throw err;
       }
     },

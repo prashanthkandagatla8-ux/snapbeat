@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { SOUND_TRACKS } from "@/lib/constants";
+import { trackMusicSelected } from "@/lib/analytics";
 import { Play, Pause, Square, Upload, Scissors, Volume2, Check, Music, Radio, Sparkles } from "lucide-react";
 
 export function RetroTapeDeck({
@@ -125,6 +126,7 @@ export function RetroTapeDeck({
       setPreviewTrackId(null);
     }
     handleStop();
+    trackMusicSelected("built_in", track.id || track.name);
     onSelectBuiltInTrack(track);
   };
 
@@ -133,6 +135,7 @@ export function RetroTapeDeck({
     const file = e.target.files?.[0];
     if (file) {
       handleStop();
+      trackMusicSelected("custom_upload", file.name);
       setAudio(file);
     }
   };

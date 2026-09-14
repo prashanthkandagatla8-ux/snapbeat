@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Crown, Sparkles, ExternalLink, Zap } from "lucide-react";
+import { trackAffiliateClicked, trackUpgradeViewed } from "@/lib/analytics";
 
 const SPONSOR_ADS = [
   {
@@ -113,7 +114,10 @@ export default function RetroAdBanner({
           {currentAd.isProCta ? (
             <button
               type="button"
-              onClick={onOpenPricing}
+              onClick={() => {
+                trackUpgradeViewed("all", "ad_banner");
+                onOpenPricing?.();
+              }}
               className="px-3 py-1.5 rounded-xl btn-brass text-[10px] font-black text-[#261b02] uppercase tracking-wider shadow hover:brightness-110 active:scale-95 transition cursor-pointer"
             >
               <span>{currentAd.cta}</span>
@@ -123,6 +127,13 @@ export default function RetroAdBanner({
               href={currentAd.link}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                trackAffiliateClicked({
+                  category: currentAd.category,
+                  partner: currentAd.id,
+                  placement: "ad_banner",
+                });
+              }}
               className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-[10px] uppercase tracking-wider border border-white/20 shadow-sm active:scale-95 transition flex items-center gap-1 cursor-pointer hover:border-amber-400/50"
             >
               <span>{currentAd.cta}</span>

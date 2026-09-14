@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { trackGuestStarted, trackSignupCompleted } from "@/lib/analytics";
+
 
 const AuthContext = createContext();
 
@@ -105,6 +107,7 @@ export function AuthProvider({ children }) {
 
     setUser(existing);
     setIsAuthModalOpen(false);
+    trackSignupCompleted("credential", false);
     return existing;
   };
 
@@ -194,6 +197,8 @@ export function AuthProvider({ children }) {
 
     setUser(guestUser);
     setIsAuthModalOpen(false);
+    trackGuestStarted("instant_guest");
+    trackSignupCompleted("guest", true);
     return guestUser;
   };
 

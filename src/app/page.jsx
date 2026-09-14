@@ -10,6 +10,8 @@ import { RetroQueueConsole } from "@/components/queue/RetroQueueConsole";
 import { RetroStoreModal } from "@/components/billing/RetroStoreModal";
 import RetroAuthModal from "@/components/auth/RetroAuthModal";
 import RetroAdBanner from "@/components/ads/RetroAdBanner";
+import SeoFooter from "@/components/layout/SeoFooter";
+import { trackStartCreating, trackRenderStarted, trackUpgradeViewed } from "@/lib/analytics";
 import { initializeRazorpayCheckout } from "@/components/billing/RazorpayCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useStudioState } from "@/hooks/useStudioState";
@@ -107,6 +109,13 @@ export default function StudioPage() {
   // Trigger render
   const handleStartRender = async () => {
     try {
+      trackRenderStarted({
+        template: studio.selectedTemplate || "pendulum",
+        photoCount: studio.photos?.length || 0,
+        outputResolution: isPro && studio.quality === "master" ? "1080p" : "480p",
+        aspectRatio: studio.aspectRatio || "9:16",
+        isPro: Boolean(isPro),
+      });
       setCurrentTab("queue"); // Transition to Queue console
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -208,6 +217,7 @@ export default function StudioPage() {
 
   // Gate studio entry with login requirement (Guest 1-click or account)
   const handleEnterStudio = () => {
+    trackStartCreating("/?view=studio", "enter_studio");
     if (user) {
       setViewMode("studio");
       setCurrentTab("music");
@@ -407,6 +417,9 @@ export default function StudioPage() {
           </div>
         )}
       </div>
+
+      {/* Crawlable Semantic SEO Footer */}
+      <SeoFooter className="w-full max-w-[1040px] mx-auto z-10" />
 
       {/* PRO STORE MODAL */}
       <RetroStoreModal

@@ -15,7 +15,15 @@ import {
   Crown,
   Volume2,
   VolumeX,
+  Share2,
 } from "lucide-react";
+import {
+  trackVideoExported,
+  trackShareClicked,
+  trackRewardedAdStarted,
+  trackRewardedAdCompleted,
+  trackAffiliateClicked,
+} from "@/lib/analytics";
 
 export function RetroQueueConsole({
   jobId,
@@ -81,6 +89,7 @@ export function RetroQueueConsole({
 
   const finishPreRollAd = (pending) => {
     setIsPlayingPreRoll(false);
+    trackRewardedAdCompleted("queue_pre_roll", "free_export_unlock");
     const key = pending?.url || currentDisplayVideo || (jobId ? `job_${jobId}` : "current");
     markJobUnlocked(key);
     if (currentDisplayVideo) markJobUnlocked(currentDisplayVideo);
@@ -96,6 +105,13 @@ export function RetroQueueConsole({
 
     // If user clicked download before watching, trigger download now
     if (pending?.url) {
+      trackVideoExported({
+        template: activePreviewTitle || "reel",
+        outputResolution: isPro ? "1080p" : "480p",
+        exportType: "download",
+        watermark: !isPro,
+        planType: isPro ? "pro" : "free",
+      });
       const link = document.createElement("a");
       link.href = pending.url;
       link.download = pending.fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
@@ -112,6 +128,13 @@ export function RetroQueueConsole({
       pending = { url: targetUrl, fileName: targetName };
       setPendingDownload(pending);
     }
+
+    trackRewardedAdStarted("queue_pre_roll", "video_pre_roll");
+    trackAffiliateClicked({
+      category: "monetization",
+      partner: "monetag",
+      placement: "in_stream_pre_roll",
+    });
 
     // Open sponsor link in background on click
     if (directLink && typeof window !== "undefined") {
@@ -182,12 +205,36 @@ export function RetroQueueConsole({
       return;
     }
 
+    trackVideoExported({
+      template: activePreviewTitle || "reel",
+      outputResolution: isPro ? "1080p" : "480p",
+      exportType: "download",
+      watermark: !isPro,
+      planType: isPro ? "pro" : "free",
+    });
+
     const link = document.createElement("a");
     link.href = url;
     link.download = name;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleShareClick = () => {
+    trackShareClicked(typeof navigator !== "undefined" && navigator.share ? "native" : "copy_link");
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator
+        .share({
+          title: "SnapBeat AI Beat-Synced Reel",
+          text: "Check out this beat-synced reel made on SnapBeat!",
+          url: window.location.origin,
+        })
+        .catch(() => {});
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.origin);
+      alert("SnapBeat link copied to clipboard! Share it with your friends.");
+    }
   };
 
   const handleSelectPreview = (job) => {
@@ -430,6 +477,16 @@ export function RetroQueueConsole({
               >
                 <Download className="w-4 h-4" />
                 <span>DOWNLOAD REEL MP4</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShareClick}
+                className="px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-black tracking-wider uppercase border border-white/20 shadow active:scale-95 transition cursor-pointer flex items-center gap-2"
+                title="Share reel with friends"
+              >
+                <Share2 className="w-4 h-4 text-amber-300" />
+                <span>SHARE REEL</span>
               </button>
 
               {onNewReel && (

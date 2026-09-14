@@ -3,9 +3,17 @@
 import { useState, useEffect } from "react";
 import { PRICING_PLANS } from "@/lib/constants";
 import { Check, Crown, Sparkles, X, ShieldCheck } from "lucide-react";
+import { trackUpgradeViewed, trackPurchaseStarted } from "@/lib/analytics";
 
 export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }) {
   const [selectedPlanId, setSelectedPlanId] = useState("monthly");
+
+  // Track upgrade view on open
+  useEffect(() => {
+    if (isOpen) {
+      trackUpgradeViewed("all", "store_modal");
+    }
+  }, [isOpen]);
 
   // Close on Escape key press
   useEffect(() => {
@@ -111,7 +119,10 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
                     setSelectedPlanId(plan.id);
                   }
                 }}
-                onClick={() => setSelectedPlanId(plan.id)}
+                onClick={() => {
+                  setSelectedPlanId(plan.id);
+                  trackPurchaseStarted(plan.id, plan.price, "INR");
+                }}
                 className={`relative p-5 rounded-2xl transition-all cursor-pointer flex flex-col justify-between border-2 ${
                   isSelected
                     ? "bg-amber-500/20 border-amber-400 shadow-[0_0_30px_rgba(255,199,44,0.35)] transform scale-[1.02]"

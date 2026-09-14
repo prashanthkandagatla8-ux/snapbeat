@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Plus, X, Shuffle, AlertCircle, Sparkles, Loader2, Images, Trash2 } from "lucide-react";
+import { trackPhotosUploaded } from "@/lib/analytics";
 
 export function RetroPhotoStrip({
   photos,
@@ -19,6 +20,7 @@ export function RetroPhotoStrip({
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
+      trackPhotosUploaded(e.target.files.length, "file_picker");
       addPhotos(e.target.files);
     }
   };
@@ -66,6 +68,7 @@ export function RetroPhotoStrip({
           return new File([blob], fileName, { type: blob.type || "image/jpeg" });
         })
       );
+      trackPhotosUploaded(files.length, "sample_photos");
       addPhotos(files);
     } catch (err) {
       console.error("Failed to load sample photos:", err);

@@ -1,3 +1,6 @@
+import { PRICING_PLANS } from "@/lib/constants";
+import { trackPurchaseCompleted } from "@/lib/analytics";
+
 /**
  * Initializes Razorpay Standard Checkout or informs user that payments are currently pending approval.
  */
@@ -21,8 +24,16 @@ export function initializeRazorpayCheckout(planId, onPaymentSuccess, onPaymentCa
           image: "/assets/images/snapbeat_logo_crop.png",
           theme: { color: "#ffc72c" },
           handler: function (response) {
-            if (response?.razorpay_payment_id && typeof onPaymentSuccess === "function") {
-              onPaymentSuccess(plan.id, response.razorpay_payment_id);
+            if (response?.razorpay_payment_id) {
+              trackPurchaseCompleted({
+                planName: plan.id,
+                value: plan.price,
+                currency: "INR",
+                transactionId: response.razorpay_payment_id,
+              });
+              if (typeof onPaymentSuccess === "function") {
+                onPaymentSuccess(plan.id, response.razorpay_payment_id);
+              }
             }
           },
           modal: {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { trackSignupStarted } from "@/lib/analytics";
 import { X, Mail, User, ShieldCheck, Sparkles, AlertCircle, Zap } from "lucide-react";
 
 export default function RetroAuthModal({ onSuccess }) {
@@ -29,9 +30,10 @@ export default function RetroAuthModal({ onSuccess }) {
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
     "826942667807-7ii2t4fu8nt956lqcjodnjm29kg7t1rg.apps.googleusercontent.com";
 
-  // Keyboard escape listener to dismiss modal
+  // Keyboard escape listener to dismiss modal and GA4 tracking
   useEffect(() => {
     if (!isAuthModalOpen) return;
+    trackSignupStarted("modal_open");
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
         handleClose();
