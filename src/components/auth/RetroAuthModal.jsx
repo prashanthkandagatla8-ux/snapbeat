@@ -15,6 +15,14 @@ export default function RetroAuthModal({ onSuccess }) {
     closeAuthModal();
   };
 
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
+  const [googleModeNotice, setGoogleModeNotice] = useState(false);
+  const googleBtnRef = useRef(null);
+
+  const GOOGLE_CLIENT_ID =
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    "826942667807-7ii2t4fu8nt956lqcjodnjm29kg7t1rg.apps.googleusercontent.com";
+
   // Keyboard escape listener to dismiss modal
   useEffect(() => {
     if (!isAuthModalOpen) return;
@@ -26,12 +34,6 @@ export default function RetroAuthModal({ onSuccess }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isAuthModalOpen]);
-
-  if (!isAuthModalOpen) return null;
-
-  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
-  const [googleModeNotice, setGoogleModeNotice] = useState(false);
-  const googleBtnRef = useRef(null);
 
   // Load Google Identity Services (GIS)
   useEffect(() => {
@@ -57,13 +59,9 @@ export default function RetroAuthModal({ onSuccess }) {
     document.body.appendChild(script);
   }, []);
 
-  const GOOGLE_CLIENT_ID =
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-    "826942667807-7ii2t4fu8nt956lqcjodnjm29kg7t1rg.apps.googleusercontent.com";
-
   // Initialize GIS once script loads and modal is open
   useEffect(() => {
-    if (!googleScriptLoaded || !window.google?.accounts?.id || !GOOGLE_CLIENT_ID) return;
+    if (!googleScriptLoaded || !window.google?.accounts?.id || !GOOGLE_CLIENT_ID || !isAuthModalOpen) return;
 
     try {
       window.google.accounts.id.initialize({
@@ -149,6 +147,9 @@ export default function RetroAuthModal({ onSuccess }) {
       emailInput.focus();
     }
   };
+
+  // Only render modal UI if opened (AFTER all hooks have executed)
+  if (!isAuthModalOpen) return null;
 
   return (
     <div
