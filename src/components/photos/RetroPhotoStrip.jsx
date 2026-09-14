@@ -92,21 +92,23 @@ export function RetroPhotoStrip({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Load Sample Photos Button */}
-            <button
-              type="button"
-              onClick={loadSamplePhotos}
-              disabled={loadingSamples}
-              className="px-4 py-2 rounded-full btn-gold-radiant text-[#241903] text-xs font-black flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 transition disabled:opacity-50 cursor-pointer"
-              title="Load 8 sample photos with 1-click"
-            >
-              {loadingSamples ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="w-3.5 h-3.5 fill-current ml-0.5" />
-              )}
-              <span>LOAD 8 SAMPLES</span>
-            </button>
+            {/* Load Sample Photos Button (Header - shown when photos exist for quick re-load) */}
+            {photos.length > 0 && (
+              <button
+                type="button"
+                onClick={loadSamplePhotos}
+                disabled={loadingSamples}
+                className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-black flex items-center gap-1.5 border border-white/15 active:scale-95 transition disabled:opacity-50 cursor-pointer"
+                title="Reload 8 sample photos"
+              >
+                {loadingSamples ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 ml-0.5" />
+                )}
+                <span>RELOAD SAMPLES</span>
+              </button>
+            )}
 
             {photos.length > 1 && (
               <button

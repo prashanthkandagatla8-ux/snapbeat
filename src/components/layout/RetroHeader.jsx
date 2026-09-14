@@ -177,11 +177,14 @@ export function RetroHeader({
             <button
               type="button"
               onClick={onOpenPricing}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs btn-brass text-[#261b02] shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-110 active:scale-95 transition"
-              title="Unlock 1080p Full HD, Title Cards, and Watermark Removal"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs btn-brass text-[#261b02] shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-110 active:scale-95 transition cursor-pointer"
+              title="Pro Pass (1080p Master & Watermark Removal) — Coming Soon"
             >
-              <Crown className="w-3.5 h-3.5 text-amber-700 fill-amber-600" />
-              <span>GET PRO</span>
+              <Crown className="w-3.5 h-3.5 text-amber-800 fill-amber-700" />
+              <span>PRO PASS</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-black/60 text-amber-300 text-[8px] font-black uppercase tracking-wider">
+                SOON
+              </span>
             </button>
           )}
 

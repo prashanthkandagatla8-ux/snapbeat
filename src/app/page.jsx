@@ -140,20 +140,10 @@ export default function StudioPage() {
     }
   }, [renderJob.videoUrl, renderJob.jobId]);
 
-  // Handle plan purchase
+  // Handle plan purchase (Disabled during merchant review)
   const handleSelectPlan = (planId) => {
     setIsStoreOpen(false);
-    initializeRazorpayCheckout(
-      planId,
-      (plan, paymentId) => {
-        activatePro(plan, paymentId);
-        upgradeToPro(plan, { paymentId });
-        setRenderMode("pro");
-        setViewMode("studio");
-        alert(`🎉 Pro activated successfully for ${plan.toUpperCase()}! 1080p Master quality, Title Cards, and watermark removal are unlocked.`);
-      },
-      () => {}
-    );
+    alert("Payment gateway integration is currently in progress. Pro Pass purchases will unlock soon! In the meantime, enjoy 100% free unlimited video renders.");
   };
 
   const canRender = Boolean(studio.audioFile && studio.photos.length >= 2);
@@ -182,9 +172,9 @@ export default function StudioPage() {
         </div>
       </aside>
 
-      {/* VIEW 1: FIRST PAGE (AUTHENTIC METAL EDGE FRAME ONLY) */}
+      {/* VIEW 1: FIRST PAGE (AUTHENTIC METAL EDGE FRAME) */}
       {viewMode === "showcase" ? (
-        <div className="w-full max-w-[857px] mx-auto relative rounded-[44px] shadow-[0_35px_95px_-10px_rgba(0,0,0,0.96),0_15px_40px_rgba(0,0,0,0.85)] overflow-hidden">
+        <div className="w-full max-w-[1000px] mx-auto relative">
           <ShowcaseHome
             onEnterStudio={() => {
               setViewMode("studio");

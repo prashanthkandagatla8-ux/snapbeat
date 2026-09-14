@@ -68,9 +68,9 @@ export function TemplateGrid({ selectedTemplate, onSelectTemplate, isPro, onOpen
               <button
                 type="button"
                 onClick={onOpenPricing}
-                className="btn-brass px-3 py-1 rounded-xl text-black font-black text-[11px] shadow hover:brightness-110 active:scale-95 transition"
+                className="btn-brass px-3 py-1 rounded-xl text-black font-black text-[11px] shadow hover:brightness-110 active:scale-95 transition cursor-pointer"
               >
-                UNLOCK ALL TEMPLATES ❯
+                UNLOCK ALL TEMPLATES (SOON) ❯
               </button>
             </div>
           </div>

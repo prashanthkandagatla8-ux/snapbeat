@@ -17,7 +17,7 @@ export function QualitySelector({ quality, setQuality, watermark, setWatermark, 
               className="text-[10px] font-bold text-[#bf8a00] hover:underline cursor-pointer"
               onClick={onOpenPricing}
             >
-              1080p requires Pro 👑
+              1080p requires Pro (Coming Soon) 👑
             </span>
           )}
         </div>
@@ -54,35 +54,35 @@ export function QualitySelector({ quality, setQuality, watermark, setWatermark, 
               <span>1080p Master</span>
               {!isPro && <Crown className="w-3 h-3 text-[#bf8a00]" />}
             </div>
-            <span className="text-[9px] font-semibold text-[#5a5752]">Studio Crisp</span>
+            <span className="text-[9px] font-semibold text-[#5a5752]">Pro • Coming Soon</span>
           </button>
         </div>
       </div>
 
-      {/* Watermark Status (No toggle - Informative status pill only) */}
-      <div className="flex items-center justify-between p-2.5 rounded-xl metal-inset gap-2">
+      {/* Watermark Section */}
+      <div className="flex items-center justify-between p-3 rounded-xl metal-inset">
         <div>
-          <p className="text-xs font-black text-[#2b2b2d]">SnapBeat Watermark</p>
+          <p className="text-xs font-black text-[#2b2b2d]">SNAPBEAT WATERMARK</p>
           <p className="text-[10px] text-[#5a5752]">
-            {isPro ? "Clean output • Watermark removed" : "Included on Free tier"}
+            {isPro ? "Clean export • No watermark" : "Free output includes watermark"}
           </p>
         </div>
         {isPro ? (
-          <span className="px-2.5 py-1 rounded-full bg-[#00c853]/20 text-[#00c853] text-[10px] font-black uppercase tracking-wider border border-[#00c853]/40 shrink-0">
+          <span className="px-2.5 py-1 rounded-full bg-[#00c853]/20 text-[#00c853] text-[10px] font-black uppercase tracking-wider border border-[#00c853]/40">
             WATERMARK: REMOVED
           </span>
         ) : (
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded-full bg-[#ffc72c]/30 text-[#4a3b00] text-[9px] font-black uppercase tracking-wider border border-[#bf8a00]/40">
               WATERMARK: APPLIED
             </span>
             <button
               type="button"
               onClick={onOpenPricing}
-              className="px-2.5 py-1 rounded-full btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0"
+              className="px-2.5 py-1 rounded-full btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 cursor-pointer"
             >
               <Crown className="w-2.5 h-2.5" />
-              <span>REMOVE (PRO)</span>
+              <span>REMOVE (PRO - SOON)</span>
             </button>
           </div>
         )}

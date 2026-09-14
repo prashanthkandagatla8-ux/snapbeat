@@ -105,10 +105,10 @@ export function TitleCardEditor({
           <button
             type="button"
             onClick={onOpenPricing}
-            className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shrink-0 ml-2 shadow hover:brightness-110 flex items-center gap-1"
+            className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shrink-0 ml-2 shadow hover:brightness-110 flex items-center gap-1 cursor-pointer"
           >
             <Crown className="w-2.5 h-2.5" />
-            <span>UNLOCK PRO</span>
+            <span>UNLOCK PRO (SOON)</span>
           </button>
         </div>
       )}

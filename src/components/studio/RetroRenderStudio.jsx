@@ -173,10 +173,10 @@ export function RetroRenderStudio({
                     <button
                       type="button"
                       onClick={onOpenPricing}
-                      className="px-3 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1"
+                      className="px-3 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 cursor-pointer"
                     >
                       <Crown className="w-2.5 h-2.5" />
-                      <span>UNLOCK WITH PRO</span>
+                      <span>UNLOCK WITH PRO (COMING SOON)</span>
                     </button>
                   </div>
                 ) : !titleCard?.enabled ? (
@@ -299,7 +299,7 @@ export function RetroRenderStudio({
                     className="btn-brass px-4 py-1.5 rounded-xl font-black text-xs text-[#2b2820] shadow-md hover:brightness-110 active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Crown className="w-3.5 h-3.5 text-amber-800" />
-                    <span>UNLOCK MANUAL TEMPLATES ❯</span>
+                    <span>UNLOCK MANUAL TEMPLATES (COMING SOON) ❯</span>
                   </button>
                 </div>
               </div>
@@ -371,7 +371,7 @@ export function RetroRenderStudio({
                 onClick={onOpenPricing}
                 className="text-[10px] font-bold text-[#bf8a00] hover:underline cursor-pointer"
               >
-                1080p requires Pro 👑
+                1080p requires Pro (Coming Soon) 👑
               </span>
             )}
           </div>
@@ -405,7 +405,7 @@ export function RetroRenderStudio({
                 <span>1080p Master</span>
                 {!isPro && <Crown className="w-3 h-3 text-[#bf8a00]" />}
               </div>
-              <span className="text-[9px] font-semibold text-amber-100/60">Studio Crisp</span>
+              <span className="text-[9px] font-semibold text-amber-100/60">Pro • Coming Soon</span>
             </button>
           </div>
         </div>
@@ -430,10 +430,10 @@ export function RetroRenderStudio({
               <button
                 type="button"
                 onClick={onOpenPricing}
-                className="px-2.5 py-1 rounded-full btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0"
+                className="px-2.5 py-1 rounded-full btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0 cursor-pointer"
               >
                 <Crown className="w-2.5 h-2.5" />
-                <span>REMOVE (PRO)</span>
+                <span>REMOVE (PRO - SOON)</span>
               </button>
             </div>
           )}
@@ -524,9 +524,9 @@ export function RetroRenderStudio({
               <button
                 type="button"
                 onClick={onOpenPricing}
-                className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shrink-0 ml-2 shadow hover:brightness-110"
+                className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shrink-0 ml-2 shadow hover:brightness-110 cursor-pointer"
               >
-                UNLOCK PRO
+                PRO (SOON)
               </button>
             </div>
           )}
