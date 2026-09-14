@@ -37,7 +37,6 @@ export const metadata = {
 };
 export default function RootLayout({ children }) {
   const adSenseId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-2850833794586490";
-  const monetagZoneId = process.env.NEXT_PUBLIC_MONETAG_ZONE_ID || "11799505";
 
   return (
     <html lang="en" className="dark">
@@ -45,21 +44,12 @@ export default function RootLayout({ children }) {
         {/* Google AdSense Account Verification Meta Tag */}
         <meta name="google-adsense-account" content="ca-pub-2850833794586490" />
 
-        {/* HYBRID AD NETWORK 1: Google AdSense / Google Ad Manager */}
+        {/* Google AdSense / Google Ad Manager Official High-Value Ad Engine */}
         {adSenseId && (
           <script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adSenseId}`}
             crossOrigin="anonymous"
-          />
-        )}
-
-        {/* HYBRID AD NETWORK 2: Monetag Vignette Interstitial Tag */}
-        {monetagZoneId && (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `(function(s){s.dataset.zone='${monetagZoneId}',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));`,
-            }}
           />
         )}
       </head>
