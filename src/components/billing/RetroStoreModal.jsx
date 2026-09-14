@@ -85,6 +85,14 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
           )}
         </div>
 
+        {/* Gateway Pending Notice */}
+        <div className="mb-4 p-3 rounded-2xl bg-amber-500/15 border-2 border-amber-600/40 text-left flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
+          <p className="text-[11px] font-bold text-[#4a4743] leading-relaxed">
+            <strong className="text-[#2b2b2d] font-black uppercase">PAYMENTS IN REVIEW:</strong> Pro Pass subscriptions are currently pending approval with our payment partner (Razorpay). Purchases will unlock once live. During this beta, enjoy unlimited free renders!
+          </p>
+        </div>
+
         {/* Pricing Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-6">
           {PRICING_PLANS.map((plan) => {

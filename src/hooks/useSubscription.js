@@ -19,16 +19,19 @@ const readSubscriptionFromStorage = () => {
     const parsed = JSON.parse(cached);
     const now = Date.now();
 
-    if (parsed && parsed.expiresAt && parsed.expiresAt > now) {
+    // Only allow verified live Razorpay payment IDs (starts with "pay_")
+    const isRealPayment = typeof parsed.paymentId === "string" && parsed.paymentId.startsWith("pay_");
+
+    if (parsed && parsed.expiresAt && parsed.expiresAt > now && isRealPayment) {
       return {
         isPro: true,
         plan: parsed.plan || "monthly",
         expiresAt: parsed.expiresAt,
-        paymentId: parsed.paymentId || null,
+        paymentId: parsed.paymentId,
       };
     }
 
-    // Expired or invalid
+    // Expired or simulated/demo payment: remove it
     localStorage.removeItem(STORAGE_KEY);
     return { isPro: false, plan: null, expiresAt: null, paymentId: null };
   } catch {
@@ -86,8 +89,13 @@ export function useSubscription() {
     };
   }, [refreshSubscription]);
 
-  const activatePro = (planId, paymentId = "manual_test") => {
+  const activatePro = (planId, paymentId = "") => {
     if (typeof window === "undefined") return;
+
+    if (!paymentId || !paymentId.startsWith("pay_")) {
+      alert("Pro passes require a verified payment gateway transaction. Please complete payment once Razorpay is live.");
+      return;
+    }
 
     // Durations: Weekly = 7 days, Annual/Yearly = 365 days, Monthly = 30 days
     const normalizedPlan = (planId || "monthly").toLowerCase();

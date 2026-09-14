@@ -1,34 +1,5 @@
-"use client";
-
-import { PRICING_PLANS } from "@/lib/constants";
-
 /**
- * Executes demo simulation checkout when no live key is available or network fails.
- */
-function runDemoCheckout(plan, onPaymentSuccess, onPaymentCancel) {
-  if (typeof window === "undefined") return;
-
-  const periodLabel = plan.period || (plan.id === "weekly" ? "week" : plan.id === "annual" ? "year" : "month");
-  const confirmPayment = window.confirm(
-    `[SNAPBEAT PRO STUDIO — DEMO CHECKOUT]\n\n` +
-    `Plan: ${plan.name} (₹${plan.price}/${periodLabel})\n` +
-    `Perks: 1080p Master Quality + Zero Watermark + All 14 Templates + Title Cards\n\n` +
-    `Click OK to simulate a successful payment and activate Pro instantly!`
-  );
-
-  if (confirmPayment) {
-    if (typeof onPaymentSuccess === "function") {
-      onPaymentSuccess(plan.id, `sim_${Date.now()}`);
-    }
-  } else {
-    if (typeof onPaymentCancel === "function") {
-      onPaymentCancel();
-    }
-  }
-}
-
-/**
- * Initializes Razorpay Standard Checkout or gracefully falls back to Demo mode.
+ * Initializes Razorpay Standard Checkout or informs user that payments are currently pending approval.
  */
 export function initializeRazorpayCheckout(planId, onPaymentSuccess, onPaymentCancel) {
   if (typeof window === "undefined") return;
@@ -37,55 +8,50 @@ export function initializeRazorpayCheckout(planId, onPaymentSuccess, onPaymentCa
   const razorpayKey = (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "").trim();
   const periodLabel = plan.period || (plan.id === "weekly" ? "week" : plan.id === "annual" ? "year" : "month");
 
-  const openRazorpayModal = () => {
-    try {
-      const options = {
-        key: razorpayKey,
-        amount: plan.price * 100, // in paise
-        currency: "INR",
-        name: "SnapBeat Pro Studio",
-        description: `${plan.name} (₹${plan.price}/${periodLabel}) - 1080p Master & No Watermark`,
-        image: "/assets/images/snapbeat_app_icon.png",
-        theme: { color: "#ffc72c" },
-        handler: function (response) {
-          if (typeof onPaymentSuccess === "function") {
-            onPaymentSuccess(plan.id, response.razorpay_payment_id || `rzp_${Date.now()}`);
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            if (typeof onPaymentCancel === "function") {
-              onPaymentCancel();
+  // If Razorpay live/test key is configured, attempt real checkout
+  if (razorpayKey) {
+    const openRazorpayModal = () => {
+      try {
+        const options = {
+          key: razorpayKey,
+          amount: plan.price * 100, // in paise
+          currency: "INR",
+          name: "SnapBeat Pro Studio",
+          description: `${plan.name} (₹${plan.price}/${periodLabel}) - 1080p Master & No Watermark`,
+          image: "/assets/images/snapbeat_app_icon.png",
+          theme: { color: "#ffc72c" },
+          handler: function (response) {
+            if (response?.razorpay_payment_id && typeof onPaymentSuccess === "function") {
+              onPaymentSuccess(plan.id, response.razorpay_payment_id);
             }
           },
-        },
-      };
+          modal: {
+            ondismiss: function () {
+              if (typeof onPaymentCancel === "function") {
+                onPaymentCancel();
+              }
+            },
+          },
+        };
 
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
-        alert(`Payment failed: ${response.error?.description || "Unknown error"}`);
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", function (response) {
+          alert(`Payment failed: ${response.error?.description || "Payment was not completed"}`);
+          if (typeof onPaymentCancel === "function") {
+            onPaymentCancel();
+          }
+        });
+        rzp.open();
+      } catch (err) {
+        alert("Payment gateway error: " + (err.message || "Could not initialize checkout"));
         if (typeof onPaymentCancel === "function") {
           onPaymentCancel();
         }
-      });
-      rzp.open();
-    } catch (err) {
-      alert("Error opening payment window: " + (err.message || "Unknown error"));
-      runDemoCheckout(plan, onPaymentSuccess, onPaymentCancel);
-    }
-  };
+      }
+    };
 
-  // If Razorpay live/test key is present, open Razorpay Standard Checkout
-  if (razorpayKey) {
     if (window.Razorpay) {
       openRazorpayModal();
-      return;
-    }
-
-    // Check if script is already injected
-    const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-    if (existingScript) {
-      existingScript.addEventListener("load", openRazorpayModal);
       return;
     }
 
@@ -94,14 +60,22 @@ export function initializeRazorpayCheckout(planId, onPaymentSuccess, onPaymentCa
     script.async = true;
     script.onload = openRazorpayModal;
     script.onerror = () => {
-      runDemoCheckout(plan, onPaymentSuccess, onPaymentCancel);
+      alert("Unable to load Razorpay payment gateway. Please check your internet connection.");
+      if (typeof onPaymentCancel === "function") onPaymentCancel();
     };
     document.body.appendChild(script);
     return;
   }
 
-  // If key not configured, run demo simulation checkout
-  runDemoCheckout(plan, onPaymentSuccess, onPaymentCancel);
+  // If Razorpay is not yet approved / configured, do NOT activate Pro!
+  alert(
+    "PRO STUDIO PASS — PAYMENT GATEWAY IN REVIEW\n\n" +
+    "Online payments via Razorpay are currently under verification and will go live shortly.\n\n" +
+    "During this beta period, all users have access to free unlimited reel renders!"
+  );
+  if (typeof onPaymentCancel === "function") {
+    onPaymentCancel();
+  }
 }
 
 export default initializeRazorpayCheckout;

@@ -15,6 +15,13 @@ export function AuthProvider({ children }) {
       const stored = localStorage.getItem("snapbeat_user");
       if (stored) {
         const parsed = JSON.parse(stored);
+        // Clear any simulated Pro status if no real payment ID exists
+        if (parsed.isPro && (!parsed.paymentId || !parsed.paymentId.startsWith("pay_"))) {
+          parsed.isPro = false;
+          parsed.planId = null;
+          parsed.expiresAt = null;
+          localStorage.setItem("snapbeat_user", JSON.stringify(parsed));
+        }
         // Check if pro subscription has expired
         if (parsed.isPro && parsed.expiresAt) {
           if (new Date(parsed.expiresAt) < new Date()) {
@@ -53,6 +60,11 @@ export function AuthProvider({ children }) {
         createdAt: new Date().toISOString(),
       };
     } else {
+      // Clear unverified Pro
+      if (existing.isPro && (!existing.paymentId || !existing.paymentId.startsWith("pay_"))) {
+        existing.isPro = false;
+        existing.planId = null;
+      }
       // Check Pro expiry
       if (existing.isPro && existing.expiresAt) {
         if (new Date(existing.expiresAt) < new Date()) {
@@ -69,14 +81,15 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Sync with any device-level subscription active on this machine
+    // Sync only with real verified payment subscriptions
     try {
       const cachedSub = localStorage.getItem("snapbeat_pro_subscription");
       if (cachedSub) {
         const parsedSub = JSON.parse(cachedSub);
-        if (parsedSub?.isPro && parsedSub.expiresAt && parsedSub.expiresAt > Date.now()) {
+        if (parsedSub?.isPro && parsedSub.paymentId?.startsWith("pay_") && parsedSub.expiresAt && parsedSub.expiresAt > Date.now()) {
           existing.isPro = true;
           existing.planId = parsedSub.plan || existing.planId || "weekly";
+          existing.paymentId = parsedSub.paymentId;
           existing.expiresAt = new Date(parsedSub.expiresAt).toISOString();
         }
       }
@@ -103,6 +116,10 @@ export function AuthProvider({ children }) {
   };
 
   const upgradeToPro = (planId, paymentDetails = {}) => {
+    if (!paymentDetails?.paymentId || !paymentDetails.paymentId.startsWith("pay_")) {
+      console.warn("Pro upgrade blocked: Requires valid payment transaction ID.");
+      return;
+    }
     const now = new Date();
     let days = 7;
     if (planId === "monthly") days = 30;
@@ -122,10 +139,11 @@ export function AuthProvider({ children }) {
       isPro: true,
       planId,
       expiresAt,
+      paymentId: paymentDetails.paymentId,
       lastPayment: {
         planId,
         date: now.toISOString(),
-        paymentId: paymentDetails.paymentId || "demo_pay",
+        paymentId: paymentDetails.paymentId,
       },
     };
 

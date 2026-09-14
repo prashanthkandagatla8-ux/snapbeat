@@ -195,4 +195,4 @@ export const TITLE_FONTS = [
   { id: "playfair", label: "Playfair Display (Luxury)" },
 ];
 
-export const DEFAULT_SERVER_URL = "http://34.93.112.240";
+export const DEFAULT_SERVER_URL = "";
