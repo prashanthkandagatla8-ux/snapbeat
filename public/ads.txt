@@ -1,3 +1,12 @@
-# ads.txt for SnapBeat Web (https://snapbeat.app)
-# Replace with your Publisher ID from Google AdSense or your Ad Network
-# Example: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+# ==============================================================================
+# SnapBeat Studio (https://snapbeat.app) — Authorized Digital Sellers (ads.txt)
+# Hybrid Ad Network Configuration: Google AdSense + Monetag (PropellerAds)
+# ==============================================================================
+
+# 1. Google AdSense / Google Ad Manager
+# Replace pub-XXXXXXXXXXXXXXXX with your 16-digit AdSense Publisher ID once registered:
+google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+
+# 2. Monetag (PropellerAds)
+# Once you add snapbeat.app in Monetag, paste their domain verification line below:
+# Example: propellerads.com, 123456, DIRECT
