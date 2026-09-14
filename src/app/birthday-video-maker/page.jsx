@@ -117,9 +117,9 @@ export default function BirthdayVideoMakerPage() {
       faqs={faqs}
       relatedPages={[
       {
-            "name": "Telugu Birthday Video Maker",
-            "path": "/telugu-birthday-video-maker",
-            "desc": "Birthday reels in Telugu with regional songs."
+            "name": "Party Video Maker",
+            "path": "/party-video-maker",
+            "desc": "High-energy party and celebration reels."
       },
       {
             "name": "Anniversary Video Maker",

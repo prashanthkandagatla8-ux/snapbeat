@@ -86,7 +86,7 @@ export function getWebApplicationSchema() {
     offers: {
       "@type": "Offer",
       price: "0",
-      priceCurrency: "INR",
+      priceCurrency: "USD",
       category: "FreeTier",
     },
     browserRequirements: "Requires HTML5, WebGL, Modern Browser",

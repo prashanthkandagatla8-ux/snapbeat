@@ -77,30 +77,30 @@ export default function SeoFooter({ className = "" }) {
           </ul>
         </div>
 
-        {/* Col 3: Festivals & Regional */}
+        {/* Col 3: Celebrations & Life */}
         <div className="space-y-3">
           <p className="font-mono text-[11px] font-black text-amber-300 uppercase tracking-wider">
-            Festivals & Regional
+            Celebrations & Life
           </p>
           <ul className="space-y-2 text-[11px]">
             <li>
-              <Link href="/telugu-birthday-video-maker" className="hover:text-amber-300 transition">
-                Telugu Birthday Video Maker
+              <Link href="/party-video-maker" className="hover:text-amber-300 transition">
+                Party & Celebration Video Maker
               </Link>
             </li>
             <li>
-              <Link href="/telugu-photo-video-maker" className="hover:text-amber-300 transition">
-                Telugu Photo Video Maker
+              <Link href="/friendship-video-maker" className="hover:text-amber-300 transition">
+                Friendship & Best Friends Reels
               </Link>
             </li>
             <li>
-              <Link href="/ganesh-chaturthi-video-maker" className="hover:text-amber-300 transition">
-                Ganesh Chaturthi Video Maker
+              <Link href="/memorial-video-maker" className="hover:text-amber-300 transition">
+                Memorial & Tribute Slideshow
               </Link>
             </li>
             <li>
-              <Link href="/diwali-video-maker" className="hover:text-amber-300 transition">
-                Diwali Photo Video Maker
+              <Link href="/graduation-video-maker" className="hover:text-amber-300 transition">
+                Graduation Photo Video Maker
               </Link>
             </li>
           </ul>
