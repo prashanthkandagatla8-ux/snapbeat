@@ -162,7 +162,7 @@ export default function StudioPage() {
       {/* TOP ANNOUNCEMENT BANNER: Free Beta & Queue Transparency (Overlayed on Dark Grey Background) */}
       <aside
         aria-label="Public Beta Announcement"
-        className={`w-full ${viewMode === "showcase" ? "max-w-[857px]" : "max-w-[1240px]"} mb-3 sm:mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/15 to-amber-500/20 border border-amber-400/40 rounded-2xl px-4 py-2.5 backdrop-blur-md flex items-center justify-center gap-3 text-white text-xs font-semibold select-none shadow-[0_10px_25px_rgba(0,0,0,0.5)] transition-all duration-300 z-20`}
+        className="w-full max-w-[1200px] mb-3 sm:mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/15 to-amber-500/20 border border-amber-400/30 rounded-2xl px-4 py-2.5 backdrop-blur-md flex items-center justify-center gap-3 text-white text-xs font-semibold select-none shadow-[0_10px_25px_rgba(0,0,0,0.5)] z-20"
       >
         <div className="flex items-center gap-2 flex-wrap mx-auto text-center justify-center">
           <span className="px-2.5 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] font-black text-[10px] uppercase tracking-wider shadow">
@@ -178,34 +178,36 @@ export default function StudioPage() {
         </div>
       </aside>
 
-      {/* MASTER TABLET FRAME: Smooth round edge metallic chassis overlayed on dark grey background */}
-      <div className={`tablet-frame sky-canvas w-full ${viewMode === "showcase" ? "max-w-[857px]" : "max-w-[1240px]"} flex flex-col min-h-[92vh] relative text-white shadow-2xl transition-all duration-500`}>
-
-        {/* VIEW 1: SHOWCASE HOME PAGE */}
-        {viewMode === "showcase" ? (
+      {/* VIEW 1: FIRST PAGE (AUTHENTIC METAL EDGE FRAME ONLY) */}
+      {viewMode === "showcase" ? (
+        <div className="w-full max-w-[857px] mx-auto relative rounded-[44px] shadow-[0_35px_95px_-10px_rgba(0,0,0,0.96),0_15px_40px_rgba(0,0,0,0.85)] overflow-hidden">
           <ShowcaseHome
-            onEnterStudio={() => setViewMode("studio")}
+            onEnterStudio={() => {
+              setViewMode("studio");
+              setCurrentTab("music");
+            }}
             onOpenPricing={() => setIsStoreOpen(true)}
           />
-        ) : (
-          /* VIEW 2: CREATIVE STUDIO WORKSTATION */
-          <div className="flex-1 flex flex-col w-full">
-            {/* RETRO SKY HEADER */}
-            <RetroHeader
-              currentTab={currentTab}
-              setCurrentTab={setCurrentTab}
-              renderMode={renderMode}
-              setRenderMode={setRenderMode}
-              isPro={isPro}
-              daysRemaining={daysRemaining}
-              onOpenPricing={() => setIsStoreOpen(true)}
-              serverOnline={serverOnline}
-              activeQueueCount={renderJob.isRendering ? 1 : 0}
-              onShowcaseClick={() => setViewMode("showcase")}
-            />
+        </div>
+      ) : (
+        /* VIEW 2: WORKSTATION SCREENS (MUSIC, PHOTOS, RENDER, QUEUE) */
+        <div className="w-full max-w-[1400px] mx-auto rounded-3xl bg-[#08181c]/95 border border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col min-h-[90vh]">
+          {/* RETRO SKY HEADER */}
+          <RetroHeader
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+            renderMode={renderMode}
+            setRenderMode={setRenderMode}
+            isPro={isPro}
+            daysRemaining={daysRemaining}
+            onOpenPricing={() => setIsStoreOpen(true)}
+            serverOnline={serverOnline}
+            activeQueueCount={renderJob.isRendering ? 1 : 0}
+            onShowcaseClick={() => setViewMode("showcase")}
+          />
 
-            {/* WORKSTATION BODY */}
-            <main className="flex-1 max-w-[1400px] w-full mx-auto p-3 sm:p-5 lg:p-8">
+          {/* WORKSTATION BODY: RENDERS ACTIVE SCREEN */}
+          <main className="flex-1 w-full p-3 sm:p-5 lg:p-8">
               {/* TAB 1: MUSIC & TAPE DECK */}
               {currentTab === "music" && (
                 <div className="space-y-4">
@@ -347,23 +349,22 @@ export default function StudioPage() {
               {/* RETRO SPONSOR BANNER (HIDDEN FOR PRO SUBSCRIBERS) */}
               <RetroAdBanner isPro={isPro} onOpenPricing={() => setIsStoreOpen(true)} />
             </main>
+
+            {/* SLEEK FROSTED GLASS FOOTER */}
+            <footer className="w-full bg-[#08181d]/85 backdrop-blur-xl border-t border-[#d4af37]/25 py-4 px-4 sm:px-8 text-center text-xs text-white/70 flex flex-col sm:flex-row items-center justify-between gap-3 mt-auto relative z-10">
+              <p className="font-bold flex items-center justify-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span>© 2026 SnapBeat Studio. Tactile Audio-Visual Reel Maker.</span>
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-black text-amber-300/90">
+                <a href="/privacy" className="hover:text-amber-200 hover:underline transition">Privacy Policy</a>
+                <a href="/terms" className="hover:text-amber-200 hover:underline transition">Terms & Refunds</a>
+                <a href="/join" className="hover:text-amber-200 hover:underline transition">Beta Testers Group</a>
+                <a href="/beta" className="hover:text-amber-200 hover:underline transition">Google Play App</a>
+              </div>
+            </footer>
           </div>
         )}
-
-        {/* SLEEK FROSTED GLASS FOOTER INSIDE THE TABLET FRAME */}
-        <footer className="w-full bg-[#08181d]/85 backdrop-blur-xl border-t border-[#d4af37]/25 py-4 px-4 sm:px-8 text-center text-xs text-white/70 flex flex-col sm:flex-row items-center justify-between gap-3 mt-auto relative z-10">
-          <p className="font-bold flex items-center justify-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span>© 2026 SnapBeat Studio. Tactile Audio-Visual Reel Maker.</span>
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-black text-amber-300/90">
-            <a href="/privacy" className="hover:text-amber-200 hover:underline transition">Privacy Policy</a>
-            <a href="/terms" className="hover:text-amber-200 hover:underline transition">Terms & Refunds</a>
-            <a href="/join" className="hover:text-amber-200 hover:underline transition">Beta Testers Group</a>
-            <a href="/beta" className="hover:text-amber-200 hover:underline transition">Google Play App</a>
-          </div>
-        </footer>
-      </div>
 
       {/* PRO STORE MODAL */}
       <RetroStoreModal
