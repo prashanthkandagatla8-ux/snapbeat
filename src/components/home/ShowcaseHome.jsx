@@ -4,7 +4,26 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
 import RetroAdBanner from "@/components/ads/RetroAdBanner";
-import { Volume2, VolumeX, Play, Pause, Square, Sparkles, Crown, Zap, Music, Image as ImageIcon, Video, ArrowRight, ShieldCheck, User } from "lucide-react";
+import {
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  Square,
+  Sparkles,
+  Crown,
+  Zap,
+  Music,
+  Image as ImageIcon,
+  Video,
+  ArrowRight,
+  ShieldCheck,
+  User,
+  Film,
+  Share2,
+  Download,
+  ExternalLink,
+} from "lucide-react";
 
 export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
   const { user, openAuthModal, signOut } = useAuth();
@@ -22,7 +41,6 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
         playPromise
           .then(() => setIsPlaying(true))
           .catch(() => {
-            // Autoplay prevented until user interacts with the page
             setIsPlaying(false);
           });
       }
@@ -67,338 +85,428 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
     }
   };
 
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="w-full flex flex-col items-center py-6 px-4 sm:px-6 max-w-6xl mx-auto space-y-8 animate-fadeIn">
-      {/* Top Banner / User Account Bar */}
-      <div className="w-full flex items-center justify-between metal-panel px-5 py-3 rounded-2xl border-2 border-[#7a766f] shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl metal-inset p-1 flex items-center justify-center">
+    <div className="w-full flex flex-col items-center py-6 px-3 sm:px-6 max-w-6xl mx-auto space-y-12 animate-fadeIn select-none">
+      
+      {/* =========================================================================
+          SECTION 1: THE SIGNATURE TABLET LANDING PAGE (MATCHING UI REFERENCE)
+          ========================================================================= */}
+      <section
+        id="hero"
+        className="w-full relative rounded-[32px] sm:rounded-[44px] border-[3px] border-[#d4af37]/80 shadow-[0_25px_80px_rgba(0,0,0,0.65)] overflow-hidden bg-gradient-to-b from-[#162a2e] via-[#1a3338] to-[#121e22] text-white p-4 sm:p-7 md:p-9"
+      >
+        {/* Subtle Ambient Background Lighting */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 bg-radial from-amber-400/15 via-emerald-400/5 to-transparent blur-3xl pointer-events-none" />
+
+        {/* 1.1 TOP NAVIGATION BAR */}
+        <header className="relative z-10 flex items-center justify-between gap-4 pb-4 border-b border-white/10">
+          {/* 3D SnapBeat Logo on Left */}
+          <div
+            onClick={() => scrollToSection("hero")}
+            className="flex items-center gap-2 cursor-pointer group"
+          >
             <img
-              src="/assets/images/snapbeat_app_icon.png"
-              alt="SnapBeat App Icon"
-              className="w-full h-full object-contain rounded-lg"
+              src="/assets/images/snapbeat_logo_3d.png"
+              alt="SnapBeat Logo"
+              className="h-9 sm:h-11 md:h-12 w-auto object-contain drop-shadow-lg group-hover:scale-105 transition-transform"
             />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <img
-                src="/assets/images/snapbeat_logo_crop.png"
-                alt="SnapBeat Logo"
-                className="h-7 sm:h-8 w-auto object-contain"
-              />
-              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest shadow-sm">
-                BETA
-              </span>
-            </div>
-            <p className="text-[10px] text-[#5a5752] font-bold">Tactile Audio-Visual Reel Maker</p>
-          </div>
-        </div>
 
-        {/* User Account Controls */}
-        <div className="flex items-center gap-3">
-          {user ? (
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-2">
-                {user.picture ? (
-                  <img
-                    src={user.picture}
-                    alt={user.name || user.email}
-                    className="w-7 h-7 rounded-full object-cover border border-amber-500 shadow-sm"
-                  />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-amber-500/25 text-amber-900 border border-amber-600/40 flex items-center justify-center font-black text-xs shrink-0">
-                    {(user.name || user.email || "U")[0].toUpperCase()}
-                  </div>
-                )}
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-black text-[#2b2b2d] max-w-[120px] truncate">{user.name || user.email}</p>
-                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                    user.isPro ? "bg-amber-400 text-black" : "bg-black/10 text-[#4a4743]"
-                  }`}>
-                    {user.isPro ? "PRO SUBSCRIBER" : "FREE USER"}
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onEnterStudio}
-                className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider btn-brass text-[#2b2820] shadow flex items-center gap-1 hover:brightness-110 active:scale-95 transition"
-              >
-                <span>STUDIO</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-              <button
-                type="button"
-                onClick={signOut}
-                className="text-[10px] font-bold text-[#5a5752] hover:text-red-700 px-2 py-1.5 rounded-lg metal-inset hover:bg-black/5 transition active:scale-95"
-              >
-                Sign Out
-              </button>
-            </div>
-          ) : (
+          {/* Nav Links in Center */}
+          <nav className="hidden md:flex items-center gap-7 text-sm font-semibold tracking-wide">
             <button
               type="button"
-              onClick={openAuthModal}
-              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider btn-brass text-[#2b2820] shadow flex items-center gap-1.5 hover:brightness-110 transition"
+              onClick={() => scrollToSection("hero")}
+              className="text-[#ffc72c] font-bold border-b-2 border-[#ffc72c] pb-0.5 cursor-pointer"
             >
-              <User className="w-3.5 h-3.5" />
-              <span>SIGN IN</span>
+              Home
             </button>
-          )}
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={handleAction}
+              className="text-amber-100/80 hover:text-white transition cursor-pointer"
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("showcase-player")}
+              className="text-amber-100/80 hover:text-white transition cursor-pointer"
+            >
+              Explore
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("pricing")}
+              className="text-amber-100/80 hover:text-white transition cursor-pointer"
+            >
+              About
+            </button>
+          </nav>
 
-      {/* Main Showcase Hero Section */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        {/* Left Side: CRT Framed Showcase Video Player */}
-        <div className="lg:col-span-6 flex flex-col items-center">
-          <div className="relative w-full max-w-[340px] sm:max-w-[380px] metal-panel rounded-3xl p-4 sm:p-5 border-4 border-[#7a766f] shadow-2xl">
-            {/* Chassis Screws */}
-            <div className="metal-screw top-3 left-3 pointer-events-none" />
-            <div className="metal-screw top-3 right-3 pointer-events-none" />
-            <div className="metal-screw bottom-3 left-3 pointer-events-none" />
-            <div className="metal-screw bottom-3 right-3 pointer-events-none" />
-
-            {/* Top Control Bar with Play, Pause, Stop, and Mute */}
-            <div className="flex items-center justify-between px-2 pb-3 mb-2 border-b border-[#7a766f]/40 gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full shadow-md ${
-                  isPlaying ? "bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-amber-500"
-                }`} />
-                <span className="font-mono text-[10px] font-black text-[#4a4743] tracking-widest hidden sm:inline">
-                  SHOWCASE REEL • 1080P
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 ml-auto">
-                {/* Play / Pause Toggle Button */}
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
-                  title={isPlaying ? "Pause Sample Reel" : "Play Sample Reel"}
-                  aria-label={isPlaying ? "Pause Sample Reel" : "Play Sample Reel"}
-                >
-                  {isPlaying ? (
-                    <>
-                      <Pause className="w-3.5 h-3.5 fill-current text-amber-600" />
-                      <span>PAUSE</span>
-                    </>
+          {/* User Account Button on Right */}
+          <div className="flex items-center gap-3">
+            {user ? (
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-2">
+                  {user.picture ? (
+                    <img
+                      src={user.picture}
+                      alt={user.name || user.email}
+                      className="w-8 h-8 rounded-full object-cover border-2 border-[#ffc72c] shadow"
+                    />
                   ) : (
-                    <>
-                      <Play className="w-3.5 h-3.5 fill-current text-green-700" />
-                      <span>PLAY</span>
-                    </>
+                    <div className="w-8 h-8 rounded-full bg-[#ffc72c] text-[#2b2820] font-black text-xs flex items-center justify-center shadow">
+                      {(user.name || user.email || "U")[0].toUpperCase()}
+                    </div>
                   )}
-                </button>
-
-                {/* Stop Button */}
-                <button
-                  type="button"
-                  onClick={stopVideo}
-                  className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
-                  title="Stop and Rewind Sample Reel"
-                  aria-label="Stop Sample Reel"
-                >
-                  <Square className="w-3.5 h-3.5 fill-current text-[#d62828]" />
-                  <span>STOP</span>
-                </button>
-
-                {/* Audio Mute/Unmute */}
-                <button
-                  type="button"
-                  onClick={toggleSound}
-                  className="px-2 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
-                  title={isMuted ? "Click to unmute audio" : "Click to mute audio"}
-                  aria-label={isMuted ? "Click to unmute audio" : "Click to mute audio"}
-                >
-                  {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-600" /> : <Volume2 className="w-3.5 h-3.5 text-green-700" />}
-                  <span className="hidden sm:inline">{isMuted ? "UNMUTE" : "MUTE"}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* The Video CRT Viewport */}
-            <div className="relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-black border-2 border-[#2b2b2d] shadow-inner group">
-              <video
-                ref={videoRef}
-                src="/assets/videos/showcase_reel.mp4"
-                poster="/assets/images/splash_poster.webp"
-                autoPlay
-                loop
-                muted
-                playsInline
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                className="w-full h-full object-cover"
-              />
-
-              {/* CRT Scanline Overlay */}
-              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0)_0%,_rgba(0,0,0,0.4)_100%)] opacity-80" />
-
-              {/* Floating Track & Motion Badges */}
-              <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1.5 pointer-events-none">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-white text-xs font-black shadow-lg w-max">
-                  <Music className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Little Do You Know • 128 BPM</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-amber-300 text-[11px] font-bold shadow-lg w-max">
-                  <Sparkles className="w-3 h-3 text-amber-400" />
-                  <span>Template: Pendulum Motion & Beat Flash</span>
-                </div>
-              </div>
-
-              {/* Paused State Overlay */}
-              {!isPlaying && (
-                <div
-                  onClick={togglePlay}
-                  className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] transition cursor-pointer z-20 space-y-3"
-                >
-                  <div className="w-16 h-16 rounded-full bg-[#ffc72c] text-[#2b2820] flex items-center justify-center shadow-2xl border-2 border-white hover:scale-105 transition">
-                    <Play className="w-8 h-8 fill-current ml-1" />
+                  <div className="text-right hidden sm:block">
+                    <p className="text-xs font-bold text-white max-w-[120px] truncate">{user.name || user.email}</p>
+                    <span className="text-[9px] font-black uppercase text-amber-300">
+                      {user.isPro ? "PRO PASS" : "FREE TIER"}
+                    </span>
                   </div>
-                  <span className="px-3 py-1 rounded-full bg-black/80 text-white font-mono text-xs font-bold border border-white/20 tracking-wider">
-                    SAMPLE PAUSED • TAP TO RESUME
-                  </span>
                 </div>
-              )}
 
-              {/* Tap to Unmute Overlay for Mobile (when playing but muted) */}
-              {isMuted && isPlaying && (
-                <button
-                  type="button"
-                  onClick={toggleSound}
-                  aria-label="Tap for audio"
-                  className="absolute inset-0 flex items-center justify-center bg-black/25 hover:bg-black/15 transition group-hover:opacity-100 cursor-pointer"
-                >
-                  <div className="px-4 py-2 rounded-2xl bg-black/80 backdrop-blur-md border border-amber-400/50 text-white text-xs font-black flex items-center gap-2 shadow-2xl">
-                    <Volume2 className="w-4 h-4 text-amber-400 animate-bounce" />
-                    <span>TAP FOR AUDIO</span>
-                  </div>
-                </button>
-              )}
-            </div>
-
-            {/* Bottom Deck Badge & Direct Sign In Button ON Player */}
-            <div className="pt-3 mt-2 border-t border-[#7a766f]/40 space-y-2.5">
-              <div className="flex items-center justify-between text-[10px] font-bold text-[#5a5752]">
-                <div className="flex items-center gap-1.5">
-                  <img
-                    src="/assets/images/snapbeat_app_icon.png"
-                    alt="SnapBeat App Icon"
-                    className="w-3.5 h-3.5 rounded object-contain"
-                  />
-                  <span className="font-mono text-[9px] tracking-wider text-[#5a5752]">SYNCHRONIZED DECK</span>
-                </div>
-                <span className="font-mono text-amber-600">CHOREO V2.0</span>
-              </div>
-
-              {/* Prominent Sign In / Studio Button directly on Home Page Player */}
-              {!user ? (
-                <button
-                  type="button"
-                  onClick={openAuthModal}
-                  className="w-full py-3 rounded-2xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition cursor-pointer"
-                >
-                  <User className="w-4 h-4 text-[#2b2820]" />
-                  <span>SIGN IN TO CREATE REEL ❯</span>
-                </button>
-              ) : (
                 <button
                   type="button"
                   onClick={onEnterStudio}
-                  className="w-full py-3 rounded-2xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-full bg-[#ffc72c] text-[#2b2820] font-black text-xs uppercase tracking-wider shadow hover:brightness-110 active:scale-95 transition flex items-center gap-1 cursor-pointer"
                 >
-                  <span>OPEN STUDIO WORKSTATION ❯</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>STUDIO</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={signOut}
+                  className="text-[10px] font-bold text-amber-200/70 hover:text-red-400 px-2 py-1 rounded-md transition"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={openAuthModal}
+                className="px-5 py-2 rounded-full bg-[#ffc72c] hover:bg-[#ffd54f] text-[#2b2820] font-black text-xs sm:text-sm tracking-wide shadow-md transition flex items-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <User className="w-4 h-4 fill-current text-[#2b2820]" />
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
-        </div>
+        </header>
 
-        {/* Right Side: Headline, Features, and Master CTA */}
-        <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full metal-inset text-[#3b3834] font-black text-xs">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>CREATE VIDEOS IN JUST A FEW CLICKS</span>
+        {/* 1.2 HERO CONTENT (3D TITLE + SCRIPT TAGLINE + START CREATING CTA) */}
+        <div className="relative z-10 flex flex-col items-center text-center mt-7 sm:mt-9 space-y-4">
+          {/* Big 3D Logo Header */}
+          <div className="relative inline-block hover:scale-[1.02] transition-transform duration-300">
+            <img
+              src="/assets/images/snapbeat_logo_3d.png"
+              alt="SnapBeat 3D Title"
+              className="h-20 sm:h-28 md:h-36 w-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]"
+            />
+          </div>
+
+          {/* Script Tagline (From UI Reference) */}
+          <h2 className="font-script text-2xl sm:text-3xl md:text-4xl text-[#fffae8] font-bold tracking-wide drop-shadow-md">
+            Not just a video... It's your story in motion.
+          </h2>
+
+          {/* "Start Creating" Golden Radiate CTA Button */}
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <span className="text-amber-300 font-mono text-base tracking-widest hidden sm:inline select-none">
+              \ \
+            </span>
+            <button
+              type="button"
+              onClick={handleAction}
+              className="px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-[#ffc72c] via-[#ffb800] to-[#f59e0b] text-[#2b2820] font-black text-base sm:text-lg tracking-wide shadow-[0_10px_35px_rgba(245,158,11,0.55)] hover:brightness-105 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 border border-[#fff0a6] cursor-pointer"
+            >
+              <Play className="w-5 h-5 fill-current ml-0.5" />
+              <span>Start Creating</span>
+            </button>
+            <span className="text-amber-300 font-mono text-base tracking-widest hidden sm:inline select-none">
+              / /
+            </span>
+          </div>
+
+          {/* 1.3 CENTERPIECE ARTWORK: VINTAGE CAMERA & 35MM FILM STRIP */}
+          <div className="relative w-full max-w-2xl mx-auto pt-4 group">
+            <div className="relative overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/15">
+              <img
+                src="/assets/images/snapbeat_camera_filmstrip.png"
+                alt="SnapBeat Camera with 35mm Filmstrip"
+                className="w-full h-auto object-contain rounded-3xl transition-transform duration-500 group-hover:scale-[1.02]"
+              />
+
+              {/* Interactive Play Overlay right on the Camera Screen */}
+              <button
+                type="button"
+                onClick={() => scrollToSection("showcase-player")}
+                className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/25 transition cursor-pointer"
+                title="Watch Sample Reel in Player"
+                aria-label="Watch Sample Reel"
+              >
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#ffc72c]/90 text-[#2b2820] flex items-center justify-center shadow-[0_0_35px_rgba(255,199,44,0.9)] border-2 border-white/80 group-hover:scale-110 transition duration-300">
+                  <Play className="w-8 h-8 fill-current ml-1" />
+                </div>
+              </button>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#2b2b2d] tracking-tight uppercase leading-none">
-              Beat-Synced <br className="hidden sm:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-700 to-[#2b2b2d]">
-                Reels from Photos
-              </span>
-            </h1>
-            <p className="text-sm sm:text-base text-[#4a4743] font-semibold max-w-xl leading-relaxed">
-              No complex timelines or manual keyframing. Drop your favorite photos, insert a cassette track, and let SnapBeat engineer a rhythmically locked video reel with dynamic zooms and momentum.
+            <p className="text-[11px] text-amber-200/60 font-mono text-center mt-2">
+              ▲ TAP CAMERA SCREEN TO PREVIEW AUDIO-VISUAL REEL ▲
             </p>
           </div>
 
-          {/* 3 Simple Steps */}
-          <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-2xl metal-inset flex flex-col items-center lg:items-start text-center lg:text-left">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700 mb-2">
-                <Music className="w-4 h-4" />
+          {/* 1.4 BOTTOM 4 FEATURE CARDS (NEON DOCK FROM UI REFERENCE) */}
+          <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-3.5 p-4 sm:p-5 bg-black/45 backdrop-blur-md rounded-3xl border border-white/10 shadow-inner mt-6">
+            {/* Feature 1 */}
+            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-2 shadow-sm">
+                <Video className="w-5 h-5" />
               </div>
-              <h4 className="font-black text-xs text-[#2b2b2d] uppercase">1. Pick Track</h4>
-              <p className="text-[10px] font-bold text-[#5a5752] mt-0.5">9 built-in tapes or custom MP3 audio</p>
+              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Create Videos</h4>
+              <p className="text-[11px] text-amber-100/70 mt-0.5">Beat-synced reels from photos in seconds</p>
             </div>
 
-            <div className="p-3.5 rounded-2xl metal-inset flex flex-col items-center lg:items-start text-center lg:text-left">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700 mb-2">
-                <ImageIcon className="w-4 h-4" />
+            {/* Feature 2 */}
+            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
+              <div className="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center mb-2 shadow-sm">
+                <Sparkles className="w-5 h-5" />
               </div>
-              <h4 className="font-black text-xs text-[#2b2b2d] uppercase">2. Add Photos</h4>
-              <p className="text-[10px] font-bold text-[#5a5752] mt-0.5">1-click sample photos or upload yours</p>
+              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">AI Powered</h4>
+              <p className="text-[11px] text-amber-100/70 mt-0.5">Automated audio beat & onset detection</p>
             </div>
 
-            <div className="p-3.5 rounded-2xl metal-inset flex flex-col items-center lg:items-start text-center lg:text-left">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700 mb-2">
-                <Video className="w-4 h-4" />
+            {/* Feature 3 */}
+            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2 shadow-sm">
+                <Film className="w-5 h-5" />
               </div>
-              <h4 className="font-black text-xs text-[#2b2b2d] uppercase">3. Render Reel</h4>
-              <p className="text-[10px] font-bold text-[#5a5752] mt-0.5">14 cinematic motion choreography templates</p>
+              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Stunning Templates</h4>
+              <p className="text-[11px] text-amber-100/70 mt-0.5">14 cinematic motion choreography presets</p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="flex flex-col items-center text-center p-3 rounded-2xl hover:bg-white/5 transition">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center mb-2 shadow-sm">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <h4 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Easy Sharing</h4>
+              <p className="text-[11px] text-amber-100/70 mt-0.5">Instant MP4 export for Reels, Shorts & Status</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 2: INTERACTIVE SHOWCASE REEL PLAYER (CRT CHASSIS)
+          ========================================================================= */}
+      <section
+        id="showcase-player"
+        className="w-full metal-panel rounded-3xl p-6 sm:p-8 border-2 border-[#7a766f] shadow-xl"
+      >
+        <div className="flex flex-col lg:flex-row items-center gap-8">
+          {/* Left: The CRT Framed Video Player */}
+          <div className="w-full lg:w-1/2 flex flex-col items-center">
+            <div className="relative w-full max-w-[340px] sm:max-w-[380px] metal-panel rounded-3xl p-4 sm:p-5 border-4 border-[#7a766f] shadow-2xl">
+              {/* Chassis Screws */}
+              <div className="metal-screw top-3 left-3 pointer-events-none" />
+              <div className="metal-screw top-3 right-3 pointer-events-none" />
+              <div className="metal-screw bottom-3 left-3 pointer-events-none" />
+              <div className="metal-screw bottom-3 right-3 pointer-events-none" />
+
+              {/* Player Top Controls */}
+              <div className="flex items-center justify-between px-2 pb-3 mb-2 border-b border-[#7a766f]/40 gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full shadow-md ${
+                      isPlaying
+                        ? "bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+                        : "bg-amber-500"
+                    }`}
+                  />
+                  <span className="font-mono text-[10px] font-black text-[#4a4743] tracking-widest">
+                    SAMPLE REEL • 1080P
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 ml-auto">
+                  <button
+                    type="button"
+                    onClick={togglePlay}
+                    className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                  >
+                    {isPlaying ? (
+                      <>
+                        <Pause className="w-3.5 h-3.5 fill-current text-amber-600" />
+                        <span>PAUSE</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current text-green-700" />
+                        <span>PLAY</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={stopVideo}
+                    className="px-2.5 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                  >
+                    <Square className="w-3.5 h-3.5 fill-current text-[#d62828]" />
+                    <span>STOP</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleSound}
+                    className="px-2 py-1 rounded-lg metal-inset text-[#3b3834] hover:text-black transition flex items-center gap-1 text-[10px] font-black cursor-pointer shadow-sm active:scale-95"
+                  >
+                    {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-600" /> : <Volume2 className="w-3.5 h-3.5 text-green-700" />}
+                    <span className="hidden sm:inline">{isMuted ? "UNMUTE" : "MUTE"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Viewport */}
+              <div className="relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-black border-2 border-[#2b2b2d] shadow-inner group">
+                <video
+                  ref={videoRef}
+                  src="/assets/videos/showcase_reel.mp4"
+                  poster="/assets/images/splash_poster.webp"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  className="w-full h-full object-cover"
+                />
+
+                {/* CRT Scanline */}
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0)_0%,_rgba(0,0,0,0.4)_100%)] opacity-80" />
+
+                {/* Floating Track Badge */}
+                <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1.5 pointer-events-none">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-white text-xs font-black shadow-lg w-max">
+                    <Music className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Little Do You Know • 128 BPM</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-amber-300 text-[11px] font-bold shadow-lg w-max">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Pendulum Motion &amp; Beat Flash</span>
+                  </div>
+                </div>
+
+                {/* Paused Overlay */}
+                {!isPlaying && (
+                  <div
+                    onClick={togglePlay}
+                    className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] transition cursor-pointer z-20 space-y-3"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-[#ffc72c] text-[#2b2820] flex items-center justify-center shadow-2xl border-2 border-white hover:scale-105 transition">
+                      <Play className="w-8 h-8 fill-current ml-1" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-black/80 text-white font-mono text-xs font-bold border border-white/20 tracking-wider">
+                      SAMPLE PAUSED • TAP TO PLAY
+                    </span>
+                  </div>
+                )}
+
+                {/* Mobile Unmute Overlay */}
+                {isMuted && isPlaying && (
+                  <button
+                    type="button"
+                    onClick={toggleSound}
+                    className="absolute inset-0 flex items-center justify-center bg-black/25 hover:bg-black/15 transition cursor-pointer"
+                  >
+                    <div className="px-4 py-2 rounded-2xl bg-black/80 backdrop-blur-md border border-amber-400/50 text-white text-xs font-black flex items-center gap-2 shadow-2xl">
+                      <Volume2 className="w-4 h-4 text-amber-400 animate-bounce" />
+                      <span>TAP FOR AUDIO</span>
+                    </div>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Master Call to Action */}
-          <div className="w-full pt-2 flex flex-col items-center lg:items-start gap-3">
-            <div className="flex items-center gap-4">
+          {/* Right: Pitch & Direct Studio Launcher */}
+          <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
+            <div className="space-y-2">
+              <span className="font-mono text-xs font-black text-amber-600 uppercase tracking-widest">
+                AUTOMATED CHOREOGRAPHY
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#2b2b2d] tracking-tight uppercase leading-none">
+                Turn Still Photos Into High-Impact Reels
+              </h2>
+              <p className="text-sm sm:text-base text-[#4a4743] font-semibold leading-relaxed">
+                No complex timelines or manual keyframing. Insert a music tape, drop your favorite photos, and let SnapBeat engineer a rhythmically locked video with camera sweeps, zooms, and drop flashes.
+              </p>
+            </div>
+
+            {/* 3 Steps */}
+            <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-2xl metal-inset text-left">
+                <Music className="w-5 h-5 text-amber-700 mb-1" />
+                <h4 className="font-black text-xs text-[#2b2b2d] uppercase">1. Pick Track</h4>
+                <p className="text-[10px] text-[#5a5752] mt-0.5">9 built-in tapes or custom MP3</p>
+              </div>
+              <div className="p-3.5 rounded-2xl metal-inset text-left">
+                <ImageIcon className="w-5 h-5 text-amber-700 mb-1" />
+                <h4 className="font-black text-xs text-[#2b2b2d] uppercase">2. Add Photos</h4>
+                <p className="text-[10px] text-[#5a5752] mt-0.5">Sample photos or your gallery</p>
+              </div>
+              <div className="p-3.5 rounded-2xl metal-inset text-left">
+                <Video className="w-5 h-5 text-amber-700 mb-1" />
+                <h4 className="font-black text-xs text-[#2b2b2d] uppercase">3. Render Reel</h4>
+                <p className="text-[10px] text-[#5a5752] mt-0.5">14 cinematic motion templates</p>
+              </div>
+            </div>
+
+            {/* Red Master Button CTA */}
+            <div className="flex items-center gap-4 pt-2">
               <RetroMechanicalButton
                 variant="redMaster"
                 onClick={handleAction}
                 title={user ? "Enter Studio" : "Sign In to Create Reel"}
               />
-              <div className="text-left">
+              <div>
                 <button
                   type="button"
                   onClick={handleAction}
-                  className="px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider btn-brass text-[#2b2820] shadow-xl hover:brightness-110 active:scale-95 transition flex items-center gap-2"
+                  className="px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider btn-brass text-[#2b2820] shadow-xl hover:brightness-110 active:scale-95 transition flex items-center gap-2 cursor-pointer"
                 >
                   <span>{user ? "ENTER STUDIO ❯" : "SIGN IN TO CREATE REEL ❯"}</span>
                 </button>
-                <p className="text-[10px] font-bold text-[#6e695f] mt-1 pl-1">
-                  {user ? `Signed in as ${user.email}` : "Free unlimited 720p renders • No card required"}
+                <p className="text-[10px] font-bold text-[#6e695f] mt-1">
+                  Free unlimited 720p renders • No card required
                 </p>
               </div>
             </div>
-
-            {/* Reassurance note requiring sign-in to enter studio */}
-            {!user && (
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full metal-inset text-[11px] font-bold text-[#5a5752]">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span>1-Click Google or Email sign-in unlocks the Studio Workstation</span>
-              </div>
-            )}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Free vs Pro Feature Comparison Panel */}
-      <div className="w-full metal-panel rounded-3xl p-6 sm:p-8 border-2 border-[#7a766f] shadow-lg">
+      {/* =========================================================================
+          SECTION 3: FREE VS PRO PRICING COMPARISON
+          ========================================================================= */}
+      <section
+        id="pricing"
+        className="w-full metal-panel rounded-3xl p-6 sm:p-8 border-2 border-[#7a766f] shadow-lg"
+      >
         <div className="text-center space-y-1 mb-6">
-          <span className="font-mono text-xs font-black text-amber-600 uppercase tracking-widest">PLANS & PASSES</span>
+          <span className="font-mono text-xs font-black text-amber-600 uppercase tracking-widest">
+            PLANS &amp; PASSES
+          </span>
           <h3 className="text-2xl font-black text-[#2b2b2d] uppercase">Choose Free or Upgrade to Pro</h3>
           <p className="text-xs text-[#5a5752] font-semibold">Instant upgrades starting at just ₹99 / week</p>
         </div>
@@ -409,9 +517,13 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-black text-[#2b2b2d] uppercase">FREE TIER</span>
-                <span className="px-3 py-1 rounded-full bg-black/10 text-xs font-black text-[#3b3834]">ALWAYS ₹0</span>
+                <span className="px-3 py-1 rounded-full bg-black/10 text-xs font-black text-[#3b3834]">
+                  ALWAYS ₹0
+                </span>
               </div>
-              <p className="text-xs text-[#5a5752] font-semibold mt-1">Perfect for casual creators and trying out SnapBeat</p>
+              <p className="text-xs text-[#5a5752] font-semibold mt-1">
+                Perfect for casual creators and trying out SnapBeat
+              </p>
 
               <ul className="mt-4 space-y-2.5 text-xs font-bold text-[#3b3834]">
                 <li className="flex items-center gap-2">
@@ -424,7 +536,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
-                  <span>All 14 motion templates included</span>
+                  <span>All 14 motion choreography templates included</span>
                 </li>
                 <li className="flex items-center gap-2 text-[#6e695f]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#8f8677]" />
@@ -436,30 +548,29 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             <button
               type="button"
               onClick={handleAction}
-              className="w-full py-3 rounded-xl metal-inset hover:bg-black/5 text-[#2b2b2d] font-black text-xs uppercase tracking-wider transition shadow-sm"
+              className="w-full py-3 rounded-xl metal-inset hover:bg-black/5 text-[#2b2b2d] font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer"
             >
               {user ? "ENTER STUDIO (FREE TIER) ❯" : "SIGN IN FOR FREE TIER ❯"}
             </button>
           </div>
 
-          {/* Pro Passes */}
+          {/* Pro Pass */}
           <div className="rounded-2xl p-6 metal-panel border-2 border-amber-500 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 px-4 py-1 bg-gradient-to-l from-amber-500 to-amber-600 text-black text-[10px] font-black uppercase tracking-wider rounded-bl-xl shadow">
-              PRO HARDWARE PASS
+              PRO STUDIO PASS
             </div>
 
             <div>
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-500" />
                 <img
-                  src="/assets/images/snapbeat_logo_crop.png"
-                  alt="SnapBeat Logo"
+                  src="/assets/images/snapbeat_logo_3d.png"
+                  alt="SnapBeat"
                   className="h-5 w-auto object-contain"
                 />
                 <span className="text-sm font-black text-amber-600 uppercase tracking-wider">PRO PASS</span>
               </div>
 
-              {/* Three Distinct Pricing Badges */}
               <div className="flex flex-wrap gap-2 mt-2.5 mb-1">
                 <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-[11px] font-black text-[#2b2820]">
                   ₹99 <span className="font-semibold text-[10px] text-[#5a5752]">/ week</span>
@@ -503,16 +614,61 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                   onEnterStudio();
                 }
               }}
-              className="w-full py-3 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl btn-brass text-[#2b2820] font-black text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <Crown className="w-3.5 h-3.5 text-amber-600" />
               <span>{user ? "UPGRADE TO PRO ❯" : "SIGN IN & UPGRADE TO PRO ❯"}</span>
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* TASTEFUL SPONSOR BROADCAST BANNER (HIDDEN FOR PRO USERS) */}
+      {/* =========================================================================
+          SECTION 4: ANDROID CLOSED BETA ACCESS & TESTER TUTORIAL
+          ========================================================================= */}
+      <section className="w-full metal-panel rounded-3xl p-6 sm:p-8 border-2 border-[#7a766f] shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl metal-inset p-1.5 flex items-center justify-center shrink-0">
+            <img
+              src="/assets/images/snapbeat_app_icon.png"
+              alt="SnapBeat Icon"
+              className="w-full h-full object-contain rounded-xl"
+            />
+          </div>
+          <div>
+            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[9px] font-black uppercase tracking-wider">
+              GOOGLE PLAY TESTING
+            </span>
+            <h3 className="text-xl font-black text-[#2b2b2d] uppercase mt-1">Get SnapBeat on Android</h3>
+            <p className="text-xs text-[#5a5752] font-semibold mt-0.5">
+              Join our closed tester community to install early builds directly from Google Play.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <a
+            href="/join"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl metal-inset hover:bg-black/5 font-black text-xs text-[#2b2b2d] flex items-center justify-center gap-2 transition"
+          >
+            <span>1. JOIN GROUP</span>
+            <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+          </a>
+          <a
+            href="/beta"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl btn-brass font-black text-xs text-[#2b2820] flex items-center justify-center gap-2 shadow hover:brightness-105 transition"
+          >
+            <span>2. INSTALL APP</span>
+            <Download className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </section>
+
+      {/* SPONSOR BROADCAST BANNER (HIDDEN FOR PRO SUBSCRIBERS) */}
       <RetroAdBanner isPro={user?.isPro} onOpenPricing={onOpenPricing} />
     </div>
   );

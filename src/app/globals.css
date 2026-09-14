@@ -1,6 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.font-script {
+  font-family: 'Dancing Script', cursive, -apple-system, sans-serif;
+}
 
 @layer base {
   :root {
