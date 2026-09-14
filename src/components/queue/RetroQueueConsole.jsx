@@ -91,6 +91,22 @@ export function RetroQueueConsole({
     isPro ||
     (currentKey && Boolean(unlockedJobs[currentKey] || (jobId && unlockedJobs[jobId])));
 
+  const triggerAdUnlockFlow = (targetUrl, targetName) => {
+    if (targetUrl && targetName) {
+      setPendingDownload({ url: targetUrl, fileName: targetName });
+    }
+    // Open Monetag direct link in sponsor tab on user gesture
+    const directLink = process.env.NEXT_PUBLIC_MONETAG_DIRECT_LINK || "https://omg10.com/4/11799879";
+    if (directLink && typeof window !== "undefined") {
+      try {
+        window.open(directLink, "_blank", "noopener,noreferrer");
+      } catch (e) {
+        console.warn("Sponsor tab prevented:", e);
+      }
+    }
+    setIsAdOpen(true);
+  };
+
   const handleDownloadClick = (e, targetUrl, fileName) => {
     const url = targetUrl || currentDisplayVideo;
     const name = fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
@@ -99,8 +115,7 @@ export function RetroQueueConsole({
 
     if (!isUnlocked) {
       if (e) e.preventDefault();
-      setPendingDownload({ url, fileName: name });
-      setIsAdOpen(true);
+      triggerAdUnlockFlow(url, name);
       return;
     }
   };
@@ -325,10 +340,7 @@ export function RetroQueueConsole({
                   {/* Primary Radiant Unlock Button */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setPendingDownload(null);
-                      setIsAdOpen(true);
-                    }}
+                    onClick={() => triggerAdUnlockFlow(null, null)}
                     className="w-full py-3 px-4 rounded-xl btn-gold-radiant text-[#261b02] font-black text-xs uppercase tracking-wider shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer border border-[#fff4b8]"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
@@ -369,13 +381,7 @@ export function RetroQueueConsole({
               ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    setPendingDownload({
-                      url: currentDisplayVideo,
-                      fileName: `SnapBeat_${jobId || "Reel"}.mp4`,
-                    });
-                    setIsAdOpen(true);
-                  }}
+                  onClick={() => triggerAdUnlockFlow(currentDisplayVideo, `SnapBeat_${jobId || "Reel"}.mp4`)}
                   className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
                   title="Watch sponsored video ad to unlock download"
                 >
@@ -505,13 +511,7 @@ export function RetroQueueConsole({
                       ) : (
                         <button
                           type="button"
-                          onClick={() => {
-                            setPendingDownload({
-                              url: job.videoUrl,
-                              fileName: `SnapBeat_${job.id}.mp4`,
-                            });
-                            setIsAdOpen(true);
-                          }}
+                          onClick={() => triggerAdUnlockFlow(job.videoUrl, `SnapBeat_${job.id}.mp4`)}
                           className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-400 transition cursor-pointer border border-amber-400/30"
                           title="Unlock with Ad to Download"
                           aria-label="Unlock with Ad to Download"
@@ -534,6 +534,7 @@ export function RetroQueueConsole({
         onComplete={handleAdComplete}
         onClose={() => setIsAdOpen(false)}
         onOpenPricing={onOpenPricing}
+        sponsorUrl={process.env.NEXT_PUBLIC_MONETAG_DIRECT_LINK || "https://omg10.com/4/11799879"}
       />
     </div>
   );

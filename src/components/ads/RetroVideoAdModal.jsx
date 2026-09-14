@@ -3,7 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Crown, X, Volume2, VolumeX, ArrowRight, Sparkles } from "lucide-react";
 
-export default function RetroVideoAdModal({ isOpen, onComplete, onClose, onOpenPricing }) {
+export default function RetroVideoAdModal({
+  isOpen,
+  onComplete,
+  onClose,
+  onOpenPricing,
+  sponsorUrl = "https://omg10.com/4/11799879",
+}) {
   const [timeLeft, setTimeLeft] = useState(5);
   const [canSkip, setCanSkip] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default muted to comply with browser autoplay policy
@@ -77,6 +83,17 @@ export default function RetroVideoAdModal({ isOpen, onComplete, onClose, onOpenP
           </div>
 
           <div className="flex items-center gap-2">
+            {sponsorUrl && (
+              <a
+                href={sponsorUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 text-[9px] font-mono font-bold border border-amber-400/30 transition cursor-pointer"
+                title="Explore Sponsor Offer"
+              >
+                <span>VISIT SPONSOR ↗</span>
+              </a>
+            )}
             <button
               type="button"
               onClick={onOpenPricing}
