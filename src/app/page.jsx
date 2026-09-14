@@ -224,7 +224,7 @@ export default function StudioPage() {
       <div className="fixed inset-0 pointer-events-none bg-radial from-amber-500/5 via-transparent to-black/60 -z-10" />
 
       {/* UNIFIED FIXED-SIZE METALLIC CHASSIS CONTAINER FOR ALL PAGES */}
-      <div className="w-full max-w-[1040px] mx-auto tablet-frame relative flex flex-col shadow-[0_30px_90px_rgba(0,0,0,0.95)]">
+      <div className="w-full max-w-[1040px] mx-auto tablet-frame relative flex flex-col">
         {viewMode === "showcase" ? (
           <ShowcaseHome
             onEnterStudio={handleEnterStudio}

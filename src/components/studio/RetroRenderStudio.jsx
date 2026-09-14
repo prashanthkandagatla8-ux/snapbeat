@@ -91,7 +91,7 @@ export function RetroRenderStudio({
               : aspectRatio === "16:9"
               ? "aspect-video max-w-[440px]"
               : "aspect-[9/16] max-w-[280px]"
-          } rounded-2xl overflow-hidden relative shadow-2xl border-4 border-[#3a3734] bg-[#0d0c0b] flex items-center justify-center transition-all duration-300 group`}
+          } rounded-2xl overflow-hidden relative shadow-2xl border-2 border-white/20 bg-[#0d0c0b] flex items-center justify-center transition-all duration-300 group`}
         >
           {/* Live Title Card CRT Stage - Always Live, Never Just Placeholder */}
           <div className="w-full h-full relative flex flex-col items-center justify-between p-6 bg-gradient-to-b from-[#18181b] via-[#09090b] to-[#18181b] text-center select-none overflow-hidden">

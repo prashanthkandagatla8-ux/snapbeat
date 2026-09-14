@@ -186,7 +186,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           ------------------------------------------------------------- */}
       <section className="w-full max-w-[700px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8 my-auto py-2">
         {/* Cinema Monitor Frame for 9:16 Video */}
-        <div className="relative w-[210px] sm:w-[240px] aspect-[9/16] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.12)] border-4 border-[#3a4149] bg-black group shrink-0">
+        <div className="relative w-[210px] sm:w-[240px] aspect-[9/16] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,199,44,0.12)] border-2 border-white/20 bg-black group shrink-0">
           <video
             ref={inlineVideoRef}
             src="/assets/videos/showcase_reel.mp4"

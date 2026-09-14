@@ -465,7 +465,13 @@ export function RetroQueueConsole({
                       {/* Preview Button */}
                       <button
                         type="button"
-                        onClick={() => handleSelectPreview(job)}
+                        onClick={() => {
+                          handleSelectPreview(job);
+                          const isUnlocked = isPro || unlockedJobs[job.videoUrl] || unlockedJobs[job.id];
+                          if (!isUnlocked) {
+                            setIsAdOpen(true);
+                          }
+                        }}
                         className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1 ${
                           isSelected
                             ? "bg-amber-400 text-black shadow"
