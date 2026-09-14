@@ -112,6 +112,10 @@ export default function StudioPage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       await renderJob.submitJob(studio);
+      // For free users, automatically rotate to a different template for the next creation
+      if (!isPro && typeof studio.rotateAutoTemplate === "function") {
+        studio.rotateAutoTemplate();
+      }
     } catch (err) {
       alert(err.message || "Failed to submit render");
     }

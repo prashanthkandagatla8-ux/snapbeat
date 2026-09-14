@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { TEMPLATES } from "@/lib/constants";
 
 export function useStudioState(isPro = false) {
   // Audio state
@@ -15,10 +16,43 @@ export function useStudioState(isPro = false) {
   const [autoArrange, setAutoArrange] = useState(false);
 
   // Styling & Controls
+  // Initial template: pick from pool
   const [selectedTemplate, setSelectedTemplate] = useState("pendulum");
   const [aspectRatio, setAspectRatio] = useState("9:16");
   const [quality, setQuality] = useState(isPro ? "master" : "fast"); // "fast" (720p) or "master" (1080p)
   const [watermarkState, setWatermarkState] = useState(true);
+
+  // Auto-rotate template for free users (guarantees a different template each time)
+  const rotateAutoTemplate = useCallback(() => {
+    setSelectedTemplate((current) => {
+      const allIds = TEMPLATES.map((t) => t.id);
+      const candidates = allIds.filter((id) => id !== current);
+      const nextId = candidates[Math.floor(Math.random() * candidates.length)] || allIds[0];
+      try {
+        localStorage.setItem("snapbeat_last_free_template", nextId);
+      } catch (e) {}
+      return nextId;
+    });
+  }, []);
+
+  // On mount or when isPro turns false, auto-select a unique template for free tier
+  useEffect(() => {
+    if (!isPro) {
+      rotateAutoTemplate();
+    }
+  }, [isPro, rotateAutoTemplate]);
+
+  // Guard manual template selection: Disabled for free users, enabled for Pro only
+  const setTemplateGuarded = useCallback(
+    (newTemplate) => {
+      if (!isPro) {
+        // Free users cannot manually select or change template
+        return;
+      }
+      setSelectedTemplate(newTemplate);
+    },
+    [isPro]
+  );
 
   // Title card
   const [titleCard, setTitleCard] = useState({
@@ -231,7 +265,8 @@ export function useStudioState(isPro = false) {
 
     // Controls
     selectedTemplate,
-    setSelectedTemplate,
+    setSelectedTemplate: setTemplateGuarded,
+    rotateAutoTemplate,
     aspectRatio,
     setAspectRatio,
     quality: isPro ? quality : "fast",
