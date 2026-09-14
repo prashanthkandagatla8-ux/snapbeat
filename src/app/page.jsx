@@ -13,6 +13,7 @@ import RetroAdBanner from "@/components/ads/RetroAdBanner";
 import SeoFooter from "@/components/layout/SeoFooter";
 import { trackStartCreating, trackRenderStarted, trackUpgradeViewed } from "@/lib/analytics";
 import { initializeRazorpayCheckout } from "@/components/billing/RazorpayCheckout";
+import { initializeHybridCheckout } from "@/components/billing/HybridCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useStudioState } from "@/hooks/useStudioState";
 import { useRenderJob } from "@/hooks/useRenderJob";
@@ -69,6 +70,38 @@ export default function StudioPage() {
       if (params.get("view") === "studio" || window.location.hash === "#studio") {
         setViewMode("studio");
       }
+    }
+  }, []);
+
+  // Auto-verify and activate Pro if redirected back from Cashfree
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("order_id");
+    const cfStatus = params.get("cf_status");
+    const planId = params.get("plan_id") || "monthly";
+
+    if (orderId) {
+      const verifyRedirectPayment = async () => {
+        try {
+          const res = await fetch("/api/checkout/cashfree/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId, planId }),
+          });
+          const data = await res.json();
+          if (data?.verified) {
+            activatePro(data.planId || planId, data.paymentId || `cf_${orderId}`);
+            upgradeToPro(data.planId || planId, { paymentId: data.paymentId || `cf_${orderId}` });
+            setRenderMode("pro");
+            window.history.replaceState({}, document.title, window.location.pathname);
+            alert("🎉 WELCOME TO SNAPBEAT PRO!\n\nYour payment was verified successfully! Pro Studio Pass is now active.");
+          }
+        } catch (err) {
+          console.warn("Could not verify redirect payment:", err);
+        }
+      };
+      verifyRedirectPayment();
     }
   }, []);
 
@@ -209,10 +242,29 @@ export default function StudioPage() {
     }
   };
 
-  // Handle plan purchase (Disabled during merchant review)
+  // Handle plan purchase via Hybrid Gateway (Cashfree Active Live + Razorpay Backup)
   const handleSelectPlan = (planId) => {
     setIsStoreOpen(false);
-    alert("Payment gateway integration is currently in progress. Pro Pass purchases will unlock soon! In the meantime, enjoy 100% free unlimited video renders.");
+    initializeHybridCheckout({
+      planId,
+      user,
+      onPaymentSuccess: (purchasedPlanId, paymentId) => {
+        activatePro(purchasedPlanId, paymentId);
+        upgradeToPro(purchasedPlanId, { paymentId });
+        setRenderMode("pro");
+        alert(
+          "🎉 WELCOME TO SNAPBEAT PRO!\n\n" +
+          "Your Pro Studio Pass is now active!\n" +
+          "• 1080p Master exports unlocked\n" +
+          "• Watermark removed\n" +
+          "• All 14 kinetic motion styles unlocked\n" +
+          "• Title Card editor unlocked"
+        );
+      },
+      onPaymentCancel: () => {
+        // User closed or cancelled checkout
+      },
+    });
   };
 
   // Gate studio entry with login requirement (Guest 1-click or account)
@@ -229,18 +281,19 @@ export default function StudioPage() {
   const canRender = Boolean(studio.audioFile && studio.photos.length >= 2);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 lg:p-8 select-none relative overflow-x-hidden">
+    <div className="min-h-screen w-full flex flex-col items-center justify-start px-3.5 py-6 sm:px-7 sm:py-9 md:px-10 md:py-12 select-none relative overflow-x-hidden">
       {/* Outer ambient studio desk backdrop depth */}
-      <div className="fixed inset-0 pointer-events-none bg-radial from-amber-500/5 via-transparent to-black/60 -z-10" />
+      <div className="fixed inset-0 pointer-events-none bg-radial from-white/[0.02] via-transparent to-black/75 -z-10" />
 
       {/* UNIFIED FIXED-SIZE METALLIC CHASSIS CONTAINER FOR ALL PAGES */}
       <div className="w-full max-w-[1040px] mx-auto tablet-frame relative flex flex-col">
-        {viewMode === "showcase" ? (
-          <ShowcaseHome
-            onEnterStudio={handleEnterStudio}
-            onOpenPricing={() => setIsStoreOpen(true)}
-          />
-        ) : (
+        <div className="tablet-inner-screen w-full flex flex-col">
+          {viewMode === "showcase" ? (
+            <ShowcaseHome
+              onEnterStudio={handleEnterStudio}
+              onOpenPricing={() => setIsStoreOpen(true)}
+            />
+          ) : (
           /* VIEW 2: WORKSTATION SCREENS (MUSIC, PHOTOS, RENDER, QUEUE) */
           <div className="w-full sky-canvas flex flex-col min-h-[880px] text-white relative">
           {/* RETRO SKY HEADER */}
@@ -416,6 +469,7 @@ export default function StudioPage() {
             </footer>
           </div>
         )}
+        </div>
       </div>
 
       {/* Crawlable Semantic SEO Footer */}

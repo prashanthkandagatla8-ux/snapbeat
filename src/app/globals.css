@@ -31,9 +31,9 @@
   }
 
   body {
-    background-color: #0c0d10;
+    background-color: #121316;
     background-image: 
-      radial-gradient(ellipse at 50% 30%, rgba(45, 50, 60, 0.4) 0%, rgba(10, 12, 14, 0.98) 75%),
+      radial-gradient(ellipse at 50% 25%, rgba(35, 38, 44, 0.65) 0%, rgba(14, 15, 18, 0.98) 75%),
       url('/assets/images/dark_grey_desk_bg.jpg');
     background-size: cover;
     background-position: center;
@@ -45,145 +45,103 @@
 }
 
 /* =========================================================================
-   AUTHENTIC 3D PHYSICAL TABLET CHASSIS (HARDWARE ARCHITECTURE)
-   Directly Recreating snapbeat_hero_art.png (Ref: media_1789388133639.jpg)
+   AUTHENTIC 3D PHYSICAL METAL FRAME (HARDWARE ARCHITECTURE)
+   Directly matching reference image (media_1789400976117.png / snapbeat_hero_art.png)
    ========================================================================= */
 
+/* The Outer Physical 3D Metal Frame */
+.tablet-frame,
 .tablet-chassis {
   position: relative;
-  border-radius: 40px;
-  /* Genuine 3D Physical Extruded Thickness + Multi-Stage Realistic Desk Shadows */
-  box-shadow: 
-    /* 1. Hairline top specular edge glint where overhead keylight strikes */
-    0 -1.5px 1px 0 rgba(255, 255, 255, 0.95),
-    /* 2. Outer chamfer ridge ring */
-    0 0 0 1px rgba(255, 248, 225, 0.85),
-    /* 3. PHYSICAL 3D SIDEWALL EXTRUSION (Visible thickness of the tablet metal body!) */
-    0 2px 0 1px #8c6e39,
-    0 4px 0 2px #543f1b,
-    0 7px 0 2.5px #36260f,
-    0 9px 0 3px #1a1206,
-    /* 4. Immediate dark contact shadow underneath the bottom thickness */
-    0 11px 12px rgba(0, 0, 0, 0.85),
-    /* 5. Directional cast shadow on the desk falling downwards */
-    0 24px 45px -5px rgba(0, 0, 0, 0.92),
-    /* 6. Diffused ambient room occlusion extending outward in all directions */
-    0 50px 95px -10px rgba(0, 0, 0, 0.96),
-    0 80px 140px -15px rgba(0, 0, 0, 0.98);
-  /* The Brushed Champagne-Gold Beveled Face (Directional lighting 135deg) */
+  border-radius: 22px;
+  padding: 8px;
   background: linear-gradient(
-    135deg,
-    #fffdf5 0%,
-    #fcedcb 14%,
-    #e2c17e 30%,
-    #a88444 50%,
-    #e8c888 70%,
-    #c49c55 85%,
-    #593e15 100%
+    140deg,
+    #585b64 0%,
+    #42454d 14%,
+    #2f3238 30%,
+    #3f424a 46%,
+    #534d44 58%,
+    #35373e 74%,
+    #212327 88%,
+    #17181c 100%
   );
-  padding: 4px;
+  /* Multi-stage 3D Extrusion + Contact Shadow + Diffused Ambient Occlusion */
+  box-shadow: 
+    /* 1. Hairline top specular catchlight where overhead keylight strikes the chamfer */
+    0 -1px 0.5px 0 rgba(225, 212, 192, 0.55),
+    /* 2. Outer sharp boundary ring */
+    0 0 0 1px rgba(22, 24, 28, 0.95),
+    /* 3. Physical 3D Sidewall Extrusion (Machined metal thickness) */
+    0 1px 0 1px #282a30,
+    0 2.5px 0 1.5px #1e2025,
+    0 4px 0 2px #16171b,
+    0 5.5px 0 2.5px #0f1013,
+    /* 4. Tight dark contact shadow directly under the extrusion */
+    0 7px 12px -1px rgba(0, 0, 0, 0.8),
+    /* 5. Directional cast shadow */
+    0 18px 36px -4px rgba(0, 0, 0, 0.88),
+    /* 6. Diffused ambient room occlusion */
+    0 40px 75px -8px rgba(0, 0, 0, 0.93),
+    0 70px 130px -15px rgba(0, 0, 0, 0.97);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (min-width: 640px) {
-  .tablet-chassis {
-    border-radius: 46px;
-    padding: 5px;
-    box-shadow: 
-      0 -2px 1.5px 0 rgba(255, 255, 255, 0.98),
-      0 0 0 1.2px rgba(255, 248, 225, 0.9),
-      0 2.5px 0 1.5px #8c6e39,
-      0 5.5px 0 2.5px #543f1b,
-      0 8.5px 0 3.5px #36260f,
-      0 11px 0 4px #1a1206,
-      0 14px 15px rgba(0, 0, 0, 0.88),
-      0 30px 55px -5px rgba(0, 0, 0, 0.94),
-      0 60px 110px -10px rgba(0, 0, 0, 0.97),
-      0 95px 160px -15px rgba(0, 0, 0, 0.99);
-  }
-}
-
-/* Inner Screen Bezel: Black obsidian glass margin surrounding the active display */
-.tablet-screen-bezel {
-  position: relative;
-  background: #060b0e;
-  border-radius: 36px;
-  padding: 8px 8px 10px 8px;
+/* Specular chamfer highlight & anisotropic metallic sheen */
+.tablet-frame::before,
+.tablet-chassis::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 15;
+  background: linear-gradient(
+    135deg,
+    rgba(240, 228, 210, 0.22) 0%,
+    rgba(255, 255, 255, 0.08) 18%,
+    rgba(255, 255, 255, 0) 45%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
   box-shadow: 
-    inset 0 0 0 1.5px rgba(0, 0, 0, 0.95),
-    inset 0 2px 6px rgba(0, 0, 0, 0.85),
-    inset 0 -1px 2px rgba(255, 255, 255, 0.12);
+    inset 0 1px 1px 0 rgba(245, 235, 218, 0.5),
+    inset 1px 0 1px 0 rgba(245, 235, 218, 0.25),
+    inset -1px -1px 1.5px 0 rgba(0, 0, 0, 0.75);
 }
 
 @media (min-width: 640px) {
-  .tablet-screen-bezel {
-    border-radius: 41px;
-    padding: 10px 10px 14px 10px;
+  .tablet-frame,
+  .tablet-chassis {
+    border-radius: 24px;
+    padding: 10px;
   }
 }
 
-/* The Active Screen Display Canvas */
+@media (min-width: 1024px) {
+  .tablet-frame,
+  .tablet-chassis {
+    border-radius: 26px;
+    padding: 12px;
+  }
+}
+
+/* Recessed Screen Display Cavity with Inner Dark Step-Down Bezel */
+.tablet-inner-screen,
 .tablet-display {
   position: relative;
-  border-radius: 28px;
+  width: 100%;
+  border-radius: 14px;
   overflow: hidden;
   box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 0 14px rgba(0, 0, 0, 0.45);
-}
-
-@media (min-width: 640px) {
-  .tablet-display {
-    border-radius: 32px;
-  }
-}
-
-/* Backward compatibility alias */
-.tablet-frame {
-  position: relative;
-  border-radius: 40px;
-  box-shadow: 
-    0 -1.5px 1px 0 rgba(255, 255, 255, 0.95),
-    0 0 0 1px rgba(255, 248, 225, 0.85),
-    0 2px 0 1px #8c6e39,
-    0 4px 0 2px #543f1b,
-    0 7px 0 2.5px #36260f,
-    0 9px 0 3px #1a1206,
-    0 11px 12px rgba(0, 0, 0, 0.85),
-    0 24px 45px -5px rgba(0, 0, 0, 0.92),
-    0 50px 95px -10px rgba(0, 0, 0, 0.96),
-    0 80px 140px -15px rgba(0, 0, 0, 0.98);
-  background: linear-gradient(
-    135deg,
-    #fffdf5 0%,
-    #fcedcb 14%,
-    #e2c17e 30%,
-    #a88444 50%,
-    #e8c888 70%,
-    #c49c55 85%,
-    #593e15 100%
-  );
-  padding: 4px;
-  overflow: hidden;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (min-width: 640px) {
-  .tablet-frame {
-    border-radius: 46px;
-    padding: 5px;
-    box-shadow: 
-      0 -2px 1.5px 0 rgba(255, 255, 255, 0.98),
-      0 0 0 1.2px rgba(255, 248, 225, 0.9),
-      0 2.5px 0 1.5px #8c6e39,
-      0 5.5px 0 2.5px #543f1b,
-      0 8.5px 0 3.5px #36260f,
-      0 11px 0 4px #1a1206,
-      0 14px 15px rgba(0, 0, 0, 0.88),
-      0 30px 55px -5px rgba(0, 0, 0, 0.94),
-      0 60px 110px -10px rgba(0, 0, 0, 0.97),
-      0 95px 160px -15px rgba(0, 0, 0, 0.99);
-  }
+    /* Deep dark step-down bevel into the screen cavity */
+    inset 0 2.5px 5px 0 rgba(0, 0, 0, 0.92),
+    inset 2px 0 4px 0 rgba(0, 0, 0, 0.85),
+    /* 1px dark bezel seam */
+    inset 0 0 0 1.5px rgba(0, 0, 0, 0.95),
+    /* Delicate upward bounce catchlight on bottom metal lip */
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.09),
+    /* Outside boundary line against the metal rim */
+    0 0 0 1px rgba(12, 13, 16, 0.85);
 }
 
 /* Atmospheric Luminous Sky Canvas (Golden Sunset Clouds from Ref Image) */

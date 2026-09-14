@@ -88,17 +88,22 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
           )}
         </div>
 
-        {/* Gateway Pending Notice */}
-        <div className="mb-5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/25 via-amber-400/15 to-amber-500/25 border-2 border-amber-400/60 text-left flex items-start gap-3 backdrop-blur-md shadow-lg">
-          <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5 animate-pulse" />
-          <div className="space-y-1">
-            <p className="text-xs font-black text-amber-300 uppercase tracking-wide">
-              PAYMENT GATEWAY IN REVIEW — PRO PASS COMING SOON
-            </p>
-            <p className="text-[11px] font-bold text-amber-100/90 leading-relaxed">
-              Paid checkout via UPI, Cards, and NetBanking is temporarily disabled while live merchant verification completes. In the meantime, enjoy <strong>100% free unlimited video renders</strong> on our shared GPU cluster!
-            </p>
+        {/* Live Payment Gateway Notice */}
+        <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-amber-500/15 to-emerald-500/20 border border-emerald-400/50 text-left flex items-center justify-between gap-3 backdrop-blur-md shadow-lg">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+            <div>
+              <p className="text-xs font-black text-white uppercase tracking-wide">
+                INSTANT PRO PASS ACTIVATION
+              </p>
+              <p className="text-[11px] text-amber-100/80 font-medium">
+                UPI (GPay, PhonePe, Paytm, QR), Cards &amp; NetBanking • Cancel anytime
+              </p>
+            </div>
           </div>
+          <span className="hidden sm:inline-block px-2.5 py-1 rounded-full bg-emerald-400/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-mono font-black uppercase tracking-wider">
+            LIVE CHECKOUT
+          </span>
         </div>
 
         {/* Pricing Cards Grid */}
@@ -129,10 +134,6 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
                     : "bg-black/40 border-white/15 hover:border-amber-400/50"
                 }`}
               >
-                <div className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-amber-400/30 border border-amber-400/60 text-amber-200 font-black text-[9px] uppercase tracking-wider shadow">
-                  COMING SOON
-                </div>
-
                 {plan.badge && (
                   <div className="absolute -top-2.5 left-3 px-2.5 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] font-black text-[9px] shadow">
                     {plan.badge}
@@ -181,23 +182,22 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
           </div>
         </div>
 
-        {/* Action Button: Disabled & Coming Soon */}
+        {/* Action Button: Live Active Checkout */}
         <div className="space-y-2.5">
           <button
             type="button"
-            disabled={true}
-            aria-disabled="true"
-            className="w-full py-4 px-6 rounded-full font-black text-sm tracking-wider flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/20 via-amber-400/20 to-amber-500/20 text-amber-200 border-2 border-amber-400/40 cursor-not-allowed shadow-inner select-none opacity-80"
+            onClick={() => onSelectPlan?.(selectedPlanId)}
+            className="w-full py-4 px-6 rounded-full font-black text-sm tracking-wider flex items-center justify-center gap-2 btn-gold-radiant text-[#261b02] shadow-xl hover:scale-[1.02] active:scale-95 transition cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
+            <Sparkles className="w-4 h-4 fill-current text-[#261b02]" />
             <span>
-              {selectedPlan.name.toUpperCase()} (₹{selectedPlan.price}/{formatPeriod(selectedPlan)}) — COMING SOON
+              UPGRADE TO {selectedPlan.name.toUpperCase()} (₹{selectedPlan.price}/{formatPeriod(selectedPlan)})
             </span>
           </button>
 
           <div className="flex items-center justify-center gap-1 text-[11px] text-amber-200/70 font-semibold">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Payments unlock upon merchant approval • Enjoy 100% free renders today!</span>
+            <span>256-Bit Encrypted Secure Checkout • Instant Pro Access • Cancel Anytime</span>
           </div>
         </div>
       </div>

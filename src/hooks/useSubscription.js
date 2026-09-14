@@ -19,8 +19,13 @@ const readSubscriptionFromStorage = () => {
     const parsed = JSON.parse(cached);
     const now = Date.now();
 
-    // Only allow verified live Razorpay payment IDs (starts with "pay_")
-    const isRealPayment = typeof parsed.paymentId === "string" && parsed.paymentId.startsWith("pay_");
+    // Allow verified live Cashfree (cf_) and Razorpay (pay_) payment IDs
+    const isRealPayment =
+      typeof parsed.paymentId === "string" &&
+      (parsed.paymentId.startsWith("cf_") ||
+        parsed.paymentId.startsWith("pay_") ||
+        parsed.paymentId.startsWith("cashfree_") ||
+        parsed.paymentId.startsWith("order_"));
 
     if (parsed && parsed.expiresAt && parsed.expiresAt > now && isRealPayment) {
       return {
@@ -92,8 +97,15 @@ export function useSubscription() {
   const activatePro = (planId, paymentId = "") => {
     if (typeof window === "undefined") return;
 
-    if (!paymentId || !paymentId.startsWith("pay_")) {
-      alert("Pro passes require a verified payment gateway transaction. Please complete payment once Razorpay is live.");
+    const isRealPayment =
+      typeof paymentId === "string" &&
+      (paymentId.startsWith("cf_") ||
+        paymentId.startsWith("pay_") ||
+        paymentId.startsWith("cashfree_") ||
+        paymentId.startsWith("order_"));
+
+    if (!paymentId || !isRealPayment) {
+      alert("Pro passes require a verified payment gateway transaction. Please complete payment via Cashfree or Razorpay.");
       return;
     }
 

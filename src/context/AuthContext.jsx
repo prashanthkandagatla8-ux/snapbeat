@@ -6,6 +6,10 @@ import { trackGuestStarted, trackSignupCompleted } from "@/lib/analytics";
 
 const AuthContext = createContext();
 
+const isValidPaymentId = (pid) =>
+  typeof pid === "string" &&
+  (pid.startsWith("pay_") || pid.startsWith("cf_") || pid.startsWith("cashfree_") || pid.startsWith("order_"));
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +22,7 @@ export function AuthProvider({ children }) {
       if (stored) {
         const parsed = JSON.parse(stored);
         // Clear any simulated Pro status if no real payment ID exists
-        if (parsed.isPro && (!parsed.paymentId || !parsed.paymentId.startsWith("pay_"))) {
+        if (parsed.isPro && !isValidPaymentId(parsed.paymentId)) {
           parsed.isPro = false;
           parsed.planId = null;
           parsed.expiresAt = null;
@@ -63,7 +67,7 @@ export function AuthProvider({ children }) {
       };
     } else {
       // Clear unverified Pro
-      if (existing.isPro && (!existing.paymentId || !existing.paymentId.startsWith("pay_"))) {
+      if (existing.isPro && !isValidPaymentId(existing.paymentId)) {
         existing.isPro = false;
         existing.planId = null;
       }
@@ -88,7 +92,7 @@ export function AuthProvider({ children }) {
       const cachedSub = localStorage.getItem("snapbeat_pro_subscription");
       if (cachedSub) {
         const parsedSub = JSON.parse(cachedSub);
-        if (parsedSub?.isPro && parsedSub.paymentId?.startsWith("pay_") && parsedSub.expiresAt && parsedSub.expiresAt > Date.now()) {
+        if (parsedSub?.isPro && isValidPaymentId(parsedSub.paymentId) && parsedSub.expiresAt && parsedSub.expiresAt > Date.now()) {
           existing.isPro = true;
           existing.planId = parsedSub.plan || existing.planId || "weekly";
           existing.paymentId = parsedSub.paymentId;
