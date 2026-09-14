@@ -24,7 +24,6 @@ import { ArrowRight, Sparkles } from "lucide-react";
 export default function StudioPage() {
   const [viewMode, setViewMode] = useState("showcase"); // "showcase" | "studio"
   const [currentTab, setCurrentTab] = useState("music"); // "music" | "photos" | "render" | "queue"
-  const [renderMode, setRenderMode] = useState("free"); // "free" | "pro"
   const [selectedBuiltInTrack, setSelectedBuiltInTrack] = useState(SOUND_TRACKS[0]);
   const [serverOnline, setServerOnline] = useState(false);
   const [isStoreOpen, setIsStoreOpen] = useState(false);
@@ -35,16 +34,11 @@ export default function StudioPage() {
 
   // Combine subscription & user account Pro status
   const isPro = Boolean(subIsPro || user?.isPro);
+  // Non-switchable: Pro mode is active when Pro pass is active; otherwise Free tier
+  const renderMode = isPro ? "pro" : "free";
 
   const studio = useStudioState(isPro);
   const renderJob = useRenderJob();
-
-  // Auto-sync renderMode if user has Pro
-  useEffect(() => {
-    if (isPro && renderMode === "free") {
-      setRenderMode("pro");
-    }
-  }, [isPro]);
 
   // On initial mount, load the first built-in sound track automatically
   useEffect(() => {
@@ -91,9 +85,8 @@ export default function StudioPage() {
           });
           const data = await res.json();
           if (data?.verified) {
-            activatePro(data.planId || planId, data.paymentId || `cf_${orderId}`);
-            upgradeToPro(data.planId || planId, { paymentId: data.paymentId || `cf_${orderId}` });
-            setRenderMode("pro");
+            activatePro(data.planId || planId, data.paymentId || `cf_${orderId}`, data.proToken);
+            upgradeToPro(data.planId || planId, { paymentId: data.paymentId || `cf_${orderId}`, proToken: data.proToken });
             window.history.replaceState({}, document.title, window.location.pathname);
             alert("🎉 WELCOME TO SNAPBEAT PRO!\n\nYour payment was verified successfully! Pro Studio Pass is now active.");
           }
@@ -248,10 +241,9 @@ export default function StudioPage() {
     initializeHybridCheckout({
       planId,
       user,
-      onPaymentSuccess: (purchasedPlanId, paymentId) => {
-        activatePro(purchasedPlanId, paymentId);
-        upgradeToPro(purchasedPlanId, { paymentId });
-        setRenderMode("pro");
+      onPaymentSuccess: (purchasedPlanId, paymentId, proToken) => {
+        activatePro(purchasedPlanId, paymentId, proToken);
+        upgradeToPro(purchasedPlanId, { paymentId, proToken });
         alert(
           "🎉 WELCOME TO SNAPBEAT PRO!\n\n" +
           "Your Pro Studio Pass is now active!\n" +
@@ -300,8 +292,6 @@ export default function StudioPage() {
           <RetroHeader
             currentTab={currentTab}
             setCurrentTab={setCurrentTab}
-            renderMode={renderMode}
-            setRenderMode={setRenderMode}
             isPro={isPro}
             daysRemaining={daysRemaining}
             onOpenPricing={() => setIsStoreOpen(true)}
@@ -382,8 +372,6 @@ export default function StudioPage() {
               {currentTab === "render" && (
                 <div className="space-y-4">
                   <RetroRenderStudio
-                    renderMode={renderMode}
-                    setRenderMode={setRenderMode}
                     selectedTemplate={studio.selectedTemplate}
                     setSelectedTemplate={studio.setSelectedTemplate}
                     aspectRatio={studio.aspectRatio}

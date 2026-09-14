@@ -190,7 +190,7 @@ export default function RetroVideoAdModal({
           )}
 
           <p className="text-[11px] text-amber-200/60 font-medium">
-            SnapBeat Free Public Beta • 100% Free Unlimited Video Renders
+            SnapBeat Free Tier • Ad-Supported Video Renders
           </p>
         </div>
       </div>

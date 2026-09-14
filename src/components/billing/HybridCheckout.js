@@ -38,7 +38,7 @@ export async function initializeHybridCheckout({
   return initializeCashfreeCheckout({
     planId,
     user,
-    onPaymentSuccess: (plan, paymentId) => onPaymentSuccess?.(plan, paymentId),
+    onPaymentSuccess: (plan, paymentId, proToken) => onPaymentSuccess?.(plan, paymentId, proToken),
     onPaymentCancel: () => onPaymentCancel?.(),
   });
 }

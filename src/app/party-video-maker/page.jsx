@@ -62,7 +62,7 @@ export default function PartyVideoMakerPage() {
     },
     {
       title: "Free Unlimited Creation",
-      desc: "Enjoy 100% free unlimited video renders during our open public beta period.",
+      desc: "Enjoy 100% free unlimited video renders with instant guest access and no credit card required.",
     },
   ];
 

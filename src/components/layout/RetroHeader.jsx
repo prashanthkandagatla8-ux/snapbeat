@@ -18,8 +18,6 @@ import {
 export function RetroHeader({
   currentTab,
   setCurrentTab,
-  renderMode,
-  setRenderMode,
   isPro,
   daysRemaining,
   onOpenPricing,
@@ -28,14 +26,6 @@ export function RetroHeader({
   onShowcaseClick,
 }) {
   const { user, openAuthModal, signOut } = useAuth();
-
-  const handleModeSwitch = (mode) => {
-    if (mode === "pro" && !isPro) {
-      onOpenPricing();
-      return;
-    }
-    setRenderMode(mode);
-  };
 
   const TABS = [
     { id: "music", label: "MUSIC", icon: Music, desc: "Soundtrack & Audio Trim" },
@@ -166,63 +156,33 @@ export function RetroHeader({
 
         {/* Right: FREE vs PRO Mode Switcher + Pro Pass + User Account */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
-          {/* FREE vs PRO Switcher */}
-          <div
-            className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-xl bg-black/40 border border-white/10 shrink-0"
-            title="Render output tier: Free (480p with watermark) vs Pro (1080p clean)"
-          >
-            <span className="text-[9px] font-black text-amber-300/80 hidden sm:inline">MODE:</span>
-            <div className="flex items-center bg-[#0a1e24] rounded-lg p-0.5 border border-white/10">
-              <button
-                type="button"
-                onClick={() => handleModeSwitch("free")}
-                className={`px-1.5 py-0.5 rounded text-[9px] font-black transition ${
-                  renderMode === "free"
-                    ? "bg-white/20 text-white shadow"
-                    : "text-white/50 hover:text-white"
-                }`}
-                title="Free Mode (480p, watermark included)"
-              >
-                FREE
-              </button>
-              <button
-                type="button"
-                onClick={() => handleModeSwitch("pro")}
-                className={`px-1.5 py-0.5 rounded text-[9px] font-black transition flex items-center gap-0.5 ${
-                  renderMode === "pro"
-                    ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow font-black"
-                    : "text-white/50 hover:text-white"
-                }`}
-                title="Pro Mode (1080p, no watermark)"
-              >
-                <Crown className="w-2 h-2" />
-                <span>PRO</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Pro Upgrade / Badge Button */}
+          {/* Non-Switchable Tier Status: Automatically reflects active Pro pass or Free tier */}
           {isPro ? (
             <div
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black font-black text-[9px] tracking-wider shadow-[0_4px_15px_rgba(255,199,44,0.4)] cursor-default shrink-0"
-              title={daysRemaining ? `Pro Subscription Active — ${daysRemaining} days remaining` : "Pro Subscription Active"}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black font-black text-[10px] tracking-wider shadow-[0_4px_15px_rgba(255,199,44,0.4)] cursor-default select-none shrink-0"
+              title={daysRemaining ? `SnapBeat Pro Active — ${daysRemaining} days remaining` : "SnapBeat Pro Active (1080p Master & Watermark-Free)"}
             >
-              <Crown className="w-2.5 h-2.5 fill-current" />
+              <Crown className="w-3 h-3 fill-current" />
               <span>PRO ACTIVE{daysRemaining ? ` (${daysRemaining}d)` : ""}</span>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={onOpenPricing}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl font-black text-[10px] btn-brass text-[#261b02] shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-110 active:scale-95 transition cursor-pointer shrink-0"
-              title="Pro Pass (1080p Master & Watermark Removal) — Coming Soon"
-            >
-              <Crown className="w-3 h-3 text-amber-800 fill-amber-700 shrink-0" />
-              <span>PRO PASS</span>
-              <span className="px-1 py-0.2 rounded bg-black/60 text-amber-300 text-[7px] font-black uppercase tracking-wider shrink-0">
-                SOON
-              </span>
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-xl bg-black/40 border border-white/10 text-white/70 text-[9px] font-mono font-bold select-none shrink-0"
+                title="Free Tier: 480p output with top-left watermark"
+              >
+                <span>FREE TIER</span>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenPricing}
+                className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl font-black text-[10px] btn-brass text-[#261b02] shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-110 active:scale-95 transition cursor-pointer shrink-0"
+                title="Unlock 1080p Master, Watermark Removal & Pro Features"
+              >
+                <Crown className="w-3 h-3 text-amber-800 fill-amber-700 shrink-0" />
+                <span>UPGRADE</span>
+              </button>
+            </div>
           )}
 
           {/* User Sign In / Account Status */}

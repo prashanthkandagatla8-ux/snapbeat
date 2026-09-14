@@ -55,14 +55,14 @@ export default function PhotoToVideoPage() {
     },
     {
       title: "Free Unlimited Creation",
-      desc: "Enjoy 100% free unlimited video renders during our open public beta period.",
+      desc: "Enjoy 100% free unlimited video renders with instant guest access and no credit card required.",
     },
   ];
 
   const faqs = [
     {
         "question": "Is SnapBeat free to use?",
-        "answer": "Yes! SnapBeat offers 100% free unlimited video renders with instant guest access during our public beta. No account or credit card required."
+        "answer": "Yes! SnapBeat offers 100% free unlimited video renders with instant guest access with instant guest access. No account or credit card required."
     },
     {
         "question": "How many photos can I add to a video?",

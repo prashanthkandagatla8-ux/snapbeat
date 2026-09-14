@@ -112,6 +112,30 @@ export function AuthProvider({ children }) {
     setUser(existing);
     setIsAuthModalOpen(false);
     trackSignupCompleted("credential", false);
+
+    // Sync with server SQLite DB to link any guest Pro passes or restore account
+    if (typeof window !== "undefined") {
+      try {
+        const deviceId = localStorage.getItem("snapbeat_device_id");
+        const currentToken = localStorage.getItem("snapbeat_pro_token");
+        fetch("/api/account/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail, name, picture, deviceId, currentToken }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.account?.isPro) {
+              setUser((prev) => ({ ...prev, ...data.account, isPro: true }));
+              if (data.proToken) {
+                localStorage.setItem("snapbeat_pro_token", data.proToken);
+              }
+            }
+          })
+          .catch((err) => console.warn("Background account sync failed:", err));
+      } catch (_) {}
+    }
+
     return existing;
   };
 
@@ -123,14 +147,14 @@ export function AuthProvider({ children }) {
   };
 
   const upgradeToPro = (planId, paymentDetails = {}) => {
-    if (!paymentDetails?.paymentId || !paymentDetails.paymentId.startsWith("pay_")) {
+    if (!isValidPaymentId(paymentDetails?.paymentId)) {
       console.warn("Pro upgrade blocked: Requires valid payment transaction ID.");
       return;
     }
     const now = new Date();
     let days = 7;
     if (planId === "monthly") days = 30;
-    if (planId === "annual") days = 365;
+    if (planId === "annual" || planId === "yearly") days = 365;
 
     const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
 
@@ -147,6 +171,7 @@ export function AuthProvider({ children }) {
       planId,
       expiresAt,
       paymentId: paymentDetails.paymentId,
+      proToken: paymentDetails.proToken || null,
       lastPayment: {
         planId,
         date: now.toISOString(),
@@ -166,9 +191,13 @@ export function AuthProvider({ children }) {
           isPro: true,
           plan: planId,
           expiresAt: new Date(expiresAt).getTime(),
-          paymentId: paymentDetails.paymentId || "demo_pay",
+          paymentId: paymentDetails.paymentId,
+          token: paymentDetails.proToken || null,
         })
       );
+      if (paymentDetails.proToken) {
+        localStorage.setItem("snapbeat_pro_token", paymentDetails.proToken);
+      }
     } catch (_) {}
 
     return updatedUser;
@@ -181,15 +210,38 @@ export function AuthProvider({ children }) {
       localStorage.setItem("snapbeat_guest_count", String(guestCount + 1));
     } catch (_) {}
 
+    let isPro = false;
+    let planId = null;
+    let expiresAt = null;
+    let paymentId = null;
+    let proToken = null;
+
+    try {
+      const cachedSub = localStorage.getItem("snapbeat_pro_subscription");
+      const cachedToken = localStorage.getItem("snapbeat_pro_token");
+      if (cachedSub) {
+        const parsed = JSON.parse(cachedSub);
+        if (parsed?.isPro && parsed.expiresAt > Date.now()) {
+          isPro = true;
+          planId = parsed.plan || "monthly";
+          expiresAt = new Date(parsed.expiresAt).toISOString();
+          paymentId = parsed.paymentId;
+          proToken = cachedToken || parsed.token || null;
+        }
+      }
+    } catch (_) {}
+
     const guestUser = {
       id: `guest_${Date.now()}`,
       email: `guest_${guestCount}@snapbeat.app`,
       name: `Guest Creator #${guestCount}`,
       picture: null,
       isGuest: true,
-      isPro: false,
-      planId: null,
-      expiresAt: null,
+      isPro,
+      planId,
+      expiresAt,
+      paymentId,
+      proToken,
       createdAt: new Date().toISOString(),
     };
 

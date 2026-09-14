@@ -247,12 +247,12 @@ export function RetroQueueConsole({
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto select-none">
-      {/* Beta Serialization Notice Banner */}
+      {/* Cluster Serialization Notice Banner */}
       <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-between gap-3 text-white">
         <div className="flex items-center gap-2.5">
           <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
           <p className="text-xs text-amber-100/90 font-semibold leading-snug">
-            <strong>Shared GPU Cluster:</strong> Free renders process sequentially (1-at-a-time). 100% free unlimited renders during Public Beta.
+            <strong>Shared GPU Cluster:</strong> Free renders process sequentially (1-at-a-time). Upgrade to Pro for instant dedicated priority rendering.
           </p>
         </div>
       </div>

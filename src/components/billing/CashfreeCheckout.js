@@ -57,15 +57,17 @@ export async function initializeCashfreeCheckout({
   });
 
   try {
+    const deviceId = typeof window !== "undefined" ? localStorage.getItem("snapbeat_device_id") : null;
+
     // 1. Create Order Session from backend
     const orderRes = await fetch("/api/checkout/cashfree/order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         planId: plan.id,
-        customerId: user?.id || (user?.email ? `cust_${user.email.replace(/[^a-zA-Z0-9]/g, "_")}` : undefined),
-        customerEmail: user?.email || undefined,
-        customerName: user?.name || undefined,
+        customerId: user?.id || (user?.email ? `cust_${user.email.replace(/[^a-zA-Z0-9]/g, "_")}` : (deviceId || `guest_${Date.now()}`)),
+        customerEmail: user?.email || (deviceId ? `${deviceId}@guest.snapbeat.app` : undefined),
+        customerName: user?.name || (user?.isGuest ? "Guest Creator" : undefined),
       }),
     });
 
@@ -137,6 +139,9 @@ export async function initializeCashfreeCheckout({
         body: JSON.stringify({
           orderId: orderData.order_id,
           planId: plan.id,
+          customerEmail: user?.email || (deviceId ? `${deviceId}@guest.snapbeat.app` : undefined),
+          customerId: user?.id || deviceId,
+          deviceId,
         }),
       });
 
@@ -151,7 +156,7 @@ export async function initializeCashfreeCheckout({
         });
 
         if (typeof onPaymentSuccess === "function") {
-          onPaymentSuccess(plan.id, verifyData.paymentId);
+          onPaymentSuccess(plan.id, verifyData.paymentId, verifyData.proToken);
         }
       } else {
         alert(verifyData.error || "Payment verification failed. If your account was debited, please contact support.");

@@ -62,7 +62,7 @@ export default function SeoLandingPage({
             className="h-8 sm:h-9 w-auto object-contain drop-shadow"
           />
           <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] text-[9px] font-black uppercase tracking-wider shadow">
-            BETA
+            STUDIO
           </span>
         </Link>
 

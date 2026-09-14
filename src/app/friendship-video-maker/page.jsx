@@ -62,7 +62,7 @@ export default function FriendshipVideoMakerPage() {
     },
     {
       title: "100% Free Unlimited Creation",
-      desc: "Make as many friend tributes and celebration reels as you like during our public beta.",
+      desc: "Make as many friend tributes and celebration reels as you like with instant guest access.",
     },
   ];
 

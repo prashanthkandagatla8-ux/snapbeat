@@ -82,7 +82,7 @@ export function initializeRazorpayCheckout(planId, onPaymentSuccess, onPaymentCa
   alert(
     "PRO STUDIO PASS — PAYMENT GATEWAY IN REVIEW\n\n" +
     "Online payments via Razorpay are currently under verification and will go live shortly.\n\n" +
-    "During this beta period, all users have access to free unlimited reel renders!"
+    "Free tier reel renders remain available for all creators!"
   );
   if (typeof onPaymentCancel === "function") {
     onPaymentCancel();

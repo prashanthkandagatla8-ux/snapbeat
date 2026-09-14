@@ -3,23 +3,39 @@
 import { useState, useEffect, useCallback } from "react";
 
 const STORAGE_KEY = "snapbeat_pro_subscription";
+const DEVICE_KEY = "snapbeat_device_id";
+const TOKEN_KEY = "snapbeat_pro_token";
 const SYNC_EVENT = "snapbeat_subscription_sync";
+
+export const getOrCreateDeviceId = () => {
+  if (typeof window === "undefined") return "server_device";
+  try {
+    let devId = localStorage.getItem(DEVICE_KEY);
+    if (!devId) {
+      devId = "sb_dev_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9);
+      localStorage.setItem(DEVICE_KEY, devId);
+    }
+    return devId;
+  } catch {
+    return "fallback_device";
+  }
+};
 
 const readSubscriptionFromStorage = () => {
   if (typeof window === "undefined") {
-    return { isPro: false, plan: null, expiresAt: null, paymentId: null };
+    return { isPro: false, plan: null, expiresAt: null, paymentId: null, token: null };
   }
 
   try {
     const cached = localStorage.getItem(STORAGE_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
     if (!cached) {
-      return { isPro: false, plan: null, expiresAt: null, paymentId: null };
+      return { isPro: false, plan: null, expiresAt: null, paymentId: null, token: null };
     }
 
     const parsed = JSON.parse(cached);
     const now = Date.now();
 
-    // Allow verified live Cashfree (cf_) and Razorpay (pay_) payment IDs
     const isRealPayment =
       typeof parsed.paymentId === "string" &&
       (parsed.paymentId.startsWith("cf_") ||
@@ -33,14 +49,16 @@ const readSubscriptionFromStorage = () => {
         plan: parsed.plan || "monthly",
         expiresAt: parsed.expiresAt,
         paymentId: parsed.paymentId,
+        token: token || parsed.token || null,
       };
     }
 
-    // Expired or simulated/demo payment: remove it
+    // Expired: clear out
     localStorage.removeItem(STORAGE_KEY);
-    return { isPro: false, plan: null, expiresAt: null, paymentId: null };
+    localStorage.removeItem(TOKEN_KEY);
+    return { isPro: false, plan: null, expiresAt: null, paymentId: null, token: null };
   } catch {
-    return { isPro: false, plan: null, expiresAt: null, paymentId: null };
+    return { isPro: false, plan: null, expiresAt: null, paymentId: null, token: null };
   }
 };
 
@@ -50,6 +68,7 @@ export function useSubscription() {
     plan: null,
     expiresAt: null,
     paymentId: null,
+    token: null,
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -59,12 +78,61 @@ export function useSubscription() {
     setIsLoaded(true);
   }, []);
 
+  // Server-side ground truth verification (Anti-Cheat & Cross-Device Sync)
+  const verifyWithServer = useCallback(async () => {
+    if (typeof window === "undefined") return;
+    try {
+      const deviceId = getOrCreateDeviceId();
+      const token = localStorage.getItem(TOKEN_KEY);
+      const userCached = localStorage.getItem("snapbeat_user");
+      let email = null;
+      try {
+        email = userCached ? JSON.parse(userCached).email : null;
+      } catch (_) {}
+
+      const res = await fetch("/api/account/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, email, deviceId }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.isPro && data.valid) {
+          const expiresAt = data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 30 * 86400000;
+          const updated = {
+            isPro: true,
+            plan: data.planId || "monthly",
+            expiresAt,
+            paymentId: data.paymentId || "verified",
+            token: data.proToken || token,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          if (data.proToken) localStorage.setItem(TOKEN_KEY, data.proToken);
+          setSubscription(updated);
+        } else {
+          // If server reports not pro or invalid token, revoke any tampered local state
+          const cached = localStorage.getItem(STORAGE_KEY);
+          if (cached) {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(TOKEN_KEY);
+            setSubscription({ isPro: false, plan: null, expiresAt: null, paymentId: null, token: null });
+            window.dispatchEvent(new Event(SYNC_EVENT));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not verify subscription with server:", e);
+    }
+  }, []);
+
   useEffect(() => {
     refreshSubscription();
+    verifyWithServer();
 
     // Sync across components and tabs
     const handleStorageChange = (e) => {
-      if (!e.key || e.key === STORAGE_KEY) {
+      if (!e.key || e.key === STORAGE_KEY || e.key === TOKEN_KEY) {
         refreshSubscription();
       }
     };
@@ -76,7 +144,7 @@ export function useSubscription() {
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener(SYNC_EVENT, handleCustomSync);
 
-    // Periodic expiry checker (runs every 60s)
+    // Periodic check (runs every 60s)
     const interval = setInterval(() => {
       const current = readSubscriptionFromStorage();
       setSubscription((prev) => {
@@ -85,6 +153,7 @@ export function useSubscription() {
         }
         return prev;
       });
+      verifyWithServer();
     }, 60000);
 
     return () => {
@@ -92,9 +161,9 @@ export function useSubscription() {
       window.removeEventListener(SYNC_EVENT, handleCustomSync);
       clearInterval(interval);
     };
-  }, [refreshSubscription]);
+  }, [refreshSubscription, verifyWithServer]);
 
-  const activatePro = (planId, paymentId = "") => {
+  const activatePro = (planId, paymentId = "", proToken = null) => {
     if (typeof window === "undefined") return;
 
     const isRealPayment =
@@ -109,7 +178,6 @@ export function useSubscription() {
       return;
     }
 
-    // Durations: Weekly = 7 days, Annual/Yearly = 365 days, Monthly = 30 days
     const normalizedPlan = (planId || "monthly").toLowerCase();
     const days = normalizedPlan === "weekly" ? 7 : (normalizedPlan === "annual" || normalizedPlan === "yearly") ? 365 : 30;
     const expiresAt = Date.now() + days * 24 * 60 * 60 * 1000;
@@ -119,10 +187,14 @@ export function useSubscription() {
       plan: normalizedPlan === "yearly" ? "annual" : normalizedPlan,
       expiresAt,
       paymentId,
+      token: proToken,
     };
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newSub));
+      if (proToken) {
+        localStorage.setItem(TOKEN_KEY, proToken);
+      }
     } catch {
       // LocalStorage quota or disabled
     }
@@ -136,6 +208,7 @@ export function useSubscription() {
 
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     } catch {
       // LocalStorage error
     }
@@ -145,6 +218,7 @@ export function useSubscription() {
       plan: null,
       expiresAt: null,
       paymentId: null,
+      token: null,
     };
 
     setSubscription(resetSub);
@@ -176,6 +250,7 @@ export function useSubscription() {
     expiresAt: subscription.expiresAt,
     daysRemaining: getDaysRemaining(),
     expiryDateFormatted: getExpiryDateFormatted(),
+    token: subscription.token,
     isLoaded,
     activatePro,
     cancelPro,

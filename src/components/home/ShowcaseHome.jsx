@@ -82,7 +82,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             className="h-8 sm:h-9 w-auto object-contain drop-shadow"
           />
           <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] text-[9px] font-black uppercase tracking-wider shadow">
-            BETA
+            STUDIO
           </span>
         </div>
 
@@ -470,7 +470,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
                 <ul className="list-disc pl-4 space-y-1 text-[11px]">
                   <li><strong>AI Onset Detection:</strong> Syncs visual transitions with audio drops and kicks.</li>
                   <li><strong>14 Motion Styles:</strong> Cinematic pans, zooms, slides, and glitch cuts.</li>
-                  <li><strong>Free Unlimited Renders:</strong> Full access during our public beta.</li>
+                  <li><strong>Free Unlimited Renders:</strong> Instant guest access with standard export queue.</li>
                 </ul>
               </div>
             </div>

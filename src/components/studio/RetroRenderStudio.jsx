@@ -6,8 +6,6 @@ import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
 import { Sparkles, Crown, Film, Download, Type, Sliders, Loader2, Play, Eye, Lock } from "lucide-react";
 
 export function RetroRenderStudio({
-  renderMode,
-  setRenderMode,
   selectedTemplate,
   setSelectedTemplate,
   aspectRatio,

@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { PRICING_PLANS } from "@/lib/constants";
+import { signProToken } from "@/lib/security";
+import { upsertAccount, recordActivation } from "@/lib/serverDb";
 
 /**
  * Cashfree Payment Gateway - Verify Order Endpoint
  * API Version: 2023-08-01
  * Endpoint: GET https://api.cashfree.com/pg/orders/{order_id}
+ * Hardened with Anti-Cheat & Persistent SQLite database tracking.
  */
 export async function POST(request) {
   try {
-    const { orderId, planId } = await request.json();
+    const { orderId, planId, customerEmail, customerId, deviceId } = await request.json();
 
     if (!orderId) {
       return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
@@ -18,19 +21,50 @@ export async function POST(request) {
     const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
     const isProduction = (process.env.CASHFREE_ENV || "PRODUCTION").toUpperCase() === "PRODUCTION";
 
-    // If running in mock/demo mode without keys
-    if (!appId || !secretKey || orderId.startsWith("order_sb_mock_")) {
+    // Anti-cheat: Mock orders strictly blocked in production
+    if (orderId.startsWith("order_sb_mock_")) {
+      if (isProduction) {
+        return NextResponse.json(
+          { success: false, error: "Simulated mock payments are blocked in production." },
+          { status: 403 }
+        );
+      }
+      // Demo/sandbox mode only
       const plan = PRICING_PLANS.find((p) => p.id === planId) || PRICING_PLANS[1];
+      const now = new Date();
+      let days = 7;
+      if (plan.id === "monthly") days = 30;
+      if (plan.id === "annual") days = 365;
+      const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+      const paymentId = `cf_demo_${orderId}`;
+
+      const proToken = signProToken({
+        accountId: customerId || `demo_${Date.now()}`,
+        email: customerEmail || "guest@snapbeat.app",
+        planId: plan.id,
+        paymentId,
+        expiresAt,
+      });
+
       return NextResponse.json({
         success: true,
         verified: true,
         orderId,
-        paymentId: `cf_demo_${orderId}`,
+        paymentId,
         planId: plan.id,
         amount: plan.price,
+        expiresAt,
+        proToken,
         mode: "mock",
-        message: "Payment successfully simulated for demo environment.",
+        message: "Payment simulated for test environment.",
       });
+    }
+
+    if (!appId || !secretKey) {
+      return NextResponse.json(
+        { error: "Payment gateway credentials not configured on server" },
+        { status: 500 }
+      );
     }
 
     const baseUrl = isProduction
@@ -45,6 +79,7 @@ export async function POST(request) {
         "x-api-version": "2023-08-01",
         "Content-Type": "application/json",
       },
+      cache: "no-store",
     });
 
     const orderData = await res.json();
@@ -67,14 +102,66 @@ export async function POST(request) {
         PRICING_PLANS.find((p) => p.id === planId) ||
         PRICING_PLANS[1];
 
+      const now = new Date();
+      let days = 7;
+      if (plan.id === "monthly") days = 30;
+      if (plan.id === "annual") days = 365;
+      const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+      const paymentId = `cf_${orderData.order_id}`;
+
+      const finalEmail = customerEmail || orderData.customer_details?.customer_email || "creator@snapbeat.app";
+      const finalCustomerId = customerId || orderData.customer_details?.customer_id;
+
+      // Generate cryptographically signed Pro token
+      const proToken = signProToken({
+        accountId: finalCustomerId,
+        email: finalEmail,
+        planId: plan.id,
+        paymentId,
+        expiresAt,
+      });
+
+      // Persist in SQLite database
+      try {
+        const account = upsertAccount({
+          id: finalCustomerId,
+          email: finalEmail,
+          isGuest: !customerEmail || customerEmail.includes("@guest."),
+          isPro: true,
+          planId: plan.id,
+          expiresAt,
+          paymentId,
+          proToken,
+          deviceId,
+        });
+
+        recordActivation({
+          accountId: account?.id || finalCustomerId,
+          email: finalEmail,
+          orderId: orderData.order_id,
+          paymentId,
+          gateway: "cashfree",
+          planId: plan.id,
+          amount: orderData.order_amount,
+          currency: orderData.order_currency || "INR",
+          status: "PAID",
+          expiresAt,
+          proToken,
+        });
+      } catch (dbErr) {
+        console.error("Failed to persist activation in SQLite:", dbErr);
+      }
+
       return NextResponse.json({
         success: true,
         verified: true,
         orderId: orderData.order_id,
-        paymentId: `cf_${orderData.order_id}`,
+        paymentId,
         planId: plan.id,
         amount: orderData.order_amount,
         status: orderData.order_status,
+        expiresAt,
+        proToken,
       });
     } else {
       return NextResponse.json(
