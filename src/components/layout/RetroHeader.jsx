@@ -209,6 +209,11 @@ export function RetroHeader({
                 <span className="text-[10px] sm:text-[11px] font-black max-w-[80px] sm:max-w-[120px] truncate">
                   {user.name || user.email.split("@")[0]}
                 </span>
+                {user.isGuest && (
+                  <span className="px-1.5 py-0.2 rounded bg-amber-400/30 text-amber-300 text-[8px] font-mono font-black uppercase tracking-wider border border-amber-400/50">
+                    GUEST
+                  </span>
+                )}
               </div>
               <button
                 type="button"

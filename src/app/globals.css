@@ -45,30 +45,35 @@
 }
 
 /* =========================================================================
-   CLEAN TABLET CONTAINER (ZERO YELLOW BORDER)
+   AUTHENTIC METALLIC CHASSIS FRAME (FIXED-SIZE CONTAINER FOR ALL PAGES)
    ========================================================================= */
 .tablet-frame {
   position: relative;
-  border-radius: 44px;
-  border: none !important;
+  border-radius: 38px;
+  border: 5px solid #3c424a;
+  border-color: #525c68 #353a42 #202429 #464f59;
   box-shadow: 
+    0 0 0 1.5px #15181b,
+    0 0 0 3.5px #4b5460,
     0 35px 95px -10px rgba(0, 0, 0, 0.96),
-    0 15px 40px rgba(0, 0, 0, 0.85);
+    0 15px 40px rgba(0, 0, 0, 0.85),
+    inset 0 1.5px 3px rgba(255, 255, 255, 0.28),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.85);
   overflow: hidden;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 640px) {
   .tablet-frame {
-    border-radius: 42px;
-    border-width: 4px;
+    border-radius: 44px;
+    border-width: 6px;
   }
 }
 
 @media (min-width: 1024px) {
   .tablet-frame {
     border-radius: 48px;
-    border-width: 4.5px;
+    border-width: 7px;
   }
 }
 

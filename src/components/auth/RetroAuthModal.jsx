@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { X, Mail, User, ShieldCheck, Sparkles, AlertCircle } from "lucide-react";
+import { X, Mail, User, ShieldCheck, Sparkles, AlertCircle, Zap } from "lucide-react";
 
 export default function RetroAuthModal({ onSuccess }) {
-  const { isAuthModalOpen, closeAuthModal, signIn } = useAuth();
+  const { isAuthModalOpen, closeAuthModal, signIn, loginAsGuest } = useAuth();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -13,6 +13,12 @@ export default function RetroAuthModal({ onSuccess }) {
   const handleClose = () => {
     setError("");
     closeAuthModal();
+  };
+
+  const handleGuestLogin = () => {
+    setError("");
+    const guest = loginAsGuest();
+    if (onSuccess) onSuccess(guest);
   };
 
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
@@ -186,8 +192,25 @@ export default function RetroAuthModal({ onSuccess }) {
           </p>
         </div>
 
-        {/* Google 1-Click Sign-In Container */}
+        {/* Sign In Options */}
         <div className="space-y-4">
+          {/* Instant 1-Click Guest Login */}
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            className="w-full py-3.5 px-4 rounded-2xl btn-gold-radiant text-[#261b02] font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition cursor-pointer border border-[#fff2b2]"
+          >
+            <Zap className="w-4 h-4 fill-current text-amber-800" />
+            <span>CONTINUE AS GUEST (INSTANT ACCESS)</span>
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="h-[1px] flex-1 bg-white/15" />
+            <span className="text-[10px] font-mono font-bold text-amber-200/70 uppercase">OR SIGN IN TO SAVE CLOUD WORK</span>
+            <div className="h-[1px] flex-1 bg-white/15" />
+          </div>
+
           {/* Official Google Identity Services Button Container (if GIS client id configured) */}
           <div ref={googleBtnRef} className="w-full flex justify-center empty:hidden" />
 

@@ -27,7 +27,7 @@ export default function StudioPage() {
   const [isStoreOpen, setIsStoreOpen] = useState(false);
   const [pastJobs, setPastJobs] = useState([]);
 
-  const { user, upgradeToPro } = useAuth();
+  const { user, openAuthModal, upgradeToPro } = useAuth();
   const { isPro: subIsPro, daysRemaining, activatePro } = useSubscription();
 
   // Combine subscription & user account Pro status
@@ -146,6 +146,16 @@ export default function StudioPage() {
     alert("Payment gateway integration is currently in progress. Pro Pass purchases will unlock soon! In the meantime, enjoy 100% free unlimited video renders.");
   };
 
+  // Gate studio entry with login requirement (Guest 1-click or account)
+  const handleEnterStudio = () => {
+    if (user) {
+      setViewMode("studio");
+      setCurrentTab("music");
+    } else {
+      openAuthModal();
+    }
+  };
+
   const canRender = Boolean(studio.audioFile && studio.photos.length >= 2);
 
   return (
@@ -153,39 +163,16 @@ export default function StudioPage() {
       {/* Outer ambient studio desk backdrop depth */}
       <div className="fixed inset-0 pointer-events-none bg-radial from-amber-500/5 via-transparent to-black/60 -z-10" />
 
-      {/* TOP ANNOUNCEMENT BANNER: Free Beta & Queue Transparency (Overlayed on Dark Grey Background) */}
-      <aside
-        aria-label="Public Beta Announcement"
-        className="w-full max-w-[1200px] mb-3 sm:mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/15 to-amber-500/20 border border-amber-400/30 rounded-2xl px-4 py-2.5 backdrop-blur-md flex items-center justify-center gap-3 text-white text-xs font-semibold select-none shadow-[0_10px_25px_rgba(0,0,0,0.5)] z-20"
-      >
-        <div className="flex items-center gap-2 flex-wrap mx-auto text-center justify-center">
-          <span className="px-2.5 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] font-black text-[10px] uppercase tracking-wider shadow">
-            🚀 PUBLIC BETA LIVE
-          </span>
-          <span className="text-amber-200 font-bold">
-            100% Free Unlimited Video Renders Today!
-          </span>
-          <span className="hidden sm:inline text-white/40">•</span>
-          <span className="text-amber-100/90 text-[11px]">
-            Free renders process sequentially 1-at-a-time in our shared GPU cluster (~30–60s) • Pro dedicated cluster coming soon!
-          </span>
-        </div>
-      </aside>
-
-      {/* VIEW 1: FIRST PAGE (AUTHENTIC METAL EDGE FRAME) */}
-      {viewMode === "showcase" ? (
-        <div className="w-full max-w-[1000px] mx-auto relative">
+      {/* UNIFIED FIXED-SIZE METALLIC CHASSIS CONTAINER FOR ALL PAGES */}
+      <div className="w-full max-w-[1040px] mx-auto tablet-frame relative flex flex-col shadow-[0_30px_90px_rgba(0,0,0,0.95)]">
+        {viewMode === "showcase" ? (
           <ShowcaseHome
-            onEnterStudio={() => {
-              setViewMode("studio");
-              setCurrentTab("music");
-            }}
+            onEnterStudio={handleEnterStudio}
             onOpenPricing={() => setIsStoreOpen(true)}
           />
-        </div>
-      ) : (
-        /* VIEW 2: WORKSTATION SCREENS (MUSIC, PHOTOS, RENDER, QUEUE) */
-        <div className="w-full max-w-[1400px] mx-auto rounded-3xl bg-[#08181c]/95 border border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col min-h-[90vh]">
+        ) : (
+          /* VIEW 2: WORKSTATION SCREENS (MUSIC, PHOTOS, RENDER, QUEUE) */
+          <div className="w-full bg-[#08181c]/95 flex flex-col min-h-[880px] text-white">
           {/* RETRO SKY HEADER */}
           <RetroHeader
             currentTab={currentTab}
@@ -357,6 +344,7 @@ export default function StudioPage() {
             </footer>
           </div>
         )}
+      </div>
 
       {/* PRO STORE MODAL */}
       <RetroStoreModal
@@ -366,8 +354,13 @@ export default function StudioPage() {
         isPro={isPro}
       />
 
-      {/* AUTH MODAL */}
-      <RetroAuthModal onSuccess={() => setViewMode("studio")} />
+      {/* AUTH MODAL (1-Click Guest or Account Sign In) */}
+      <RetroAuthModal
+        onSuccess={() => {
+          setViewMode("studio");
+          setCurrentTab("music");
+        }}
+      />
     </div>
   );
 }

@@ -167,6 +167,36 @@ export function AuthProvider({ children }) {
     return updatedUser;
   };
 
+  const loginAsGuest = () => {
+    let guestCount = 1;
+    try {
+      guestCount = parseInt(localStorage.getItem("snapbeat_guest_count") || "1", 10);
+      localStorage.setItem("snapbeat_guest_count", String(guestCount + 1));
+    } catch (_) {}
+
+    const guestUser = {
+      id: `guest_${Date.now()}`,
+      email: `guest_${guestCount}@snapbeat.app`,
+      name: `Guest Creator #${guestCount}`,
+      picture: null,
+      isGuest: true,
+      isPro: false,
+      planId: null,
+      expiresAt: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem("snapbeat_user", JSON.stringify(guestUser));
+    } catch (err) {
+      console.warn("Storage write failed", err);
+    }
+
+    setUser(guestUser);
+    setIsAuthModalOpen(false);
+    return guestUser;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -177,6 +207,7 @@ export function AuthProvider({ children }) {
         openAuthModal: () => setIsAuthModalOpen(true),
         closeAuthModal: () => setIsAuthModalOpen(false),
         signIn,
+        loginAsGuest,
         signOut,
         upgradeToPro,
       }}
