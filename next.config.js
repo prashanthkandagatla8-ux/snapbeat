@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  env: {
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID: "826942667807-7ii2t4fu8nt956lqcjodnjm29kg7t1rg.apps.googleusercontent.com",
+  },
   async redirects() {
     return [
       {

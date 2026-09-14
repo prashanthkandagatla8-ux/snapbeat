@@ -57,16 +57,17 @@ export default function RetroAuthModal({ onSuccess }) {
     document.body.appendChild(script);
   }, []);
 
-  // Initialize GIS if Google Client ID is configured
-  useEffect(() => {
-    if (!googleScriptLoaded || !window.google?.accounts?.id) return;
+  const GOOGLE_CLIENT_ID =
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    "826942667807-7ii2t4fu8nt956lqcjodnjm29kg7t1rg.apps.googleusercontent.com";
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
+  // Initialize GIS once script loads and modal is open
+  useEffect(() => {
+    if (!googleScriptLoaded || !window.google?.accounts?.id || !GOOGLE_CLIENT_ID) return;
 
     try {
       window.google.accounts.id.initialize({
-        client_id: clientId,
+        client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredentialResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
@@ -78,7 +79,7 @@ export default function RetroAuthModal({ onSuccess }) {
           theme: "outline",
           size: "large",
           type: "standard",
-          shape: "rectangular",
+          shape: "pill",
           text: "continue_with",
           logo_alignment: "left",
           width: 320,
