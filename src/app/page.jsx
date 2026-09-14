@@ -161,6 +161,25 @@ export default function StudioPage() {
 
       {/* MASTER TABLET FRAME: Smooth round edge chassis with golden bezel & sky canvas background */}
       <div className="tablet-frame sky-canvas w-full max-w-[1440px] flex flex-col min-h-[92vh] relative text-white shadow-2xl">
+        {/* TOP ANNOUNCEMENT BANNER: Free Beta & Queue Transparency */}
+        <aside
+          aria-label="Public Beta Announcement"
+          className="w-full bg-gradient-to-r from-amber-500/25 via-amber-400/20 to-amber-500/25 border-b border-amber-400/30 px-3 sm:px-6 py-2.5 backdrop-blur-md flex items-center justify-between gap-3 text-white text-xs font-semibold select-none z-20"
+        >
+          <div className="flex items-center gap-2 flex-wrap mx-auto text-center justify-center">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] font-black text-[10px] uppercase tracking-wider shadow">
+              🚀 PUBLIC BETA LIVE
+            </span>
+            <span className="text-amber-200">
+              <strong>100% Free Unlimited Video Renders Today!</strong>
+            </span>
+            <span className="hidden lg:inline text-white/40">•</span>
+            <span className="text-amber-100/90 text-[11px]">
+              Free renders process sequentially 1-at-a-time in our shared GPU cluster (~30–60s) • Pro dedicated cluster coming soon!
+            </span>
+          </div>
+        </aside>
+
         {/* VIEW 1: SHOWCASE HOME PAGE */}
         {viewMode === "showcase" ? (
           <ShowcaseHome

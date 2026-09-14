@@ -55,29 +55,24 @@ export function RetroRenderStudio({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       {/* LEFT: Title Card Preview & Monitor Console (7 cols) */}
-      <div className="lg:col-span-7 metal-panel rounded-3xl p-6 relative flex flex-col items-center shadow-xl">
-        <div className="absolute top-3 left-3 metal-screw" />
-        <div className="absolute top-3 right-3 metal-screw" />
-        <div className="absolute bottom-3 left-3 metal-screw" />
-        <div className="absolute bottom-3 right-3 metal-screw" />
-
+      <div className="lg:col-span-7 sky-glass-panel text-white rounded-3xl p-6 relative flex flex-col items-center shadow-xl">
         {/* Top Header of Monitor */}
-        <div className="w-full flex items-center justify-between border-b border-[#a89f90] pb-2 mb-4">
+        <div className="w-full flex items-center justify-between border-b border-white/10 pb-2 mb-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-            <h3 className="font-black text-xs text-[#2b2b2d] uppercase tracking-wider">
+            <h3 className="font-black text-xs text-white uppercase tracking-wider">
               {videoUrl && monitorMode === "video" ? "FINAL REEL PLAYBACK" : "LIVE TITLE CARD CRT MONITOR"}
             </h3>
           </div>
 
           <div className="flex items-center gap-2">
             {videoUrl && (
-              <div className="flex items-center bg-[#b8ae9e] rounded-lg p-0.5 border border-[#8f8677]">
+              <div className="flex items-center bg-[#b8ae9e] rounded-lg p-0.5 border border-white/15">
                 <button
                   type="button"
                   onClick={() => setMonitorMode("title")}
                   className={`px-2 py-0.5 rounded text-[9px] font-black transition ${
-                    monitorMode === "title" ? "bg-[#ffc72c] text-[#2b2820]" : "text-[#4a4743]"
+                    monitorMode === "title" ? "bg-[#ffc72c] text-[#2b2820]" : "text-amber-100/70"
                   }`}
                 >
                   TITLE INTRO
@@ -86,7 +81,7 @@ export function RetroRenderStudio({
                   type="button"
                   onClick={() => setMonitorMode("video")}
                   className={`px-2 py-0.5 rounded text-[9px] font-black transition ${
-                    monitorMode === "video" ? "bg-[#ffc72c] text-[#2b2820]" : "text-[#4a4743]"
+                    monitorMode === "video" ? "bg-[#ffc72c] text-[#2b2820]" : "text-amber-100/70"
                   }`}
                 >
                   VIDEO
@@ -215,22 +210,17 @@ export function RetroRenderStudio({
       </div>
 
       {/* RIGHT: Master Controls Rack (5 cols) */}
-      <div className="lg:col-span-5 metal-panel rounded-3xl p-6 relative space-y-4 shadow-xl">
-        <div className="absolute top-3 left-3 metal-screw" />
-        <div className="absolute top-3 right-3 metal-screw" />
-        <div className="absolute bottom-3 left-3 metal-screw" />
-        <div className="absolute bottom-3 right-3 metal-screw" />
-
+      <div className="lg:col-span-5 sky-glass-panel text-white rounded-3xl p-6 relative space-y-4 shadow-xl">
         {/* Header */}
-        <div className="border-b border-[#a89f90] pb-2 flex items-center justify-between">
+        <div className="border-b border-white/10 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-[#bf8a00]" />
-            <h3 className="font-black text-sm text-[#2b2b2d] uppercase tracking-wider">
+            <h3 className="font-black text-sm text-white uppercase tracking-wider">
               STUDIO CONTROLS
             </h3>
           </div>
           <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-            isPro ? "bg-amber-400 text-black shadow" : "bg-[#b8ae9e] text-[#2b2b2d]"
+            isPro ? "bg-amber-400 text-black shadow" : "bg-[#b8ae9e] text-white"
           }`}>
             {isPro ? "PRO ACTIVE" : "FREE TIER"}
           </span>
@@ -239,7 +229,7 @@ export function RetroRenderStudio({
         {/* Motion Template Grid */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-[#2b2b2d] uppercase">
+            <span className="text-xs font-black text-white uppercase">
               MOTION TEMPLATE
             </span>
             <span className="text-xs font-bold text-[#bf8a00]">
@@ -247,7 +237,7 @@ export function RetroRenderStudio({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto p-1.5 rounded-2xl metal-inset">
+          <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto p-1.5 rounded-2xl bg-black/40 border border-white/10 text-white">
             {TEMPLATES.map((tmpl) => {
               const isSelected = tmpl.id === selectedTemplate;
               const isLocked = tmpl.isPro && !isPro;
@@ -262,7 +252,7 @@ export function RetroRenderStudio({
                   className={`p-2 rounded-xl border-2 transition cursor-pointer flex flex-col justify-between ${
                     isSelected
                       ? "bg-[#ffc72c]/20 border-[#ffc72c] shadow-md"
-                      : "bg-[#d4cdc0] border-[#9e9688] hover:border-[#2b2b2d]"
+                      : "bg-black/50 text-white border-[#9e9688] hover:border-[#2b2b2d]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -274,8 +264,8 @@ export function RetroRenderStudio({
                     )}
                   </div>
                   <div>
-                    <p className="font-black text-xs text-[#2b2b2d] truncate">{tmpl.name}</p>
-                    <p className="text-[9px] text-[#5a5752] line-clamp-1">{tmpl.subtitle}</p>
+                    <p className="font-black text-xs text-white truncate">{tmpl.name}</p>
+                    <p className="text-[9px] text-amber-100/60 line-clamp-1">{tmpl.subtitle}</p>
                   </div>
                 </div>
               );
@@ -285,7 +275,7 @@ export function RetroRenderStudio({
 
         {/* Frame Aspect Ratio Selector */}
         <div className="space-y-1">
-          <span className="text-[11px] font-black text-[#5a5752] uppercase">
+          <span className="text-[11px] font-black text-amber-100/60 uppercase">
             FRAME PROPORTIONS
           </span>
           <div className="grid grid-cols-3 gap-2">
@@ -297,7 +287,7 @@ export function RetroRenderStudio({
                 className={`py-1.5 px-2 rounded-xl border-2 text-xs font-black transition flex items-center justify-center gap-1.5 ${
                   aspectRatio === item.id
                     ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
-                    : "metal-inset text-[#4a4743] hover:text-[#2b2b2d]"
+                    : "bg-black/40 border border-white/10 text-white text-amber-100/70 hover:text-white"
                 }`}
               >
                 <span>{item.icon}</span>
@@ -308,9 +298,9 @@ export function RetroRenderStudio({
         </div>
 
         {/* Export Quality */}
-        <div className="space-y-1 pt-1.5 border-t border-[#a89f90]">
+        <div className="space-y-1 pt-1.5 border-t border-white/10">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-[#5a5752] uppercase">
+            <span className="text-[11px] font-black text-amber-100/60 uppercase">
               EXPORT QUALITY
             </span>
             {!isPro && (
@@ -329,11 +319,11 @@ export function RetroRenderStudio({
               className={`py-1.5 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center ${
                 quality === "fast"
                   ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
-                  : "metal-inset text-[#4a4743] hover:text-[#2b2b2d]"
+                  : "bg-black/40 border border-white/10 text-white text-amber-100/70 hover:text-white"
               }`}
             >
               <span>480p Standard</span>
-              <span className="text-[9px] font-semibold text-[#5a5752]">Free Tier</span>
+              <span className="text-[9px] font-semibold text-amber-100/60">Free Tier</span>
             </button>
 
             <button
@@ -345,23 +335,23 @@ export function RetroRenderStudio({
               className={`py-1.5 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center relative ${
                 quality === "master"
                   ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
-                  : "metal-inset text-[#4a4743] hover:text-[#2b2b2d]"
+                  : "bg-black/40 border border-white/10 text-white text-amber-100/70 hover:text-white"
               }`}
             >
               <div className="flex items-center gap-1">
                 <span>1080p Master</span>
                 {!isPro && <Crown className="w-3 h-3 text-[#bf8a00]" />}
               </div>
-              <span className="text-[9px] font-semibold text-[#5a5752]">Studio Crisp</span>
+              <span className="text-[9px] font-semibold text-amber-100/60">Studio Crisp</span>
             </button>
           </div>
         </div>
 
         {/* Watermark Status (No toggle - Informative status pill only) */}
-        <div className="flex items-center justify-between p-2.5 rounded-2xl metal-inset gap-2">
+        <div className="flex items-center justify-between p-2.5 rounded-2xl bg-black/40 border border-white/10 text-white gap-2">
           <div>
-            <p className="text-xs font-black text-[#2b2b2d]">SNAPBEAT WATERMARK</p>
-            <p className="text-[10px] text-[#5a5752]">
+            <p className="text-xs font-black text-white">SNAPBEAT WATERMARK</p>
+            <p className="text-[10px] text-amber-100/60">
               {isPro ? "Clean video output • No watermark" : "Free output includes watermark"}
             </p>
           </div>
@@ -387,11 +377,11 @@ export function RetroRenderStudio({
         </div>
 
         {/* Opening Title Card (PRO-ONLY FEATURE) */}
-        <div className="space-y-2 p-2.5 rounded-2xl metal-inset">
+        <div className="space-y-2 p-2.5 rounded-2xl bg-black/40 border border-white/10 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Type className="w-3.5 h-3.5 text-[#bf8a00]" />
-              <span className="text-xs font-black text-[#2b2b2d] uppercase">
+              <span className="text-xs font-black text-white uppercase">
                 OPENING TITLE CARD
               </span>
               <span className="px-1.5 py-0.2 rounded text-[8px] font-black bg-[#ffc72c] text-[#2b2820] border border-[#bf8a00]">
@@ -419,7 +409,7 @@ export function RetroRenderStudio({
                 onChange={(e) =>
                   setTitleCard((prev) => ({ ...prev, text: e.target.value }))
                 }
-                className="w-full px-3 py-1.5 rounded-xl bg-[#d4cdc0] border border-[#8f8677] text-xs font-bold text-[#2b2b2d] placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
+                className="w-full px-3 py-1.5 rounded-xl bg-black/50 text-white border border-white/15 text-xs font-bold text-white placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
               />
               <input
                 type="text"
@@ -429,7 +419,7 @@ export function RetroRenderStudio({
                 onChange={(e) =>
                   setTitleCard((prev) => ({ ...prev, subtitle: e.target.value }))
                 }
-                className="w-full px-3 py-1.5 rounded-xl bg-[#d4cdc0] border border-[#8f8677] text-xs font-bold text-[#2b2b2d] placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
+                className="w-full px-3 py-1.5 rounded-xl bg-black/50 text-white border border-white/15 text-xs font-bold text-white placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
               />
               <div className="grid grid-cols-2 gap-2">
                 <select
@@ -437,7 +427,7 @@ export function RetroRenderStudio({
                   onChange={(e) =>
                     setTitleCard((prev) => ({ ...prev, font: e.target.value }))
                   }
-                  className="px-2 py-1 rounded-lg bg-[#d4cdc0] border border-[#8f8677] text-[11px] font-bold text-[#2b2b2d]"
+                  className="px-2 py-1 rounded-lg bg-black/50 text-white border border-white/15 text-[11px] font-bold text-white"
                 >
                   {TITLE_FONTS.map((f) => (
                     <option key={f.id} value={f.id}>
@@ -453,7 +443,7 @@ export function RetroRenderStudio({
                       duration: parseInt(e.target.value, 10),
                     }))
                   }
-                  className="px-2 py-1 rounded-lg bg-[#d4cdc0] border border-[#8f8677] text-[11px] font-bold text-[#2b2b2d]"
+                  className="px-2 py-1 rounded-lg bg-black/50 text-white border border-white/15 text-[11px] font-bold text-white"
                 >
                   <option value="2">2 seconds intro</option>
                   <option value="3">3 seconds intro</option>
@@ -464,8 +454,8 @@ export function RetroRenderStudio({
           )}
 
           {!isPro && (
-            <div className="pt-1.5 flex items-center justify-between border-t border-[#a89f90]/50">
-              <p className="text-[10px] text-[#5a5752] font-semibold leading-tight">
+            <div className="pt-1.5 flex items-center justify-between border-t border-white/10/50">
+              <p className="text-[10px] text-amber-100/60 font-semibold leading-tight">
                 Cinematic intro cards unlock with any Pro Pass.
               </p>
               <button
@@ -498,7 +488,7 @@ export function RetroRenderStudio({
           )}
 
           {!canRender && !isRendering && (
-            <p className="text-[10px] text-[#5a5752] font-bold text-center mt-2">
+            <p className="text-[10px] text-amber-100/60 font-bold text-center mt-2">
               Insert a track from Music tab and at least 2 photos to render
             </p>
           )}

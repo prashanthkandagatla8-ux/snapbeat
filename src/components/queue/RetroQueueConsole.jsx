@@ -61,26 +61,21 @@ export function RetroQueueConsole({
       <div className="p-4 rounded-2xl bg-[#ffc72c]/20 border-2 border-[#bf8a00] flex items-start gap-3 shadow-md">
         <AlertTriangle className="w-5 h-5 text-[#bf8a00] shrink-0 mt-0.5" />
         <div>
-          <p className="font-black text-xs text-[#2b2b2d] uppercase tracking-wide">
+          <p className="font-black text-xs text-white uppercase tracking-wide">
             BETA NOTICE: 1-AT-A-TIME SERIALIZED QUEUE
           </p>
-          <p className="text-xs text-[#5a5752] mt-0.5 leading-relaxed">
+          <p className="text-xs text-amber-100/60 mt-0.5 leading-relaxed">
             Free renders process sequentially (1-at-a-time) in a shared cluster queue to prevent server overload. Thank you for your patience! Pro subscribers receive priority scheduling.
           </p>
         </div>
       </div>
 
       {/* ACTIVE JOB CONSOLE */}
-      <div className="metal-panel rounded-3xl p-6 relative shadow-xl">
-        <div className="absolute top-3 left-3 metal-screw" />
-        <div className="absolute top-3 right-3 metal-screw" />
-        <div className="absolute bottom-3 left-3 metal-screw" />
-        <div className="absolute bottom-3 right-3 metal-screw" />
-
-        <div className="border-b border-[#a89f90] pb-3 mb-4 flex items-center justify-between">
+      <div className="sky-glass-panel text-white rounded-3xl p-6 relative shadow-xl">
+        <div className="border-b border-white/10 pb-3 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#00c853] shadow-[0_0_8px_#00c853]" />
-            <h2 className="font-black text-sm text-[#2b2b2d] uppercase tracking-wider">
+            <h2 className="font-black text-sm text-white uppercase tracking-wider">
               ACTIVE RENDER QUEUE STATUS
             </h2>
           </div>
@@ -92,7 +87,7 @@ export function RetroQueueConsole({
         </div>
 
         {isRendering ? (
-          <div className="metal-inset rounded-2xl p-6 space-y-4">
+          <div className="bg-black/40 border border-white/10 text-white rounded-2xl p-6 space-y-4">
             {/* Live Queue Position Badge */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -109,7 +104,7 @@ export function RetroQueueConsole({
                 )}
               </div>
 
-              <span className="font-mono text-xs font-black text-[#2b2b2d]">
+              <span className="font-mono text-xs font-black text-white">
                 {Math.round(progress)}% COMPLETED
               </span>
             </div>
@@ -133,12 +128,12 @@ export function RetroQueueConsole({
             </div>
           </div>
         ) : error ? (
-          <div className="metal-inset rounded-2xl p-5 space-y-3">
+          <div className="bg-black/40 border border-white/10 text-white rounded-2xl p-5 space-y-3">
             <div className="p-4 rounded-xl bg-[#d62828]/15 border border-[#d62828]/40 flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-[#d62828] shrink-0" />
               <div className="flex-1">
                 <p className="font-black text-xs text-[#d62828] uppercase">RENDER INTERRUPTED</p>
-                <p className="text-xs text-[#5a5752] mt-0.5">{error}</p>
+                <p className="text-xs text-amber-100/60 mt-0.5">{error}</p>
               </div>
             </div>
             <div className="flex items-center justify-end gap-2">
@@ -146,7 +141,7 @@ export function RetroQueueConsole({
                 <button
                   type="button"
                   onClick={onDismissError}
-                  className="px-3 py-1.5 rounded-xl bg-[#7a766f]/30 hover:bg-[#7a766f]/50 text-[#2b2b2d] font-black text-xs uppercase transition"
+                  className="px-3 py-1.5 rounded-xl bg-[#7a766f]/30 hover:bg-[#7a766f]/50 text-white font-black text-xs uppercase transition"
                 >
                   DISMISS
                 </button>
@@ -164,14 +159,14 @@ export function RetroQueueConsole({
             </div>
           </div>
         ) : videoUrl ? (
-          <div className="metal-inset rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-black/40 border border-white/10 text-white rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="w-6 h-6 text-[#00c853]" />
               <div>
-                <p className="font-black text-xs text-[#2b2b2d] uppercase">
+                <p className="font-black text-xs text-white uppercase">
                   REEL RENDER COMPLETED!
                 </p>
-                <p className="text-xs text-[#5a5752]">
+                <p className="text-xs text-amber-100/60">
                   {isPro
                     ? "Your clean 1080p Master MP4 video is ready."
                     : "Free 480p output ready. Click below to download."}
@@ -194,7 +189,7 @@ export function RetroQueueConsole({
           <div className="p-8 text-center text-[#7a766f]">
             <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="font-black text-xs uppercase tracking-wider">QUEUE IS CURRENTLY EMPTY</p>
-            <p className="text-[11px] text-[#5a5752] mt-0.5">
+            <p className="text-[11px] text-amber-100/60 mt-0.5">
               Insert a track and photos, then hit Render Reel to start!
             </p>
           </div>
@@ -203,9 +198,9 @@ export function RetroQueueConsole({
 
       {/* COMPLETED RENDERS HISTORY */}
       {pastJobs.length > 0 && (
-        <div className="metal-panel rounded-3xl p-6 relative shadow-xl">
-          <div className="flex items-center justify-between border-b border-[#a89f90] pb-2 mb-4">
-            <h3 className="font-black text-sm text-[#2b2b2d] uppercase tracking-wider">
+        <div className="sky-glass-panel text-white rounded-3xl p-6 relative shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-4">
+            <h3 className="font-black text-sm text-white uppercase tracking-wider">
               RENDER HISTORY
             </h3>
             {onClearCompleted && (
@@ -224,13 +219,13 @@ export function RetroQueueConsole({
             {pastJobs.map((job) => (
               <div
                 key={job.id}
-                className="p-3.5 rounded-2xl metal-inset flex items-center justify-between gap-3"
+                className="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-white flex items-center justify-between gap-3"
               >
                 <div>
-                  <p className="font-black text-xs text-[#2b2b2d]">
+                  <p className="font-black text-xs text-white">
                     Job #{job.id} • {job.templateName || "Reel"}
                   </p>
-                  <p className="text-[10px] text-[#5a5752]">
+                  <p className="text-[10px] text-amber-100/60">
                     {job.quality === "master" ? "1080p Master" : "480p Standard"} • {job.createdAt ? new Date(job.createdAt).toLocaleTimeString() : "Recent"}
                   </p>
                 </div>
