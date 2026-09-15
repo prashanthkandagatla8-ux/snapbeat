@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PRICING_PLANS } from "@/lib/constants";
 import { signProToken } from "@/lib/security";
 import { upsertAccount, recordActivation } from "@/lib/serverDb";
+import { getCashfreeCredentials } from "@/lib/cashfreeConfig";
 
 /**
  * Cashfree Payment Gateway - Verify Order Endpoint
@@ -17,9 +18,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
     }
 
-    const appId = (process.env.CASHFREE_APP_ID || "").trim();
-    const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
-    const isProduction = (process.env.CASHFREE_ENV || "PRODUCTION").toUpperCase() === "PRODUCTION";
+    const { appId, secretKey, isProduction } = getCashfreeCredentials();
 
     // Anti-cheat: Mock orders strictly blocked
     if (orderId.startsWith("order_sb_mock_") || orderId.startsWith("cf_demo_")) {

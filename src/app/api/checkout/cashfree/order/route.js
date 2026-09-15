@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PRICING_PLANS } from "@/lib/constants";
+import { getCashfreeCredentials } from "@/lib/cashfreeConfig";
 
 /**
  * Cashfree Payment Gateway - Create Order Endpoint
@@ -21,9 +22,7 @@ export async function POST(request) {
 
     const plan = PRICING_PLANS.find((p) => p.id === planId) || PRICING_PLANS[1];
 
-    const appId = (process.env.CASHFREE_APP_ID || "").trim();
-    const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
-    const isProduction = (process.env.CASHFREE_ENV || "PRODUCTION").toUpperCase() === "PRODUCTION";
+    const { appId, secretKey, isProduction } = getCashfreeCredentials();
 
     const baseUrl = isProduction
       ? "https://api.cashfree.com/pg/orders"
