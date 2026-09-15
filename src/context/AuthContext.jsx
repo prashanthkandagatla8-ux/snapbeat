@@ -14,6 +14,17 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalConfig, setAuthModalConfig] = useState({ title: null, subtitle: null, intent: null });
+
+  const openAuthModal = (config = {}) => {
+    setAuthModalConfig(config);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+    setAuthModalConfig({ title: null, subtitle: null, intent: null });
+  };
 
   // Load stored user from localStorage on mount
   useEffect(() => {
@@ -156,17 +167,17 @@ export function AuthProvider({ children }) {
     }
     const now = new Date();
     let days = 7;
+    if (planId === "daily" || planId === "day") days = 1;
     if (planId === "monthly") days = 30;
     if (planId === "annual" || planId === "yearly") days = 365;
 
     const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
 
-    const baseUser = user || {
-      id: `usr_${Date.now()}`,
-      email: "creator@snapbeat.app",
-      name: "SnapBeat Creator",
-      createdAt: now.toISOString(),
-    };
+    const baseUser = user;
+    if (!baseUser || baseUser.isGuest) {
+      console.warn("Guest accounts cannot be upgraded to Pro. Please sign in with an account.");
+      return null;
+    }
 
     const updatedUser = {
       ...baseUser,
@@ -213,27 +224,6 @@ export function AuthProvider({ children }) {
       localStorage.setItem("snapbeat_guest_count", String(guestCount + 1));
     } catch (_) {}
 
-    let isPro = false;
-    let planId = null;
-    let expiresAt = null;
-    let paymentId = null;
-    let proToken = null;
-
-    try {
-      const cachedSub = localStorage.getItem("snapbeat_pro_subscription");
-      const cachedToken = localStorage.getItem("snapbeat_pro_token");
-      if (cachedSub) {
-        const parsed = JSON.parse(cachedSub);
-        if (parsed?.isPro && parsed.expiresAt > Date.now()) {
-          isPro = true;
-          planId = parsed.plan || "monthly";
-          expiresAt = new Date(parsed.expiresAt).toISOString();
-          paymentId = parsed.paymentId;
-          proToken = cachedToken || parsed.token || null;
-        }
-      }
-    } catch (_) {}
-
     const guestUser = {
       id: `guest_${Date.now()}`,
       email: `guest_${guestCount}@snapbeat.app`,
@@ -242,11 +232,11 @@ export function AuthProvider({ children }) {
       backendId: `guest_${guestCount}`,
       picture: null,
       isGuest: true,
-      isPro,
-      planId,
-      expiresAt,
-      paymentId,
-      proToken,
+      isPro: false,
+      planId: null,
+      expiresAt: null,
+      paymentId: null,
+      proToken: null,
       createdAt: new Date().toISOString(),
     };
 
@@ -257,7 +247,7 @@ export function AuthProvider({ children }) {
     }
 
     setUser(guestUser);
-    setIsAuthModalOpen(false);
+    closeAuthModal();
     trackGuestStarted("instant_guest");
     trackSignupCompleted("guest", true);
     return guestUser;
@@ -270,8 +260,9 @@ export function AuthProvider({ children }) {
         isPro: Boolean(user?.isPro),
         loading,
         isAuthModalOpen,
-        openAuthModal: () => setIsAuthModalOpen(true),
-        closeAuthModal: () => setIsAuthModalOpen(false),
+        authModalConfig,
+        openAuthModal,
+        closeAuthModal,
         signIn,
         loginAsGuest,
         signOut,

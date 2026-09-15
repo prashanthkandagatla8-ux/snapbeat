@@ -29,7 +29,7 @@ export default function StudioPage() {
   const [isStoreOpen, setIsStoreOpen] = useState(false);
   const [pastJobs, setPastJobs] = useState([]);
 
-  const { user, openAuthModal, upgradeToPro } = useAuth();
+  const { user, openAuthModal, upgradeToPro, authModalConfig } = useAuth();
   const { isPro: subIsPro, daysRemaining, activatePro } = useSubscription();
 
   // Combine subscription & user account Pro status
@@ -270,6 +270,19 @@ export default function StudioPage() {
     }
   };
 
+  // Enforce account sign-in for Pro upgrades (Industry standard: Canva, CapCut, Figma)
+  const handleOpenPricing = () => {
+    if (!user || user.isGuest) {
+      openAuthModal({
+        intent: "pro_upgrade",
+        title: "ACCOUNT REQUIRED FOR PRO",
+        subtitle: "Please sign in with your email or Google account so your Pro pass is safely attached and never lost.",
+      });
+      return;
+    }
+    setIsStoreOpen(true);
+  };
+
   const canRender = Boolean(studio.audioFile && studio.photos.length >= 2);
 
   return (
@@ -283,7 +296,7 @@ export default function StudioPage() {
           {viewMode === "showcase" ? (
             <ShowcaseHome
               onEnterStudio={handleEnterStudio}
-              onOpenPricing={() => setIsStoreOpen(true)}
+              onOpenPricing={handleOpenPricing}
             />
           ) : (
           /* VIEW 2: WORKSTATION SCREENS (MUSIC, PHOTOS, RENDER, QUEUE) */
@@ -294,7 +307,7 @@ export default function StudioPage() {
             setCurrentTab={setCurrentTab}
             isPro={isPro}
             daysRemaining={daysRemaining}
-            onOpenPricing={() => setIsStoreOpen(true)}
+            onOpenPricing={handleOpenPricing}
             serverOnline={serverOnline}
             activeQueueCount={renderJob.isRendering ? 1 : 0}
             onShowcaseClick={() => setViewMode("showcase")}
@@ -383,7 +396,7 @@ export default function StudioPage() {
                     titleCard={studio.titleCard}
                     setTitleCard={studio.setTitleCard}
                     isPro={isPro}
-                    onOpenPricing={() => setIsStoreOpen(true)}
+                    onOpenPricing={handleOpenPricing}
                     onRender={handleStartRender}
                     isRendering={renderJob.isRendering}
                     canRender={canRender}
@@ -423,7 +436,7 @@ export default function StudioPage() {
                     pastJobs={pastJobs}
                     onClearCompleted={handleClearPastJobs}
                     isPro={isPro}
-                    onOpenPricing={() => setIsStoreOpen(true)}
+                    onOpenPricing={handleOpenPricing}
                     onRetry={handleStartRender}
                     onDismissError={renderJob.resetJob}
                     onNewReel={() => setCurrentTab("photos")}
@@ -441,7 +454,7 @@ export default function StudioPage() {
               )}
 
               {/* RETRO SPONSOR BANNER (HIDDEN FOR PRO SUBSCRIBERS) */}
-              <RetroAdBanner isPro={isPro} onOpenPricing={() => setIsStoreOpen(true)} />
+              <RetroAdBanner isPro={isPro} onOpenPricing={handleOpenPricing} />
             </main>
 
             {/* SLEEK FROSTED GLASS FOOTER */}
@@ -473,7 +486,10 @@ export default function StudioPage() {
 
       {/* AUTH MODAL (1-Click Guest or Account Sign In) */}
       <RetroAuthModal
-        onSuccess={() => {
+        onSuccess={(signedUser) => {
+          if (signedUser && !signedUser.isGuest && authModalConfig?.intent === "pro_upgrade") {
+            setIsStoreOpen(true);
+          }
           setViewMode("studio");
           setCurrentTab("music");
         }}

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { TEMPLATES, ASPECT_RATIOS, TITLE_FONTS } from "@/lib/constants";
 import RetroMechanicalButton from "@/components/ui/RetroMechanicalButton";
+import { TemplateGrid } from "@/components/templates/TemplateGrid";
 import { Sparkles, Crown, Film, Download, Type, Sliders, Loader2, Play, Eye, Lock } from "lucide-react";
 
 export function RetroRenderStudio({
@@ -205,102 +206,13 @@ export function RetroRenderStudio({
           </span>
         </div>
 
-        {/* Motion Template Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-white uppercase flex items-center gap-1.5">
-              {isPro ? (
-                <>
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
-                  <span>MOTION TEMPLATE (PRO UNLOCKED)</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>MOTION TEMPLATE (AUTO-ASSIGNED)</span>
-                </>
-              )}
-            </span>
-            <span className="text-xs font-bold text-[#ffc72c]">
-              {currentTemplateObj.name} {currentTemplateObj.emoji}
-            </span>
-          </div>
-
-          {!isPro ? (
-            /* ================= FREE USER: AUTO-SELECTED TEMPLATE ONLY (MANUAL DISABLED) ================= */
-            <div className="space-y-2">
-              {/* Active Auto-Selected Template Banner */}
-              <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#ffc72c]/10 to-amber-500/20 border border-[#ffc72c]/50 shadow-inner flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-black/50 border border-amber-400/40 flex items-center justify-center text-lg shadow shrink-0">
-                    {currentTemplateObj.emoji}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="font-black text-xs sm:text-sm text-white truncate">{currentTemplateObj.name}</h4>
-                      <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-[#241903] font-black text-[8px] uppercase tracking-wider shrink-0 shadow-sm">
-                        AUTO
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-amber-100/80 truncate">{currentTemplateObj.subtitle}</p>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="text-[9px] text-amber-300 font-bold block">Free Tier</span>
-                  <span className="text-[8px] text-white/60 block">Auto-Rotates</span>
-                </div>
-              </div>
-
-              {/* Locked Manual Selector Box with Upgrade CTA - Inline, No Overflow */}
-              <div className="p-3 rounded-2xl border border-white/10 bg-black/50 flex flex-col items-center text-center space-y-2">
-                <div className="flex items-center gap-1.5 text-amber-300 text-xs font-black">
-                  <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>MANUAL TEMPLATES (PRO FEATURE)</span>
-                </div>
-                <p className="text-[11px] text-amber-100/80 max-w-[320px] font-medium leading-tight">
-                  Free users get a different motion style auto-assigned per reel. Upgrade to choose any of 14 templates manually!
-                </p>
-                <button
-                  type="button"
-                  onClick={onOpenPricing}
-                  className="btn-brass px-3 py-1.5 rounded-xl font-black text-[11px] text-[#2b2820] shadow-md hover:brightness-110 active:scale-95 transition flex items-center gap-1.5 cursor-pointer max-w-full"
-                >
-                  <Crown className="w-3.5 h-3.5 text-amber-800 shrink-0" />
-                  <span className="truncate">UNLOCK MANUAL TEMPLATES (SOON)</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* ================= PRO USER: FULL INTERACTIVE 14 TEMPLATE GRID ================= */
-            <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto p-1.5 rounded-2xl bg-black/40 border border-white/10 text-white">
-              {TEMPLATES.map((tmpl) => {
-                const isSelected = tmpl.id === selectedTemplate;
-                return (
-                  <div
-                    key={tmpl.id}
-                    onClick={() => setSelectedTemplate(tmpl.id)}
-                    className={`p-2 rounded-xl border-2 transition cursor-pointer flex flex-col justify-between ${
-                      isSelected
-                        ? "bg-[#ffc72c]/20 border-[#ffc72c] shadow-md"
-                        : "bg-black/50 text-white border-[#9e9688] hover:border-[#ffc72c]/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-base">{tmpl.emoji}</span>
-                      <span className="px-1.5 py-0.2 rounded text-[8px] font-black bg-[#ffc72c] text-[#2b2820] border border-[#bf8a00]">
-                        PRO
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-black text-xs text-white truncate">{tmpl.name}</p>
-                      <p className="text-[9px] text-amber-100/60 line-clamp-1">{tmpl.subtitle}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {/* Motion Template Section with CRT Viewfinder */}
+        <TemplateGrid
+          selectedTemplate={selectedTemplate}
+          onSelectTemplate={setSelectedTemplate}
+          isPro={isPro}
+          onOpenPricing={onOpenPricing}
+        />
 
         {/* Frame Aspect Ratio Selector */}
         <div className="space-y-1">

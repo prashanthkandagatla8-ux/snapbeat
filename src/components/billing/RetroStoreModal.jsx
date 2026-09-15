@@ -32,6 +32,7 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
   const selectedPlan = PRICING_PLANS.find((p) => p.id === selectedPlanId) || PRICING_PLANS[1];
 
   const formatPeriod = (plan) => {
+    if (plan.period === "day" || plan.id === "daily") return "day";
     if (plan.period === "week" || plan.id === "weekly") return "week";
     if (plan.period === "month" || plan.id === "monthly") return "month";
     if (plan.period === "year" || plan.id === "annual") return "year";
@@ -47,7 +48,7 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
       aria-labelledby="store-modal-title"
     >
       <div
-        className="relative w-full max-w-2xl sky-glass-panel rounded-3xl p-6 lg:p-8 shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto border border-[#d4af37]/40 text-white"
+        className="relative w-full max-w-4xl sky-glass-panel rounded-3xl p-6 lg:p-8 shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto border border-[#d4af37]/40 text-white"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -107,7 +108,7 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {PRICING_PLANS.map((plan) => {
             const isSelected = selectedPlanId === plan.id;
             const period = formatPeriod(plan);

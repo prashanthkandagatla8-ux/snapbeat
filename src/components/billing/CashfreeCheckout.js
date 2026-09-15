@@ -68,6 +68,7 @@ export async function initializeCashfreeCheckout({
         customerId: user?.id || (user?.email ? `cust_${user.email.replace(/[^a-zA-Z0-9]/g, "_")}` : (deviceId || `guest_${Date.now()}`)),
         customerEmail: user?.email || (deviceId ? `${deviceId}@guest.snapbeat.app` : undefined),
         customerName: user?.name || (user?.isGuest ? "Guest Creator" : undefined),
+        isGuest: Boolean(user?.isGuest),
       }),
     });
 

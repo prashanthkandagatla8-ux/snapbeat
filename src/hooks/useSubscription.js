@@ -179,7 +179,14 @@ export function useSubscription() {
     }
 
     const normalizedPlan = (planId || "monthly").toLowerCase();
-    const days = normalizedPlan === "weekly" ? 7 : (normalizedPlan === "annual" || normalizedPlan === "yearly") ? 365 : 30;
+    const days =
+      normalizedPlan === "daily" || normalizedPlan === "day"
+        ? 1
+        : normalizedPlan === "weekly"
+        ? 7
+        : normalizedPlan === "annual" || normalizedPlan === "yearly"
+        ? 365
+        : 30;
     const expiresAt = Date.now() + days * 24 * 60 * 60 * 1000;
 
     const newSub = {

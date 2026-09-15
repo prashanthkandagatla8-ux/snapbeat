@@ -114,7 +114,7 @@ export function RetroQueueConsole({
       });
       const link = document.createElement("a");
       link.href = pending.url;
-      link.download = pending.fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
+      link.download = pending.fileName || `SnapBeat_${(activePreviewTitle || "Reel").replace(/[^a-zA-Z0-9_-]/g, "_")}.mp4`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -139,9 +139,18 @@ export function RetroQueueConsole({
     // Open sponsor link in background on click
     if (directLink && typeof window !== "undefined") {
       try {
-        window.open(directLink, "_blank", "noopener,noreferrer");
-      } catch (e) {
-        console.warn("Sponsor tab prevented:", e);
+        const opened = window.open(directLink, "_blank", "noopener,noreferrer");
+        if (!opened) {
+          const ghostA = document.createElement("a");
+          ghostA.href = directLink;
+          ghostA.target = "_blank";
+          ghostA.rel = "noopener noreferrer";
+          document.body.appendChild(ghostA);
+          ghostA.click();
+          document.body.removeChild(ghostA);
+        }
+      } catch (err) {
+        console.warn("Sponsor link open handled:", err);
       }
     }
 
@@ -176,7 +185,7 @@ export function RetroQueueConsole({
   useEffect(() => {
     if (videoUrl) {
       setActivePreviewUrl(videoUrl);
-      setActivePreviewTitle(`SnapBeat Job #${jobId || "Reel"}`);
+      setActivePreviewTitle("SnapBeat Kinetic Reel");
       // If free user and not yet unlocked, auto-play the 5s pre-roll like YouTube
       if (
         !isPro &&
@@ -193,7 +202,7 @@ export function RetroQueueConsole({
   const handleDownloadClick = (e, targetUrl, fileName) => {
     if (e) e.preventDefault();
     const url = targetUrl || currentDisplayVideo;
-    const name = fileName || `SnapBeat_${jobId || "Reel"}.mp4`;
+    const name = fileName || `SnapBeat_${(activePreviewTitle || "Reel").replace(/[^a-zA-Z0-9_-]/g, "_")}.mp4`;
     const isUnlocked = isPro || Boolean(unlockedJobs[url] || (jobId && unlockedJobs[jobId]));
 
     if (!isUnlocked) {
@@ -239,7 +248,7 @@ export function RetroQueueConsole({
 
   const handleSelectPreview = (job) => {
     setActivePreviewUrl(job.videoUrl);
-    setActivePreviewTitle(`Job #${job.id} • ${job.templateName || "Reel"}`);
+    setActivePreviewTitle(job.templateName ? `${job.templateName} Reel` : "Kinetic Reel");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -279,11 +288,9 @@ export function RetroQueueConsole({
             </h2>
           </div>
 
-          {jobId && (
-            <span className="px-2.5 py-0.5 rounded-full bg-black/50 border border-white/10 text-amber-300 font-mono font-bold text-[10px]">
-              JOB #{jobId}
-            </span>
-          )}
+          <span className="px-2.5 py-0.5 rounded-full bg-black/50 border border-white/10 text-amber-300 font-mono font-bold text-[10px] uppercase tracking-wider">
+            {isRendering ? "PROCESSING" : currentDisplayVideo ? "READY" : "STANDBY"}
+          </span>
         </div>
 
         {/* STATE 1: RENDERING IN PROGRESS */}
@@ -469,7 +476,7 @@ export function RetroQueueConsole({
                   handleDownloadClick(
                     e,
                     currentDisplayVideo,
-                    `SnapBeat_${jobId || "Reel"}.mp4`
+                    `SnapBeat_${(activePreviewTitle || "Reel").replace(/[^a-zA-Z0-9_-]/g, "_")}.mp4`
                   )
                 }
                 className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
@@ -552,7 +559,7 @@ export function RetroQueueConsole({
                 >
                   <div className="min-w-0">
                     <p className="font-black text-xs text-white truncate">
-                      Job #{job.id} • {job.templateName || "Kinetic Reel"}
+                      {job.templateName ? `${job.templateName} Reel` : "Kinetic Reel"}
                     </p>
                     <p className="text-[10px] text-amber-100/60 truncate">
                       {job.quality === "master" ? "1080p Master" : "480p Standard"} •{" "}
@@ -591,7 +598,7 @@ export function RetroQueueConsole({
                       {/* Download Button */}
                       <button
                         type="button"
-                        onClick={(e) => handleDownloadClick(e, job.videoUrl, `SnapBeat_${job.id}.mp4`)}
+                        onClick={(e) => handleDownloadClick(e, job.videoUrl, `SnapBeat_${(job.templateName || "Reel").replace(/[^a-zA-Z0-9_-]/g, "_")}.mp4`)}
                         className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer border border-white/15"
                         title="Download MP4"
                         aria-label="Download MP4"

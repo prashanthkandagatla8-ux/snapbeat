@@ -12,6 +12,13 @@ export async function POST(request) {
     const body = await request.json();
     const { planId, customerEmail, customerPhone, customerName, customerId } = body;
 
+    if (body.isGuest || (customerEmail && (customerEmail.startsWith("guest_") || customerEmail.includes("@guest.")))) {
+      return NextResponse.json(
+        { error: "Please sign in with your email or Google account before purchasing Pro so your subscription is safely saved." },
+        { status: 400 }
+      );
+    }
+
     const plan = PRICING_PLANS.find((p) => p.id === planId) || PRICING_PLANS[1];
 
     const appId = (process.env.CASHFREE_APP_ID || "").trim();

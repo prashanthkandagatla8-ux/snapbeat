@@ -33,6 +33,7 @@ export async function POST(request) {
       const plan = PRICING_PLANS.find((p) => p.id === planId) || PRICING_PLANS[1];
       const now = new Date();
       let days = 7;
+      if (plan.id === "daily" || plan.id === "day") days = 1;
       if (plan.id === "monthly") days = 30;
       if (plan.id === "annual") days = 365;
       const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
@@ -104,6 +105,7 @@ export async function POST(request) {
 
       const now = new Date();
       let days = 7;
+      if (plan.id === "daily" || plan.id === "day") days = 1;
       if (plan.id === "monthly") days = 30;
       if (plan.id === "annual") days = 365;
       const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();

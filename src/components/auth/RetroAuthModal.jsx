@@ -6,7 +6,7 @@ import { trackSignupStarted } from "@/lib/analytics";
 import { X, Mail, User, ShieldCheck, Sparkles, AlertCircle, Zap } from "lucide-react";
 
 export default function RetroAuthModal({ onSuccess }) {
-  const { isAuthModalOpen, closeAuthModal, signIn, loginAsGuest } = useAuth();
+  const { isAuthModalOpen, closeAuthModal, signIn, loginAsGuest, authModalConfig } = useAuth();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -109,23 +109,24 @@ export default function RetroAuthModal({ onSuccess }) {
       );
       return JSON.parse(jsonPayload);
     } catch (e) {
-      console.error("Failed to decode token", e);
+      console.warn("Could not decode Google JWT:", e);
       return null;
     }
   };
 
   const handleGoogleCredentialResponse = (response) => {
-    if (response?.credential) {
-      const payload = decodeJwt(response.credential);
-      if (payload && payload.email) {
-        setError("");
-        const realName = payload.name || payload.given_name || payload.email.split("@")[0];
-        const realEmail = payload.email;
-        const realPicture = payload.picture || "";
-        const loggedUser = signIn(realEmail, realName, realPicture);
-        if (onSuccess) onSuccess(loggedUser);
-      }
+    if (!response.credential) {
+      setError("Google authentication failed. Please try email sign in.");
+      return;
     }
+    const payload = decodeJwt(response.credential);
+    if (!payload || !payload.email) {
+      setError("Could not retrieve Google account details.");
+      return;
+    }
+    setError("");
+    const loggedUser = signIn(payload.email, payload.name || "", payload.picture || "");
+    if (onSuccess) onSuccess(loggedUser);
   };
 
   const handleSubmit = (e) => {
@@ -189,29 +190,45 @@ export default function RetroAuthModal({ onSuccess }) {
               className="h-10 w-auto object-contain drop-shadow-lg"
             />
           </div>
-          <p className="text-xs text-amber-100/70 font-semibold">
-            Track your queued renders, save creations, and manage Pro passes.
+          <h3 className="font-black text-sm uppercase text-amber-300">
+            {authModalConfig?.title || "WELCOME TO SNAPBEAT"}
+          </h3>
+          <p className="text-xs text-amber-100/70 font-semibold max-w-sm mx-auto">
+            {authModalConfig?.subtitle || "Track your queued renders, save creations, and manage Pro passes."}
           </p>
+
+          {authModalConfig?.intent === "pro_upgrade" && (
+            <div className="p-3 rounded-2xl bg-amber-500/20 border border-amber-400/50 text-amber-200 text-xs flex items-center gap-2.5 text-left mt-2 shadow-md">
+              <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
+              <p className="font-semibold leading-tight text-[11px]">
+                <strong>Account Required for Pro:</strong> Sign in with Google or your email so your paid Pro subscription is safely linked and never lost if you clear your browser.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Sign In Options */}
         <div className="space-y-4">
-          {/* Instant 1-Click Guest Login */}
-          <button
-            type="button"
-            onClick={handleGuestLogin}
-            className="w-full py-3.5 px-4 rounded-2xl btn-gold-radiant text-[#261b02] font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition cursor-pointer border border-[#fff2b2]"
-          >
-            <Zap className="w-4 h-4 fill-current text-amber-800" />
-            <span>CONTINUE AS GUEST (INSTANT ACCESS)</span>
-          </button>
+          {/* Instant 1-Click Guest Login (hide when trying to upgrade to Pro) */}
+          {authModalConfig?.intent !== "pro_upgrade" && (
+            <>
+              <button
+                type="button"
+                onClick={handleGuestLogin}
+                className="w-full py-3.5 px-4 rounded-2xl btn-gold-radiant text-[#261b02] font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition cursor-pointer border border-[#fff2b2]"
+              >
+                <Zap className="w-4 h-4 fill-current text-amber-800" />
+                <span>CONTINUE AS GUEST (INSTANT ACCESS)</span>
+              </button>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="h-[1px] flex-1 bg-white/15" />
-            <span className="text-[10px] font-mono font-bold text-amber-200/70 uppercase">OR SIGN IN TO SAVE CLOUD WORK</span>
-            <div className="h-[1px] flex-1 bg-white/15" />
-          </div>
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="h-[1px] flex-1 bg-white/15" />
+                <span className="text-[10px] font-mono font-bold text-amber-200/70 uppercase">OR SIGN IN TO SAVE CLOUD WORK</span>
+                <div className="h-[1px] flex-1 bg-white/15" />
+              </div>
+            </>
+          )}
 
           {/* Official Google Identity Services Button Container (if GIS client id configured) */}
           <div ref={googleBtnRef} className="w-full flex justify-center empty:hidden" />
