@@ -78,45 +78,9 @@ export async function initializeCashfreeCheckout({
       throw new Error(orderData.error || "Could not create payment session with Cashfree");
     }
 
-    // 2. Demo / Mock Mode Handler
-    if (orderData.mode === "mock") {
-      const confirmMock = window.confirm(
-        `[Cashfree Demo Mode — Pro Pass: ₹${plan.price}]\n\n` +
-        `Cashfree live API keys are not yet configured in your environment.\n\n` +
-        `Would you like to simulate a successful payment and immediately unlock Pro Studio Pass (1080p Master, Watermark Removal, Title Cards)?`
-      );
-
-      if (confirmMock) {
-        // Verify mock payment
-        const verifyRes = await fetch("/api/checkout/cashfree/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: orderData.order_id,
-            planId: plan.id,
-          }),
-        });
-        const verifyData = await verifyRes.json();
-
-        trackPurchaseCompleted({
-          planName: plan.id,
-          value: plan.price,
-          currency: "INR",
-          transactionId: verifyData.paymentId || `cf_demo_${Date.now()}`,
-        });
-
-        if (typeof onPaymentSuccess === "function") {
-          onPaymentSuccess(plan.id, verifyData.paymentId || `cf_demo_${Date.now()}`);
-        }
-      } else {
-        if (typeof onPaymentCancel === "function") onPaymentCancel();
-      }
-      return;
-    }
-
-    // 3. Live / Sandbox Mode via Cashfree SDK
+    // 2. Live Mode via official Cashfree SDK
     const CashfreeFactory = await loadCashfreeSDK();
-    const mode = orderData.mode === "production" ? "production" : "sandbox";
+    const mode = (orderData.mode || "production").toLowerCase() === "production" ? "production" : "sandbox";
     const cashfree = CashfreeFactory({ mode });
 
     const checkoutOptions = {
@@ -132,37 +96,37 @@ export async function initializeCashfreeCheckout({
       return;
     }
 
-    if (checkoutResult?.paymentDetails || checkoutResult?.redirect) {
-      // 4. Verify payment with backend
-      const verifyRes = await fetch("/api/checkout/cashfree/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: orderData.order_id,
-          planId: plan.id,
-          customerEmail: user?.email || (deviceId ? `${deviceId}@guest.snapbeat.app` : undefined),
-          customerId: user?.id || deviceId,
-          deviceId,
-        }),
+    // 3. Verify real payment with backend
+    const verifyRes = await fetch("/api/checkout/cashfree/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: orderData.order_id,
+        planId: plan.id,
+        customerEmail: user?.email,
+        customerId: user?.id || deviceId,
+        deviceId,
+      }),
+    });
+
+    const verifyData = await verifyRes.json();
+
+    if (verifyRes.ok && verifyData.verified) {
+      trackPurchaseCompleted({
+        planName: plan.id,
+        value: plan.price,
+        currency: "INR",
+        transactionId: verifyData.paymentId,
       });
 
-      const verifyData = await verifyRes.json();
-
-      if (verifyRes.ok && verifyData.verified) {
-        trackPurchaseCompleted({
-          planName: plan.id,
-          value: plan.price,
-          currency: "INR",
-          transactionId: verifyData.paymentId,
-        });
-
-        if (typeof onPaymentSuccess === "function") {
-          onPaymentSuccess(plan.id, verifyData.paymentId, verifyData.proToken);
-        }
-      } else {
-        alert(verifyData.error || "Payment verification failed. If your account was debited, please contact support.");
-        if (typeof onPaymentCancel === "function") onPaymentCancel();
+      if (typeof onPaymentSuccess === "function") {
+        onPaymentSuccess(plan.id, verifyData.paymentId, verifyData.proToken);
       }
+    } else {
+      if (checkoutResult?.paymentDetails) {
+        alert(verifyData.error || "Payment verification failed. If your account was debited, please contact support.");
+      }
+      if (typeof onPaymentCancel === "function") onPaymentCancel();
     }
   } catch (err) {
     console.error("Cashfree Checkout Error:", err);

@@ -29,18 +29,12 @@ export async function POST(request) {
       ? "https://api.cashfree.com/pg/orders"
       : "https://sandbox.cashfree.com/pg/orders";
 
-    // If keys are not yet provided, return a mock session for seamless UI testing
+    // Cashfree PG is approved and active: keys must be present
     if (!appId || !secretKey) {
-      const mockOrderId = `order_sb_mock_${Date.now()}`;
-      return NextResponse.json({
-        order_id: mockOrderId,
-        payment_session_id: `session_mock_${Date.now()}`,
-        order_status: "ACTIVE",
-        order_amount: plan.price,
-        order_currency: "INR",
-        mode: "mock",
-        message: "Cashfree API keys pending. Running in demo mode.",
-      });
+      return NextResponse.json(
+        { error: "Cashfree live payment gateway configuration is missing." },
+        { status: 500 }
+      );
     }
 
     const orderId = `sb_${plan.id}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;

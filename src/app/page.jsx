@@ -237,6 +237,15 @@ export default function StudioPage() {
 
   // Handle plan purchase via Hybrid Gateway (Cashfree Active Live + Razorpay Backup)
   const handleSelectPlan = (planId) => {
+    if (!user || user.isGuest) {
+      setIsStoreOpen(false);
+      openAuthModal({
+        intent: "pro_upgrade",
+        title: "ACCOUNT REQUIRED FOR PRO",
+        subtitle: "Please sign in with your email or Google account so your Pro pass is safely attached and never lost.",
+      });
+      return;
+    }
     setIsStoreOpen(false);
     initializeHybridCheckout({
       planId,
@@ -297,6 +306,7 @@ export default function StudioPage() {
             <ShowcaseHome
               onEnterStudio={handleEnterStudio}
               onOpenPricing={handleOpenPricing}
+              onSelectPlan={handleSelectPlan}
             />
           ) : (
           /* VIEW 2: WORKSTATION SCREENS (MUSIC, PHOTOS, RENDER, QUEUE) */

@@ -21,44 +21,12 @@ export async function POST(request) {
     const secretKey = (process.env.CASHFREE_SECRET_KEY || "").trim();
     const isProduction = (process.env.CASHFREE_ENV || "PRODUCTION").toUpperCase() === "PRODUCTION";
 
-    // Anti-cheat: Mock orders strictly blocked in production
-    if (orderId.startsWith("order_sb_mock_")) {
-      if (isProduction) {
-        return NextResponse.json(
-          { success: false, error: "Simulated mock payments are blocked in production." },
-          { status: 403 }
-        );
-      }
-      // Demo/sandbox mode only
-      const plan = PRICING_PLANS.find((p) => p.id === planId) || PRICING_PLANS[1];
-      const now = new Date();
-      let days = 7;
-      if (plan.id === "daily" || plan.id === "day") days = 1;
-      if (plan.id === "monthly") days = 30;
-      if (plan.id === "annual") days = 365;
-      const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
-      const paymentId = `cf_demo_${orderId}`;
-
-      const proToken = signProToken({
-        accountId: customerId || `demo_${Date.now()}`,
-        email: customerEmail || "guest@snapbeat.app",
-        planId: plan.id,
-        paymentId,
-        expiresAt,
-      });
-
-      return NextResponse.json({
-        success: true,
-        verified: true,
-        orderId,
-        paymentId,
-        planId: plan.id,
-        amount: plan.price,
-        expiresAt,
-        proToken,
-        mode: "mock",
-        message: "Payment simulated for test environment.",
-      });
+    // Anti-cheat: Mock orders strictly blocked
+    if (orderId.startsWith("order_sb_mock_") || orderId.startsWith("cf_demo_")) {
+      return NextResponse.json(
+        { success: false, error: "Mock payments are strictly disabled. Please complete real payment via Cashfree." },
+        { status: 403 }
+      );
     }
 
     if (!appId || !secretKey) {
