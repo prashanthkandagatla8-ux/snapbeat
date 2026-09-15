@@ -4,23 +4,17 @@ This guide walks you through testing the SnapBeat iOS app on your physical iPhon
 
 ---
 
-## Step 1: Cloud Build via GitHub Actions
+## Step 1: Cloud Build via GitHub Actions (Status: COMPLETED & DOWNLOADED)
 
-Because Apple's iOS build tools require macOS, we have configured an automated GitHub Actions cloud workflow (`.github/workflows/ios_build.yml`) that runs on Apple-hosted cloud Mac runners.
+The cloud build has completed successfully on GitHub Actions macOS runner.
+The installable `.ipa` is **already downloaded and extracted right on your PC**:
 
-1. Commit and push your latest code to GitHub:
-   ```bash
-   cd C:\MyProjects\snapbeat_flutter
-   git push origin master
-   ```
-2. In your web browser, open your GitHub repository:
-   `https://github.com/prashanthkandagatla8-ux/snapbeat`
-3. Click the **Actions** tab at the top.
-4. Select **"SnapBeat iOS Build & Package"** on the left.
-5. Click **"Run workflow"** -> **"Run workflow"** (or it will run automatically on push).
-6. The cloud Mac will checkout Flutter 3.47.2, build the release iOS bundle, and produce `SnapBeat-Release-v1.0.3+4.ipa`.
-7. When complete (~3 to 5 minutes), click on the completed run, scroll to the bottom under **Artifacts**, and download **`SnapBeat-iOS-IPA-v1.0.3+4.zip`**.
-8. Unzip it to get `SnapBeat-Release-v1.0.3+4.ipa`.
+📍 **Local Path on your computer:**
+```
+C:\MyProjects\snapbeat_flutter\build_artifacts\SnapBeat-Release-v1.0.3+4.ipa
+```
+
+*(If you ever make new code changes in the future, just run `git push origin master` and GitHub Actions will automatically compile a new IPA at [Actions Runs](https://github.com/prashanthkandagatla8-ux/snapbeat/actions)).*
 
 ---
 
