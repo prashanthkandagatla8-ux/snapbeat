@@ -148,7 +148,7 @@ export default function SeoFooter({ className = "" }) {
 
       {/* Bottom Copyright */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 mt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/50 gap-2">
-        <p>© 2026 SnapBeat Studio. Automated AI Beat-Synced Photo to Video Reel Maker.</p>
+        <p>© 2026 SnapBeat. Automated AI Beat-Synced Photo to Video Reel Maker.</p>
         <div className="flex items-center gap-4">
           <Link href="/?view=studio" className="text-amber-300/80 hover:text-amber-200 transition font-bold">
             Launch Studio Workstation ❯

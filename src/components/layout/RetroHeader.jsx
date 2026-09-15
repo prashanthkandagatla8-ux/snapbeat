@@ -11,8 +11,6 @@ import {
   Film,
   User,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 
 export function RetroHeader({
@@ -34,22 +32,6 @@ export function RetroHeader({
     { id: "queue", label: "QUEUE", icon: ListOrdered, desc: "Render Progress & Downloads" },
   ];
 
-  const currentTabIndex = Math.max(0, TABS.findIndex((t) => t.id === currentTab));
-  const activeTab = TABS[currentTabIndex] || TABS[0];
-  const ActiveIcon = activeTab.icon;
-
-  const handlePrevTab = () => {
-    if (currentTabIndex > 0) {
-      setCurrentTab(TABS[currentTabIndex - 1].id);
-    }
-  };
-
-  const handleNextTab = () => {
-    if (currentTabIndex < TABS.length - 1) {
-      setCurrentTab(TABS[currentTabIndex + 1].id);
-    }
-  };
-
   return (
     <header className="w-full bg-[#081b20]/90 backdrop-blur-xl border-b border-[#d4af37]/25 px-2 sm:px-4 py-2 sticky top-0 z-40 relative shadow-lg select-none text-white">
       <div className="w-full flex flex-row items-center justify-between gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto no-scrollbar">
@@ -60,7 +42,7 @@ export function RetroHeader({
             className={`flex items-center gap-1.5 sm:gap-2 ${
               onShowcaseClick ? "cursor-pointer group" : ""
             }`}
-            title={onShowcaseClick ? "Return to Showcase Home" : "SnapBeat Studio"}
+            title={onShowcaseClick ? "Return to Showcase Home" : "SnapBeat"}
             role={onShowcaseClick ? "button" : undefined}
             tabIndex={onShowcaseClick ? 0 : undefined}
             onKeyDown={(e) => {
@@ -74,9 +56,6 @@ export function RetroHeader({
               alt="SnapBeat"
               className="h-6 sm:h-7 w-auto object-contain group-hover:brightness-110 transition drop-shadow-md shrink-0"
             />
-            <span className="px-1.5 py-0.5 rounded bg-[#ffc72c] text-[#2b2820] font-black text-[9px] tracking-wider shadow-sm border border-[#bf8a00] shrink-0">
-              STUDIO
-            </span>
             <div
               className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-bold text-emerald-400 shrink-0"
               title={serverOnline ? "GPU cluster is online" : "GPU render cluster offline"}
@@ -106,53 +85,6 @@ export function RetroHeader({
             </button>
           )}
         </div>
-
-        {/* Center: Stepper (Prev [ Active Tab 1/4 ] Next) */}
-        <nav
-          className="flex items-center gap-1 p-0.5 sm:p-1 rounded-xl bg-black/50 border border-white/10 backdrop-blur-md shrink-0"
-          aria-label="Workflow Stepper"
-        >
-          {/* Previous Step Button */}
-          <button
-            type="button"
-            onClick={handlePrevTab}
-            disabled={currentTabIndex === 0}
-            className="p-1 sm:p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
-            title={currentTabIndex > 0 ? `Previous: ${TABS[currentTabIndex - 1].label}` : "First Step"}
-            aria-label="Previous Step"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Active Tab Display (Icon + Name + Step Counter) */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg btn-brass text-[#261b02] shadow-[0_2px_10px_rgba(255,199,44,0.3)] select-none shrink-0"
-            title={`${activeTab.label}: Step ${currentTabIndex + 1} of 4 — ${activeTab.desc}`}
-          >
-            <ActiveIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="font-black text-[11px] sm:text-xs uppercase tracking-wider">
-              {activeTab.label}
-            </span>
-            <span className="px-1.5 py-0.2 rounded-full bg-black/25 text-[#261b02] font-mono text-[9px] font-black shrink-0">
-              {currentTabIndex + 1}/4
-            </span>
-            {activeQueueCount > 0 && activeTab.id === "queue" && (
-              <span className="w-2 h-2 rounded-full bg-[#d62828] animate-pulse shrink-0" />
-            )}
-          </div>
-
-          {/* Next Step Button */}
-          <button
-            type="button"
-            onClick={handleNextTab}
-            disabled={currentTabIndex === TABS.length - 1}
-            className="p-1 sm:p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer flex items-center justify-center shrink-0"
-            title={currentTabIndex < TABS.length - 1 ? `Next: ${TABS[currentTabIndex + 1].label}` : "Final Step"}
-            aria-label="Next Step"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </nav>
 
         {/* Right: FREE vs PRO Mode Switcher + Pro Pass + User Account */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
@@ -234,6 +166,55 @@ export function RetroHeader({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Second Panel: Tactile 4-Button Workflow Console (All 4 Buttons Displayed at Once, No Arrows) */}
+      <div className="w-full pt-2">
+        <nav
+          className="w-full grid grid-cols-4 gap-1 sm:gap-2 p-1 rounded-xl bg-black/50 border border-[#d4af37]/20 backdrop-blur-md shadow-inner"
+          aria-label="Workflow Navigation"
+        >
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = currentTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setCurrentTab(tab.id)}
+                className={`relative flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-xs font-black tracking-wider transition-all duration-200 cursor-pointer select-none ${
+                  isSelected
+                    ? "btn-brass text-[#261b02] shadow-[0_2px_12px_rgba(255,199,44,0.4)] ring-1 ring-amber-300 scale-[1.02]"
+                    : "bg-black/30 hover:bg-white/10 text-white/50 hover:text-white/90 border border-white/5 hover:border-white/15 opacity-65 hover:opacity-100 active:scale-95"
+                }`}
+                title={`${tab.label} — ${tab.desc}`}
+                aria-current={isSelected ? "page" : undefined}
+              >
+                {/* Active illuminated pip */}
+                <span
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+                    isSelected
+                      ? "bg-emerald-500 shadow-[0_0_8px_#10b981]"
+                      : "bg-white/20"
+                  }`}
+                />
+
+                <Icon
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    isSelected ? "text-[#261b02]" : "text-white/60"
+                  }`}
+                />
+
+                <span className="uppercase truncate">{tab.label}</span>
+
+                {/* Queue rendering badge */}
+                {tab.id === "queue" && activeQueueCount > 0 && (
+                  <span className="w-2 h-2 rounded-full bg-[#d62828] animate-pulse shrink-0 ml-0.5" />
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </header>
   );

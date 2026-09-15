@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Privacy Policy — SnapBeat",
-  description: "Privacy Policy for SnapBeat Studio and Mobile App.",
+  description: "Privacy Policy for SnapBeat Web and Mobile App.",
 };
 
 export default function PrivacyPage() {

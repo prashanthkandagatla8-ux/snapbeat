@@ -105,7 +105,7 @@ export function VideoStage({
 
             {/* Bottom Letterbox Bar */}
             <div className="w-full z-20 flex items-center justify-between text-[9px] font-mono text-gray-500 border-t border-white/10 pt-1">
-              <span>SNAPBEAT STUDIO</span>
+              <span>SNAPBEAT</span>
               <span>LIVE CRT MONITOR</span>
             </div>
           </div>

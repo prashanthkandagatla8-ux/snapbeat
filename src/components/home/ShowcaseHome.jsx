@@ -81,9 +81,6 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
             alt="SnapBeat"
             className="h-8 sm:h-9 w-auto object-contain drop-shadow"
           />
-          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] text-[9px] font-black uppercase tracking-wider shadow">
-            STUDIO
-          </span>
         </div>
 
         {/* Center: Minimal Navigation Links */}
@@ -383,7 +380,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
           6. SLEEK FOOTER (INSIDE THE FRAME)
           ------------------------------------------------------------- */}
       <footer className="w-full flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-100/60 pt-2 border-t border-white/10 gap-2">
-        <p>© 2026 SnapBeat Studio • Tactile Audio-Visual Reel Maker</p>
+        <p>© 2026 SnapBeat • Tactile Audio-Visual Reel Maker</p>
         <div className="flex items-center gap-3 font-semibold">
           <button type="button" onClick={onOpenPricing} className="hover:text-amber-300 transition cursor-pointer">
             Pricing
@@ -449,7 +446,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing }) {
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4 text-amber-400" />
                 <h3 className="font-black text-xs uppercase tracking-wider text-amber-300">
-                  ABOUT SNAPBEAT STUDIO
+                  ABOUT SNAPBEAT
                 </h3>
               </div>
               <button

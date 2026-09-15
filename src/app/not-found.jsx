@@ -3,7 +3,7 @@ import { ArrowLeft, Home, Film, Sparkles } from "lucide-react";
 
 export const metadata = {
   title: "404 — Page Not Found",
-  description: "The page you are looking for does not exist. Return to SnapBeat Studio to create beat-synced photo reels.",
+  description: "The page you are looking for does not exist. Return to SnapBeat to create beat-synced photo reels.",
 };
 
 export default function NotFound() {

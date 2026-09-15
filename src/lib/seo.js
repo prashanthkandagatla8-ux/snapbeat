@@ -107,7 +107,7 @@ export function getOrganizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "SnapBeat Studio",
+    name: "SnapBeat",
     url: SITE_URL,
     logo: `${SITE_URL}/assets/images/snapbeat_logo.png`,
     sameAs: [],

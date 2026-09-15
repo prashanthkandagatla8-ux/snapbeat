@@ -461,7 +461,7 @@ export default function StudioPage() {
             <footer className="w-full bg-[#08181d]/85 backdrop-blur-xl border-t border-[#d4af37]/25 py-4 px-4 sm:px-8 text-center text-xs text-white/70 flex flex-col sm:flex-row items-center justify-between gap-3 mt-auto relative z-10">
               <p className="font-bold flex items-center justify-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span>© 2026 SnapBeat Studio. Tactile Audio-Visual Reel Maker.</span>
+                <span>© 2026 SnapBeat. Tactile Audio-Visual Reel Maker.</span>
               </p>
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-black text-amber-300/90">
                 <a href="/privacy" className="hover:text-amber-200 hover:underline transition">Privacy Policy</a>
