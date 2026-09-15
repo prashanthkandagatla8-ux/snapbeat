@@ -10,13 +10,15 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>SnapBeat needs access to save your rendered reels to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>SnapBeat needs photo library access to save reels to a custom album.</string>
+	<string>SnapBeat needs photo library access to select photos for your reel and save exported videos.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>SnapBeat needs camera access if you wish to take photos directly for your reel.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Snapbeat Flutter</string>
+	<string>SnapBeat</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -24,7 +26,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>snapbeat_flutter</string>
+	<string>SnapBeat</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
