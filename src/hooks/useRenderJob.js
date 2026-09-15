@@ -91,6 +91,7 @@ export function useRenderJob() {
       formData.append("quality", userIsPro && quality === "master" ? "master" : "fast");
       formData.append("watermark", applyWatermark ? "true" : "false");
       formData.append("render_type", userIsPro ? "pro_priority" : "free_queue");
+      formData.append("client", "web");
       formData.append("audio_start", String(audioTrim?.start || 0));
       formData.append("audio_end", String(audioTrim?.end || 0));
       formData.append("full_track", audioTrim?.isFullTrack ? "true" : "false");

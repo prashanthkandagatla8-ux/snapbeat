@@ -36,6 +36,9 @@ export function AuthProvider({ children }) {
             localStorage.setItem("snapbeat_user", JSON.stringify(parsed));
           }
         }
+        if (parsed.isGuest && parsed.name && parsed.name.startsWith("Guest Creator")) {
+          parsed.name = "Guest Creator";
+        }
         setUser(parsed);
       }
     } catch (err) {
@@ -234,7 +237,9 @@ export function AuthProvider({ children }) {
     const guestUser = {
       id: `guest_${Date.now()}`,
       email: `guest_${guestCount}@snapbeat.app`,
-      name: `Guest Creator #${guestCount}`,
+      name: "Guest Creator",
+      guestIndex: guestCount,
+      backendId: `guest_${guestCount}`,
       picture: null,
       isGuest: true,
       isPro,
