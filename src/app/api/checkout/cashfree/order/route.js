@@ -59,7 +59,6 @@ export async function POST(request) {
       order_meta: {
         return_url: `${origin}/?cf_status={payment_status}&order_id={order_id}&plan_id=${plan.id}`,
         notify_url: `${origin}/api/checkout/cashfree/webhook`,
-        payment_methods: "cc,dc,upi,nb,wallet",
       },
       order_note: `SnapBeat Pro Studio Pass (${plan.name}) - 1080p Master & No Watermark`,
       order_tags: {
