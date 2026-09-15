@@ -411,10 +411,10 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing, onSelectPla
         </div>
 
         {/* Viewfinder Player + Selector Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 bg-[#09171f]/80 p-4 rounded-3xl border border-amber-400/20 backdrop-blur-md">
-          {/* Left Viewfinder Monitor: 5 Cols */}
-          <div className="md:col-span-5 flex flex-col space-y-2">
-            <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-black border-2 border-amber-400/40 shadow-lg group">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 bg-[#09171f]/80 p-5 rounded-3xl border border-amber-400/20 backdrop-blur-md items-center">
+          {/* Left Viewfinder Monitor: 5 Cols (Native 9:16 Portrait Reel) */}
+          <div className="md:col-span-5 flex flex-col items-center space-y-3">
+            <div className="relative aspect-[9/16] w-[210px] sm:w-[230px] rounded-2xl overflow-hidden bg-black border-2 border-amber-400/40 shadow-xl group">
               <video
                 ref={templateVideoRef}
                 key={activeTemplate.id}
@@ -460,7 +460,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing, onSelectPla
               )}
             </div>
 
-            <div className="flex items-center justify-between text-xs px-1">
+            <div className="flex items-center justify-between text-xs px-1 w-[210px] sm:w-[230px]">
               <div>
                 <p className="font-black text-white text-sm flex items-center gap-1">
                   <span>{activeTemplate.emoji}</span>
@@ -471,7 +471,7 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing, onSelectPla
                     </span>
                   )}
                 </p>
-                <p className="text-[11px] text-amber-100/70">{activeTemplate.subtitle}</p>
+                <p className="text-[10px] text-amber-100/70">{activeTemplate.subtitle}</p>
               </div>
 
               <button
@@ -479,13 +479,13 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing, onSelectPla
                 onClick={handleStudioAction}
                 className="btn-brass px-3 py-1.5 rounded-xl text-black font-black text-[10px] uppercase tracking-wide shadow hover:brightness-110 active:scale-95 transition cursor-pointer shrink-0"
               >
-                USE THIS STYLE
+                USE STYLE
               </button>
             </div>
           </div>
 
           {/* Right Selector Grid: 7 Cols */}
-          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[280px] overflow-y-auto pr-1">
+          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
             {TEMPLATES.map((tmpl) => {
               const isSelected = tmpl.id === activeTemplateId;
               return (

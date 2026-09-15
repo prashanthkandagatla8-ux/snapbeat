@@ -107,8 +107,8 @@ export function TemplateGrid({ selectedTemplate, onSelectTemplate, isPro, onOpen
           </div>
         </div>
 
-        {/* Video Player */}
-        <div className="relative aspect-[16/9] w-full bg-black flex items-center justify-center overflow-hidden cursor-pointer" onClick={handleTogglePlay}>
+        {/* Video Player in Native 9:16 Reel Proportion */}
+        <div className="relative aspect-[9/16] w-full max-w-[240px] mx-auto bg-black flex items-center justify-center overflow-hidden cursor-pointer rounded-xl my-1" onClick={handleTogglePlay}>
           <video
             ref={videoRef}
             key={previewId}
