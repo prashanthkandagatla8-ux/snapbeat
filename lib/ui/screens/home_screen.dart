@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle, SystemNavigator;
 import 'package:file_picker/file_picker.dart';
@@ -1174,7 +1175,9 @@ class HomeScreenState extends State<HomeScreen> {
                                     fit: BoxFit.contain,
                                   )
                                 : Image.asset(
-                                    'assets/images/snapbeat_logo.png',
+                                    (!kIsWeb && Platform.isIOS)
+                                        ? 'assets/images/snapbeat_studio_logo.png'
+                                        : 'assets/images/snapbeat_logo.png',
                                     height: 42,
                                     fit: BoxFit.contain,
                                   ),

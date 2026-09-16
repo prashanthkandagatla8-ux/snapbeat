@@ -96,7 +96,7 @@ Future<void> preloadAllAssets(WidgetTester tester) async {
 
     // 3. Logo
     if (HomeScreen.logoUiImage == null) {
-      final file = File(r'C:\MyProjects\snapbeat_flutter\assets\images\snapbeat_logo.png');
+      final file = File(r'C:\MyProjects\snapbeat_flutter\assets\images\snapbeat_studio_logo.png');
       if (file.existsSync()) {
         final bytes = file.readAsBytesSync();
         final codec = await ui.instantiateImageCodec(bytes);
@@ -179,6 +179,69 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  testWidgets('screen_01_music_deck', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await preloadAllAssets(tester);
+
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: testTheme,
+        home: RepaintBoundary(
+          key: key,
+          child: HomeScreen(
+            initialTab: "music",
+            initialMusic: dummyMusicFile,
+            initialMusicTitle: "Funk Smooth Party (124 BPM)",
+          ),
+        ),
+      ),
+    );
+
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    await capturePng(key, '01_music_deck.png');
+    exit(0);
+  });
+
+  testWidgets('screen_02_photos_stage', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await preloadAllAssets(tester);
+
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: testTheme,
+        home: RepaintBoundary(
+          key: key,
+          child: HomeScreen(
+            initialTab: "photos",
+            initialMusic: dummyMusicFile,
+            initialMusicTitle: "Funk Smooth Party (124 BPM)",
+            initialPhotos: getSamplePhotos(),
+          ),
+        ),
+      ),
+    );
+
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    await capturePng(key, '02_photos_stage.png');
+    exit(0);
   });
 
   testWidgets('screen_03_render_auto', (WidgetTester tester) async {
@@ -293,38 +356,6 @@ void main() {
     }
 
     await capturePng(key, '05_queue_vault.png');
-    exit(0);
-  });
-
-  testWidgets('screen_02_photos_stage', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
-    addTearDown(tester.view.reset);
-
-    await preloadAllAssets(tester);
-
-    final key = GlobalKey();
-    await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: testTheme,
-        home: RepaintBoundary(
-          key: key,
-          child: HomeScreen(
-            initialTab: "photos",
-            initialMusic: dummyMusicFile,
-            initialMusicTitle: "Funk Smooth Party (124 BPM)",
-            initialPhotos: getSamplePhotos(),
-          ),
-        ),
-      ),
-    );
-
-    for (int i = 0; i < 4; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-
-    await capturePng(key, '02_photos_stage.png');
     exit(0);
   });
 }
