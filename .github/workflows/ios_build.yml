@@ -14,17 +14,31 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16 (iOS 18+ SDK) and Ensure iOS Platform
+      - name: Select Xcode 16 (iOS 18+ SDK)
         run: |
-          ls -d /Applications/Xcode* || true
-          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || \
-          sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer || \
-          sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer || \
-          sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
-          sudo xcodebuild -runFirstLaunch || true
-          xcodebuild -downloadPlatform iOS -buildVersion 18.2 || true
-          xcrun simctl list runtimes || true
+          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer || \
+          sudo xcode-select -s /Applications/Xcode_16.3.app/Contents/Developer || \
+          sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || \
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
+
+      - name: Integrate Privacy Manifest into Xcode Project
+        run: |
+          ruby -e "
+            require 'xcodeproj'
+            project = Xcodeproj::Project.open('ios/Runner.xcodeproj')
+            target = project.targets.find { |t| t.name == 'Runner' }
+            group = project.main_group.find_subpath('Runner')
+            existing = group.find_file_by_path('PrivacyInfo.xcprivacy')
+            unless existing
+              file_ref = group.new_file('PrivacyInfo.xcprivacy')
+              target.resources_build_phase.add_file_reference(file_ref)
+              project.save
+              puts 'Successfully integrated PrivacyInfo.xcprivacy'
+            else
+              puts 'PrivacyInfo.xcprivacy already registered'
+            end
+          "
 
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
