@@ -468,6 +468,14 @@ export function RetroQueueConsole({
               )}
             </div>
 
+            {/* Cloud Retention Expiry Warning Notice */}
+            <div className="w-full max-w-md p-3 rounded-2xl bg-amber-500/15 border border-amber-400/40 flex items-center gap-3 text-amber-200 shadow-sm">
+              <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+              <p className="text-[11px] leading-relaxed">
+                <strong>Cloud Storage Notice:</strong> Renders are cleared from our cloud server after <strong>24 hours</strong>. Please download your reel to keep it permanently on your device.
+              </p>
+            </div>
+
             {/* Action Bar: Download & Create Another Reel */}
             <div className="flex items-center justify-center gap-3 pt-1 flex-wrap w-full">
               <button
