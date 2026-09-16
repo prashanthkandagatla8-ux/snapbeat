@@ -1,1 +1,5 @@
 #include "Generated.xcconfig"
+DEVELOPMENT_TEAM=DM335SJ958
+CODE_SIGN_STYLE=Manual
+PROVISIONING_PROFILE_SPECIFIER=SnapBeat AppStore Profile
+CODE_SIGN_IDENTITY=Apple Distribution

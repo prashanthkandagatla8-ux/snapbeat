@@ -99,6 +99,15 @@ class QueueManager with ChangeNotifier {
     }
   }
 
+  Future<void> renameJob(String id, String newName) async {
+    final idx = _jobs.indexWhere((j) => j.id == id);
+    if (idx != -1) {
+      _jobs[idx] = _jobs[idx].copyWith(customName: newName.trim());
+      notifyListeners();
+      await _save();
+    }
+  }
+
   Future<void> deleteJob(String id) async {
     _cancelledJobIds.add(id);
     final matches = _jobs.where((j) => j.id == id);

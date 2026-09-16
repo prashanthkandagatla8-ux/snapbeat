@@ -8,12 +8,14 @@ import 'retro_mechanical_button.dart';
 class VideoPreviewDialog extends StatefulWidget {
   final String videoPath;
   final String? templateName;
+  final String? customName;
   final String? quality;
 
   const VideoPreviewDialog({
     super.key,
     required this.videoPath,
     this.templateName,
+    this.customName,
     this.quality,
   });
 
@@ -21,6 +23,7 @@ class VideoPreviewDialog extends StatefulWidget {
     BuildContext context, {
     required String videoPath,
     String? templateName,
+    String? customName,
     String? quality,
   }) {
     return showDialog(
@@ -30,6 +33,7 @@ class VideoPreviewDialog extends StatefulWidget {
       builder: (ctx) => VideoPreviewDialog(
         videoPath: videoPath,
         templateName: templateName,
+        customName: customName,
         quality: quality,
       ),
     );
@@ -44,6 +48,8 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
   bool _isInitialized = false;
   bool _hasError = false;
   String _errorMessage = "";
+  bool _isSaving = false;
+  String? _saveStatus;
 
   @override
   void initState() {
@@ -76,7 +82,6 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
         setState(() {
           _isInitialized = true;
         });
-        controller.addListener(_onVideoUpdate);
       }
     } catch (e) {
       _controller?.dispose();
@@ -89,13 +94,8 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
     }
   }
 
-  void _onVideoUpdate() {
-    if (mounted) setState(() {});
-  }
-
   @override
   void dispose() {
-    _controller?.removeListener(_onVideoUpdate);
     _controller?.dispose();
     super.dispose();
   }
@@ -162,25 +162,26 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Reel Preview",
-                          style: TextStyle(
+                        Text(
+                          widget.customName ?? (widget.templateName != null ? "${widget.templateName!.toUpperCase()} REEL" : "REEL PREVIEW"),
+                          style: const TextStyle(
                             fontFamily: 'Montserrat',
                             fontWeight: FontWeight.w900,
                             fontSize: 12,
-                            letterSpacing: 1.2,
+                            letterSpacing: 1.0,
                             color: AppColors.textEngraved,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (widget.templateName != null)
-                          Text(
-                            "${widget.templateName!.toUpperCase()} • ${widget.quality ?? '1080P MASTER'}",
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textFoilGold,
-                            ),
+                        Text(
+                          "${widget.templateName?.toUpperCase() ?? 'SNAPBEAT'} • ${widget.quality ?? '1080P MASTER'}",
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textFoilGold,
                           ),
+                        ),
                       ],
                     ),
                   ),
@@ -196,7 +197,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
             Container(
               color: Colors.black,
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.55,
+                maxHeight: MediaQuery.of(context).size.height * 0.52,
               ),
               child: Center(
                 child: _hasError
@@ -237,13 +238,11 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                           )
                         : GestureDetector(
                             onTap: () {
-                              setState(() {
-                                if (_controller!.value.isPlaying) {
-                                  _controller!.pause();
-                                } else {
-                                  _controller!.play();
-                                }
-                              });
+                              if (_controller!.value.isPlaying) {
+                                _controller!.pause();
+                              } else {
+                                _controller!.play();
+                              }
                             },
                             child: Stack(
                               alignment: Alignment.center,
@@ -252,20 +251,25 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                                   aspectRatio: safeAr,
                                   child: VideoPlayer(_controller!),
                                 ),
-                                if (!_controller!.value.isPlaying)
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.black.withValues(alpha: 0.6),
-                                      border: Border.all(color: AppColors.brassGold, width: 2),
-                                    ),
-                                    child: const Icon(
-                                      Icons.play_arrow_rounded,
-                                      color: AppColors.brassHighlight,
-                                      size: 36,
-                                    ),
-                                  ),
+                                ValueListenableBuilder<VideoPlayerValue>(
+                                  valueListenable: _controller!,
+                                  builder: (context, val, _) {
+                                    if (val.isPlaying) return const SizedBox.shrink();
+                                    return Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.black.withValues(alpha: 0.6),
+                                        border: Border.all(color: AppColors.brassGold, width: 2),
+                                      ),
+                                      child: const Icon(
+                                        Icons.play_arrow_rounded,
+                                        color: AppColors.brassHighlight,
+                                        size: 36,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ),
@@ -302,72 +306,125 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Row 1: Play/Pause, Timecode Readout, and Close Button
-                    Row(
-                      children: [
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: Icon(
-                            _controller!.value.isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
-                            color: AppColors.textEngraved,
-                            size: 32,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              if (_controller!.value.isPlaying) {
-                                _controller!.pause();
-                              } else {
-                                _controller!.play();
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        // Nixie Timecode Readout
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.canvasChassis,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.chassisBevelDark, width: 1.0),
-                          ),
-                          child: Text(
-                            "${_formatDuration(_controller!.value.position)} / ${_formatDuration(_controller!.value.duration)}",
-                            style: const TextStyle(
-                              fontFamily: 'Courier',
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.amberJewel,
-                              letterSpacing: 1.0,
+                    ValueListenableBuilder<VideoPlayerValue>(
+                      valueListenable: _controller!,
+                      builder: (context, val, _) {
+                        return Row(
+                          children: [
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: Icon(
+                                val.isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
+                                color: AppColors.textEngraved,
+                                size: 32,
+                              ),
+                              onPressed: () {
+                                if (val.isPlaying) {
+                                  _controller!.pause();
+                                } else {
+                                  _controller!.play();
+                                }
+                              },
                             ),
-                          ),
-                        ),
-                        const Spacer(),
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            backgroundColor: AppColors.panelCreamDark,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                              side: const BorderSide(color: AppColors.chassisBevelLight),
+                            const SizedBox(width: 10),
+                            // Nixie Timecode Readout
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.canvasChassis,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: AppColors.chassisBevelDark, width: 1.0),
+                              ),
+                              child: Text(
+                                "${_formatDuration(val.position)} / ${_formatDuration(val.duration)}",
+                                style: const TextStyle(
+                                  fontFamily: 'Courier',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.amberJewel,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
                             ),
-                          ),
-                          icon: const Icon(Icons.close_rounded, size: 15, color: AppColors.textEngraved),
-                          label: const Text(
-                            "CLOSE",
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.textEngraved,
-                              letterSpacing: 0.6,
+                            const Spacer(),
+                            TextButton.icon(
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                backgroundColor: AppColors.panelCreamDark,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                  side: const BorderSide(color: AppColors.chassisBevelLight),
+                                ),
+                              ),
+                              icon: const Icon(Icons.close_rounded, size: 15, color: AppColors.textEngraved),
+                              label: const Text(
+                                "CLOSE",
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textEngraved,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                              onPressed: () => Navigator.pop(context),
                             ),
-                          ),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
+                          ],
+                        );
+                      },
                     ),
+
+                    // In-Dialog Save / Export Feedback Status Pill
+                    if (_isSaving || _saveStatus != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _saveStatus != null && _saveStatus!.startsWith('✓')
+                              ? AppColors.vuGreen.withValues(alpha: 0.15)
+                              : AppColors.amberJewel.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: _saveStatus != null && _saveStatus!.startsWith('✓')
+                                ? AppColors.vuGreen
+                                : AppColors.amberJewel,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_isSaving) ...[
+                              const SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amberJewel),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Flexible(
+                              child: Text(
+                                _saveStatus ?? "Exporting to device gallery...",
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: _saveStatus != null && _saveStatus!.startsWith('✓')
+                                      ? AppColors.vuGreen
+                                      : AppColors.textEngraved,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 10),
                     // Row 2: Full-Width Responsive Action Buttons (SAVE & SHARE)
                     Row(
@@ -377,11 +434,25 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                           child: RetroMechanicalButton(
                             variant: RetroButtonVariant.download,
                             height: 48,
-                            onTap: () => ExportService.saveToGallery(
-                              context,
-                              videoPath: widget.videoPath,
-                              templateName: widget.templateName ?? 'SnapBeat',
-                            ),
+                            isEnabled: !_isSaving,
+                            onTap: () async {
+                              setState(() {
+                                _isSaving = true;
+                                _saveStatus = "Saving video to Photos...";
+                              });
+                              final success = await ExportService.saveToGallery(
+                                context,
+                                videoPath: widget.videoPath,
+                                templateName: widget.customName ?? widget.templateName ?? 'SnapBeat',
+                              );
+                              if (!mounted) return;
+                              setState(() {
+                                _isSaving = false;
+                                _saveStatus = success
+                                    ? "✓ Saved to Photos — SnapBeat album"
+                                    : "⚠️ Storage permission needed to save";
+                              });
+                            },
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -393,7 +464,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                             onTap: () => ExportService.shareReel(
                               context,
                               videoPath: widget.videoPath,
-                              templateName: widget.templateName ?? 'SnapBeat',
+                              templateName: widget.customName ?? widget.templateName ?? 'SnapBeat',
                             ),
                           ),
                         ),

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'sample_reel_showcase_screen.dart';
+import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -65,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  void _navigateToHome() {
+  Future<void> _navigateToHome() async {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
     _safetyTimer?.cancel();
@@ -85,10 +87,15 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
 
+    final prefs = await SharedPreferences.getInstance();
+    final skipDemo = prefs.getBool('snapbeat_skip_showcase_demo') ?? false;
+
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 350),
-        pageBuilder: (context, animation, secondaryAnimation) => const SampleReelShowcaseScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            skipDemo ? const HomeScreen(fromShowcase: false) : const SampleReelShowcaseScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
       ),
     );

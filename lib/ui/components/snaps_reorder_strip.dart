@@ -10,6 +10,7 @@ class SnapsReorderStrip extends StatefulWidget {
   final VoidCallback onAddPhotos;
   final Function(int oldIndex, int newIndex) onReorder;
   final Function(String id) onDelete;
+  final Function(String id)? onDuplicate;
   final String arrangementMode;
   final Function(String mode) onArrangementModeChanged;
   final VoidCallback? onLoadSample;
@@ -35,6 +36,7 @@ class SnapsReorderStrip extends StatefulWidget {
     required this.onAddPhotos,
     required this.onReorder,
     required this.onDelete,
+    this.onDuplicate,
     required this.arrangementMode,
     required this.onArrangementModeChanged,
     this.onLoadSample,
@@ -742,6 +744,31 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                     ),
                   ),
                 ),
+                // Tactile Duplicate Pin Button (top-left)
+                if (widget.onDuplicate != null)
+                  Positioned(
+                    top: isSmall ? 2 : 4,
+                    left: isSmall ? 2 : 4,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => widget.onDuplicate!(p.id),
+                      child: Container(
+                        padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.brassGold,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.copy_rounded, size: isSmall ? 9 : 11, color: const Color(0xFF1E1A10)),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

@@ -41,7 +41,7 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     super.key,
-    this.initialTab = "music",
+    this.initialTab = "photos",
     this.initialRenderMode = "auto",
     this.initialMusic,
     this.initialMusicTitle,
@@ -64,7 +64,7 @@ class HomeScreenState extends State<HomeScreen> {
   StreamSubscription? _playerPositionSubscription;
   bool _isSubmittingRender = false;
 
-  String _currentTab = "music"; // "music", "photos", "render", "queue"
+  String _currentTab = "photos"; // "photos", "music", "render", "queue"
   String _renderMode = "auto"; // "auto", "pro"
   File? _selectedMusic;
   String _selectedMusicTitle = "";
@@ -537,6 +537,7 @@ class HomeScreenState extends State<HomeScreen> {
       _audioDuration = defaultTrack.durationSeconds;
       _audioStart = 0.0;
       _audioEnd = defaultTrack.durationSeconds;
+      _loadDefaultSampleTrack();
     }
     if (widget.initialPhotos != null) {
       _photos.addAll(widget.initialPhotos!);
@@ -672,10 +673,168 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _duplicatePhoto(String photoId) {
+    final idx = _photos.indexWhere((p) => p.id == photoId);
+    if (idx != -1) {
+      if (_photos.length >= maxPhotosForTrack) {
+        _showNotice("Maximum $maxPhotosForTrack photos reached.");
+        return;
+      }
+      final src = _photos[idx];
+      final duplicate = PhotoItem(
+        id: '${DateTime.now().microsecondsSinceEpoch}_dup',
+        path: src.path,
+        order: idx + 1,
+      );
+      setState(() {
+        _photos.insert(idx + 1, duplicate);
+        for (int i = 0; i < _photos.length; i++) {
+          _photos[i].order = i;
+        }
+      });
+      _showNotice("Photo duplicated! (${_photos.length}/$maxPhotosForTrack)");
+    }
+  }
+
+  void _promptRenameReel(QueueJobItem job) {
+    final controller = TextEditingController(text: job.customName ?? job.templateName);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.panelCream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.chassisBevelLight, width: 1.5),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.edit_rounded, color: AppColors.brassGold, size: 22),
+            SizedBox(width: 8),
+            Text(
+              "Rename Reel",
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w900,
+                fontSize: 16,
+                color: AppColors.textEngraved,
+              ),
+            ),
+          ],
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+            color: AppColors.textEngraved,
+          ),
+          decoration: InputDecoration(
+            hintText: "Enter reel title...",
+            filled: true,
+            fillColor: AppColors.panelInset,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.chassisBevelDark),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.brassGold, width: 2),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("CANCEL", style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brassGold,
+              foregroundColor: const Color(0xFF1E1A10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty) {
+                qm.renameJob(job.id, newName);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text("SAVE", style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteReel(QueueJobItem job) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.panelCream,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.chassisBevelLight, width: 1.5),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_rounded, color: AppColors.vuRed, size: 24),
+            SizedBox(width: 8),
+            Text(
+              "Delete Reel?",
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w900,
+                fontSize: 16,
+                color: AppColors.textEngraved,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          "Are you sure you want to permanently delete \"${job.displayName}\"?\n\nThis video file will be permanently removed from your device storage.",
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w600,
+            fontSize: 12.5,
+            color: AppColors.textSecondary,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("CANCEL", style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.vuRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              qm.deleteJob(job.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("✓ Deleted \"${job.displayName}\""),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            child: const Text("DELETE", style: TextStyle(fontWeight: FontWeight.w900)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _loadSamplePhotos() async {
     if (_selectedMusic == null) {
-      _showNotice("Step 1: Please select a music track first!");
-      return;
+      await _loadDefaultSampleTrack();
     }
 
     final maxAllowed = maxPhotosForTrack;
@@ -1078,15 +1237,15 @@ class HomeScreenState extends State<HomeScreen> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             child: _buildProceedButton(
-                              label: "PROCEED TO PHOTOS",
-                              subtitle: "Up to $maxPhotosForTrack photos can fit this ${_audioEnd > _audioStart ? (_audioEnd - _audioStart).toInt() : _audioDuration.toInt()}s track",
-                              icon: Icons.photo_library_rounded,
+                              label: "NEXT: CHOOSE STYLE & RENDER →",
+                              subtitle: "Soundtrack configured • Pick template and motion style",
+                              icon: Icons.movie_creation_rounded,
                               onTap: () {
                                 if (_scrollController.hasClients) {
                                   _scrollController.jumpTo(0.0);
                                 }
                                 setState(() {
-                                  const newTab = "photos";
+                                  const newTab = "render";
                                   if (_isPlayingAudio && newTab != 'music') {
                                     _audioPlayer.pause();
                                     _isPlayingAudio = false;
@@ -1127,73 +1286,58 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ] else if (_currentTab == "photos") ...[
-                        // STAGE 2: PHOTOS (Curate & Arrange)
-                        if (_selectedMusic == null)
-                          _buildGatedCard(
-                            icon: Icons.library_music_rounded,
-                            title: "Music Required",
-                            description: "Track duration and BPM determine the optimal photo count.\nPlease select a music track in Step 1 first.",
-                            buttonText: "GO TO MUSIC",
-                            onButtonTap: () {
-                              if (_scrollController.hasClients) {
-                                _scrollController.jumpTo(0.0);
-                              }
-                              setState(() {
-                                const newTab = "music";
-                                if (_isPlayingAudio && newTab != 'music') {
-                                  _audioPlayer.pause();
-                                  _isPlayingAudio = false;
+                        // STAGE 1: PHOTOS FIRST (Curate & Arrange)
+                        SnapsReorderStrip(
+                          photos: _photos,
+                          isEnabled: true,
+                          maxPhotos: maxPhotosForTrack,
+                          onPromptSelectMusic: _openSoundLibrary,
+                          onAddPhotos: _pickPhotos,
+                          onDuplicate: _duplicatePhoto,
+                          onReorder: (oldIdx, newIdx) {
+                            setState(() {
+                              if (newIdx > oldIdx) newIdx -= 1;
+                              final item = _photos.removeAt(oldIdx);
+                              _photos.insert(newIdx, item);
+                              _arrangementMode = 'manual';
+                            });
+                          },
+                          onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
+                          arrangementMode: _arrangementMode,
+                          onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
+                          onLoadSample: _loadSamplePhotos,
+                          onAutoShuffle: _autoShufflePhotos,
+                          onClearAll: _resetPhotos,
+                          onResetPhotos: _resetPhotos,
+                        ),
+                        if (_photos.length >= 2)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: _buildProceedButton(
+                              label: "NEXT: SELECT MUSIC →",
+                              subtitle: "${_photos.length} photos ready • Choose your soundtrack",
+                              icon: Icons.library_music_rounded,
+                              onTap: () {
+                                if (_scrollController.hasClients) {
+                                  _scrollController.jumpTo(0.0);
                                 }
-                                _currentTab = newTab;
-                              });
-                            },
-                          )
-                        else ...[
-                          SnapsReorderStrip(
-                            photos: _photos,
-                            isEnabled: true,
-                            maxPhotos: maxPhotosForTrack,
-                            onPromptSelectMusic: _openSoundLibrary,
-                            onAddPhotos: _pickPhotos,
-                            onReorder: (oldIdx, newIdx) {
-                              setState(() {
-                                if (newIdx > oldIdx) newIdx -= 1;
-                                final item = _photos.removeAt(oldIdx);
-                                _photos.insert(newIdx, item);
-                                _arrangementMode = 'manual';
-                              });
-                            },
-                            onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
-                            arrangementMode: _arrangementMode,
-                            onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
-                            onLoadSample: _loadSamplePhotos,
-                            onAutoShuffle: _autoShufflePhotos,
-                            onClearAll: _resetPhotos,
-                            onResetPhotos: _resetPhotos,
-                          ),
-                          if (_photos.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                              child: _buildProceedButton(
-                                label: "PROCEED TO RENDER OPTIONS",
-                                subtitle: "${_photos.length} photos curated and ready",
-                                icon: Icons.movie_creation_rounded,
-                                onTap: () {
-                                  if (_scrollController.hasClients) {
-                                    _scrollController.jumpTo(0.0);
-                                  }
-                                  setState(() {
-                                    const newTab = "render";
-                                    if (_isPlayingAudio && newTab != 'music') {
-                                      _audioPlayer.pause();
-                                      _isPlayingAudio = false;
-                                    }
-                                    _currentTab = newTab;
-                                  });
-                                },
-                              ),
+                                setState(() {
+                                  const newTab = "music";
+                                  _currentTab = newTab;
+                                });
+                              },
                             ),
-                        ],
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: _buildProceedButton(
+                              label: "SELECT AT LEAST 2 PHOTOS",
+                              subtitle: "Tap 'Add Photos' or 'Sample Photos' to start your reel",
+                              icon: Icons.add_photo_alternate_rounded,
+                              onTap: _pickPhotos,
+                            ),
+                          ),
                       ] else if (_currentTab == "render") ...[
                         // STAGE 3: RENDER OPTIONS (Auto vs Pro)
                         if (_selectedMusic == null)
@@ -2418,15 +2562,37 @@ class HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      job.templateName.toUpperCase(),
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                        color: AppColors.textEngraved,
-                        letterSpacing: 0.5,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            job.displayName.toUpperCase(),
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                              color: AppColors.textEngraved,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _promptRenameReel(job),
+                          child: Container(
+                            margin: const EdgeInsets.only(left: 6),
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.panelCreamDark,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: AppColors.chassisBevelLight, width: 0.8),
+                            ),
+                            child: const Icon(Icons.edit_rounded, size: 14, color: AppColors.textSecondary),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -2457,7 +2623,7 @@ class HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.textMuted),
                 tooltip: 'Delete',
                 visualDensity: VisualDensity.compact,
-                onPressed: () => qm.deleteJob(job.id),
+                onPressed: () => _confirmDeleteReel(job),
               ),
             ],
           ),
@@ -2482,6 +2648,7 @@ class HomeScreenState extends State<HomeScreen> {
                         context,
                         videoPath: job.videoPath!,
                         templateName: job.templateName,
+                        customName: job.displayName,
                         quality: job.quality,
                       );
                     },
@@ -2496,7 +2663,7 @@ class HomeScreenState extends State<HomeScreen> {
                     onTap: () => ExportService.saveToGallery(
                       context,
                       videoPath: job.videoPath!,
-                      templateName: job.templateName,
+                      templateName: job.displayName,
                     ),
                   ),
                 ),
@@ -2509,7 +2676,7 @@ class HomeScreenState extends State<HomeScreen> {
                     onTap: () => ExportService.shareReel(
                       context,
                       videoPath: job.videoPath!,
-                      templateName: job.templateName,
+                      templateName: job.displayName,
                     ),
                   ),
                 ),
@@ -2519,7 +2686,7 @@ class HomeScreenState extends State<HomeScreen> {
                   child: RetroMechanicalButton(
                     variant: RetroButtonVariant.delete,
                     height: 44,
-                    onTap: () => qm.deleteJob(job.id),
+                    onTap: () => _confirmDeleteReel(job),
                   ),
                 ),
               ],

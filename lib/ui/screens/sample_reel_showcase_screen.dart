@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import 'home_screen.dart';
 
@@ -16,16 +17,27 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
   VideoPlayerController? _controller;
   bool _isReady = false;
   bool _hasNavigated = false;
+  bool _skipDemoNextTime = false;
   Timer? _safetyTimer;
 
   @override
   void initState() {
     super.initState();
+    _loadSkipPreference();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _safetyTimer = Timer(const Duration(seconds: 20), () {
       _navigateToHome();
     });
     _initVideo();
+  }
+
+  Future<void> _loadSkipPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _skipDemoNextTime = prefs.getBool('snapbeat_skip_showcase_demo') ?? false;
+      });
+    }
   }
 
   Future<void> _initVideo() async {
@@ -325,6 +337,55 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.8,
                                   color: Color(0xFF1E1A10),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      // Skip demo checkbox
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () async {
+                          final newVal = !_skipDemoNextTime;
+                          setState(() => _skipDemoNextTime = newVal);
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('snapbeat_skip_showcase_demo', newVal);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: Checkbox(
+                                  value: _skipDemoNextTime,
+                                  activeColor: AppColors.brassGold,
+                                  checkColor: const Color(0xFF1E1A10),
+                                  side: const BorderSide(color: AppColors.chassisBevelLight, width: 1.2),
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                  onChanged: (val) async {
+                                    final newVal = val ?? false;
+                                    setState(() => _skipDemoNextTime = newVal);
+                                    final prefs = await SharedPreferences.getInstance();
+                                    await prefs.setBool('snapbeat_skip_showcase_demo', newVal);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "Don't show this demo from next time onwards",
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF8E887E),
                                 ),
                               ),
                             ],

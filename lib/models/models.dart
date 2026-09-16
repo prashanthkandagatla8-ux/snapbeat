@@ -46,6 +46,7 @@ class PhotoItem {
 class QueueJobItem {
   final String id;
   final String templateName;
+  final String? customName;
   final String status; // QUEUED, PROCESSING, READY, FAILED
   final String? videoPath;
   final DateTime createdAt;
@@ -58,6 +59,7 @@ class QueueJobItem {
   QueueJobItem({
     required this.id,
     required this.templateName,
+    this.customName,
     required this.status,
     this.videoPath,
     required this.createdAt,
@@ -68,8 +70,14 @@ class QueueJobItem {
     this.stage,
   });
 
+  String get displayName =>
+      (customName != null && customName!.trim().isNotEmpty)
+          ? customName!.trim()
+          : (templateName.isNotEmpty ? "$templateName Reel" : "SnapBeat Reel");
+
   QueueJobItem copyWith({
     String? status,
+    String? customName,
     String? videoPath,
     double? progress,
     String? error,
@@ -79,6 +87,7 @@ class QueueJobItem {
     return QueueJobItem(
       id: id,
       templateName: templateName,
+      customName: customName ?? this.customName,
       status: status ?? this.status,
       videoPath: videoPath ?? this.videoPath,
       createdAt: createdAt,
@@ -93,6 +102,7 @@ class QueueJobItem {
   Map<String, dynamic> toJson() => {
     'id': id,
     'templateName': templateName,
+    'customName': customName,
     'status': status,
     'videoPath': videoPath,
     'createdAt': createdAt.toIso8601String(),
@@ -107,6 +117,7 @@ class QueueJobItem {
     return QueueJobItem(
       id: json['id']?.toString() ?? '',
       templateName: json['templateName']?.toString() ?? 'Unknown',
+      customName: json['customName']?.toString(),
       status: json['status']?.toString() ?? 'UNKNOWN',
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
       quality: json['quality']?.toString() ?? 'fast',

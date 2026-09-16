@@ -58,17 +58,17 @@ class MasterActionDeck extends StatelessWidget {
             child: Row(
               children: [
                 _buildTab(
-                  mode: 'music',
-                  label: 'MUSIC',
-                  icon: Icons.library_music_rounded,
+                  mode: 'photos',
+                  label: 'PHOTOS',
+                  icon: Icons.photo_library_rounded,
                   isEnabled: true,
                 ),
                 const SizedBox(width: 3),
                 _buildTab(
-                  mode: 'photos',
-                  label: 'PHOTOS',
-                  icon: Icons.photo_library_rounded,
-                  isEnabled: isPhotosEnabled,
+                  mode: 'music',
+                  label: 'MUSIC',
+                  icon: Icons.library_music_rounded,
+                  isEnabled: true,
                 ),
                 const SizedBox(width: 3),
                 _buildTab(

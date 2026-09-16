@@ -1,4 +1,4 @@
-name: SnapBeat iOS Build & Package
+name: SnapBeat iOS Build & TestFlight Deployment
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ios:
-    name: Build SnapBeat iOS (.ipa)
-    runs-on: macos-latest
+  build-and-deploy:
+    name: Build & Upload to TestFlight
+    runs-on: macos-14
 
     steps:
       - name: Checkout Code
@@ -20,25 +20,57 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Install Apple Certificate and Provisioning Profile
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: "build_temp_keychain_password_2026"
+        run: |
+          CERT_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # Decode certificate and provisioning profile
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERT_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # Create and configure temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate into keychain
+          security import $CERT_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | tr -d '"')
+
+          # Place provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/2fed16db-5e8f-4b86-aac3-d943109b0ea0.mobileprovision
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/SnapBeat_AppStore_Profile.mobileprovision
+
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Verify Code Health
-        run: flutter analyze
-
-      - name: Build iOS Release App (No Codesign)
+      - name: Build iOS IPA
         run: |
-          flutter build ios --release --no-codesign
+          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 
-      - name: Package Payload into Installable .IPA
+      - name: Upload IPA to TestFlight
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
-          mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r SnapBeat-Release-v1.0.3+4.ipa Payload
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
+          xcrun altool --upload-app --type ios --file build/ios/ipa/*.ipa --apiKey "$APP_STORE_CONNECT_KEY_ID" --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
 
-      - name: Upload iOS IPA Artifact
+      - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: SnapBeat-iOS-IPA-v1.0.3+4
-          path: SnapBeat-Release-v1.0.3+4.ipa
+          name: SnapBeat-iOS-IPA
+          path: build/ios/ipa/*.ipa
           retention-days: 14

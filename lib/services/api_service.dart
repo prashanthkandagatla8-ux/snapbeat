@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -66,13 +67,16 @@ class ApiService {
       ),
     ));
 
-    // Attach photos under key 'photos'
-    for (final file in photoFiles) {
+    // Attach photos under key 'photos' with unique indexed filenames to support duplicate photos
+    for (int i = 0; i < photoFiles.length; i++) {
+      final file = photoFiles[i];
+      final ext = p.extension(file.path).isNotEmpty ? p.extension(file.path) : '.jpg';
+      final indexedName = 'photo_${(i + 1).toString().padLeft(3, '0')}$ext';
       formData.files.add(MapEntry(
         "photos",
         await MultipartFile.fromFile(
           file.path,
-          filename: p.basename(file.path),
+          filename: indexedName,
         ),
       ));
     }
@@ -141,12 +145,35 @@ class ApiService {
       throw Exception("No job ID received from server gateway");
     }
 
-    // Poll for status
+    // Poll for status with resilient background/reconnect retry
     int maxAttempts = 400;
     bool isCompleted = false;
+    int consecutiveNetworkErrors = 0;
+
     for (int i = 0; i < maxAttempts; i++) {
       await Future.delayed(const Duration(milliseconds: 1500));
-      final statusResp = await _dio.get("/api/render/status/$jobId");
+      Response? statusResp;
+      try {
+        statusResp = await _dio.get("/api/render/status/$jobId");
+        consecutiveNetworkErrors = 0;
+      } on DioException catch (dioErr) {
+        consecutiveNetworkErrors++;
+        debugPrint("Status poll DioException ($consecutiveNetworkErrors): ${dioErr.type} ${dioErr.message}");
+        // When user switches apps or device suspends connections, retry up to 15 times (~30s grace period)
+        if (consecutiveNetworkErrors < 15) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        throw Exception("Network connection interrupted while switching apps. Please check internet and retry.");
+      } catch (e) {
+        consecutiveNetworkErrors++;
+        if (consecutiveNetworkErrors < 10) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        rethrow;
+      }
+
       if (statusResp.statusCode == 200 && statusResp.data is Map) {
         final sData = statusResp.data;
         final status = (sData["status"] ?? "").toString().toLowerCase();
@@ -183,28 +210,45 @@ class ApiService {
 
     if (onProgress != null) onProgress(0.95);
 
-    // Download final video directly to disk (streaming to prevent OOM crashes)
+    // Download final video directly to disk with retry (streaming to prevent OOM crashes)
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final cleanTemplate = templateId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
     final savePath = "${dir.path}/SnapBeat_${cleanTemplate}_$timestamp.mp4";
 
-    final downloadResp = await _dio.download(
-      "/api/render/download/$jobId",
-      savePath,
-      onReceiveProgress: (received, total) {
-        if (total > 0 && onProgress != null) {
-          final prog = 0.95 + (received / total) * 0.05;
-          onProgress(prog.clamp(0.95, 1.0));
-        }
-      },
-    );
+    bool downloadSuccess = false;
+    for (int dAttempt = 1; dAttempt <= 3; dAttempt++) {
+      try {
+        final downloadResp = await _dio.download(
+          "/api/render/download/$jobId",
+          savePath,
+          onReceiveProgress: (received, total) {
+            if (total > 0 && onProgress != null) {
+              final prog = 0.95 + (received / total) * 0.05;
+              onProgress(prog.clamp(0.95, 1.0));
+            }
+          },
+        );
 
-    if (downloadResp.statusCode == 200 && File(savePath).existsSync()) {
+        if (downloadResp.statusCode == 200 && File(savePath).existsSync()) {
+          downloadSuccess = true;
+          break;
+        }
+      } catch (e) {
+        debugPrint("Download attempt $dAttempt failed: $e");
+        if (dAttempt < 3) {
+          await Future.delayed(const Duration(seconds: 2));
+        } else {
+          throw Exception("Failed to download rendered video. Please check your network connection.");
+        }
+      }
+    }
+
+    if (downloadSuccess && File(savePath).existsSync()) {
       if (onProgress != null) onProgress(1.0);
       return savePath;
     } else {
-      throw Exception("Failed to download rendered video: status ${downloadResp.statusCode}");
+      throw Exception("Failed to download rendered video. Please verify storage permissions.");
     }
   }
 
