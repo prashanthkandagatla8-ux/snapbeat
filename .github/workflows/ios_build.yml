@@ -22,7 +22,8 @@ jobs:
 
       - name: Install Apple Certificate and Provisioning Profile
         env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          APPLE_CERT_CER_BASE64: ${{ secrets.APPLE_CERT_CER_BASE64 }}
+          APPLE_CERT_KEY_BASE64: ${{ secrets.APPLE_CERT_KEY_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
           KEYCHAIN_PASSWORD: "build_temp_keychain_password_2026"
@@ -31,9 +32,17 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Decode certificate and provisioning profile
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERT_PATH
+          # Decode certificate, private key, and provisioning profile
+          echo -n "$APPLE_CERT_CER_BASE64" | base64 --decode -o $RUNNER_TEMP/cert.cer
+          echo -n "$APPLE_CERT_KEY_BASE64" | base64 --decode -o $RUNNER_TEMP/key.key
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # Convert Apple DER cert to PEM
+          openssl x509 -inform DER -in $RUNNER_TEMP/cert.cer -out $RUNNER_TEMP/cert.pem
+
+          # Generate macOS-compatible PKCS12 bundle locally on macOS runner
+          openssl pkcs12 -export -legacy -inkey $RUNNER_TEMP/key.key -in $RUNNER_TEMP/cert.pem -out $CERT_PATH -passout pass:"$P12_PASSWORD" || \
+          openssl pkcs12 -export -inkey $RUNNER_TEMP/key.key -in $RUNNER_TEMP/cert.pem -out $CERT_PATH -passout pass:"$P12_PASSWORD"
 
           # Create and configure temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
