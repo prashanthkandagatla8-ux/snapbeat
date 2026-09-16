@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -32,7 +34,9 @@ class _SplashScreenState extends State<SplashScreen> {
     _safetyTimer = Timer(const Duration(seconds: 11), _navigateToHome);
 
     try {
-      final controller = VideoPlayerController.asset('assets/videos/splash_screen.mp4');
+      final isIOS = !kIsWeb && Platform.isIOS;
+      final splashAsset = isIOS ? 'assets/videos/splash_screen_ios.mp4' : 'assets/videos/splash_screen.mp4';
+      final controller = VideoPlayerController.asset(splashAsset);
       _controller = controller;
       await controller.initialize();
       if (_hasNavigated || !mounted) {
@@ -114,22 +118,32 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isIOS = !kIsWeb && Platform.isIOS;
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
         onTap: _navigateToHome,
         behavior: HitTestBehavior.opaque,
         child: SizedBox.expand(
-          child: _isReady && _controller != null && _controller!.value.isInitialized
-              ? FittedBox(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (isIOS)
+                Image.asset(
+                  'assets/images/splash_screen_ios.jpg',
+                  fit: BoxFit.cover,
+                ),
+              if (_isReady && _controller != null && _controller!.value.isInitialized)
+                FittedBox(
                   fit: BoxFit.cover,
                   child: SizedBox(
                     width: _controller!.value.size.width,
                     height: _controller!.value.size.height,
                     child: VideoPlayer(_controller!),
                   ),
-                )
-              : const SizedBox.expand(),
+                ),
+            ],
+          ),
         ),
       ),
     );
