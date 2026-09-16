@@ -118,7 +118,7 @@ class ApiService {
         formData.fields.add(MapEntry("title_audio", titleAudio));
       }
     }
-    formData.fields.add(MapEntry("client", (!kIsWeb && Platform.isIOS) ? "ios" : "android"));
+    formData.fields.add(MapEntry("client", (!kIsWeb) ? "ios" : "web"));
 
     if (onProgress != null) onProgress(0.1);
 

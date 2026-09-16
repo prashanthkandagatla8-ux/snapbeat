@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -34,8 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _safetyTimer = Timer(const Duration(seconds: 11), _navigateToHome);
 
     try {
-      final isIOS = !kIsWeb && Platform.isIOS;
-      final splashAsset = isIOS ? 'assets/videos/splash_screen_ios.mp4' : 'assets/videos/splash_screen.mp4';
+      const splashAsset = 'assets/videos/splash_screen_ios.mp4';
       final controller = VideoPlayerController.asset(splashAsset);
       _controller = controller;
       await controller.initialize();
@@ -118,7 +115,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isIOS = !kIsWeb && Platform.isIOS;
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
@@ -128,11 +124,10 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (isIOS)
-                Image.asset(
-                  'assets/images/splash_screen_ios.jpg',
-                  fit: BoxFit.cover,
-                ),
+              Image.asset(
+                'assets/images/splash_screen_ios.jpg',
+                fit: BoxFit.cover,
+              ),
               if (_isReady && _controller != null && _controller!.value.isInitialized)
                 FittedBox(
                   fit: BoxFit.cover,
