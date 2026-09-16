@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
@@ -69,11 +70,11 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                     child: const Text('🛡️', style: TextStyle(fontSize: 18)),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Privacy & Data Safety',
                           style: TextStyle(
                             fontFamily: 'Montserrat',
@@ -83,10 +84,10 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                             color: AppColors.textEngraved,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          'Google Play Policy Compliant',
-                          style: TextStyle(
+                          Platform.isIOS ? 'App Store & Privacy Compliant' : 'Google Play Policy Compliant',
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.8,

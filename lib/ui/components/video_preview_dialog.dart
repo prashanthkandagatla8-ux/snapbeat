@@ -470,6 +470,37 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    // Cloud Retention Expiry Notice
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.panelCreamDark,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppColors.chassisBevelLight),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.schedule_rounded, size: 12, color: AppColors.amberJewel),
+                          SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              "Cloud renders expire in 24 hours. Save to Photos to keep.",
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

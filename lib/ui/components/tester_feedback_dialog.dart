@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -103,11 +104,11 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
                     child: const Icon(Icons.rate_review_rounded, color: AppColors.textEngraved, size: 18),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "TESTER FEEDBACK",
                           style: TextStyle(
                             fontFamily: 'Montserrat',
@@ -118,8 +119,8 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
                           ),
                         ),
                         Text(
-                          "Google Play Closed Beta Channel",
-                          style: TextStyle(
+                          Platform.isIOS ? "Apple TestFlight Beta Channel" : "Google Play Closed Beta Channel",
+                          style: const TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
