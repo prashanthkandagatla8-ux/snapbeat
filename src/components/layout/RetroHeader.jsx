@@ -54,7 +54,7 @@ export function RetroHeader({
             <img
               src="/assets/images/snapbeat_logo_3d.png"
               alt="SnapBeat"
-              className="h-6 sm:h-7 w-auto object-contain group-hover:brightness-110 transition drop-shadow-md shrink-0"
+              className="h-7 sm:h-8 md:h-9 w-auto object-contain group-hover:brightness-110 transition drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] shrink-0"
             />
             <div
               className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-bold text-emerald-400 shrink-0"

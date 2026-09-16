@@ -97,14 +97,7 @@
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  z-index: 15;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.65) 0%,
-    rgba(255, 255, 255, 0.2) 20%,
-    rgba(255, 255, 255, 0) 45%,
-    rgba(120, 110, 95, 0.25) 100%
-  );
+  z-index: 1;
   box-shadow: 
     inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
     inset 1.5px 0 1px 0 rgba(255, 255, 255, 0.7),
@@ -131,6 +124,7 @@
 .tablet-inner-screen,
 .tablet-display {
   position: relative;
+  z-index: 10;
   width: 100%;
   border-radius: 14px;
   overflow: hidden;

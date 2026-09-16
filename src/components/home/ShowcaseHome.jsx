@@ -127,9 +127,9 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing, onSelectPla
           <img
             src="/assets/images/snapbeat_logo_3d.png"
             alt="SnapBeat"
-            className="h-8 sm:h-9 w-auto object-contain drop-shadow"
+            className="h-9 sm:h-11 md:h-12 w-auto object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.7)] hover:scale-105 transition-transform duration-200 shrink-0"
           />
-          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] text-[9px] font-black uppercase tracking-wider">
+          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-[#ffc72c] text-[#241903] text-[9px] font-black uppercase tracking-wider shadow-sm">
             BETA
           </span>
         </div>
