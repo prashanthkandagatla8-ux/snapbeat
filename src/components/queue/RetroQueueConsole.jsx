@@ -468,31 +468,20 @@ export function RetroQueueConsole({
               )}
             </div>
 
-            {/* Cloud Retention Expiry Warning Notice */}
-            <div className="w-full max-w-md p-3 rounded-2xl bg-amber-500/15 border border-amber-400/40 flex items-center gap-3 text-amber-200 shadow-sm">
-              <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+            {/* Auto-Saved to Downloads Notice */}
+            <div className="w-full max-w-md p-3 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 flex items-center gap-3 text-emerald-200 shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <p className="text-[11px] leading-relaxed">
-                <strong>Cloud Storage Notice:</strong> Renders are cleared from our cloud server after <strong>24 hours</strong>. Please download your reel to keep it permanently on your device.
+                <strong>Auto-Saved:</strong> Your reel was automatically downloaded to your device&apos;s <strong>Downloads</strong> folder.
               </p>
             </div>
 
-            {/* Action Bar: Download & Create Another Reel */}
+            {/* Action Bar: Auto-Saved Badge, Share & Create Another Reel */}
             <div className="flex items-center justify-center gap-3 pt-1 flex-wrap w-full">
-              <button
-                type="button"
-                onClick={(e) =>
-                  handleDownloadClick(
-                    e,
-                    currentDisplayVideo,
-                    `SnapBeat_${(activePreviewTitle || "Reel").replace(/[^a-zA-Z0-9_-]/g, "_")}.mp4`
-                  )
-                }
-                className="btn-gold-radiant px-6 py-3 rounded-full text-xs font-black tracking-wider uppercase text-[#261b02] shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition cursor-pointer border border-[#fff4b8]"
-                title="Download MP4 to your device"
-              >
-                <Download className="w-4 h-4" />
-                <span>DOWNLOAD REEL MP4</span>
-              </button>
+              <div className="px-5 py-3 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black tracking-wider uppercase flex items-center gap-2 shadow-sm">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>SAVED TO DOWNLOADS</span>
+              </div>
 
               <button
                 type="button"
@@ -603,16 +592,11 @@ export function RetroQueueConsole({
                         <span>PREVIEW</span>
                       </button>
 
-                      {/* Download Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleDownloadClick(e, job.videoUrl, `SnapBeat_${(job.templateName || "Reel").replace(/[^a-zA-Z0-9_-]/g, "_")}.mp4`)}
-                        className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer border border-white/15"
-                        title="Download MP4"
-                        aria-label="Download MP4"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                      </button>
+                      {/* Auto-Saved Status */}
+                      <span className="text-[10px] text-emerald-400 font-bold px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span>SAVED</span>
+                      </span>
                     </div>
                   )}
                 </div>

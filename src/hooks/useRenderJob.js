@@ -156,9 +156,38 @@ export function useRenderJob() {
             if (statusData.status === "done") {
               cancelPolling();
               setIsRendering(false);
-              setStage("Render complete!");
+              setStage("Render complete! Auto-saved to Downloads");
               setProgress(100);
-              setVideoUrl(`${serverUrl}/api/render/download/${newJobId}`);
+
+              const downloadUrl = `${serverUrl}/api/render/download/${newJobId}?delete_after=true`;
+
+              // Auto-download to device and set local blob URL for player
+              try {
+                const dlResp = await fetch(downloadUrl);
+                if (dlResp.ok) {
+                  const blob = await dlResp.blob();
+                  const localBlobUrl = URL.createObjectURL(blob);
+                  setVideoUrl(localBlobUrl);
+
+                  // Trigger browser auto-download
+                  const safeTemplate = (studioState?.selectedTemplate || "Reel").replace(/[^a-zA-Z0-9_-]/g, "_");
+                  const dlLink = document.createElement("a");
+                  dlLink.href = localBlobUrl;
+                  dlLink.download = `SnapBeat_${safeTemplate}_${Date.now()}.mp4`;
+                  document.body.appendChild(dlLink);
+                  dlLink.click();
+                  document.body.removeChild(dlLink);
+
+                  // Fire server cleanup
+                  fetch(`${serverUrl}/api/render/cleanup/${newJobId}`, { method: "POST" }).catch(() => {});
+                } else {
+                  setVideoUrl(downloadUrl);
+                }
+              } catch (dlErr) {
+                console.warn("Auto-download fetch error, using direct URL:", dlErr);
+                setVideoUrl(downloadUrl);
+              }
+
               trackRenderCompleted({
                 jobId: newJobId,
                 template: studioState?.selectedTemplate || "pendulum",

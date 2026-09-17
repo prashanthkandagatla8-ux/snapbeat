@@ -137,17 +137,11 @@ export function VideoStage({
         )}
       </div>
 
-      {/* Download Action Bar via RetroMechanicalButton (btn_download.png) */}
+      {/* Auto-Saved Status Indicator */}
       {videoUrl && (
-        <div className="mt-4 flex items-center gap-3">
-          <a
-            href={videoUrl}
-            download="SnapBeat_Reel.mp4"
-            onClick={onDownload}
-            className="inline-flex items-center"
-          >
-            <RetroMechanicalButton variant="download" height="46px" />
-          </a>
+        <div className="mt-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-bold">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>AUTO-SAVED TO DOWNLOADS</span>
         </div>
       )}
     </div>
