@@ -141,6 +141,7 @@ class HomeScreenState extends State<HomeScreen> {
   String _titleBg = "black";
   int _titleDuration = 2;
   String _titleFont = "great_vibes";
+  String _titleFontSize = "large";
   String _titleStyle = "classic";
   String _titleFrame = "none";
   String _titleAudio = "before_audio";
@@ -966,6 +967,7 @@ class HomeScreenState extends State<HomeScreen> {
     final titleBgSnapshot = _titleBg;
     final titleDurationSnapshot = _titleDuration;
     final titleFontSnapshot = _titleFont;
+    final titleFontSizeSnapshot = _titleFontSize;
     final titleStyleSnapshot = _titleStyle;
     final titleFrameSnapshot = _titleFrame;
     final titleAudioSnapshot = _titleAudio;
@@ -1023,6 +1025,7 @@ class HomeScreenState extends State<HomeScreen> {
       titleBg: titleBgSnapshot,
       titleDuration: titleDurationSnapshot,
       titleFont: titleFontSnapshot,
+      titleFontSize: titleFontSizeSnapshot,
       titleStyle: titleStyleSnapshot,
       titleFrame: titleFrameSnapshot,
       titleAudio: titleAudioSnapshot,
@@ -1045,6 +1048,7 @@ class HomeScreenState extends State<HomeScreen> {
     required String titleBg,
     required int titleDuration,
     required String titleFont,
+    required String titleFontSize,
     required String titleStyle,
     required String titleFrame,
     required String titleAudio,
@@ -1074,6 +1078,7 @@ class HomeScreenState extends State<HomeScreen> {
         titleBg: titleBg,
         titleDuration: titleDuration,
         titleFont: titleFont,
+        titleFontSize: titleFontSize,
         titleStyle: titleStyle,
         titleFrame: titleFrame,
         titleAudio: titleAudio,
@@ -1656,6 +1661,8 @@ class HomeScreenState extends State<HomeScreen> {
             onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
             titleFont: _titleFont,
             onSelectTitleFont: (f) => setState(() => _titleFont = f),
+            titleFontSize: _titleFontSize,
+            onSelectTitleFontSize: (s) => setState(() => _titleFontSize = s),
             titleStyle: _titleStyle,
             onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
             titleFrame: _titleFrame,

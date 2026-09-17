@@ -38,6 +38,7 @@ class ApiService {
     String? titleBg,
     int? titleDuration,
     String? titleFont,
+    String? titleFontSize,
     String? titleStyle,
     String? titleFrame,
     String? titleAudio,
@@ -107,6 +108,9 @@ class ApiService {
       formData.fields.add(MapEntry("title_duration", (titleDuration ?? 2).toString()));
       if (titleFont != null && titleFont.isNotEmpty) {
         formData.fields.add(MapEntry("title_font", titleFont));
+      }
+      if (titleFontSize != null && titleFontSize.isNotEmpty) {
+        formData.fields.add(MapEntry("title_font_size", titleFontSize));
       }
       if (titleStyle != null && titleStyle.isNotEmpty) {
         formData.fields.add(MapEntry("title_style", titleStyle));

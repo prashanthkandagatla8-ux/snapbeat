@@ -24,6 +24,8 @@ class ProControlsCard extends StatelessWidget {
   final Function(int dur) onTitleDurationChanged;
   final String titleFont;
   final Function(String font) onSelectTitleFont;
+  final String titleFontSize;
+  final Function(String size) onSelectTitleFontSize;
   final String titleStyle;
   final Function(String style) onSelectTitleStyle;
   final String titleFrame;
@@ -50,6 +52,8 @@ class ProControlsCard extends StatelessWidget {
     required this.onTitleDurationChanged,
     required this.titleFont,
     required this.onSelectTitleFont,
+    this.titleFontSize = "large",
+    required this.onSelectTitleFontSize,
     required this.titleStyle,
     required this.onSelectTitleStyle,
     required this.titleFrame,
@@ -344,7 +348,41 @@ class ProControlsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // 2. Title Style Selector
+                  // 2. Font Size Selector
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'FONT SIZE',
+                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+                      ),
+                      Text(
+                        titleFontSize == 'small'
+                            ? 'S - SUBTLE CAPTION'
+                            : (titleFontSize == 'medium'
+                                ? 'M - BALANCED'
+                                : (titleFontSize == 'xlarge' || titleFontSize == 'xl'
+                                    ? 'XL - HEADLINE'
+                                    : 'L - BOLD CINEMATIC')),
+                        style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppColors.brassGold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      _buildSizeChip('small', 'S  Small', titleFontSize == 'small', onSelectTitleFontSize),
+                      const SizedBox(width: 6),
+                      _buildSizeChip('medium', 'M  Medium', titleFontSize == 'medium', onSelectTitleFontSize),
+                      const SizedBox(width: 6),
+                      _buildSizeChip('large', 'L  Large ★', titleFontSize == 'large' || titleFontSize.isEmpty, onSelectTitleFontSize),
+                      const SizedBox(width: 6),
+                      _buildSizeChip('xlarge', 'XL  Headline', titleFontSize == 'xlarge' || titleFontSize == 'xl', onSelectTitleFontSize),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 3. Title Style Selector
                   const Text('TITLE STYLE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary)),
                   const SizedBox(height: 6),
                   Wrap(
@@ -685,6 +723,37 @@ class ProControlsCard extends StatelessWidget {
     );
   }
 
+  Widget _buildSizeChip(String id, String label, bool isSelected, Function(String) onSelect) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onSelect(id),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.brassGold : AppColors.panelCreamDark,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: isSelected ? AppColors.borderBrass : AppColors.chassisBevelLight,
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 8.5,
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+              color: isSelected ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTitlePreview() {
     TextStyle baseStyle;
     switch (titleFont) {
@@ -724,6 +793,27 @@ class ProControlsCard extends StatelessWidget {
       default:
         baseStyle = GoogleFonts.greatVibes(fontSize: 22, fontWeight: FontWeight.normal);
     }
+
+    // Dynamically scale preview text size to reflect user's chosen title font size
+    double sizeMultiplier = 1.35; // Default for 'large'
+    switch (titleFontSize.toLowerCase()) {
+      case 'small':
+        sizeMultiplier = 0.85;
+        break;
+      case 'medium':
+        sizeMultiplier = 1.05;
+        break;
+      case 'large':
+        sizeMultiplier = 1.35;
+        break;
+      case 'xlarge':
+      case 'xl':
+        sizeMultiplier = 1.75;
+        break;
+    }
+    baseStyle = baseStyle.copyWith(
+      fontSize: (baseStyle.fontSize ?? 16) * sizeMultiplier,
+    );
 
     Color textColor = const Color(0xFFFFE14D);
     List<Shadow> shadows = [];
@@ -780,7 +870,7 @@ class ProControlsCard extends StatelessWidget {
     }
 
     return Container(
-      height: 84,
+      height: 94,
       width: double.infinity,
       decoration: BoxDecoration(
         color: cardBgColor,
