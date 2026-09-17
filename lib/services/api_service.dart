@@ -221,7 +221,7 @@ class ApiService {
     for (int dAttempt = 1; dAttempt <= 3; dAttempt++) {
       try {
         final downloadResp = await _dio.download(
-          "/api/render/download/$jobId",
+          "/api/render/download/$jobId?delete_after=true",
           savePath,
           onReceiveProgress: (received, total) {
             if (total > 0 && onProgress != null) {
@@ -233,6 +233,10 @@ class ApiService {
 
         if (downloadResp.statusCode == 200 && File(savePath).existsSync()) {
           downloadSuccess = true;
+          // Notify server to clean up temporary upload folder and render artifacts immediately
+          try {
+            _dio.post("/api/render/cleanup/$jobId").then((_) {}).ignore();
+          } catch (_) {}
           break;
         }
       } catch (e) {

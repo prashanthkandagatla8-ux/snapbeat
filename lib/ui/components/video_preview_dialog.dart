@@ -48,8 +48,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
   bool _isInitialized = false;
   bool _hasError = false;
   String _errorMessage = "";
-  bool _isSaving = false;
-  String? _saveStatus;
+  final String _saveStatus = "✓ Auto-saved to Photos (SnapBeat album)";
 
   @override
   void initState() {
@@ -377,18 +376,18 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     ),
 
                     // In-Dialog Save / Export Feedback Status Pill
-                    if (_isSaving || _saveStatus != null) ...[
+                    if (_saveStatus.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _saveStatus != null && _saveStatus!.startsWith('✓')
+                          color: _saveStatus.startsWith('✓')
                               ? AppColors.vuGreen.withValues(alpha: 0.15)
                               : AppColors.amberJewel.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: _saveStatus != null && _saveStatus!.startsWith('✓')
+                            color: _saveStatus.startsWith('✓')
                                 ? AppColors.vuGreen
                                 : AppColors.amberJewel,
                             width: 1,
@@ -397,22 +396,14 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            if (_isSaving) ...[
-                              const SizedBox(
-                                width: 12,
-                                height: 12,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amberJewel),
-                              ),
-                              const SizedBox(width: 8),
-                            ],
                             Flexible(
                               child: Text(
-                                _saveStatus ?? "Exporting to device gallery...",
+                                _saveStatus,
                                 style: TextStyle(
                                   fontFamily: 'Montserrat',
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: _saveStatus != null && _saveStatus!.startsWith('✓')
+                                  color: _saveStatus.startsWith('✓')
                                       ? AppColors.vuGreen
                                       : AppColors.textEngraved,
                                 ),
@@ -426,49 +417,18 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     ],
 
                     const SizedBox(height: 10),
-                    // Row 2: Full-Width Responsive Action Buttons (SAVE & SHARE)
-                    Row(
-                      children: [
-                        // Save to Gallery Button (DOWNLOAD)
-                        Expanded(
-                          child: RetroMechanicalButton(
-                            variant: RetroButtonVariant.download,
-                            height: 48,
-                            isEnabled: !_isSaving,
-                            onTap: () async {
-                              setState(() {
-                                _isSaving = true;
-                                _saveStatus = "Saving video to Photos...";
-                              });
-                              final success = await ExportService.saveToGallery(
-                                context,
-                                videoPath: widget.videoPath,
-                                templateName: widget.customName ?? widget.templateName ?? 'SnapBeat',
-                              );
-                              if (!mounted) return;
-                              setState(() {
-                                _isSaving = false;
-                                _saveStatus = success
-                                    ? "✓ Saved to Photos — SnapBeat album"
-                                    : "⚠️ Storage permission needed to save";
-                              });
-                            },
-                          ),
+                    // Row 2: Full-Width Responsive Share Action Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: RetroMechanicalButton(
+                        variant: RetroButtonVariant.share,
+                        height: 48,
+                        onTap: () => ExportService.shareReel(
+                          context,
+                          videoPath: widget.videoPath,
+                          templateName: widget.customName ?? widget.templateName ?? 'SnapBeat',
                         ),
-                        const SizedBox(width: 10),
-                        // Social Share Button (SHARE)
-                        Expanded(
-                          child: RetroMechanicalButton(
-                            variant: RetroButtonVariant.share,
-                            height: 48,
-                            onTap: () => ExportService.shareReel(
-                              context,
-                              videoPath: widget.videoPath,
-                              templateName: widget.customName ?? widget.templateName ?? 'SnapBeat',
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 10),
                     // Cloud Retention Expiry Notice

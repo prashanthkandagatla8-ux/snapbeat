@@ -14,7 +14,12 @@ class ExportService {
   }
 
   /// Save video to device gallery (Movies/SnapBeat) using MediaStore
-  static Future<bool> saveToGallery(BuildContext context, {required String videoPath, required String templateName}) async {
+  static Future<bool> saveToGallery(
+    BuildContext context, {
+    required String videoPath,
+    required String templateName,
+    bool autoTriggered = false,
+  }) async {
     final file = File(videoPath);
     if (!file.existsSync()) {
       if (!context.mounted) return false;
@@ -36,7 +41,10 @@ class ExportService {
       await Gal.putVideo(videoPath, album: 'SnapBeat');
 
       if (!context.mounted) return false;
-      _showToast(context, '✓ Saved to Photos — SnapBeat album');
+      final toastText = autoTriggered
+          ? '✓ Render Complete — Auto-Saved to Photos (SnapBeat Album)'
+          : '✓ Saved to Photos — SnapBeat album';
+      _showToast(context, toastText);
       return true;
     } catch (e) {
       debugPrint('Gal save error: $e');

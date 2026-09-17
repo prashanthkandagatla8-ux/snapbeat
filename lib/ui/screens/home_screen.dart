@@ -1106,6 +1106,16 @@ class HomeScreenState extends State<HomeScreen> {
         videoPath: videoPath,
         progress: 1.0,
       );
+
+      // Automatically save completed video directly to device Photos / Gallery
+      if (mounted) {
+        ExportService.saveToGallery(
+          context,
+          videoPath: videoPath,
+          templateName: templateId,
+          autoTriggered: true,
+        );
+      }
     } catch (e) {
       if (qm.isCancelled(jobId)) return;
       final cleanMsg = e.toString().replaceAll("Exception: ", "").trim();
@@ -2606,14 +2616,20 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     if (job.videoPath != null) ...[
                       const SizedBox(height: 3),
-                      Text(
-                        "Status: Ready to play and export",
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.vuGreen.withValues(alpha: 0.9),
-                        ),
+                      Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded, size: 12, color: AppColors.vuGreen),
+                          const SizedBox(width: 4),
+                          Text(
+                            "Auto-saved to Photos (SnapBeat album)",
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.vuGreen,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ],
@@ -2628,7 +2644,7 @@ class HomeScreenState extends State<HomeScreen> {
             ],
           ),
 
-          // Row 2: Action Buttons placed UNDER the video details
+          // Row 2: Action Buttons placed UNDER the video details (PLAY, SHARE, DELETE)
           if (job.videoPath != null) ...[
             const SizedBox(height: 12),
             const Divider(color: AppColors.chassisBevelLight, height: 1),
@@ -2637,6 +2653,7 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 // 1. PLAY BUTTON
                 Expanded(
+                  flex: 3,
                   child: RetroMechanicalButton(
                     variant: RetroButtonVariant.play,
                     height: 44,
@@ -2654,22 +2671,10 @@ class HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 6),
-                // 2. SAVE TO GALLERY (DOWNLOAD)
+                const SizedBox(width: 8),
+                // 2. SOCIAL SHARE
                 Expanded(
-                  child: RetroMechanicalButton(
-                    variant: RetroButtonVariant.download,
-                    height: 44,
-                    onTap: () => ExportService.saveToGallery(
-                      context,
-                      videoPath: job.videoPath!,
-                      templateName: job.displayName,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                // 3. SOCIAL SHARE
-                Expanded(
+                  flex: 3,
                   child: RetroMechanicalButton(
                     variant: RetroButtonVariant.share,
                     height: 44,
@@ -2680,9 +2685,10 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                // 4. DELETE
+                const SizedBox(width: 8),
+                // 3. DELETE
                 Expanded(
+                  flex: 2,
                   child: RetroMechanicalButton(
                     variant: RetroButtonVariant.delete,
                     height: 44,
