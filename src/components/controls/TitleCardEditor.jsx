@@ -94,6 +94,51 @@ export function TitleCardEditor({
               <option value="4">4 seconds intro</option>
             </select>
           </div>
+
+          <div className="pt-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-extrabold text-[#5a5752] uppercase tracking-wider">
+                Font Size
+              </span>
+              <span className="text-[9px] font-black text-[#bf8a00]">
+                {titleCard.fontSize === "small"
+                  ? "S - SMALL"
+                  : titleCard.fontSize === "medium"
+                  ? "M - MEDIUM"
+                  : titleCard.fontSize === "xlarge" || titleCard.fontSize === "xl"
+                  ? "XL - HEADLINE"
+                  : "L - LARGE (DEFAULT)"}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { id: "small", label: "S" },
+                { id: "medium", label: "M" },
+                { id: "large", label: "L ★" },
+                { id: "xlarge", label: "XL" },
+              ].map((s) => {
+                const isSelected =
+                  (titleCard.fontSize || "large") === s.id ||
+                  (s.id === "large" && !titleCard.fontSize);
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() =>
+                      setTitleCard((prev) => ({ ...prev, fontSize: s.id }))
+                    }
+                    className={`py-1 rounded-md text-[10px] font-black tracking-wider transition-colors border ${
+                      isSelected
+                        ? "bg-[#ffc72c] text-[#2b2820] border-[#bf8a00] shadow-sm"
+                        : "bg-[#d4cdc0] text-[#5a5752] border-[#8f8677] hover:bg-[#ded7ca]"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 

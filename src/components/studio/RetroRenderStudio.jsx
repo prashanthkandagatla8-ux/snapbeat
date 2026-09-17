@@ -43,6 +43,21 @@ export function RetroRenderStudio({
     }
   };
 
+  const getTitleCardSizeClass = (fontSize) => {
+    switch (fontSize) {
+      case "small":
+        return "text-lg sm:text-xl md:text-2xl";
+      case "medium":
+        return "text-xl sm:text-2xl md:text-3xl";
+      case "xlarge":
+      case "xl":
+        return "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black";
+      case "large":
+      default:
+        return "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black";
+    }
+  };
+
   const handleTitleToggle = (checked) => {
     if (!isPro) {
       onOpenPricing();
@@ -128,7 +143,9 @@ export function RetroRenderStudio({
 
                 {/* Primary Cinematic Title Headline */}
                 <h2
-                  className={`text-2xl sm:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.4)] ${getTitleCardFontClass(
+                  className={`${getTitleCardSizeClass(
+                    titleCard?.fontSize
+                  )} font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.4)] ${getTitleCardFontClass(
                     titleCard?.font
                   )}`}
                 >
@@ -397,6 +414,51 @@ export function RetroRenderStudio({
                   <option value="3">3 seconds intro</option>
                   <option value="4">4 seconds intro</option>
                 </select>
+              </div>
+
+              <div className="pt-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-extrabold text-amber-100/70 uppercase tracking-wider">
+                    Font Size
+                  </span>
+                  <span className="text-[9px] font-black text-amber-400">
+                    {titleCard.fontSize === "small"
+                      ? "S - SMALL"
+                      : titleCard.fontSize === "medium"
+                      ? "M - MEDIUM"
+                      : titleCard.fontSize === "xlarge" || titleCard.fontSize === "xl"
+                      ? "XL - HEADLINE"
+                      : "L - LARGE (DEFAULT)"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { id: "small", label: "S" },
+                    { id: "medium", label: "M" },
+                    { id: "large", label: "L ★" },
+                    { id: "xlarge", label: "XL" },
+                  ].map((s) => {
+                    const isSelected =
+                      (titleCard.fontSize || "large") === s.id ||
+                      (s.id === "large" && !titleCard.fontSize);
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() =>
+                          setTitleCard((prev) => ({ ...prev, fontSize: s.id }))
+                        }
+                        className={`py-1 rounded-md text-[10px] font-black tracking-wider transition-colors border ${
+                          isSelected
+                            ? "bg-[#ffc72c] text-[#2b2820] border-[#bf8a00] shadow-sm"
+                            : "bg-black/40 text-amber-100/70 border-white/10 hover:bg-white/10"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}

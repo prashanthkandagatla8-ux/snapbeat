@@ -36,6 +36,21 @@ export function VideoStage({
     }
   };
 
+  const getSizeClass = (fontSize) => {
+    switch (fontSize) {
+      case "small":
+        return "text-lg sm:text-xl md:text-2xl";
+      case "medium":
+        return "text-xl sm:text-2xl md:text-3xl";
+      case "xlarge":
+      case "xl":
+        return "text-3xl sm:text-4xl md:text-5xl font-black";
+      case "large":
+      default:
+        return "text-2xl sm:text-3xl md:text-4xl font-black";
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center w-full h-full p-2">
       {/* Viewport container */}
@@ -78,7 +93,9 @@ export function VideoStage({
               )}
 
               <h2
-                className={`text-2xl sm:text-3xl font-black uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.4)] ${getFontClass(
+                className={`${getSizeClass(
+                  titleCard?.fontSize
+                )} font-black uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.4)] ${getFontClass(
                   titleCard?.font
                 )}`}
               >

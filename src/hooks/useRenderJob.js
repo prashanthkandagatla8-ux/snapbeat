@@ -100,6 +100,7 @@ export function useRenderJob() {
       if (titleCard?.enabled && userIsPro && titleCard?.text?.trim()) {
         formData.append("title_text", titleCard.text.trim());
         formData.append("title_font", titleCard.font || "great_vibes");
+        formData.append("title_font_size", titleCard.fontSize || "large");
         formData.append("title_duration", String(titleCard.duration || 2));
         formData.append("title_bg", titleCard.bg || "black");
         formData.append("title_style", titleCard.style || "classic");

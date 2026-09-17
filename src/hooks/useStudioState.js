@@ -60,6 +60,7 @@ export function useStudioState(isPro = false) {
     text: "",
     subtitle: "",
     font: "great_vibes",
+    fontSize: "large",
     duration: 2,
     bg: "black",
     style: "classic",
