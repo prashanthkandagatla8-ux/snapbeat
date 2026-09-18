@@ -87,6 +87,7 @@ jobs:
 
       - name: Install Dependencies & Setup CocoaPods
         run: |
+          flutter config --no-enable-swift-package-manager
           flutter precache --ios
           flutter pub get
           mkdir -p ios/Flutter
