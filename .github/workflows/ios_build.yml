@@ -20,6 +20,7 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer || \
           sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer || \
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          sudo xcodebuild -runFirstLaunch
           xcodebuild -version
           xcodebuild -showsdks
 
@@ -91,15 +92,13 @@ jobs:
           flutter config --no-enable-swift-package-manager
           flutter precache --ios
           flutter pub get
-          mkdir -p ios/Flutter
-          printf "FLUTTER_ROOT=%s\nFLUTTER_APPLICATION_PATH=%s\nCOCOAPODS_PARALLEL_CODE_SIGN=true\nFLUTTER_TARGET=lib/main.dart\nFLUTTER_BUILD_DIR=build\nFLUTTER_BUILD_NAME=1.0.6\nFLUTTER_BUILD_NUMBER=15\nEXCLUDED_ARCHS[sdk=iphonesimulator*]=i386\nEXCLUDED_ARCHS[sdk=iphoneos*]=armv7\n" "$FLUTTER_ROOT" "$GITHUB_WORKSPACE" > ios/Flutter/Generated.xcconfig
           cd ios
           pod install --repo-update
           cd ..
 
       - name: Build iOS IPA
         run: |
-          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist -v
 
       - name: Upload IPA to TestFlight
         env:
