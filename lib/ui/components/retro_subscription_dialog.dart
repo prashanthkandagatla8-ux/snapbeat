@@ -142,7 +142,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 width: 44,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: AppColors.metalScrewHead.withOpacity(0.4),
+                  color: AppColors.metalScrewHead.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2.5),
                 ),
               ),
@@ -164,7 +164,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.amberJewel.withOpacity(0.5),
+                              color: AppColors.amberJewel.withValues(alpha: 0.5),
                               blurRadius: 8,
                               spreadRadius: 1,
                             ),
@@ -354,7 +354,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                   border: Border.all(color: AppColors.yellowSpecular, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.yellowShadow.withOpacity(0.6),
+                      color: AppColors.yellowShadow.withValues(alpha: 0.6),
                       offset: const Offset(0, 4),
                       blurRadius: 8,
                     ),
@@ -470,13 +470,13 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           color: isSelected ? AppColors.panelCream : AppColors.canvasChassis,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark.withOpacity(0.4),
+            color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark.withValues(alpha: 0.4),
             width: isSelected ? 2.0 : 1.0,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.brassGold.withOpacity(0.3),
+                    color: AppColors.brassGold.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -624,7 +624,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: highlightPro
                 ? BoxDecoration(
-                    color: AppColors.brassGold.withOpacity(0.2),
+                    color: AppColors.brassGold.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   )
                 : null,

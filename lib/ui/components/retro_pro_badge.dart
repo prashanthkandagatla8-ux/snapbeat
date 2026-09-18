@@ -36,7 +36,7 @@ class RetroProBadge extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isPro ? AppColors.vuGreen : AppColors.amberJewel).withOpacity(0.35),
+                  color: (isPro ? AppColors.vuGreen : AppColors.amberJewel).withValues(alpha: 0.35),
                   blurRadius: 6,
                   offset: const Offset(0, 1),
                 ),
@@ -54,7 +54,7 @@ class RetroProBadge extends StatelessWidget {
                     color: isPro ? AppColors.vuGreen : AppColors.amberJewel,
                     boxShadow: [
                       BoxShadow(
-                        color: (isPro ? AppColors.vuGreen : AppColors.amberJewel).withOpacity(0.8),
+                        color: (isPro ? AppColors.vuGreen : AppColors.amberJewel).withValues(alpha: 0.8),
                         blurRadius: 4,
                         spreadRadius: 1,
                       ),
