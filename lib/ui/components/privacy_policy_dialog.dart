@@ -3,13 +3,22 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
 class PrivacyPolicyDialog extends StatefulWidget {
-  const PrivacyPolicyDialog({super.key});
+  final bool isEula;
+  const PrivacyPolicyDialog({super.key, this.isEula = false});
 
   static Future<void> show(BuildContext context) {
     return showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.75),
-      builder: (ctx) => const PrivacyPolicyDialog(),
+      builder: (ctx) => const PrivacyPolicyDialog(isEula: false),
+    );
+  }
+
+  static Future<void> showEula(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (ctx) => const PrivacyPolicyDialog(isEula: true),
     );
   }
 
@@ -67,16 +76,16 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.borderBrass, width: 1),
                     ),
-                    child: const Text('🛡️', style: TextStyle(fontSize: 18)),
+                    child: Text(widget.isEula ? '📜' : '🛡️', style: const TextStyle(fontSize: 18)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Privacy & Data Safety',
-                          style: TextStyle(
+                        Text(
+                          widget.isEula ? 'Terms of Service (EULA)' : 'Privacy & Data Safety',
+                          style: const TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 15,
                             fontWeight: FontWeight.w900,
@@ -86,7 +95,9 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          Platform.isIOS ? 'App Store & Privacy Compliant' : 'Google Play Policy Compliant',
+                          widget.isEula
+                              ? 'Apple Standard End User License Agreement'
+                              : (Platform.isIOS ? 'App Store & Privacy Compliant' : 'Google Play Policy Compliant'),
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -118,75 +129,128 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Badge Note
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.panelInset,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.chassisBevelLight, width: 1),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.brassGold),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'SnapBeat is engineered with a strict privacy-by-design architecture.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500,
+                      if (widget.isEula) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.panelInset,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.chassisBevelLight, width: 1),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.gavel_rounded, size: 14, color: AppColors.brassGold),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'SnapBeat is licensed subject to the Apple Standard EULA.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _buildSectionItem(
+                          icon: '🍎',
+                          title: 'Apple Standard Terms of Use (EULA)',
+                          description:
+                              'By downloading or using SnapBeat, you agree to Apple\'s Standard Licensed Application End User License Agreement:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                        ),
+                        _buildSectionItem(
+                          icon: '💳',
+                          title: 'Subscription & Auto-Renewal',
+                          description:
+                              'Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current billing period. Your account will be charged for renewal within 24 hours prior to the end of the period. Manage or cancel subscriptions in App Store account settings.',
+                        ),
+                        _buildSectionItem(
+                          icon: '📸',
+                          title: 'User Content Ownership',
+                          description:
+                              'You retain full copyright and ownership of all photos, music, and assembled video reels you select or create with SnapBeat.',
+                        ),
+                        _buildSectionItem(
+                          icon: '🛡️',
+                          title: 'Refunds & In-App Purchases',
+                          description:
+                              'All subscriptions and purchases are processed directly by Apple StoreKit. Refund requests are subject to Apple Media Services Terms and Conditions.',
+                        ),
+                      ] else ...[
+                        // Badge Note
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.panelInset,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.chassisBevelLight, width: 1),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.brassGold),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'SnapBeat is engineered with a strict privacy-by-design architecture.',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            _buildSectionItem(
+                              icon: '⚡',
+                              title: 'Ephemeral Media Processing',
+                              description:
+                                  'User-selected photos and audio tracks are transmitted over encrypted HTTPS/TLS exclusively to the cloud rendering engine to detect musical beats and assemble your video reel.',
+                            ),
+
+                            _buildSectionItem(
+                              icon: '🗑️',
+                              title: 'Instant File Deletion',
+                              description:
+                                  'Input files are processed in volatile temporary storage and purged permanently immediately upon render completion. No user images or songs are ever archived on servers.',
+                            ),
+
+                            _buildSectionItem(
+                              icon: '🎬',
+                              title: 'Optional Rewarded Video Ads',
+                              description:
+                                  'Free users may optionally choose to watch Google AdMob rewarded videos to unlock clean exports. No personal profiles, cross-app tracking cookies, or user identities are sold.',
+                            ),
+
+                            _buildSectionItem(
+                              icon: '🛡️',
+                              title: 'No AI Training & Zero Data Sales',
+                              description:
+                                  'Your personal media is never sold, rented, or shared with third parties. Your photos and music are strictly prohibited from being used to train AI or machine learning models.',
+                            ),
+
+                            _buildSectionItem(
+                              icon: '📱',
+                              title: 'Minimal Scoped Permissions',
+                              description:
+                                  'System photo picker and audio file access are requested solely when you select media for your reel. We cannot access your full library or unselected private files.',
+                            ),
+
+                            _buildSectionItem(
+                              icon: '⚖️',
+                              title: 'COPPA & GDPR Compliance',
+                              description:
+                                  'Because no personal identifiers or media are permanently retained, SnapBeat complies with COPPA and GDPR regulations for user privacy.',
                             ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      _buildSectionItem(
-                        icon: '⚡',
-                        title: 'Ephemeral Media Processing',
-                        description:
-                            'User-selected photos and audio tracks are transmitted over encrypted HTTPS/TLS exclusively to the cloud rendering engine to detect musical beats and assemble your video reel.',
-                      ),
-
-                      _buildSectionItem(
-                        icon: '🗑️',
-                        title: 'Instant File Deletion',
-                        description:
-                            'Input files are processed in volatile temporary storage and purged permanently immediately upon render completion. No user images or songs are ever archived on servers.',
-                      ),
-
-                      _buildSectionItem(
-                        icon: '🚫',
-                        title: 'Zero Tracking & No Advertisements',
-                        description:
-                            'SnapBeat contains zero ad networks, zero third-party analytics SDKs, and zero device fingerprinting. We do not track your activity across apps.',
-                      ),
-
-                      _buildSectionItem(
-                        icon: '🛡️',
-                        title: 'No AI Training & Zero Data Sales',
-                        description:
-                            'Your personal media is never sold, rented, or shared with third parties. Your photos and music are strictly prohibited from being used to train AI or machine learning models.',
-                      ),
-
-                      _buildSectionItem(
-                        icon: '📱',
-                        title: 'Minimal Scoped Permissions',
-                        description:
-                            'System photo picker and audio file access are requested solely when you select media for your reel. We cannot access your full library or unselected private files.',
-                      ),
-
-                      _buildSectionItem(
-                        icon: '⚖️',
-                        title: 'COPPA & GDPR Compliance',
-                        description:
-                            'Because no personal identifiers or media are permanently retained, SnapBeat complies with COPPA and GDPR regulations for user privacy.',
-                      ),
 
                       const SizedBox(height: 8),
                       // Support Box

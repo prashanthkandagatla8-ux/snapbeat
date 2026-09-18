@@ -11,7 +11,7 @@ class ApiService {
 
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "http://34.93.112.240",
+      baseUrl: "https://api.snapbeat.app",
       connectTimeout: const Duration(seconds: 45),
       sendTimeout: const Duration(minutes: 3),
       receiveTimeout: const Duration(minutes: 5),
@@ -42,6 +42,8 @@ class ApiService {
     String? titleStyle,
     String? titleFrame,
     String? titleAudio,
+    String? renderType,
+    String? entitlementToken,
     Function(double progress)? onProgress,
     Function(String status, String stage, int queuePosition, double progress)? onStatusUpdate,
   }) async {
@@ -91,7 +93,11 @@ class ApiService {
     formData.fields.add(MapEntry("frame", frameValue));
     formData.fields.add(MapEntry("quality", quality.toLowerCase().contains("1080") ? "master" : "fast"));
     formData.fields.add(MapEntry("watermark", watermark.toString()));
-    formData.fields.add(MapEntry("render_type", isInstant ? "instant" : "free_queue"));
+    final effectiveRenderType = renderType ?? (isInstant ? "instant" : "free_queue");
+    formData.fields.add(MapEntry("render_type", effectiveRenderType));
+    if (entitlementToken != null && entitlementToken.isNotEmpty) {
+      formData.fields.add(MapEntry("entitlement_token", entitlementToken));
+    }
     formData.fields.add(MapEntry("auto_arrange", autoArrange ? "true" : "false"));
 
     formData.fields.add(MapEntry('full_track', (audioEnd != null && audioEnd > 0 && audioStart != null && audioEnd > audioStart) ? 'false' : 'true'));
@@ -130,6 +136,11 @@ class ApiService {
     final submitResponse = await _dio.post(
       "/api/render/mobile",
       data: formData,
+      options: Options(
+        headers: (entitlementToken != null && entitlementToken.isNotEmpty)
+            ? {"X-SnapBeat-Entitlement": entitlementToken}
+            : null,
+      ),
       onSendProgress: (sent, total) {
         if (total > 0 && onProgress != null) {
           onProgress(0.1 + (sent / total) * 0.2); // 10% to 30% for upload

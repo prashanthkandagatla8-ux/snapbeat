@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/models.dart';
 import '../../theme/app_colors.dart';
+import '../../services/subscription_manager.dart';
+import 'retro_template_preview.dart';
 import 'snapbeat_pink_dot.dart';
 
 class ProControlsCard extends StatelessWidget {
@@ -32,6 +34,8 @@ class ProControlsCard extends StatelessWidget {
   final Function(String frame) onSelectTitleFrame;
   final String titleAudio;
   final Function(String audio) onSelectTitleAudio;
+  final File? representativePhoto;
+  final bool? isPro;
 
   const ProControlsCard({
     super.key,
@@ -60,6 +64,8 @@ class ProControlsCard extends StatelessWidget {
     required this.onSelectTitleFrame,
     required this.titleAudio,
     required this.onSelectTitleAudio,
+    this.representativePhoto,
+    this.isPro,
   });
 
   @override
@@ -158,67 +164,10 @@ class ProControlsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-
-          // Templates Selector Label
-          Row(
-            children: const [
-              SnapBeatPinkDot(size: 10),
-              SizedBox(width: 6),
-              Text(
-                'STYLE',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Beat Templates in Wrap (all 15 styles directly visible, no hidden scrolling)
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: BeatTemplate.allTemplates.map((t) {
-              final isSel = t.id == selectedTemplateId;
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onSelectTemplate(t.id),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: isSel ? AppColors.brassGold : AppColors.panelInset,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSel ? AppColors.brassGold : AppColors.chassisBevelLight,
-                      width: 1.0,
-                    ),
-                    boxShadow: isSel
-                        ? [
-                            const BoxShadow(
-                              color: AppColors.amberGlow,
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(t.emoji, style: const TextStyle(fontSize: 11)),
-                      const SizedBox(width: 4),
-                      Text(
-                        t.name.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.6,
-                          color: isSel ? AppColors.hardwareGunmetal : AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
+          RetroTemplatePreview(
+            selectedTemplateId: selectedTemplateId,
+            onSelectTemplate: onSelectTemplate,
+            isPro: isPro ?? SubscriptionManager.instance.isPro,
           ),
           const SizedBox(height: 14),
 
@@ -755,65 +704,97 @@ class ProControlsCard extends StatelessWidget {
   }
 
   Widget _buildTitlePreview() {
+    final ratio = selectedAspectRatio.trim();
+    final isPortrait = ratio == "9:16" || (ratio != "16:9" && ratio != "1:1");
+    final isSquare = ratio == "1:1";
+
+    final double previewH = isPortrait ? 230.0 : (isSquare ? 180.0 : 140.0);
+    final double previewW = isPortrait
+        ? (previewH * 9.0 / 16.0)
+        : (isSquare ? previewH : (previewH * 16.0 / 9.0));
+
+    // Target render pixel sizes matching renderer.py _draw_title_artwork()
+    final double renderH = isPortrait ? 1920.0 : 1080.0;
+    final double scale = previewH / renderH;
+
+    double renderTargetFs;
+    final sizeKey = titleFontSize.toLowerCase().trim();
+    if (isPortrait) {
+      switch (sizeKey) {
+        case 'small':
+          renderTargetFs = 131.0;
+          break;
+        case 'medium':
+          renderTargetFs = 180.0;
+          break;
+        case 'xlarge':
+        case 'xl':
+          renderTargetFs = 310.0;
+          break;
+        case 'large':
+        default:
+          renderTargetFs = 241.0;
+          break;
+      }
+    } else {
+      switch (sizeKey) {
+        case 'small':
+          renderTargetFs = 86.0;
+          break;
+        case 'medium':
+          renderTargetFs = 119.0;
+          break;
+        case 'xlarge':
+        case 'xl':
+          renderTargetFs = 205.0;
+          break;
+        case 'large':
+        default:
+          renderTargetFs = 159.0;
+          break;
+      }
+    }
+
+    final double computedFontSize = renderTargetFs * scale;
+
     TextStyle baseStyle;
     switch (titleFont) {
       case 'great_vibes':
-        baseStyle = GoogleFonts.greatVibes(fontSize: 22, fontWeight: FontWeight.normal);
+        baseStyle = GoogleFonts.greatVibes(fontSize: computedFontSize, fontWeight: FontWeight.normal);
         break;
       case 'allura':
-        baseStyle = GoogleFonts.allura(fontSize: 22, fontWeight: FontWeight.normal);
+        baseStyle = GoogleFonts.allura(fontSize: computedFontSize, fontWeight: FontWeight.normal);
         break;
       case 'alex_brush':
-        baseStyle = GoogleFonts.alexBrush(fontSize: 22, fontWeight: FontWeight.normal);
+        baseStyle = GoogleFonts.alexBrush(fontSize: computedFontSize, fontWeight: FontWeight.normal);
         break;
       case 'bodoni_moda':
-        baseStyle = GoogleFonts.bodoniModa(fontSize: 16, fontWeight: FontWeight.bold);
+        baseStyle = GoogleFonts.bodoniModa(fontSize: computedFontSize, fontWeight: FontWeight.bold);
         break;
       case 'cormorant_garamond':
-        baseStyle = GoogleFonts.cormorantGaramond(fontSize: 17, fontWeight: FontWeight.w700);
+        baseStyle = GoogleFonts.cormorantGaramond(fontSize: computedFontSize, fontWeight: FontWeight.w700);
         break;
       case 'cinzel':
-        baseStyle = GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1.2);
+        baseStyle = GoogleFonts.cinzel(fontSize: computedFontSize, fontWeight: FontWeight.bold, letterSpacing: 1.0);
         break;
       case 'serif':
-        baseStyle = GoogleFonts.playfairDisplay(fontSize: 15, fontWeight: FontWeight.bold);
+        baseStyle = GoogleFonts.playfairDisplay(fontSize: computedFontSize, fontWeight: FontWeight.bold);
         break;
       case 'clean':
-        baseStyle = GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700);
+        baseStyle = GoogleFonts.inter(fontSize: computedFontSize, fontWeight: FontWeight.w700);
         break;
       case 'typewriter':
-        baseStyle = GoogleFonts.courierPrime(fontSize: 13, fontWeight: FontWeight.bold);
+        baseStyle = GoogleFonts.courierPrime(fontSize: computedFontSize, fontWeight: FontWeight.bold);
         break;
       case 'playful':
-        baseStyle = GoogleFonts.fredoka(fontSize: 15, fontWeight: FontWeight.w600);
+        baseStyle = GoogleFonts.fredoka(fontSize: computedFontSize, fontWeight: FontWeight.w600);
         break;
       case 'impact':
-        baseStyle = GoogleFonts.oswald(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.0);
+        baseStyle = GoogleFonts.oswald(fontSize: computedFontSize, fontWeight: FontWeight.w900, letterSpacing: 0.8);
         break;
       default:
-        baseStyle = GoogleFonts.greatVibes(fontSize: 22, fontWeight: FontWeight.normal);
+        baseStyle = GoogleFonts.greatVibes(fontSize: computedFontSize, fontWeight: FontWeight.normal);
     }
-
-    // Dynamically scale preview text size to reflect user's chosen title font size
-    double sizeMultiplier = 1.35; // Default for 'large'
-    switch (titleFontSize.toLowerCase()) {
-      case 'small':
-        sizeMultiplier = 0.85;
-        break;
-      case 'medium':
-        sizeMultiplier = 1.05;
-        break;
-      case 'large':
-        sizeMultiplier = 1.35;
-        break;
-      case 'xlarge':
-      case 'xl':
-        sizeMultiplier = 1.75;
-        break;
-    }
-    baseStyle = baseStyle.copyWith(
-      fontSize: (baseStyle.fontSize ?? 16) * sizeMultiplier,
-    );
 
     Color textColor = const Color(0xFFFFE14D);
     List<Shadow> shadows = [];
@@ -823,8 +804,8 @@ class ProControlsCard extends StatelessWidget {
       case 'neon':
         textColor = Colors.white;
         shadows = const [
-          Shadow(color: Color(0xFF00F0FF), blurRadius: 10),
-          Shadow(color: Color(0xFF00F0FF), blurRadius: 20),
+          Shadow(color: Color(0xFF00F0FF), blurRadius: 8),
+          Shadow(color: Color(0xFF00F0FF), blurRadius: 16),
         ];
         break;
       case 'cinematic':
@@ -866,149 +847,244 @@ class ProControlsCard extends StatelessWidget {
         cardBgColor = Color(0xFF000000 | val);
       }
     } else if (titleBg == "video") {
-      cardBgColor = const Color(0xFF2C2825);
+      cardBgColor = const Color(0xFF181512);
     }
 
+    final isOverlayMode = titleBg == "video";
+
     return Container(
-      height: 94,
       width: double.infinity,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: cardBgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.chassisBevelDark),
+        color: AppColors.panelCreamDark,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.chassisBevelLight, width: 1.2),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 4),
+        ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (titleBg == "video")
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.35,
-                child: Image.asset(
-                  'assets/images/brushed_metal_background.jpg',
-                  fit: BoxFit.cover,
-                ),
+          // Header Badges Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const SnapBeatPinkDot(size: 8, withGlow: true),
+                  const SizedBox(width: 5),
+                  const Text(
+                    'WYSIWYG LIVE PREVIEW',
+                    style: TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          // Top Badges
-          Positioned(
-            top: 5,
-            left: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.4), width: 0.8),
-              ),
-              child: Text(
-                titleFont.toUpperCase().replaceAll('_', ' '),
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 7.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.brassGold,
-                  letterSpacing: 0.4,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 5,
-            right: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.4), width: 0.8),
-              ),
-              child: Text(
-                '${titleDuration}s • ${titleAudio == "with_audio" ? "WITH MUSIC" : "SILENT INTRO"}',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 7.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.amberJewel,
-                  letterSpacing: 0.4,
-                ),
-              ),
-            ),
-          ),
-          // Frame borders
-          if (titleFrame == "box")
-            Positioned.fill(
-              child: Container(
-                margin: const EdgeInsets.all(8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFFFE14D), width: 1.5),
+                  color: AppColors.brassGold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4), width: 0.8),
                 ),
-              ),
-            ),
-          if (titleFrame == "double_line")
-            Positioned.fill(
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFFFE14D), width: 1.0),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFFFFE14D), width: 1.0),
+                child: Text(
+                  '$selectedAspectRatio • ${renderTargetFs.toInt()}PX AT 1080P',
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 7.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.brassGold,
                   ),
                 ),
               ),
-            ),
-          if (titleFrame == "viewfinder")
-            Positioned.fill(
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text("┌", style: TextStyle(color: Color(0xFFFFE14D), fontSize: 16)),
-                        Text("└", style: TextStyle(color: Color(0xFFFFE14D), fontSize: 16)),
-                      ],
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text("┐", style: TextStyle(color: Color(0xFFFFE14D), fontSize: 16)),
-                        Text("┘", style: TextStyle(color: Color(0xFFFFE14D), fontSize: 16)),
-                      ],
-                    ),
-                  ],
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Aspect-Ratio-Accurate Stage Frame
+          Container(
+            height: previewH,
+            width: previewW,
+            decoration: BoxDecoration(
+              color: cardBgColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.6), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  offset: const Offset(2, 4),
+                  blurRadius: 8,
                 ),
-              ),
-            ),
-          if (titleFrame == "film_bars")
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(height: 2, color: const Color(0xFFFFE14D), margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6)),
-                Container(height: 2, color: const Color(0xFFFFE14D), margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6)),
               ],
             ),
-          // Text
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 44),
-            child: Container(
-              padding: badgeDecoration != null ? const EdgeInsets.symmetric(horizontal: 8, vertical: 3) : null,
-              decoration: badgeDecoration,
-              child: Text(
-                titleStyle == "cinematic" ? displayText.toUpperCase() : displayText,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: baseStyle.copyWith(
-                  color: textColor,
-                  shadows: shadows,
-                ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Representative Photo or Background
+                  if (isOverlayMode) ...[
+                    Positioned.fill(
+                      child: representativePhoto != null
+                          ? Image.file(
+                              representativePhoto!,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              'assets/images/brushed_metal_background.jpg',
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                    // Semi-transparent overlay scrim matching renderer.py (fill=(0,0,0,160))
+                    if (titleStyle != "badge")
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.63),
+                        ),
+                      ),
+                  ],
+
+                  // Frame borders
+                  if (titleFrame == "box")
+                    Positioned.fill(
+                      child: Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: titleStyle == "neon"
+                                ? const Color(0xFF00F0FF)
+                                : const Color(0xFFFFE14D),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (titleFrame == "double_line")
+                    Positioned.fill(
+                      child: Container(
+                        margin: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: titleStyle == "neon"
+                                ? const Color(0xFF00F0FF)
+                                : const Color(0xFFFFE14D),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: titleStyle == "neon"
+                                  ? const Color(0xFF00F0FF)
+                                  : const Color(0xFFFFE14D),
+                              width: 1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (titleFrame == "viewfinder")
+                    Positioned.fill(
+                      child: Container(
+                        margin: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("┌", style: TextStyle(color: titleStyle == "neon" ? const Color(0xFF00F0FF) : const Color(0xFFFFE14D), fontSize: 13)),
+                                Text("└", style: TextStyle(color: titleStyle == "neon" ? const Color(0xFF00F0FF) : const Color(0xFFFFE14D), fontSize: 13)),
+                              ],
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("┐", style: TextStyle(color: titleStyle == "neon" ? const Color(0xFF00F0FF) : const Color(0xFFFFE14D), fontSize: 13)),
+                                Text("┘", style: TextStyle(color: titleStyle == "neon" ? const Color(0xFF00F0FF) : const Color(0xFFFFE14D), fontSize: 13)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (titleFrame == "film_bars")
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          height: 2,
+                          color: titleStyle == "neon" ? const Color(0xFF00F0FF) : const Color(0xFFFFE14D),
+                          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        ),
+                        Container(
+                          height: 2,
+                          color: titleStyle == "neon" ? const Color(0xFF00F0FF) : const Color(0xFFFFE14D),
+                          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        ),
+                      ],
+                    ),
+
+                  // Text Block
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Container(
+                      padding: badgeDecoration != null
+                          ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
+                          : null,
+                      decoration: badgeDecoration,
+                      child: Text(
+                        titleStyle == "cinematic" ? displayText.toUpperCase() : displayText,
+                        textAlign: TextAlign.center,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: baseStyle.copyWith(
+                          color: textColor,
+                          shadows: shadows,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Aspect Ratio Tag Overlay
+                  Positioned(
+                    bottom: 4,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.65),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Text(
+                        '${titleDuration}s • ${titleAudio == "with_audio" ? "MUSIC" : "SILENT"}',
+                        style: const TextStyle(
+                          fontSize: 6.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.amberJewel,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // Footnote confirming output scaling
+          Text(
+            'Visual preview matches exact render proportions (${sizeKey.toUpperCase()} = ${renderTargetFs.toInt()}px in output)',
+            style: const TextStyle(
+              fontSize: 8,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
             ),
           ),
         ],

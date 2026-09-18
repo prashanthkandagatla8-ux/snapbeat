@@ -2,19 +2,17 @@ import 'package:flutter/material.dart';
 import '../../services/credit_manager.dart';
 import '../../theme/app_colors.dart';
 import 'privacy_policy_dialog.dart';
+import 'retro_subscription_dialog.dart';
 
+/// [DEPRECATED] Removed for App Store submission compliance.
+/// All monetization redirects to official IAP RetroSubscriptionDialog.
 class StoreBottomSheet extends StatefulWidget {
   final VoidCallback onPurchaseComplete;
 
   const StoreBottomSheet({super.key, required this.onPurchaseComplete});
 
   static void show(BuildContext context, {required VoidCallback onPurchaseComplete}) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StoreBottomSheet(onPurchaseComplete: onPurchaseComplete),
-    );
+    RetroSubscriptionDialog.show(context);
   }
 
   @override

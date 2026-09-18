@@ -10,6 +10,7 @@ class RetroTapeDeck extends StatefulWidget {
   final VoidCallback onTogglePlay;
   final VoidCallback onPickAudio;
   final VoidCallback onLoadSample;
+  final VoidCallback? onPickVideoAudio;
 
   const RetroTapeDeck({
     super.key,
@@ -19,6 +20,7 @@ class RetroTapeDeck extends StatefulWidget {
     required this.onTogglePlay,
     required this.onPickAudio,
     required this.onLoadSample,
+    this.onPickVideoAudio,
   });
 
   @override
@@ -279,24 +281,34 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
 
                 const SizedBox(height: 12),
 
-                // Row 2: Audio Source Buttons (MUSIC LIBRARY, MY DEVICE)
+                // Row 2: Audio Source Buttons (LIBRARY, AUDIO FILE, FROM VIDEO)
                 Row(
                   children: [
                     Expanded(
                       child: _RetroMiniButton(
-                        label: 'MUSIC LIBRARY',
+                        label: 'LIBRARY',
                         icon: Icons.library_music_rounded,
                         onTap: widget.onLoadSample,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: _RetroMiniButton(
-                        label: 'MY DEVICE',
+                        label: 'AUDIO FILE',
                         icon: Icons.audio_file_rounded,
                         onTap: widget.onPickAudio,
                       ),
                     ),
+                    if (widget.onPickVideoAudio != null) ...[
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _RetroMiniButton(
+                          label: 'FROM VIDEO',
+                          icon: Icons.movie_filter_rounded,
+                          onTap: widget.onPickVideoAudio!,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],

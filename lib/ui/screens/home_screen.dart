@@ -7,15 +7,20 @@ import 'package:flutter/services.dart' show rootBundle, SystemNavigator;
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:video_player/video_player.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:intl/intl.dart' show DateFormat;
+import '../../config/app_config.dart';
 import '../../models/models.dart';
 import '../../models/sound_track.dart';
-import '../../services/credit_manager.dart';
+import '../../services/ad_manager.dart';
 import '../../services/queue_manager.dart';
 import '../../services/api_service.dart';
 import '../../services/export_service.dart';
 import '../../theme/app_colors.dart';
+import '../../services/subscription_manager.dart';
+import '../components/retro_pro_badge.dart';
 import '../components/retro_tape_deck.dart';
 import '../components/interactive_waveform.dart';
 import '../components/snaps_reorder_strip.dart';
@@ -54,9 +59,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  final cm = CreditManager.instance;
   final qm = QueueManager.instance;
   final api = ApiService.instance;
+  final sm = SubscriptionManager.instance;
   final AudioPlayer _audioPlayer = AudioPlayer();
   final ScrollController _scrollController = ScrollController();
   String? _focusedJobId;
@@ -510,6 +515,8 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    sm.init();
+    AdManager.instance.init();
     _currentTab = widget.initialTab;
     _renderMode = widget.initialRenderMode;
     _titleTextController = TextEditingController(text: _titleText);
@@ -557,7 +564,6 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initData() async {
-    await cm.init();
     await qm.init();
     if (widget.initialMusic == null && _selectedMusic == null) {
       await _loadDefaultSampleTrack();
@@ -621,6 +627,49 @@ class HomeScreenState extends State<HomeScreen> {
         _audioStart = 0.0;
         _audioEnd = dur;
       });
+    }
+  }
+
+  Future<void> _pickMusicFromVideo() async {
+    try {
+      final picker = ImagePicker();
+      final pickedVideo = await picker.pickVideo(source: ImageSource.gallery);
+      if (pickedVideo != null && pickedVideo.path.isNotEmpty) {
+        final videoFile = File(pickedVideo.path);
+        final fileName = p.basename(pickedVideo.path);
+        double dur = 30.0;
+
+        try {
+          final tempController = VideoPlayerController.file(videoFile);
+          await tempController.initialize();
+          final d = tempController.value.duration;
+          if (d.inSeconds > 0) {
+            dur = d.inSeconds.toDouble();
+          }
+          await tempController.dispose();
+        } catch (_) {
+          try {
+            await _audioPlayer.setSource(DeviceFileSource(videoFile.path));
+            final d = await _audioPlayer.getDuration();
+            if (d != null && d.inSeconds > 0) {
+              dur = d.inSeconds.toDouble();
+            }
+          } catch (_) {}
+        }
+
+        if (!mounted) return;
+        setState(() {
+          _selectedMusic = videoFile;
+          _selectedMusicTitle = '🎬 Video Audio: $fileName';
+          _audioDuration = dur;
+          _audioStart = 0.0;
+          _audioEnd = dur;
+        });
+
+        _showNotice('Extracted audio from video: $fileName (${dur.toInt()}s)');
+      }
+    } catch (e) {
+      _showNotice('Failed to extract audio from video: $e');
     }
   }
 
@@ -942,11 +991,7 @@ class HomeScreenState extends State<HomeScreen> {
       tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
     }
 
-    final selectedTpl = BeatTemplate.allTemplates.firstWhere((t) => t.id == tId, orElse: () => BeatTemplate.allTemplates.first);
-    if (selectedTpl.isPro && !cm.isProModeEnabled) {
-      _showNotice('This template requires Pro Mode. Unlock it in the Store.');
-      return;
-    }
+    final isPro = sm.isPro;
 
     final jobId = DateTime.now().millisecondsSinceEpoch.toString();
     final maxAllowed = maxPhotosForTrack;
@@ -959,8 +1004,13 @@ class HomeScreenState extends State<HomeScreen> {
     final photosSnapshot = List<PhotoItem>.from(photosToSend);
     final musicSnapshot = _selectedMusic;
     final aspectRatioSnapshot = _selectedAspectRatio;
-    final qualitySnapshot = _selectedQuality;
-    final shouldWatermark = cm.shouldWatermark(isInstant);
+    // Pro subscribers get 1080p Master exports; Free users get 720p HD
+    final qualitySnapshot = isPro ? "1080p" : "720p";
+    // Pro subscribers have watermarks removed; Free videos have watermark
+    final shouldWatermark = !isPro;
+    // Pro subscribers get fast priority queue; Free users use standard queue
+    final renderTypeSnapshot = isPro ? "priority_queue" : "free_queue";
+    final entitlementTokenSnapshot = isPro ? sm.signedEntitlementToken : null;
     final audioStartSnapshot = _audioStart.toInt();
     final audioEndSnapshot = _audioEnd.toInt();
     final titleTextSnapshot = _enableTitle ? _titleText : null;
@@ -981,10 +1031,6 @@ class HomeScreenState extends State<HomeScreen> {
       quality: qualitySnapshot,
       progress: 0.05,
     ));
-
-    if (isInstant && cm.credits > 0) {
-      cm.deductCredit();
-    }
 
     // Immediately switch user to "QUEUE" view and focus new job (retains all photo/music selections)
     setState(() {
@@ -1019,6 +1065,8 @@ class HomeScreenState extends State<HomeScreen> {
       quality: qualitySnapshot,
       watermark: shouldWatermark,
       isInstant: isInstant,
+      renderType: renderTypeSnapshot,
+      entitlementToken: entitlementTokenSnapshot,
       audioStart: audioStartSnapshot,
       audioEnd: audioEndSnapshot,
       titleText: titleTextSnapshot,
@@ -1042,6 +1090,8 @@ class HomeScreenState extends State<HomeScreen> {
     required String quality,
     required bool watermark,
     required bool isInstant,
+    String? renderType,
+    String? entitlementToken,
     required int audioStart,
     required int audioEnd,
     required String? titleText,
@@ -1072,6 +1122,8 @@ class HomeScreenState extends State<HomeScreen> {
         quality: quality,
         watermark: watermark,
         isInstant: isInstant,
+        renderType: renderType,
+        entitlementToken: entitlementToken,
         audioStart: audioStart,
         audioEnd: audioEnd,
         titleText: titleText,
@@ -1197,16 +1249,20 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Right Action Group: Feedback & Privacy Policy
-                      IconButton(
-                        icon: const Icon(Icons.rate_review_outlined, color: AppColors.brassGold, size: 20),
-                        tooltip: 'Send Tester Feedback',
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.all(6),
-                        constraints: const BoxConstraints(),
-                        onPressed: () => TesterFeedbackDialog.show(context),
-                      ),
+                      // Right Action Group: Pro Badge, Feedback & Privacy Policy
+                      const RetroProBadge(),
                       const SizedBox(width: 4),
+                      // Tester Feedback only shown on Android (not on iOS App Store build)
+                      if (AppConfig.showTesterFeedback)
+                        IconButton(
+                          icon: const Icon(Icons.rate_review_outlined, color: AppColors.brassGold, size: 20),
+                          tooltip: 'Send Tester Feedback',
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                          onPressed: () => TesterFeedbackDialog.show(context),
+                        ),
+                      if (AppConfig.showTesterFeedback) const SizedBox(width: 4),
                       IconButton(
                         icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
                         tooltip: 'Privacy Policy',
@@ -1234,6 +1290,7 @@ class HomeScreenState extends State<HomeScreen> {
                           onTogglePlay: _togglePlayAudio,
                           onPickAudio: _pickMusic,
                           onLoadSample: _openSoundLibrary,
+                          onPickVideoAudio: _pickMusicFromVideo,
                         ),
 
                         // Interactive Audio Waveform Trimmer (shown when music is loaded)
@@ -1669,6 +1726,8 @@ class HomeScreenState extends State<HomeScreen> {
             onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
             titleAudio: _titleAudio,
             onSelectTitleAudio: (a) => setState(() => _titleAudio = a),
+            representativePhoto: _photos.isNotEmpty ? File(_photos.first.path) : null,
+            isPro: sm.isPro,
           ),
         ],
 
@@ -1887,9 +1946,9 @@ class HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               _buildSummaryPill(
-                !cm.shouldWatermark(false) ? Icons.verified_rounded : Icons.branding_watermark_rounded,
-                !cm.shouldWatermark(false) ? "WATERMARK: NONE" : "WATERMARK: SNAPBEAT",
-                highlight: cm.shouldWatermark(false),
+                !sm.shouldWatermark ? Icons.verified_rounded : Icons.branding_watermark_rounded,
+                !sm.shouldWatermark ? "WATERMARK: NONE" : "WATERMARK: SNAPBEAT",
+                highlight: sm.shouldWatermark,
               ),
             ],
           ),
@@ -2196,8 +2255,8 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // Testing Queue Notice Banner (active during closed beta)
-        if (activeJobs.isNotEmpty)
+        // Testing Queue Notice Banner (active during closed beta) - Hidden on iOS
+        if (AppConfig.showBetaFeatures && activeJobs.isNotEmpty)
           Container(
             margin: const EdgeInsets.fromLTRB(16, 2, 16, 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2278,8 +2337,9 @@ class HomeScreenState extends State<HomeScreen> {
           ...failedJobs.map((job) => _buildFailedJobCard(job)),
         ],
 
-        // Closed Beta Tester Feedback & Bug Report Action Bar
-        Padding(
+        // Closed Beta Tester Feedback & Bug Report Action Bar - Hidden on iOS
+        if (AppConfig.showBetaFeatures)
+          Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
