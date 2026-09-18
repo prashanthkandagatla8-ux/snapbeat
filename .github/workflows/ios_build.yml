@@ -87,9 +87,11 @@ jobs:
 
       - name: Install Dependencies & Setup CocoaPods
         run: |
+          flutter precache --ios
           flutter pub get
+          mkdir -p ios/Flutter
+          printf "FLUTTER_ROOT=%s\nFLUTTER_APPLICATION_PATH=%s\nCOCOAPODS_PARALLEL_CODE_SIGN=true\nFLUTTER_TARGET=lib/main.dart\nFLUTTER_BUILD_DIR=build\nFLUTTER_BUILD_NAME=1.0.6\nFLUTTER_BUILD_NUMBER=15\nEXCLUDED_ARCHS[sdk=iphonesimulator*]=i386\nEXCLUDED_ARCHS[sdk=iphoneos*]=armv7\n" "$FLUTTER_ROOT" "$GITHUB_WORKSPACE" > ios/Flutter/Generated.xcconfig
           cd ios
-          pod repo update
           pod install --repo-update
           cd ..
 
@@ -106,7 +108,8 @@ jobs:
           mkdir -p ~/.appstoreconnect/private_keys ~/.private_keys
           echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
           echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
-          xcrun altool --upload-app --type ios --file build/ios/ipa/*.ipa --apiKey "$APP_STORE_CONNECT_KEY_ID" --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+          xcrun altool --upload-app --type ios --file build/ios/ipa/*.ipa --apiKey "$APP_STORE_CONNECT_KEY_ID" --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" || \
+          xcrun altool --upload-package build/ios/ipa/*.ipa --type ios --apiKey "$APP_STORE_CONNECT_KEY_ID" --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
