@@ -370,10 +370,32 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.metalDeepCavity,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
+                          ),
+                          child: const Text(
+                            'LAYOUT MODE',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 7.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                              color: AppColors.amberJewel,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
                         _buildOrderingModeChip('auto', 'AUTO', Icons.auto_mode_rounded),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 3),
                         _buildOrderingModeChip('manual', 'MANUAL', Icons.pan_tool_alt_rounded),
+                        const SizedBox(width: 3),
+                        _buildBigModeChip(),
                       ],
                     ),
                     Row(
@@ -383,105 +405,54 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                           GestureDetector(
                             onTap: widget.onAutoShuffle,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.panelCreamDark,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(color: AppColors.chassisBevelLight),
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: const [
-                                  Icon(Icons.shuffle_rounded, size: 12, color: AppColors.brassGold),
-                                  SizedBox(width: 4),
+                                  Icon(Icons.shuffle_rounded, size: 11, color: AppColors.brassGold),
+                                  SizedBox(width: 3),
                                   Text(
                                     'SHUFFLE',
                                     style: TextStyle(
-                                      fontSize: 9,
+                                      fontSize: 8.5,
                                       fontWeight: FontWeight.w900,
                                       color: AppColors.brassGold,
-                                      letterSpacing: 0.5,
+                                      letterSpacing: 0.4,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                        ] else if (widget.arrangementMode == 'manual') ...[
-                          Row(
-                            children: const [
-                              Icon(Icons.tune_rounded, size: 13, color: AppColors.amberJewel),
-                              SizedBox(width: 4),
-                              Text(
-                                'MANUAL',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.6,
-                                  color: AppColors.amberJewel,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
                         ],
-                        // Thumbnail Size Toggle: LARGE / SMALL
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => setState(() => _isSmallThumbnails = !_isSmallThumbnails),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _isSmallThumbnails ? AppColors.brassGold : AppColors.panelCreamDark,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: _isSmallThumbnails ? AppColors.borderBrass : AppColors.chassisBevelLight,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _isSmallThumbnails ? Icons.grid_view_rounded : Icons.view_agenda_rounded,
-                                  size: 11,
-                                  color: _isSmallThumbnails ? AppColors.hardwareGunmetal : AppColors.textEngraved,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _isSmallThumbnails ? 'SMALL' : 'LARGE',
-                                  style: TextStyle(
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w900,
-                                    color: _isSmallThumbnails ? AppColors.hardwareGunmetal : AppColors.textEngraved,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
                         if (_effectiveClear != null)
                           GestureDetector(
                             onTap: _effectiveClear,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.vuRed.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5)),
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: const [
-                                  Icon(Icons.restart_alt_rounded, size: 11, color: AppColors.vuRed),
+                                  Icon(Icons.restart_alt_rounded, size: 10, color: AppColors.vuRed),
                                   SizedBox(width: 3),
                                   Text(
-                                    'CLEAR ALL',
+                                    'CLEAR',
                                     style: TextStyle(
                                       fontSize: 8.5,
                                       fontWeight: FontWeight.w900,
                                       color: AppColors.vuRed,
-                                      letterSpacing: 0.4,
+                                      letterSpacing: 0.3,
                                     ),
                                   ),
                                 ],
@@ -860,29 +831,93 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => widget.onArrangementModeChanged(mode),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
         decoration: BoxDecoration(
-          color: isSel ? AppColors.brassGold : AppColors.panelCreamDark,
-          borderRadius: BorderRadius.circular(12),
+          color: isSel ? AppColors.brassGold : AppColors.metalDeepCavity,
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isSel ? AppColors.borderBrass : AppColors.chassisBevelLight,
+            color: isSel ? AppColors.borderBrass : AppColors.chassisBevelDark,
+            width: isSel ? 1.4 : 0.9,
           ),
+          boxShadow: isSel
+              ? const [
+                  BoxShadow(
+                    color: AppColors.amberGlow,
+                    blurRadius: 4,
+                    spreadRadius: 0.5,
+                  ),
+                ]
+              : null,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 11,
-              color: isSel ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+              size: 10.5,
+              color: isSel ? AppColors.hardwareGunmetal : AppColors.textMuted,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 3.5),
             Text(
               label,
               style: TextStyle(
-                fontSize: 9,
+                fontFamily: 'Montserrat',
+                fontSize: 8.5,
                 fontWeight: FontWeight.w900,
-                color: isSel ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+                letterSpacing: 0.4,
+                color: isSel ? AppColors.hardwareGunmetal : AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBigModeChip() {
+    final isBig = !_isSmallThumbnails;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => _isSmallThumbnails = !_isSmallThumbnails),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+        decoration: BoxDecoration(
+          color: isBig ? AppColors.brassGold : AppColors.metalDeepCavity,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isBig ? AppColors.borderBrass : AppColors.chassisBevelDark,
+            width: isBig ? 1.4 : 0.9,
+          ),
+          boxShadow: isBig
+              ? const [
+                  BoxShadow(
+                    color: AppColors.amberGlow,
+                    blurRadius: 4,
+                    spreadRadius: 0.5,
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.view_agenda_rounded,
+              size: 10.5,
+              color: isBig ? AppColors.hardwareGunmetal : AppColors.textMuted,
+            ),
+            const SizedBox(width: 3.5),
+            Text(
+              'BIG',
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 8.5,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.4,
+                color: isBig ? AppColors.hardwareGunmetal : AppColors.textMuted,
               ),
             ),
           ],

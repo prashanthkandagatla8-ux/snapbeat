@@ -155,24 +155,28 @@ class SubscriptionManager with ChangeNotifier {
 
   /// Initializes IAP listeners, restores securely cached entitlement, and queries store products.
   Future<void> init() async {
-    await _loadCachedEntitlements();
+    try {
+      await _loadCachedEntitlements();
 
-    final available = await _iap.isAvailable();
-    _isStoreAvailable = available;
+      final available = await _iap.isAvailable();
+      _isStoreAvailable = available;
 
-    if (_isStoreAvailable) {
-      // Listen to transaction updates from StoreKit / Google Play Billing
-      _subscription ??= _iap.purchaseStream.listen(
-        _onPurchaseUpdates,
-        onDone: () => _subscription?.cancel(),
-        onError: (error) {
-          debugPrint('[SubscriptionManager] Purchase stream error: $error');
-        },
-      );
+      if (_isStoreAvailable) {
+        // Listen to transaction updates from StoreKit / Google Play Billing
+        _subscription ??= _iap.purchaseStream.listen(
+          _onPurchaseUpdates,
+          onDone: () => _subscription?.cancel(),
+          onError: (error) {
+            debugPrint('[SubscriptionManager] Purchase stream error: $error');
+          },
+        );
 
-      await loadProducts();
-    } else {
-      debugPrint('[SubscriptionManager] In-App Purchase service unavailable on this device.');
+        await loadProducts();
+      } else {
+        debugPrint('[SubscriptionManager] In-App Purchase service unavailable on this device.');
+      }
+    } catch (e) {
+      debugPrint('[SubscriptionManager] Initialization error: $e');
     }
   }
 

@@ -29,7 +29,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
       SnackBar(
         backgroundColor: AppColors.panelCream,
         content: const Text(
-          '✨ Feature unlocked! Credits added.',
+          'Feature unlocked! Credits added.',
           style: TextStyle(
             color: AppColors.brassGold,
             fontWeight: FontWeight.w700,
@@ -84,14 +84,21 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                         BoxShadow(color: Colors.black12, offset: Offset(1, 1), blurRadius: 2),
                       ],
                     ),
-                    child: Text(
-                      '⚡ ${cm.credits} Credits',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.hardwareGunmetal,
-                        letterSpacing: 1.0,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.bolt_rounded, size: 12, color: AppColors.hardwareGunmetal),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${cm.credits} Credits',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.hardwareGunmetal,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -134,7 +141,7 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                 SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    '🎉 BETA PREVIEW — ALL FEATURES FREE',
+                    'BETA PREVIEW — ALL FEATURES FREE',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 10,
@@ -167,8 +174,8 @@ class _StoreBottomSheetState extends State<StoreBottomSheet> {
                 SnackBar(
                   content: Text(
                     newStatus
-                        ? "✨ Watermark removed for future renders!"
-                        : "🏷️ Watermarks re-enabled for future renders!",
+                        ? "Watermark removed for future renders!"
+                        : "Watermarks re-enabled for future renders!",
                   ),
                   backgroundColor: AppColors.hardwareGunmetal,
                   duration: const Duration(seconds: 2),

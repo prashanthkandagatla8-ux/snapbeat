@@ -262,7 +262,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                           const SizedBox(height: 2),
                           Text(
                             hasTrack
-                                ? 'Default track ready • Change if needed, or tap play'
+                                ? 'Default track ready • Change if needed'
                                 : 'Step 1 • Pick track to unlock Step 2 Photos',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

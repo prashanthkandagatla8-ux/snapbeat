@@ -46,7 +46,7 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     super.key,
-    this.initialTab = "photos",
+    this.initialTab = "music",
     this.initialRenderMode = "auto",
     this.initialMusic,
     this.initialMusicTitle,
@@ -69,7 +69,7 @@ class HomeScreenState extends State<HomeScreen> {
   StreamSubscription? _playerPositionSubscription;
   bool _isSubmittingRender = false;
 
-  String _currentTab = "photos"; // "photos", "music", "render", "queue"
+  String _currentTab = "music"; // "music", "photos", "render", "queue"
   String _renderMode = "auto"; // "auto", "pro"
   File? _selectedMusic;
   String _selectedMusicTitle = "";
@@ -1013,7 +1013,7 @@ class HomeScreenState extends State<HomeScreen> {
     final entitlementTokenSnapshot = isPro ? sm.signedEntitlementToken : null;
     final audioStartSnapshot = _audioStart.toInt();
     final audioEndSnapshot = _audioEnd.toInt();
-    final titleTextSnapshot = _enableTitle ? _titleText : null;
+    final titleTextSnapshot = (_enableTitle && _titleText.trim().isNotEmpty) ? _titleText.trim() : null;
     final titleBgSnapshot = _titleBg;
     final titleDurationSnapshot = _titleDuration;
     final titleFontSnapshot = _titleFont;
@@ -1309,15 +1309,15 @@ class HomeScreenState extends State<HomeScreen> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             child: _buildProceedButton(
-                              label: "NEXT: CHOOSE STYLE & RENDER →",
-                              subtitle: "Soundtrack configured • Pick template and motion style",
-                              icon: Icons.movie_creation_rounded,
+                              label: "NEXT: ADD PHOTOS →",
+                              subtitle: "Soundtrack configured • Select photos for your reel",
+                              icon: Icons.photo_library_rounded,
                               onTap: () {
                                 if (_scrollController.hasClients) {
                                   _scrollController.jumpTo(0.0);
                                 }
                                 setState(() {
-                                  const newTab = "render";
+                                  const newTab = "photos";
                                   if (_isPlayingAudio && newTab != 'music') {
                                     _audioPlayer.pause();
                                     _isPlayingAudio = false;
@@ -1358,7 +1358,7 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ] else if (_currentTab == "photos") ...[
-                        // STAGE 1: PHOTOS FIRST (Curate & Arrange)
+                        // STAGE 2: PHOTOS (Curate & Arrange)
                         SnapsReorderStrip(
                           photos: _photos,
                           isEnabled: true,
@@ -1386,15 +1386,15 @@ class HomeScreenState extends State<HomeScreen> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: _buildProceedButton(
-                              label: "NEXT: SELECT MUSIC →",
-                              subtitle: "${_photos.length} photos ready • Choose your soundtrack",
-                              icon: Icons.library_music_rounded,
+                              label: "NEXT: CHOOSE STYLE & RENDER →",
+                              subtitle: "${_photos.length} photos ready • Pick template and motion style",
+                              icon: Icons.movie_creation_rounded,
                               onTap: () {
                                 if (_scrollController.hasClients) {
                                   _scrollController.jumpTo(0.0);
                                 }
                                 setState(() {
-                                  const newTab = "music";
+                                  const newTab = "render";
                                   _currentTab = newTab;
                                 });
                               },
@@ -1731,54 +1731,6 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
 
-        // 3. Upcoming Templates & Advanced Modes Teaser Banner
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8.5),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF1E1A16).withValues(alpha: 0.9),
-                  const Color(0xFF2B2319).withValues(alpha: 0.9),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.45), width: 1),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 1.5),
-                  child: Icon(Icons.auto_awesome_rounded, size: 13, color: AppColors.amberJewel),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 9.5,
-                        color: AppColors.textSecondary,
-                        height: 1.35,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: "Coming Soon: ",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.amberJewel),
-                        ),
-                        TextSpan(
-                          text: "More exciting templates, advanced features and modes coming soon!",
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
 
         // 4. Job Summary Badge
         _buildJobSummaryCard(),
@@ -2040,9 +1992,18 @@ class HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  '${_currentAutoTemplate.emoji} ${_currentAutoTemplate.subtitle} (tap dice to change)',
-                  style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                Row(
+                  children: [
+                    Icon(_currentAutoTemplate.icon, size: 11, color: AppColors.brassGold),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${_currentAutoTemplate.subtitle} (tap dice to change)',
+                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

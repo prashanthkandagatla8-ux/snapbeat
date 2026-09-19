@@ -107,7 +107,7 @@ class ApiService {
     if (audioEnd != null && audioEnd > 0) {
       formData.fields.add(MapEntry("audio_end", audioEnd.toString()));
     }
-    final effectiveTitleText = (titleText != null && titleText.trim().isNotEmpty) ? titleText.trim() : (enableTitle == true ? 'SNAPBEAT' : null);
+    final effectiveTitleText = (titleText != null && titleText.trim().isNotEmpty) ? titleText.trim() : null;
     if (effectiveTitleText != null) {
       formData.fields.add(MapEntry("title_text", effectiveTitleText));
       formData.fields.add(MapEntry("title_bg", titleBg ?? "black"));
@@ -128,7 +128,17 @@ class ApiService {
         formData.fields.add(MapEntry("title_audio", titleAudio));
       }
     }
-    formData.fields.add(MapEntry("client", (!kIsWeb) ? "ios" : "web"));
+    final String clientPlatform;
+    if (kIsWeb) {
+      clientPlatform = "web";
+    } else if (Platform.isAndroid) {
+      clientPlatform = "android";
+    } else if (Platform.isIOS) {
+      clientPlatform = "ios";
+    } else {
+      clientPlatform = Platform.operatingSystem.toLowerCase();
+    }
+    formData.fields.add(MapEntry("client", clientPlatform));
 
     if (onProgress != null) onProgress(0.1);
 

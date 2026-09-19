@@ -177,13 +177,20 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4), width: 0.8),
               ),
-              child: Text(
-                '${activeTemplate.name} ${activeTemplate.emoji}',
-                style: const TextStyle(
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.brassGold,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(activeTemplate.icon, size: 10, color: AppColors.brassGold),
+                  const SizedBox(width: 4),
+                  Text(
+                    activeTemplate.name,
+                    style: const TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.brassGold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -396,7 +403,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                         children: [
                           Row(
                             children: [
-                              Text(activeTemplate.emoji, style: const TextStyle(fontSize: 13)),
+                              Icon(activeTemplate.icon, size: 13, color: AppColors.brassGold),
                               const SizedBox(width: 5),
                               Text(
                                 activeTemplate.name,
@@ -567,7 +574,11 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(t.emoji, style: const TextStyle(fontSize: 10)),
+                    Icon(
+                      t.icon,
+                      size: 11,
+                      color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.brassGold,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       t.name.toUpperCase(),
@@ -671,7 +682,7 @@ class _FullscreenTemplatePreviewDialogState
                 children: [
                   Row(
                     children: [
-                      Text(widget.template.emoji, style: const TextStyle(fontSize: 16)),
+                      Icon(widget.template.icon, size: 16, color: AppColors.brassGold),
                       const SizedBox(width: 8),
                       Text(
                         widget.template.name.toUpperCase(),

@@ -11,6 +11,7 @@ import 'package:snapbeat_flutter/theme/app_colors.dart';
 import 'package:snapbeat_flutter/ui/components/metal_chassis_scaffold.dart';
 import 'package:snapbeat_flutter/ui/components/retro_mechanical_button.dart';
 import 'package:snapbeat_flutter/ui/components/snaps_reorder_strip.dart';
+import 'package:snapbeat_flutter/ui/components/retro_subscription_dialog.dart';
 import 'package:snapbeat_flutter/ui/screens/home_screen.dart';
 
 Future<void> loadFont(String family, String path) async {
@@ -129,6 +130,7 @@ void main() {
       'xyz.luan/audioplayers.global',
       'xyz.luan/audioplayers/events',
       'xyz.luan/audioplayers.global/events',
+      'plugins.flutter.io/google_mobile_ads',
     ];
     for (final ch in channels) {
       messenger.setMockMethodCallHandler(MethodChannel(ch), (call) async => 1);
@@ -356,6 +358,55 @@ void main() {
     }
 
     await capturePng(key, '05_queue_vault.png');
+    exit(0);
+  });
+
+  testWidgets('screen_06_subscription_review', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await preloadAllAssets(tester);
+
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: testTheme,
+        home: RepaintBoundary(
+          key: key,
+          child: Stack(
+            children: [
+              HomeScreen(
+                initialTab: "render",
+                initialRenderMode: "pro",
+                initialMusic: dummyMusicFile,
+                initialMusicTitle: "Funk Smooth Party (124 BPM)",
+                initialPhotos: getSamplePhotos(),
+              ),
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.65),
+                ),
+              ),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                top: 220,
+                child: RetroSubscriptionDialog(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    await capturePng(key, '06_subscription_review.png');
     exit(0);
   });
 }
