@@ -360,107 +360,123 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
             if (photos.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.panelInset,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.chassisBevelDark),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
                     Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.metalDeepCavity,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
-                          ),
-                          child: const Text(
-                            'LAYOUT MODE',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 7.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.6,
-                              color: AppColors.amberJewel,
-                            ),
-                          ),
+                        // 1. ARRANGE Group: AUTO & MANUAL
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildGroupLabel('ARRANGE:'),
+                            const SizedBox(width: 4),
+                            _buildOrderingModeChip('auto', 'AUTO', Icons.auto_mode_rounded),
+                            const SizedBox(width: 3),
+                            _buildOrderingModeChip('manual', 'MANUAL', Icons.pan_tool_alt_rounded),
+                          ],
                         ),
-                        const SizedBox(width: 5),
-                        _buildOrderingModeChip('auto', 'AUTO', Icons.auto_mode_rounded),
-                        const SizedBox(width: 3),
-                        _buildOrderingModeChip('manual', 'MANUAL', Icons.pan_tool_alt_rounded),
-                        const SizedBox(width: 3),
-                        _buildBigModeChip(),
+                        // 2. VIEW Group: BIG Thumbnails
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildGroupLabel('VIEW:'),
+                            const SizedBox(width: 4),
+                            _buildBigModeChip(),
+                          ],
+                        ),
                       ],
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (widget.onAutoShuffle != null && widget.arrangementMode == 'auto') ...[
-                          GestureDetector(
-                            onTap: widget.onAutoShuffle,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.panelCreamDark,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppColors.chassisBevelLight),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Icons.shuffle_rounded, size: 11, color: AppColors.brassGold),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'SHUFFLE',
-                                    style: TextStyle(
-                                      fontSize: 8.5,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.brassGold,
-                                      letterSpacing: 0.4,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                    if ((widget.onAutoShuffle != null && widget.arrangementMode == 'auto') || _effectiveClear != null) ...[
+                      const SizedBox(height: 6),
+                      Container(height: 1, color: AppColors.chassisBevelDark.withValues(alpha: 0.5)),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            widget.arrangementMode == 'auto'
+                                ? 'Beat-synced automatic sequence'
+                                : 'Manual drag-and-drop order',
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 8,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textMuted,
                             ),
                           ),
-                          const SizedBox(width: 5),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (widget.onAutoShuffle != null && widget.arrangementMode == 'auto') ...[
+                                GestureDetector(
+                                  onTap: widget.onAutoShuffle,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.panelCreamDark,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.chassisBevelLight),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(Icons.shuffle_rounded, size: 11, color: AppColors.brassGold),
+                                        SizedBox(width: 3),
+                                        Text(
+                                          'SHUFFLE',
+                                          style: TextStyle(
+                                            fontSize: 8.5,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.brassGold,
+                                            letterSpacing: 0.4,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                              ],
+                              if (_effectiveClear != null)
+                                GestureDetector(
+                                  onTap: _effectiveClear,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.vuRed.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(Icons.restart_alt_rounded, size: 10, color: AppColors.vuRed),
+                                        SizedBox(width: 3),
+                                        Text(
+                                          'CLEAR',
+                                          style: TextStyle(
+                                            fontSize: 8.5,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.vuRed,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ],
-                        if (_effectiveClear != null)
-                          GestureDetector(
-                            onTap: _effectiveClear,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.vuRed.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Icons.restart_alt_rounded, size: 10, color: AppColors.vuRed),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'CLEAR',
-                                    style: TextStyle(
-                                      fontSize: 8.5,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.vuRed,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -826,6 +842,27 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
     );
   }
 
+  Widget _buildGroupLabel(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.metalDeepCavity,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontFamily: 'Montserrat',
+          fontSize: 7.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.6,
+          color: AppColors.amberJewel,
+        ),
+      ),
+    );
+  }
+
   Widget _buildOrderingModeChip(String mode, String label, IconData icon) {
     final isSel = widget.arrangementMode == mode;
     return GestureDetector(
@@ -838,15 +875,15 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
           color: isSel ? AppColors.brassGold : AppColors.metalDeepCavity,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isSel ? AppColors.borderBrass : AppColors.chassisBevelDark,
-            width: isSel ? 1.4 : 0.9,
+            color: isSel ? const Color(0xFFBF8A00) : AppColors.chassisBevelDark,
+            width: isSel ? 1.4 : 1.0,
           ),
           boxShadow: isSel
-              ? const [
+              ? [
                   BoxShadow(
-                    color: AppColors.amberGlow,
-                    blurRadius: 4,
-                    spreadRadius: 0.5,
+                    color: AppColors.amberGlow.withValues(alpha: 0.6),
+                    blurRadius: 6,
+                    spreadRadius: 1,
                   ),
                 ]
               : null,
@@ -888,15 +925,15 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
           color: isBig ? AppColors.brassGold : AppColors.metalDeepCavity,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isBig ? AppColors.borderBrass : AppColors.chassisBevelDark,
-            width: isBig ? 1.4 : 0.9,
+            color: isBig ? const Color(0xFFBF8A00) : AppColors.chassisBevelDark,
+            width: isBig ? 1.4 : 1.0,
           ),
           boxShadow: isBig
-              ? const [
+              ? [
                   BoxShadow(
-                    color: AppColors.amberGlow,
-                    blurRadius: 4,
-                    spreadRadius: 0.5,
+                    color: AppColors.amberGlow.withValues(alpha: 0.6),
+                    blurRadius: 6,
+                    spreadRadius: 1,
                   ),
                 ]
               : null,

@@ -461,14 +461,21 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                               BoxShadow(color: AppColors.amberGlow, blurRadius: 4),
                             ],
                           ),
-                          child: const Text(
-                            'PRO PASS 👑',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.hardwareGunmetal,
-                              letterSpacing: 0.5,
-                            ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.workspace_premium, size: 12, color: AppColors.hardwareGunmetal),
+                              SizedBox(width: 3),
+                              Text(
+                                'PRO PASS',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.hardwareGunmetal,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       )
@@ -551,6 +558,9 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 _changePreview(t.id);
+                if (isLocked) {
+                  RetroSubscriptionDialog.show(context);
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -773,12 +783,22 @@ class _FullscreenTemplatePreviewDialogState
                           RetroSubscriptionDialog.show(context);
                         }
                       },
-                      child: Text(
-                        !canSelect
-                            ? 'UNLOCK PRO TO USE THIS STYLE 👑'
-                            : (widget.isSelected ? 'CURRENTLY SELECTED ✓' : 'USE THIS TEMPLATE'),
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-                      ),
+                      child: !canSelect
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.workspace_premium, size: 16),
+                                SizedBox(width: 6),
+                                Text(
+                                  'UNLOCK PRO TO USE THIS STYLE',
+                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                                ),
+                              ],
+                            )
+                          : Text(
+                              widget.isSelected ? 'CURRENTLY SELECTED ✓' : 'USE THIS TEMPLATE',
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                            ),
                     ),
                   ),
                 ],

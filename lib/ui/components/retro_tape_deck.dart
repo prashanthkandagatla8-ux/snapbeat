@@ -260,17 +260,20 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            hasTrack
-                                ? 'Default track ready • Change if needed'
-                                : 'Step 1 • Pick track to unlock Step 2 Photos',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textMuted,
-                              letterSpacing: 0.4,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              hasTrack
+                                  ? 'Default track ready • Tap to change'
+                                  : 'Step 1 • Pick track to unlock Step 2 Photos',
+                              maxLines: 1,
+                              style: const TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textMuted,
+                                letterSpacing: 0.4,
+                              ),
                             ),
                           ),
                         ],
@@ -386,9 +389,96 @@ class _TapeReelSpool extends StatelessWidget {
   }
 }
 
-class _AnalogVuMeter extends StatelessWidget {
+class _AnalogVuMeter extends StatefulWidget {
   final bool isPlaying;
   const _AnalogVuMeter({required this.isPlaying});
+
+  @override
+  State<_AnalogVuMeter> createState() => _AnalogVuMeterState();
+}
+
+class _AnalogVuMeterState extends State<_AnalogVuMeter>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _vuController;
+  double _needlePos = -0.85;
+  double _targetPos = -0.85;
+  int _step = 0;
+  final math.Random _random = math.Random();
+
+  @override
+  void initState() {
+    super.initState();
+    _vuController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 50),
+    )..addListener(_onVuTick);
+
+    if (widget.isPlaying) {
+      _vuController.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnalogVuMeter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPlaying != oldWidget.isPlaying) {
+      if (widget.isPlaying) {
+        _vuController.repeat();
+      } else {
+        // Allow needle to settle smoothly back to -0.85
+        _targetPos = -0.85;
+        if (!_vuController.isAnimating) {
+          _vuController.repeat();
+        }
+      }
+    }
+  }
+
+  void _onVuTick() {
+    if (widget.isPlaying) {
+      _step++;
+      // Every 3 ticks (~150ms), produce a new dynamic amplitude level mimicking rhythm & RMS pulses
+      if (_step % 3 == 0) {
+        final r = _random.nextDouble();
+        if (r < 0.12) {
+          // Occasional peak into the red (+0.60 to +0.82)
+          _targetPos = 0.60 + _random.nextDouble() * 0.22;
+        } else if (r < 0.50) {
+          // Main dynamic beat crest (0.0 to +0.55)
+          _targetPos = 0.0 + _random.nextDouble() * 0.55;
+        } else {
+          // Trough / decay between beats (-0.40 to 0.0)
+          _targetPos = -0.40 + _random.nextDouble() * 0.40;
+        }
+      }
+    } else {
+      _targetPos = -0.85;
+    }
+
+    // Ballistic response: quick attack on transients, slower mechanical inertia decay
+    final isRising = _targetPos > _needlePos;
+    final lerpRate = isRising ? 0.38 : 0.14;
+    _needlePos += (_targetPos - _needlePos) * lerpRate;
+
+    // When paused and needle has settled near -0.85, clamp and stop controller
+    if (!widget.isPlaying && (_needlePos - -0.85).abs() < 0.015) {
+      _needlePos = -0.85;
+      if (_vuController.isAnimating) {
+        _vuController.stop();
+      }
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _vuController.removeListener(_onVuTick);
+    _vuController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -434,11 +524,9 @@ class _AnalogVuMeter extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Needle
-                AnimatedAlign(
-                  alignment: isPlaying ? const Alignment(0.4, 0.0) : const Alignment(-0.85, 0.0),
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.elasticOut,
+                // Needle with live dynamic position
+                Align(
+                  alignment: Alignment(_needlePos.clamp(-0.95, 0.95), 0.0),
                   child: Container(
                     width: 2,
                     height: 24,

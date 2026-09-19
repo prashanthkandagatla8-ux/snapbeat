@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../../services/subscription_manager.dart';
+import 'retro_subscription_dialog.dart';
 import 'retro_template_preview.dart';
 import 'snapbeat_pink_dot.dart';
 
@@ -127,7 +128,14 @@ class ProControlsCard extends StatelessWidget {
               ),
               // Quality Indicator Lamp
               GestureDetector(
-                onTap: () => onSelectQuality(selectedQuality == '1080p' ? '720p' : '1080p'),
+                onTap: () {
+                  final userIsPro = isPro ?? SubscriptionManager.instance.isPro;
+                  if (!userIsPro) {
+                    RetroSubscriptionDialog.show(context);
+                    return;
+                  }
+                  onSelectQuality(selectedQuality == '1080p' ? '720p' : '1080p');
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(

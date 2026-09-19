@@ -33,6 +33,7 @@ import '../components/tester_feedback_dialog.dart';
 import '../components/metal_chassis_scaffold.dart';
 import '../components/snapbeat_pink_dot.dart';
 import '../components/retro_mechanical_button.dart';
+import '../components/retro_subscription_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialTab;
@@ -1638,7 +1639,7 @@ class HomeScreenState extends State<HomeScreen> {
       children: [
         // 1. Dual Mode Toggle: AUTO vs PRO
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -1673,9 +1674,9 @@ class HomeScreenState extends State<HomeScreen> {
         if (_renderMode == "auto") ...[
           _buildAutoTemplateBanner(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: AppColors.panelCreamDark,
                 borderRadius: BorderRadius.circular(10),
@@ -1683,15 +1684,15 @@ class HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 children: const [
-                  Icon(Icons.bolt_rounded, size: 18, color: AppColors.brassGold),
+                  Icon(Icons.bolt_rounded, size: 16, color: AppColors.brassGold),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       "Auto beat-sync dynamically arranges transitions and pacing to match the soundtrack rhythm. Tap the dice to roll a different preset style!",
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 10,
                         color: AppColors.textSecondary,
-                        height: 1.3,
+                        height: 1.25,
                       ),
                     ),
                   ),
@@ -1731,28 +1732,27 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
 
-
-        // 4. Job Summary Badge
+        // 3. Job Summary Badge
         _buildJobSummaryCard(),
 
         // 4. Render Reel Launch Button (Tactile 3D Skeuomorphic Button)
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
           child: Column(
             children: [
               Center(
                 child: RetroMechanicalButton(
                   variant: RetroButtonVariant.render,
-                  height: 72,
+                  height: 68,
                   onTap: _triggerMasterReel,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Text(
                 "READY TO SYNC ${_photos.length} ${_photos.length == 1 ? 'PHOTO' : 'PHOTOS'} TO BEAT",
                 style: const TextStyle(
                   fontFamily: 'Montserrat',
-                  fontSize: 10,
+                  fontSize: 9.5,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.9,
                   color: AppColors.textMuted,
@@ -1852,8 +1852,8 @@ class HomeScreenState extends State<HomeScreen> {
         : _selectedTemplate.toUpperCase();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.panelCreamDark,
         borderRadius: BorderRadius.circular(10),
@@ -1863,44 +1863,95 @@ class HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              SnapBeatPinkDot(size: 9, withGlow: true),
-              SizedBox(width: 6),
-              Text(
-                "JOB CONFIGURATION SUMMARY",
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                  color: AppColors.textEngraved,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  SnapBeatPinkDot(size: 8.5, withGlow: true),
+                  SizedBox(width: 6),
+                  Text(
+                    "JOB SPECIFICATIONS",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: AppColors.textEngraved,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.panelInset,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
+                ),
+                child: Text(
+                  _renderMode == "auto" ? "AUTO PRESET" : "PRO CONFIG",
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 7.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: AppColors.brassGold,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSummaryPill(Icons.music_note_rounded, _selectedMusicTitle.isEmpty ? "Track" : _selectedMusicTitle),
-              _buildSummaryPill(Icons.timer_outlined, "${durationSec}s duration"),
-            ],
-          ),
           const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSummaryPill(Icons.photo_library_outlined, "${_photos.length} photos"),
-              _buildSummaryPill(Icons.style_outlined, "$styleName • $_selectedAspectRatio • $_selectedQuality"),
-            ],
-          ),
-          const SizedBox(height: 6),
+          // Row 1: Soundtrack & Duration
           Row(
             children: [
               _buildSummaryPill(
+                Icons.music_note_rounded,
+                _selectedMusicTitle.isEmpty ? "Track" : _selectedMusicTitle,
+                subtitle: "AUDIO",
+              ),
+              const SizedBox(width: 4),
+              _buildSummaryPill(
+                Icons.timer_outlined,
+                "${durationSec}s length",
+                subtitle: "DURATION",
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          // Row 2: Photo count & Motion style
+          Row(
+            children: [
+              _buildSummaryPill(
+                Icons.photo_library_outlined,
+                "${_photos.length} ${_photos.length == 1 ? 'photo' : 'photos'}",
+                subtitle: "MEDIA",
+              ),
+              const SizedBox(width: 4),
+              _buildSummaryPill(
+                Icons.auto_awesome_mosaic_rounded,
+                styleName,
+                subtitle: "STYLE",
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          // Row 3: Aspect ratio & Quality + Watermark status
+          Row(
+            children: [
+              _buildSummaryPill(
+                Icons.video_settings_rounded,
+                "$_selectedAspectRatio • $_selectedQuality",
+                subtitle: "OUTPUT",
+              ),
+              const SizedBox(width: 4),
+              _buildSummaryPill(
                 !sm.shouldWatermark ? Icons.verified_rounded : Icons.branding_watermark_rounded,
-                !sm.shouldWatermark ? "WATERMARK: NONE" : "WATERMARK: SNAPBEAT",
+                !sm.shouldWatermark ? "NONE (PRO)" : "SNAPBEAT",
+                subtitle: "WATERMARK",
                 highlight: sm.shouldWatermark,
+                trailingAffordance: sm.shouldWatermark ? "UPGRADE" : null,
+                onTap: sm.shouldWatermark ? () => RetroSubscriptionDialog.show(context) : null,
               ),
             ],
           ),
@@ -1909,46 +1960,118 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSummaryPill(IconData icon, String text, {bool highlight = false}) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 3),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        decoration: BoxDecoration(
-          color: highlight ? const Color(0xFF2E2614) : AppColors.panelInset,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: highlight ? const Color(0xFFD4AF37) : AppColors.chassisBevelDark.withValues(alpha: 0.5),
-          ),
+  Widget _buildSummaryPill(
+    IconData icon,
+    String text, {
+    String? subtitle,
+    bool highlight = false,
+    String? trailingAffordance,
+    VoidCallback? onTap,
+  }) {
+    final pillWidget = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: highlight ? const Color(0xFF2E2614) : AppColors.panelInset,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: highlight ? AppColors.amberGlow : AppColors.chassisBevelDark.withValues(alpha: 0.5),
+          width: highlight ? 1.2 : 0.8,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 12, color: highlight ? const Color(0xFFFFD54F) : AppColors.brassGold),
-            const SizedBox(width: 5),
-            Expanded(
-              child: Text(
-                text,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w700,
-                  color: highlight ? const Color(0xFFFFE082) : AppColors.textEngraved,
+        boxShadow: highlight
+            ? [
+                BoxShadow(
+                  color: AppColors.amberGlow.withValues(alpha: 0.25),
+                  blurRadius: 4,
+                  spreadRadius: 0.5,
                 ),
+              ]
+            : null,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 12, color: highlight ? const Color(0xFFFFD54F) : AppColors.brassGold),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (subtitle != null) ...[
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 6.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: highlight ? AppColors.amberJewel : AppColors.textMuted,
+                    ),
+                  ),
+                ],
+                Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: highlight ? const Color(0xFFFFE082) : AppColors.textEngraved,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailingAffordance != null) ...[
+            const SizedBox(width: 3),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: AppColors.brassGold,
+                borderRadius: BorderRadius.circular(3),
+                boxShadow: const [
+                  BoxShadow(color: AppColors.amberGlow, blurRadius: 2),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    trailingAffordance,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 6.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                      color: AppColors.hardwareGunmetal,
+                    ),
+                  ),
+                  const SizedBox(width: 1.5),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 5.5, color: AppColors.hardwareGunmetal),
+                ],
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
-  }
 
+    if (onTap != null) {
+      return Expanded(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: pillWidget,
+        ),
+      );
+    }
+
+    return Expanded(child: pillWidget);
+  }
 
   Widget _buildAutoTemplateBanner() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.panelCreamDark,
         borderRadius: BorderRadius.circular(12),
@@ -2663,12 +2786,13 @@ class HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.textMuted),
-                tooltip: 'Delete',
-                visualDensity: VisualDensity.compact,
-                onPressed: () => _confirmDeleteReel(job),
-              ),
+              if (job.videoPath == null)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.textMuted),
+                  tooltip: 'Delete reel',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _confirmDeleteReel(job),
+                ),
             ],
           ),
 
@@ -2679,9 +2803,8 @@ class HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 10),
             Row(
               children: [
-                // 1. PLAY BUTTON
+                // 1. PLAY BUTTON (Primary)
                 Expanded(
-                  flex: 3,
                   child: RetroMechanicalButton(
                     variant: RetroButtonVariant.play,
                     height: 44,
@@ -2700,9 +2823,8 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // 2. SOCIAL SHARE
+                // 2. SOCIAL SHARE (Primary)
                 Expanded(
-                  flex: 3,
                   child: RetroMechanicalButton(
                     variant: RetroButtonVariant.share,
                     height: 44,
@@ -2714,13 +2836,38 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // 3. DELETE
-                Expanded(
-                  flex: 2,
-                  child: RetroMechanicalButton(
-                    variant: RetroButtonVariant.delete,
-                    height: 44,
+                // 3. TACTILE RECESSED DELETE BUTTON (Quieter secondary action)
+                Tooltip(
+                  message: 'Delete reel',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () => _confirmDeleteReel(job),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.metalDeepCavity,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.chassisBevelDark,
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            offset: const Offset(1, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.delete_outline_rounded,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -2762,10 +2909,38 @@ class HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          RetroMechanicalButton(
-            variant: RetroButtonVariant.delete,
-            height: 36,
-            onTap: () => _cancelAndRemoveJob(job.id),
+          Tooltip(
+            message: 'Delete reel',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _cancelAndRemoveJob(job.id),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.metalDeepCavity,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.chassisBevelDark,
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      offset: const Offset(1, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
