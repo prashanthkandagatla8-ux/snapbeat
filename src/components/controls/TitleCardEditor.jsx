@@ -10,10 +10,6 @@ export function TitleCardEditor({
   onOpenPricing,
 }) {
   const handleToggle = (checked) => {
-    if (!isPro) {
-      if (onOpenPricing) onOpenPricing();
-      return;
-    }
     setTitleCard((prev) => ({ ...prev, enabled: checked }));
   };
 
@@ -25,14 +21,11 @@ export function TitleCardEditor({
           <span className="text-xs font-black text-[#2b2b2d] uppercase">
             Opening Title Card
           </span>
-          <span className="px-1.5 py-0.2 rounded text-[8px] font-black bg-[#ffc72c] text-[#2b2820] border border-[#bf8a00]">
-            PRO
-          </span>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
-            checked={Boolean(titleCard?.enabled && isPro)}
+            checked={Boolean(titleCard?.enabled)}
             onChange={(e) => handleToggle(e.target.checked)}
             className="sr-only peer"
           />
@@ -40,7 +33,7 @@ export function TitleCardEditor({
         </label>
       </div>
 
-      {titleCard?.enabled && isPro && (
+      {titleCard?.enabled && (
         <div className="space-y-2 p-2.5 rounded-xl metal-inset">
           <input
             type="text"

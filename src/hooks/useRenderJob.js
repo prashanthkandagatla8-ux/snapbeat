@@ -55,6 +55,7 @@ export function useRenderJob() {
         titleCard,
         autoArrange,
         isPro,
+        renderMode,
       } = studioState;
 
       if (!audioFile) {
@@ -86,7 +87,7 @@ export function useRenderJob() {
         if (p.file) formData.append("photos", p.file);
       });
 
-      formData.append("template", selectedTemplate || "pendulum");
+      formData.append("template", renderMode === "auto" ? "auto" : (selectedTemplate || "pendulum"));
       formData.append("frame", frameMap[aspectRatio] || "portrait");
       formData.append("quality", userIsPro && quality === "master" ? "master" : "fast");
       formData.append("watermark", applyWatermark ? "true" : "false");
@@ -97,7 +98,7 @@ export function useRenderJob() {
       formData.append("full_track", audioTrim?.isFullTrack ? "true" : "false");
       formData.append("auto_arrange", autoArrange ? "auto" : "none");
 
-      if (titleCard?.enabled && userIsPro && titleCard?.text?.trim()) {
+      if (titleCard?.enabled && titleCard?.text?.trim()) {
         formData.append("title_text", titleCard.text.trim());
         formData.append("title_font", titleCard.font || "great_vibes");
         formData.append("title_font_size", titleCard.fontSize || "large");

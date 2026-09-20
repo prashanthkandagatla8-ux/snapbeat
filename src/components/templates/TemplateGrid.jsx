@@ -44,9 +44,7 @@ export function TemplateGrid({ selectedTemplate, onSelectTemplate, isPro, onOpen
 
   const handleTemplateClick = (tmpl) => {
     setPreviewId(tmpl.id);
-    if (isPro) {
-      onSelectTemplate(tmpl.id);
-    }
+    onSelectTemplate(tmpl.id);
   };
 
   return (
@@ -170,7 +168,7 @@ export function TemplateGrid({ selectedTemplate, onSelectTemplate, isPro, onOpen
       </div>
 
       {/* TEMPLATE GRID / SELECTOR TRAY */}
-      {!isPro ? (
+      {false ? (
         /* Free Tier: Active Auto-Selected Card + 14-Template Preview Carousel */
         <div className="space-y-2">
           {/* 14 Motion Styles Preview Strip (Free users can preview all 14!) */}

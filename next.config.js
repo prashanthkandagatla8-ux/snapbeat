@@ -7,19 +7,19 @@ const nextConfig = {
     return [
       {
         source: '/api/health',
-        destination: 'http://34.93.112.240/api/health',
+        destination: 'https://api.snapbeat.app/api/health',
       },
       {
         source: '/api/render/:path*',
-        destination: 'http://34.93.112.240/api/render/:path*',
+        destination: 'https://api.snapbeat.app/api/render/:path*',
       },
       {
         source: '/api/v2/:path*',
-        destination: 'http://34.93.112.240/api/v2/:path*',
+        destination: 'https://api.snapbeat.app/api/v2/:path*',
       },
       {
         source: '/outputs/:path*',
-        destination: 'http://34.93.112.240/outputs/:path*',
+        destination: 'https://api.snapbeat.app/outputs/:path*',
       },
     ];
   },

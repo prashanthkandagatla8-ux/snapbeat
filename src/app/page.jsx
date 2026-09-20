@@ -33,9 +33,10 @@ export default function StudioPage() {
   const { isPro: subIsPro, daysRemaining, activatePro } = useSubscription();
 
   // Combine subscription & user account Pro status
-  const isPro = Boolean(subIsPro || user?.isPro);
+  // const isPro = Boolean(subIsPro || user?.isPro);
+  const isPro = false; // Forced free-only
   // Non-switchable: Pro mode is active when Pro pass is active; otherwise Free tier
-  const renderMode = isPro ? "pro" : "free";
+  const accessTier = isPro ? "pro" : "free";
 
   const studio = useStudioState(isPro);
   const renderJob = useRenderJob();
@@ -136,7 +137,7 @@ export default function StudioPage() {
   const handleStartRender = async () => {
     try {
       trackRenderStarted({
-        template: studio.selectedTemplate || "pendulum",
+        template: studio.renderMode === "auto" ? "auto" : (studio.selectedTemplate || "pendulum"),
         photoCount: studio.photos?.length || 0,
         outputResolution: isPro && studio.quality === "master" ? "1080p" : "480p",
         aspectRatio: studio.aspectRatio || "9:16",
@@ -395,6 +396,8 @@ export default function StudioPage() {
               {currentTab === "render" && (
                 <div className="space-y-4">
                   <RetroRenderStudio
+                    renderMode={studio.renderMode}
+                    setRenderMode={studio.setRenderMode}
                     selectedTemplate={studio.selectedTemplate}
                     setSelectedTemplate={studio.setSelectedTemplate}
                     aspectRatio={studio.aspectRatio}

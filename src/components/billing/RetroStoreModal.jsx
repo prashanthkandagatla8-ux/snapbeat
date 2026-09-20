@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PRICING_PLANS } from "@/lib/constants";
-import { Check, Crown, Sparkles, X, ShieldCheck } from "lucide-react";
+import { PRICING_PLANS, TOP_UPS } from "@/lib/constants";
+import { Check, Crown, Sparkles, X, ShieldCheck, Lock } from "lucide-react";
 import { trackUpgradeViewed, trackPurchaseStarted } from "@/lib/analytics";
 
 export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }) {
@@ -200,6 +200,37 @@ export function RetroStoreModal({ isOpen, onClose, onSelectPlan, isPro = false }
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span>256-Bit Encrypted Secure Checkout • Instant Pro Access • Cancel Anytime</span>
           </div>
+        </div>
+
+        {/* Top-Ups Section */}
+        <div className="mt-8 pt-6 border-t border-white/10">
+          <div className="mb-4 text-center">
+            <h3 className="text-lg font-black text-white uppercase tracking-wider">CREDIT TOP-UPS</h3>
+            <p className="text-xs text-amber-100/70">Top-ups are exclusively available to Pro members.</p>
+          </div>
+          
+          {!isPro ? (
+            <div className="p-6 rounded-2xl bg-black/40 border border-white/10 text-center flex flex-col items-center justify-center relative overflow-hidden">
+              <Lock className="w-8 h-8 text-amber-500/50 mb-2" />
+              <p className="text-sm font-black text-white uppercase">TOP-UPS LOCKED</p>
+              <p className="text-xs text-amber-100/70 mt-1 mb-3">Upgrade to any Pro plan above to buy additional credits.</p>
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                <span className="px-4 py-1.5 rounded-full bg-amber-500 text-[#261b02] text-xs font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5" />
+                  SUBSCRIBER ONLY
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {TOP_UPS.map((topup) => (
+                <div key={topup.id} className="p-3 rounded-xl bg-black/40 border border-white/15 hover:border-amber-400/50 transition cursor-pointer text-center">
+                  <p className="text-sm font-black text-white">{topup.credits} Credits</p>
+                  <p className="text-lg font-black text-amber-300">₹{topup.price}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

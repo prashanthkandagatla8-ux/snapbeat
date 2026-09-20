@@ -258,6 +258,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         isPro: Boolean(user?.isPro),
+        canBuyTopUps: Boolean(user?.isPro),
         loading,
         isAuthModalOpen,
         authModalConfig,

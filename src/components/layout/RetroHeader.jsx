@@ -105,7 +105,7 @@ export function RetroHeader({
               >
                 <span>FREE TIER</span>
               </div>
-              <button
+              {/* <button
                 type="button"
                 onClick={onOpenPricing}
                 className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl font-black text-[10px] btn-brass text-[#261b02] shadow-[0_4px_15px_rgba(255,199,44,0.4)] hover:brightness-110 active:scale-95 transition cursor-pointer shrink-0"
@@ -113,7 +113,7 @@ export function RetroHeader({
               >
                 <Crown className="w-3 h-3 text-amber-800 fill-amber-700 shrink-0" />
                 <span>UPGRADE</span>
-              </button>
+              </button> */}
             </div>
           )}
 

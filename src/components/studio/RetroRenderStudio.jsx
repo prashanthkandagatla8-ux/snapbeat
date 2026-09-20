@@ -7,6 +7,8 @@ import { TemplateGrid } from "@/components/templates/TemplateGrid";
 import { Sparkles, Crown, Film, Download, Type, Sliders, Loader2, Play, Eye, Lock } from "lucide-react";
 
 export function RetroRenderStudio({
+  renderMode,
+  setRenderMode,
   selectedTemplate,
   setSelectedTemplate,
   aspectRatio,
@@ -59,10 +61,6 @@ export function RetroRenderStudio({
   };
 
   const handleTitleToggle = (checked) => {
-    if (!isPro) {
-      onOpenPricing();
-      return;
-    }
     setTitleCard((prev) => ({ ...prev, enabled: checked }));
   };
 
@@ -223,13 +221,36 @@ export function RetroRenderStudio({
           </span>
         </div>
 
-        {/* Motion Template Section with CRT Viewfinder */}
-        <TemplateGrid
-          selectedTemplate={selectedTemplate}
-          onSelectTemplate={setSelectedTemplate}
-          isPro={isPro}
-          onOpenPricing={onOpenPricing}
-        />
+        {/* Auto / Manual Mode Toggle */}
+        <div className="flex bg-black/40 border border-white/10 rounded-xl p-1 mb-2">
+          <button
+            type="button"
+            onClick={() => setRenderMode("auto")}
+            className={`flex-1 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-colors ${
+              renderMode === "auto" ? "bg-[#ffc72c] text-black shadow" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            AUTO
+          </button>
+          <button
+            type="button"
+            onClick={() => setRenderMode("manual")}
+            className={`flex-1 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-colors ${
+              renderMode === "manual" ? "bg-[#ffc72c] text-black shadow" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            MANUAL
+          </button>
+        </div>
+
+        {renderMode === "manual" && (
+          <TemplateGrid
+            selectedTemplate={selectedTemplate}
+            onSelectTemplate={setSelectedTemplate}
+            isPro={isPro}
+            onOpenPricing={onOpenPricing}
+          />
+        )}
 
         {/* Frame Aspect Ratio Selector */}
         <div className="space-y-1">
@@ -255,229 +276,227 @@ export function RetroRenderStudio({
           </div>
         </div>
 
-        {/* Export Quality */}
-        <div className="space-y-1 pt-1.5 border-t border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-amber-100/60 uppercase">
-              EXPORT QUALITY
-            </span>
-            {!isPro && (
-              <span
-                onClick={onOpenPricing}
-                className="text-[10px] font-bold text-[#bf8a00] hover:underline cursor-pointer"
-              >
-                1080p requires Pro (Coming Soon) 👑
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setQuality("fast")}
-              className={`py-1.5 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center ${
-                quality === "fast"
-                  ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
-                  : "bg-black/40 border border-white/10 text-white text-amber-100/70 hover:text-white"
-              }`}
-            >
-              <span>480p Standard</span>
-              <span className="text-[9px] font-semibold text-amber-100/60">Free Tier</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (!isPro) onOpenPricing();
-                else setQuality("master");
-              }}
-              className={`py-1.5 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center relative ${
-                quality === "master"
-                  ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
-                  : "bg-black/40 border border-white/10 text-white text-amber-100/70 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-1">
-                <span>1080p Master</span>
-                {!isPro && <Crown className="w-3 h-3 text-[#bf8a00]" />}
+        {renderMode === "manual" && (
+          <>
+            {/* Export Quality */}
+            <div className="space-y-1 pt-1.5 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-black text-amber-100/60 uppercase">
+                  EXPORT QUALITY
+                </span>
+                {/* {!isPro && (
+                  <span
+                    onClick={onOpenPricing}
+                    className="text-[10px] font-bold text-[#bf8a00] hover:underline cursor-pointer"
+                  >
+                    1080p requires Pro (Coming Soon) 👑
+                  </span>
+                )} */}
               </div>
-              <span className="text-[9px] font-semibold text-amber-100/60">Pro • Coming Soon</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Watermark Status */}
-        <div className="p-3 rounded-2xl bg-black/40 border border-white/10 text-white space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="text-xs font-black text-white uppercase tracking-wide">SNAPBEAT WATERMARK</p>
-              <p className="text-[10px] text-amber-100/60">
-                {isPro ? "Clean video output • Zero watermark" : "Free output includes watermark badge"}
-              </p>
-            </div>
-            {isPro ? (
-              <span className="px-2.5 py-0.5 rounded-full bg-[#00c853]/20 text-[#00c853] text-[9px] font-black uppercase tracking-wider border border-[#00c853]/40 shrink-0">
-                REMOVED
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-black uppercase tracking-wider border border-amber-400/40 shrink-0">
-                APPLIED
-              </span>
-            )}
-          </div>
-
-          {!isPro && (
-            <div className="pt-1.5 border-t border-white/10 flex items-center justify-between gap-2 flex-wrap">
-              <span className="text-[10px] text-amber-100/70 font-medium">Remove watermark on all reels:</span>
-              <button
-                type="button"
-                onClick={onOpenPricing}
-                className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0 cursor-pointer"
-                title="Remove watermark with Pro Pass (Coming Soon)"
-              >
-                <Crown className="w-3 h-3 text-amber-800" />
-                <span>REMOVE (PRO - SOON)</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Opening Title Card (PRO-ONLY FEATURE) */}
-        <div className="space-y-2 p-2.5 rounded-2xl bg-black/40 border border-white/10 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Type className="w-3.5 h-3.5 text-[#bf8a00]" />
-              <span className="text-xs font-black text-white uppercase">
-                OPENING TITLE CARD
-              </span>
-              <span className="px-1.5 py-0.2 rounded text-[8px] font-black bg-[#ffc72c] text-[#2b2820] border border-[#bf8a00]">
-                PRO
-              </span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={Boolean(titleCard?.enabled && isPro)}
-                onChange={(e) => handleTitleToggle(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-9 h-5 bg-[#7a766f] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ffc72c]"></div>
-            </label>
-          </div>
-
-          {titleCard?.enabled && isPro && (
-            <div className="space-y-2 pt-1">
-              <input
-                type="text"
-                placeholder="Title text (e.g. Summer Memories)"
-                value={titleCard.text}
-                maxLength={40}
-                onChange={(e) =>
-                  setTitleCard((prev) => ({ ...prev, text: e.target.value }))
-                }
-                className="w-full px-3 py-1.5 rounded-xl bg-black/50 text-white border border-white/15 text-xs font-bold text-white placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
-              />
-              <input
-                type="text"
-                placeholder="Subtitle / Date (e.g. Tokyo • 2026)"
-                value={titleCard.subtitle || ""}
-                maxLength={40}
-                onChange={(e) =>
-                  setTitleCard((prev) => ({ ...prev, subtitle: e.target.value }))
-                }
-                className="w-full px-3 py-1.5 rounded-xl bg-black/50 text-white border border-white/15 text-xs font-bold text-white placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
-              />
               <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={titleCard.font}
-                  onChange={(e) =>
-                    setTitleCard((prev) => ({ ...prev, font: e.target.value }))
-                  }
-                  className="px-2 py-1 rounded-lg bg-black/50 text-white border border-white/15 text-[11px] font-bold text-white"
+                <button
+                  type="button"
+                  onClick={() => setQuality("fast")}
+                  className={`py-1.5 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center ${
+                    quality === "fast"
+                      ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
+                      : "bg-black/40 border border-white/10 text-white text-amber-100/70 hover:text-white"
+                  }`}
                 >
-                  {TITLE_FONTS.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={titleCard.duration}
-                  onChange={(e) =>
-                    setTitleCard((prev) => ({
-                      ...prev,
-                      duration: parseInt(e.target.value, 10),
-                    }))
-                  }
-                  className="px-2 py-1 rounded-lg bg-black/50 text-white border border-white/15 text-[11px] font-bold text-white"
-                >
-                  <option value="2">2 seconds intro</option>
-                  <option value="3">3 seconds intro</option>
-                  <option value="4">4 seconds intro</option>
-                </select>
-              </div>
+                  <span>480p Standard</span>
+                  <span className="text-[9px] font-semibold text-amber-100/60">Free Tier</span>
+                </button>
 
-              <div className="pt-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-extrabold text-amber-100/70 uppercase tracking-wider">
-                    Font Size
-                  </span>
-                  <span className="text-[9px] font-black text-amber-400">
-                    {titleCard.fontSize === "small"
-                      ? "S - SMALL"
-                      : titleCard.fontSize === "medium"
-                      ? "M - MEDIUM"
-                      : titleCard.fontSize === "xlarge" || titleCard.fontSize === "xl"
-                      ? "XL - HEADLINE"
-                      : "L - LARGE (DEFAULT)"}
-                  </span>
-                </div>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {[
-                    { id: "small", label: "S" },
-                    { id: "medium", label: "M" },
-                    { id: "large", label: "L ★" },
-                    { id: "xlarge", label: "XL" },
-                  ].map((s) => {
-                    const isSelected =
-                      (titleCard.fontSize || "large") === s.id ||
-                      (s.id === "large" && !titleCard.fontSize);
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() =>
-                          setTitleCard((prev) => ({ ...prev, fontSize: s.id }))
-                        }
-                        className={`py-1 rounded-md text-[10px] font-black tracking-wider transition-colors border ${
-                          isSelected
-                            ? "bg-[#ffc72c] text-[#2b2820] border-[#bf8a00] shadow-sm"
-                            : "bg-black/40 text-amber-100/70 border-white/10 hover:bg-white/10"
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                <button
+                  type="button"
+                  disabled={true}
+                  className={`py-1.5 px-3 rounded-xl border-2 text-xs font-black transition flex flex-col items-center relative opacity-50 cursor-not-allowed ${
+                    quality === "master"
+                      ? "bg-[#ffc72c] border-[#bf8a00] text-[#2b2820] shadow"
+                      : "bg-black/40 border border-white/10 text-white text-amber-100/70 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>1080p Master</span>
+                    {!isPro && <Crown className="w-3 h-3 text-[#bf8a00]" />}
+                  </div>
+                  <span className="text-[9px] font-semibold text-amber-100/60">Currently Unavailable</span>
+                </button>
               </div>
             </div>
-          )}
 
-          {!isPro && (
-            <div className="pt-1.5 flex items-center justify-between border-t border-white/10">
-              <p className="text-[10px] text-amber-100/60 font-semibold leading-tight">
-                Cinematic intro cards unlock with any Pro Pass.
-              </p>
-              <button
-                type="button"
-                onClick={onOpenPricing}
-                className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shrink-0 ml-2 shadow hover:brightness-110 cursor-pointer"
-              >
-                PRO (SOON)
-              </button>
+            {/* Watermark Status */}
+            <div className="p-3 rounded-2xl bg-black/40 border border-white/10 text-white space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-black text-white uppercase tracking-wide">SNAPBEAT WATERMARK</p>
+                  <p className="text-[10px] text-amber-100/60">
+                    {isPro ? "Clean video output • Zero watermark" : "Free output includes watermark badge"}
+                  </p>
+                </div>
+                {isPro ? (
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#00c853]/20 text-[#00c853] text-[9px] font-black uppercase tracking-wider border border-[#00c853]/40 shrink-0">
+                    REMOVED
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-black uppercase tracking-wider border border-amber-400/40 shrink-0">
+                    APPLIED
+                  </span>
+                )}
+              </div>
+
+              {/* {!isPro && (
+                <div className="pt-1.5 border-t border-white/10 flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[10px] text-amber-100/70 font-medium">Remove watermark on all reels:</span>
+                  <button
+                    type="button"
+                    onClick={onOpenPricing}
+                    className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shadow hover:brightness-110 flex items-center gap-1 shrink-0 cursor-pointer"
+                    title="Remove watermark with Pro Pass (Coming Soon)"
+                  >
+                    <Crown className="w-3 h-3 text-amber-800" />
+                    <span>REMOVE (PRO - SOON)</span>
+                  </button>
+                </div>
+              )} */}
             </div>
-          )}
-        </div>
+
+            {/* Opening Title Card (PRO-ONLY FEATURE) */}
+            <div className="space-y-2 p-2.5 rounded-2xl bg-black/40 border border-white/10 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Type className="w-3.5 h-3.5 text-[#bf8a00]" />
+                  <span className="text-xs font-black text-white uppercase">
+                    OPENING TITLE CARD
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(titleCard?.enabled)}
+                    onChange={(e) => handleTitleToggle(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-[#7a766f] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ffc72c]"></div>
+                </label>
+              </div>
+
+              {titleCard?.enabled && (
+                <div className="space-y-2 pt-1">
+                  <input
+                    type="text"
+                    placeholder="Title text (e.g. Summer Memories)"
+                    value={titleCard.text}
+                    maxLength={40}
+                    onChange={(e) =>
+                      setTitleCard((prev) => ({ ...prev, text: e.target.value }))
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl bg-black/50 text-white border border-white/15 text-xs font-bold text-white placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Subtitle / Date (e.g. Tokyo • 2026)"
+                    value={titleCard.subtitle || ""}
+                    maxLength={40}
+                    onChange={(e) =>
+                      setTitleCard((prev) => ({ ...prev, subtitle: e.target.value }))
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl bg-black/50 text-white border border-white/15 text-xs font-bold text-white placeholder-[#7a766f] focus:outline-none focus:border-[#2b2b2d]"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      value={titleCard.font}
+                      onChange={(e) =>
+                        setTitleCard((prev) => ({ ...prev, font: e.target.value }))
+                      }
+                      className="px-2 py-1 rounded-lg bg-black/50 text-white border border-white/15 text-[11px] font-bold text-white"
+                    >
+                      {TITLE_FONTS.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.label}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={titleCard.duration}
+                      onChange={(e) =>
+                        setTitleCard((prev) => ({
+                          ...prev,
+                          duration: parseInt(e.target.value, 10),
+                        }))
+                      }
+                      className="px-2 py-1 rounded-lg bg-black/50 text-white border border-white/15 text-[11px] font-bold text-white"
+                    >
+                      <option value="2">2 seconds intro</option>
+                      <option value="3">3 seconds intro</option>
+                      <option value="4">4 seconds intro</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-extrabold text-amber-100/70 uppercase tracking-wider">
+                        Font Size
+                      </span>
+                      <span className="text-[9px] font-black text-amber-400">
+                        {titleCard.fontSize === "small"
+                          ? "S - SMALL"
+                          : titleCard.fontSize === "medium"
+                          ? "M - MEDIUM"
+                          : titleCard.fontSize === "xlarge" || titleCard.fontSize === "xl"
+                          ? "XL - HEADLINE"
+                          : "L - LARGE (DEFAULT)"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[
+                        { id: "small", label: "S" },
+                        { id: "medium", label: "M" },
+                        { id: "large", label: "L ★" },
+                        { id: "xlarge", label: "XL" },
+                      ].map((s) => {
+                        const isSelected =
+                          (titleCard.fontSize || "large") === s.id ||
+                          (s.id === "large" && !titleCard.fontSize);
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() =>
+                              setTitleCard((prev) => ({ ...prev, fontSize: s.id }))
+                            }
+                            className={`py-1 rounded-md text-[10px] font-black tracking-wider transition-colors border ${
+                              isSelected
+                                ? "bg-[#ffc72c] text-[#2b2820] border-[#bf8a00] shadow-sm"
+                                : "bg-black/40 text-amber-100/70 border-white/10 hover:bg-white/10"
+                            }`}
+                          >
+                            {s.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* {!isPro && (
+                <div className="pt-1.5 flex items-center justify-between border-t border-white/10">
+                  <p className="text-[10px] text-amber-100/60 font-semibold leading-tight">
+                    Cinematic intro cards unlock with any Pro Pass.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={onOpenPricing}
+                    className="px-2.5 py-1 rounded-xl btn-brass text-[#2b2820] text-[10px] font-black uppercase tracking-wider shrink-0 ml-2 shadow hover:brightness-110 cursor-pointer"
+                  >
+                    PRO (SOON)
+                  </button>
+                </div>
+              )} */}
+            </div>
+          </>
+        )}
 
         {/* PRIMARY MECHANICAL RENDER BUTTON */}
         <div className="pt-2 flex flex-col items-center">

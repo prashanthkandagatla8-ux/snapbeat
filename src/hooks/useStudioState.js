@@ -16,6 +16,7 @@ export function useStudioState(isPro = false) {
   const [autoArrange, setAutoArrange] = useState(false);
 
   // Styling & Controls
+  const [renderMode, setRenderMode] = useState("auto"); // "auto" or "manual"
   // Initial template: pick from pool
   const [selectedTemplate, setSelectedTemplate] = useState("pendulum");
   const [aspectRatio, setAspectRatio] = useState("9:16");
@@ -45,13 +46,9 @@ export function useStudioState(isPro = false) {
   // Guard manual template selection: Disabled for free users, enabled for Pro only
   const setTemplateGuarded = useCallback(
     (newTemplate) => {
-      if (!isPro) {
-        // Free users cannot manually select or change template
-        return;
-      }
       setSelectedTemplate(newTemplate);
     },
-    [isPro]
+    []
   );
 
   // Title card
@@ -265,6 +262,8 @@ export function useStudioState(isPro = false) {
     setAutoArrange,
 
     // Controls
+    renderMode,
+    setRenderMode,
     selectedTemplate,
     setSelectedTemplate: setTemplateGuarded,
     rotateAutoTemplate,

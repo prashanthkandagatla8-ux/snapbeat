@@ -185,46 +185,31 @@ export const SAMPLE_PHOTOS = [
 export const TEMPLATES = [
   { id: "pendulum", name: "Pendulum", subtitle: "Swinging cuts with mirrored borders", emoji: "🪞", isPro: false },
   { id: "beat-cut", name: "Beat Cut", subtitle: "Classic snappy beat drop transitions", emoji: "⚡", isPro: false },
-  { id: "beat-bounce", name: "Bounce", subtitle: "Kinetic bassline scale bounces", emoji: "🏀", isPro: true },
-  { id: "cinematic-zoom", name: "Cinematic Zoom", subtitle: "Dynamic optical punch-in zooms", emoji: "🎬", isPro: true },
-  { id: "beat-fade", name: "Fade", subtitle: "Silky crossfades for ambient beats", emoji: "🌊", isPro: true },
-  { id: "glide-pan", name: "Glide", subtitle: "Lateral gliding pan motion", emoji: "🛹", isPro: true },
-  { id: "beat-pulse", name: "Pulse", subtitle: "Pulsing emotional sub-bass pump", emoji: "💓", isPro: true },
-  { id: "punch-cut", name: "Punch", subtitle: "High-impact rhythmic punch cuts", emoji: "🥊", isPro: true },
-  { id: "reveal-tiles", name: "Reveal Boxes", subtitle: "Geometric box tile mosaic reveals", emoji: "🔲", isPro: true },
-  { id: "beat-slide", name: "Slide", subtitle: "Directional kinetic slide transitions", emoji: "➡️", isPro: true },
-  { id: "slow-drift", name: "Slow Drift", subtitle: "Atmospheric slow cinematic drift", emoji: "☁️", isPro: true },
-  { id: "sway-ballad", name: "Sway", subtitle: "Gentle rhythmic swaying cadence", emoji: "🍃", isPro: true },
-  { id: "beat-whip", name: "Whip", subtitle: "High-velocity directional whip pans", emoji: "🌪️", isPro: true },
-  { id: "zoom-out-reveal", name: "Zoom Out", subtitle: "Expanding optical reveal zoom", emoji: "🔍", isPro: true },
+  { id: "beat-bounce", name: "Bounce", subtitle: "Kinetic bassline scale bounces", emoji: "🏀", isPro: false },
+  { id: "cinematic-zoom", name: "Cinematic Zoom", subtitle: "Dynamic optical punch-in zooms", emoji: "🎬", isPro: false },
+  { id: "beat-fade", name: "Fade", subtitle: "Silky crossfades for ambient beats", emoji: "🌊", isPro: false },
+  { id: "glide-pan", name: "Glide", subtitle: "Lateral gliding pan motion", emoji: "🛹", isPro: false },
+  { id: "beat-pulse", name: "Pulse", subtitle: "Pulsing emotional sub-bass pump", emoji: "💓", isPro: false },
+  { id: "punch-cut", name: "Punch", subtitle: "High-impact rhythmic punch cuts", emoji: "🥊", isPro: false },
+  { id: "reveal-tiles", name: "Reveal Boxes", subtitle: "Geometric box tile mosaic reveals", emoji: "🔲", isPro: false },
+  { id: "beat-slide", name: "Slide", subtitle: "Directional kinetic slide transitions", emoji: "➡️", isPro: false },
+  { id: "slow-drift", name: "Slow Drift", subtitle: "Atmospheric slow cinematic drift", emoji: "☁️", isPro: false },
+  { id: "sway-ballad", name: "Sway", subtitle: "Gentle rhythmic swaying cadence", emoji: "🍃", isPro: false },
+  { id: "beat-whip", name: "Whip", subtitle: "High-velocity directional whip pans", emoji: "🌪️", isPro: false },
+  { id: "zoom-out-reveal", name: "Zoom Out", subtitle: "Expanding optical reveal zoom", emoji: "🔍", isPro: false },
 ];
 
 export const PRICING_PLANS = [
   {
-    id: "daily",
-    name: "1-Day Pass",
-    price: 49,
-    period: "day",
-    durationDays: 1,
-    description: "Instant 24-hour access for quick reel exports",
-    badge: "QUICK PASS",
-    features: [
-      "Unlimited 1080p Master Renders",
-      "No Watermark on any export",
-      "All 14 Pro Templates unlocked",
-      "Custom Title Card branding",
-      "24 Hours Full Access",
-    ],
-  },
-  {
     id: "weekly",
     name: "Weekly Pass",
-    price: 99,
+    price: 149,
     period: "week",
     durationDays: 7,
     description: "Great for weekend creators & one-off events",
     badge: null,
     features: [
+      "8 Credits / week included",
       "Unlimited 1080p Master Renders",
       "No Watermark on any export",
       "All 14 Pro Templates unlocked",
@@ -235,12 +220,13 @@ export const PRICING_PLANS = [
   {
     id: "monthly",
     name: "Monthly Pro",
-    price: 199,
+    price: 349,
     period: "month",
     durationDays: 30,
     description: "Our most popular plan for active creators",
     badge: "MOST POPULAR",
     features: [
+      "40 Credits / month included",
       "Unlimited 1080p Master Renders",
       "No Watermark on any export",
       "All 14 Pro Templates unlocked",
@@ -252,12 +238,13 @@ export const PRICING_PLANS = [
   {
     id: "annual",
     name: "Annual Studio",
-    price: 999,
+    price: 1799,
     period: "year",
     durationDays: 365,
     description: "Best value for agencies & power creators",
-    badge: "SAVE 58%",
+    badge: "SAVE 57%",
     features: [
+      "36 Credits / month included",
       "Everything in Monthly Pro",
       "VIP Early Access to Video Renders",
       "Highest Queue Priority",
@@ -265,6 +252,15 @@ export const PRICING_PLANS = [
       "365 Days Full Access",
     ],
   },
+];
+
+export const TOP_UPS = [
+  { id: "T1", credits: 5, price: 39 },
+  { id: "T2", credits: 10, price: 69 },
+  { id: "T3", credits: 25, price: 149 },
+  { id: "T4", credits: 50, price: 269 },
+  { id: "T5", credits: 100, price: 469 },
+  { id: "T6", credits: 250, price: 999 },
 ];
 
 export const ASPECT_RATIOS = [
