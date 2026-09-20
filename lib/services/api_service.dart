@@ -135,17 +135,6 @@ class ApiService {
         formData.fields.add(MapEntry("title_audio", titleAudio));
       }
     }
-    final String clientPlatform;
-    if (kIsWeb) {
-      clientPlatform = "web";
-    } else if (Platform.isAndroid) {
-      clientPlatform = "android";
-    } else if (Platform.isIOS) {
-      clientPlatform = "ios";
-    } else {
-      clientPlatform = Platform.operatingSystem.toLowerCase();
-    }
-    formData.fields.add(MapEntry("client", clientPlatform));
 
     if (onProgress != null) onProgress(0.1);
 
