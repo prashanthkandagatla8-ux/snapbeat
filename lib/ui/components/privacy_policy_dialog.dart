@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_colors.dart';
 
 class PrivacyPolicyDialog extends StatefulWidget {
@@ -156,11 +157,16 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                           ),
                         ),
                         const SizedBox(height: 14),
-                        _buildSectionItem(
-                          icon: '🍎',
-                          title: 'Apple Standard Terms of Use (EULA)',
-                          description:
-                              'By downloading or using SnapBeat, you agree to Apple\'s Standard Licensed Application End User License Agreement:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                        GestureDetector(
+                          onTap: () {
+                            launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
+                          },
+                          child: _buildSectionItem(
+                            icon: '🍎',
+                            title: 'Apple Standard Terms of Use (EULA)',
+                            description:
+                                'By downloading or using SnapBeat, you agree to Apple\'s Standard Licensed Application End User License Agreement:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/ (Tap to open)',
+                          ),
                         ),
                         _buildSectionItem(
                           icon: '💳',
@@ -225,9 +231,9 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
 
                             _buildSectionItem(
                               icon: '🎬',
-                              title: 'Optional Rewarded Video Ads',
+                              title: 'Advertising & Consent',
                               description:
-                                  'Free users may optionally choose to watch Google AdMob rewarded videos to unlock clean exports. No personal profiles, cross-app tracking cookies, or user identities are sold.',
+                                  'Free users see a full-screen ad before a reel plays. Subscribers see no ads at all. Ads come from Google AdMob, which may use a device advertising identifier to serve them. Consent is handled through Google\'s UMP form where local law requires it. As always, there is no sale of personal media, no cross-app tracking for profiling, and no AI/ML training on user photos or music.',
                             ),
 
                             _buildSectionItem(

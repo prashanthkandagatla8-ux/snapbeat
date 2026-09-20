@@ -4,7 +4,7 @@ import 'package:video_player/video_player.dart';
 import '../../theme/app_colors.dart';
 import '../../services/export_service.dart';
 import '../../services/subscription_manager.dart';
-import 'retro_ad_dialog.dart';
+
 import 'retro_mechanical_button.dart';
 
 class VideoPreviewDialog extends StatefulWidget {
@@ -420,82 +420,30 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
 
                     const SizedBox(height: 10),
                     // Action Buttons: Clean HD Unlock for Free users, Direct Share for Pro users
+                    // Action Buttons: DOWNLOAD and SHARE
                     AnimatedBuilder(
                       animation: SubscriptionManager.instance,
                       builder: (context, _) {
-                        final isPro = SubscriptionManager.instance.isPro;
                         final tName = widget.customName ?? widget.templateName ?? 'SnapBeat';
 
-                        if (isPro) {
-                          return SizedBox(
-                            width: double.infinity,
-                            child: RetroMechanicalButton(
-                              variant: RetroButtonVariant.share,
-                              height: 48,
-                              onTap: () => ExportService.shareReel(
-                                context,
-                                videoPath: widget.videoPath,
-                                templateName: tName,
-                              ),
-                            ),
-                          );
-                        }
-
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
+                        return Row(
                           children: [
-                            // 1. Clean Export / Ad Unlock Button
-                            SizedBox(
-                              width: double.infinity,
-                              height: 46,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.brassGold,
-                                  foregroundColor: Colors.black,
-                                  elevation: 2,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: const BorderSide(color: AppColors.brassHighlight, width: 1.2),
-                                  ),
+                            Expanded(
+                              child: RetroMechanicalButton(
+                                variant: RetroButtonVariant.download,
+                                height: 48,
+                                onTap: () => ExportService.saveToGallery(
+                                  context,
+                                  videoPath: widget.videoPath,
+                                  templateName: tName,
                                 ),
-                                icon: const Icon(Icons.bolt_rounded, size: 20),
-                                label: const Text(
-                                  'UNLOCK CLEAN EXPORT (WATCH AD)',
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 11.5,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  RetroAdDialog.show(
-                                    context,
-                                    onCleanExportUnlocked: () {
-                                      ExportService.shareReel(
-                                        context,
-                                        videoPath: widget.videoPath,
-                                        templateName: tName,
-                                      );
-                                    },
-                                    onWatermarkedExport: () {
-                                      ExportService.shareReel(
-                                        context,
-                                        videoPath: widget.videoPath,
-                                        templateName: tName,
-                                      );
-                                    },
-                                  );
-                                },
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            // 2. Free Watermarked Share (Always Available & Unblocked)
-                            SizedBox(
-                              width: double.infinity,
+                            const SizedBox(width: 8),
+                            Expanded(
                               child: RetroMechanicalButton(
                                 variant: RetroButtonVariant.share,
-                                height: 44,
+                                height: 48,
                                 onTap: () => ExportService.shareReel(
                                   context,
                                   videoPath: widget.videoPath,

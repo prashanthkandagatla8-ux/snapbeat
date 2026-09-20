@@ -4,7 +4,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'ad_config.dart';
 import 'subscription_manager.dart';
 
-/// Centralized lifecycle manager for Google AdMob Rewarded Video ads and UMP consent.
+/// Centralized lifecycle manager for Google AdMob Interstitial Video ads and UMP consent.
 class AdManager with ChangeNotifier {
   static final AdManager instance = AdManager._internal();
   AdManager._internal();
@@ -12,10 +12,11 @@ class AdManager with ChangeNotifier {
   bool _isInitialized = false;
   bool _isLoading = false;
   bool _isShowing = false;
-  RewardedAd? _rewardedAd;
+  InterstitialAd? _interstitialAd;
   int _loadRetryAttempt = 0;
+  DateTime? _lastAdShownTime;
 
-  bool get isAdReady => _rewardedAd != null;
+  bool get isAdReady => _interstitialAd != null;
   bool get isLoading => _isLoading;
   bool get isShowing => _isShowing;
 
@@ -31,8 +32,8 @@ class AdManager with ChangeNotifier {
       // Request UMP GDPR / ATT consent form if needed
       await _requestConsent();
 
-      // Start preloading the first rewarded ad
-      preloadRewardedAd();
+      // Start preloading the first interstitial ad
+      preloadInterstitial();
     } catch (e) {
       debugPrint('[AdManager] Initialization error: $e');
       _isInitialized = true;
@@ -59,9 +60,9 @@ class AdManager with ChangeNotifier {
     );
   }
 
-  /// Preloads a rewarded video ad in the background with exponential retry.
-  void preloadRewardedAd() {
-    if (_rewardedAd != null || _isLoading) return;
+  /// Preloads an interstitial video ad in the background with exponential retry.
+  void preloadInterstitial() {
+    if (_interstitialAd != null || _isLoading) return;
 
     // Skip ad loading if user already has an active Pro subscription
     if (SubscriptionManager.instance.isPro) {
@@ -72,23 +73,23 @@ class AdManager with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final adUnitId = AdConfig.rewardedAdUnitId;
-    debugPrint('[AdManager] Preloading RewardedAd with ID: $adUnitId');
+    final adUnitId = AdConfig.interstitialAdUnitId;
+    debugPrint('[AdManager] Preloading InterstitialAd with ID: $adUnitId');
 
-    RewardedAd.load(
+    InterstitialAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
+      adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          debugPrint('[AdManager] RewardedAd successfully loaded.');
-          _rewardedAd = ad;
+          debugPrint('[AdManager] InterstitialAd successfully loaded.');
+          _interstitialAd = ad;
           _isLoading = false;
           _loadRetryAttempt = 0;
           notifyListeners();
         },
         onAdFailedToLoad: (error) {
-          debugPrint('[AdManager] RewardedAd failed to load: ${error.message} (Code: ${error.code})');
-          _rewardedAd = null;
+          debugPrint('[AdManager] InterstitialAd failed to load: ${error.message} (Code: ${error.code})');
+          _interstitialAd = null;
           _isLoading = false;
           notifyListeners();
 
@@ -97,89 +98,86 @@ class AdManager with ChangeNotifier {
           if (_loadRetryAttempt <= 3) {
             final delaySeconds = (1 << _loadRetryAttempt) * 2;
             debugPrint('[AdManager] Retrying ad load in ${delaySeconds}s (attempt $_loadRetryAttempt)...');
-            Timer(Duration(seconds: delaySeconds), preloadRewardedAd);
+            Timer(Duration(seconds: delaySeconds), preloadInterstitial);
           }
         },
       ),
     );
   }
 
-  /// Displays the rewarded video ad to unlock a clean download or export.
+  /// Shows the pre-roll interstitial, then runs [onDone] exactly once.
   ///
-  /// - If user is Pro: bypasses ads immediately and invokes [onRewardEarned].
-  /// - If ad is not ready or fails to display: invokes [onFallbackGranted] so the user is NEVER blocked!
-  /// - If user completes the ad: invokes [onRewardEarned] and preloads the next ad.
-  Future<void> showRewardedAd({
+  /// [onDone] runs whatever happens: Pro user, ad dismissed, ad failed to load, ad failed to
+  /// show. There is no path where the user taps PLAY and nothing happens, and no path where
+  /// [onDone] runs twice.
+  Future<void> showBeforePlayback({
     required BuildContext context,
-    required VoidCallback onRewardEarned,
-    VoidCallback? onDismissed,
-    required VoidCallback onFallbackGranted,
+    required VoidCallback onDone,
   }) async {
     // 1. Pro subscribers bypass all ads
     if (SubscriptionManager.instance.isPro) {
       debugPrint('[AdManager] Pro user detected. Bypassing ad.');
-      onRewardEarned();
+      onDone();
       return;
+    }
+    
+    // Check gap
+    if (_lastAdShownTime != null) {
+      final diff = DateTime.now().difference(_lastAdShownTime!);
+      if (diff < AdConfig.minGapBetweenAds) {
+        debugPrint('[AdManager] Minimum gap between ads not reached. Skipping ad.');
+        onDone();
+        return;
+      }
     }
 
     // 2. If ad is not loaded, gracefully fall back (never block user download!)
-    if (_rewardedAd == null) {
-      debugPrint('[AdManager] No ad ready. Falling back gracefully to grant clean export.');
-      preloadRewardedAd();
-      onFallbackGranted();
+    if (_interstitialAd == null) {
+      debugPrint('[AdManager] No ad ready. Falling back gracefully to playback.');
+      preloadInterstitial();
+      onDone();
       return;
     }
 
     _isShowing = true;
     notifyListeners();
 
-    bool userEarnedReward = false;
-
-    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
         debugPrint('[AdManager] Ad showing full screen.');
+        _lastAdShownTime = DateTime.now();
       },
       onAdDismissedFullScreenContent: (ad) {
         debugPrint('[AdManager] Ad dismissed.');
         ad.dispose();
-        _rewardedAd = null;
+        _interstitialAd = null;
         _isShowing = false;
         notifyListeners();
 
         // Immediately preload next ad
-        preloadRewardedAd();
-
-        if (userEarnedReward) {
-          onRewardEarned();
-        } else {
-          onDismissed?.call();
-        }
+        preloadInterstitial();
+        onDone();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         debugPrint('[AdManager] Ad failed to show: ${error.message}');
         ad.dispose();
-        _rewardedAd = null;
+        _interstitialAd = null;
         _isShowing = false;
         notifyListeners();
 
-        // Gracefully grant reward on display failure
-        preloadRewardedAd();
-        onFallbackGranted();
+        // Gracefully grant playback on display failure
+        preloadInterstitial();
+        onDone();
       },
     );
 
-    // Show ad and capture reward callback
-    await _rewardedAd!.show(
-      onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        debugPrint('[AdManager] User earned reward: ${reward.amount} ${reward.type}');
-        userEarnedReward = true;
-      },
-    );
+    // Show ad
+    await _interstitialAd!.show();
   }
 
   @override
   void dispose() {
-    _rewardedAd?.dispose();
+    _interstitialAd?.dispose();
     super.dispose();
   }
 }

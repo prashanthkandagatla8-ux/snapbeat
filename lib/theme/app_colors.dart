@@ -1,23 +1,23 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class AppColors {
-  // ─── Confirmed Warm Brushed Metal Chassis ───
-  static const Color metalHighlight = Color(0xFFC8C4BD);    // Top light wash highlight
-  static const Color metalBase = Color(0xFFC2B8A5);         // Warmer beige-grey mid metal
-  static const Color metalShadow = Color(0xFF8F8B83);       // Bottom vignette & cavity shadow
-  static const Color metalDeepCavity = Color(0xFF1E1C1A);   // Inner punched recess
-  static const Color metalScrewHead = Color(0xFF5A5752);    // Screw/rivet detail
-  static const Color hardwareGunmetal = Color(0xFF2A2826);  // Dark hardware
+  // ─── Dark Teal Chassis (ported from web app globals.css) ───
+  static const Color metalHighlight = Color(0xFF203C46);    // Top bevel highlight
+  static const Color metalBase = Color(0xFF0B0D10);         // Dark chassis mid
+  static const Color metalShadow = Color(0xFF071317);       // Bottom vignette & cavity shadow
+  static const Color metalDeepCavity = Color(0xFF03090C);   // Inner punched recess
+  static const Color metalScrewHead = Color(0xFF1E3A42);    // Screw/rivet detail
+  static const Color hardwareGunmetal = Color(0xFF0A1B22);  // Dark hardware
 
-  // ─── Backward-compatible chassis & panels ───
-  static const Color canvasChassis = Color(0xFFC2B8A5);       // Warm metal canvas
-  static const Color chassisBevelLight = Color(0xFFE2DDD5);   // Specular top edge
-  static const Color chassisBevelDark = Color(0xFF7A766F);    // Edge bevel shadow
-  static const Color panelCream = Color(0xFFD4CDC0);          // Primary metal card surface
-  static const Color panelCreamDark = Color(0xFFB8AE9E);      // Secondary recessed card
-  static const Color panelInset = Color(0xFFA89F90);          // Recessed bays & wells
-  static const Color metalBrushedLight = Color(0xFFD2CCC0);
-  static const Color metalBrushedDark = Color(0xFFA0988A);
+  // ─── Backward-compatible chassis & panels (dark) ───
+  static const Color canvasChassis = Color(0xFF0B0D10);       // Dark metal canvas
+  static const Color chassisBevelLight = Color(0xFF203C46);   // Specular top edge
+  static const Color chassisBevelDark = Color(0xFF071317);    // Edge bevel shadow
+  static const Color panelCream = Color(0xFF0C242C);          // Primary dark card surface
+  static const Color panelCreamDark = Color(0xFF081A20);      // Secondary recessed card
+  static const Color panelInset = Color(0xFF051419);          // Recessed bays & wells
+  static const Color metalBrushedLight = Color(0xFF203C46);
+  static const Color metalBrushedDark = Color(0xFF081A20);
 
   // ─── SnapBeat Bubbly Yellow & Gold ───
   static const Color yellowPrimary = Color(0xFFFFC72C);     // Primary button & logo yellow
@@ -45,28 +45,28 @@ class AppColors {
   static const Color vuAmber = Color(0xFFFFB300);           // VU mid level
   static const Color vuRed = Color(0xFFD50000);             // VU peak/clip
 
-  // ─── Stamped Typography ───
-  static const Color textEngraved = Color(0xFF2B2B2D);      // Stamped dark iron typography
-  static const Color textSecondary = Color(0xFF5A5752);     // Stamped subtitle
-  static const Color textMuted = Color(0xFF7A766E);         // Fine etched labels
+  // ─── Typography (light on dark, ported from web) ───
+  static const Color textEngraved = Color(0xFFF8FAFC);      // Primary text (near-white)
+  static const Color textSecondary = Color(0xFFCBD5E1);     // Subtitle
+  static const Color textMuted = Color(0xFF94A3B8);         // Fine labels
   static const Color textWhite = Color(0xFFFFFFFF);
   static const Color textFoilGold = Color(0xFFFFC72C);
 
   // ─── Borders & Grooves ───
-  static const Color grooveLight = Color(0x44FFFFFF);       // Top bevel highlight
-  static const Color grooveDark = Color(0x40000000);        // Bottom shadow
+  static const Color grooveLight = Color(0x22FFFFFF);       // Top bevel highlight (dark)
+  static const Color grooveDark = Color(0x66000000);        // Bottom shadow (deeper on dark)
   static const Color borderBrass = Color(0x88FFC72C);       // Yellow border accent
-  static const Color borderSubtle = Color(0x33000000);      // Fine stamped border
+  static const Color borderSubtle = Color(0x33FFFFFF);      // Fine border (light on dark)
 
   // ─── Metallic Gradients ───
   static const LinearGradient brushedMetalGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFC8C4BD),
-      Color(0xFFC2B8A5),
-      Color(0xFFAFA592),
-      Color(0xFF8F8B83),
+      Color(0xFF203C46),
+      Color(0xFF0C242C),
+      Color(0xFF081A20),
+      Color(0xFF051419),
     ],
     stops: [0.0, 0.3, 0.7, 1.0],
   );
@@ -86,9 +86,9 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFC8C4BD),
-      Color(0xFFC2B8A5),
-      Color(0xFFAFA592),
+      Color(0xFF203C46),
+      Color(0xFF0C242C),
+      Color(0xFF081A20),
     ],
   );
 
@@ -109,7 +109,7 @@ class AppColors {
       blurRadius: 6,
     ),
     const BoxShadow(
-      color: Color(0x60FFFFFF),
+      color: Color(0x20FFFFFF),
       offset: Offset(0, -1),
       blurRadius: 2,
     ),

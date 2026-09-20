@@ -44,16 +44,7 @@ extension ProTierExtension on ProTier {
   }
 
   String get fallbackPriceInr {
-    switch (this) {
-      case ProTier.daily:
-        return '₹49/day';
-      case ProTier.weekly:
-        return '₹149/week';
-      case ProTier.monthly:
-        return '₹349/month';
-      case ProTier.annual:
-        return '₹899/year';
-    }
+    return '—';
   }
 
   String get badgeText {
@@ -65,7 +56,7 @@ extension ProTierExtension on ProTier {
       case ProTier.monthly:
         return 'POPULAR';
       case ProTier.annual:
-        return 'BEST VALUE (SAVE 78%)';
+        return 'BEST VALUE (SAVE 57%)';
     }
   }
 }
@@ -152,6 +143,7 @@ class SubscriptionManager with ChangeNotifier {
   bool get shouldWatermark => !isPro;
   String get defaultQuality => isPro ? '1080p' : '720p';
   String get renderType => isPro ? 'priority_queue' : 'free_queue';
+  bool get canBuyTopUps => isPro;
 
   /// Initializes IAP listeners, restores securely cached entitlement, and queries store products.
   Future<void> init() async {
@@ -270,15 +262,13 @@ class SubscriptionManager with ChangeNotifier {
           final valid = await _verifyWithBackend(purchase);
           if (valid) {
             _statusMessage = 'Pro Subscription activated!';
+            if (purchase.pendingCompletePurchase) {
+              await _iap.completePurchase(purchase);
+            }
           } else {
-            // TODO: tighten once backend receipt verification is live on api.snapbeat.app
-            // Fallback: grant entitlement locally if server is offline, in sandbox, or unreachable
-            await _grantLocalEntitlementFromPurchase(purchase);
-            _statusMessage = 'Pro Subscription activated (Offline verification)';
-          }
-
-          if (purchase.pendingCompletePurchase) {
-            await _iap.completePurchase(purchase);
+            _statusMessage = 'Verifying...';
+            // Do not grant locally and do not complete the purchase yet.
+            // It will be retried on next launch by the store.
           }
 
           _isPurchasing = false;
@@ -360,19 +350,7 @@ class SubscriptionManager with ChangeNotifier {
     }
   }
 
-  /// Fallback local entitlement granting with estimated duration if server is unreachable.
-  Future<void> _grantLocalEntitlementFromPurchase(PurchaseDetails purchase) async {
-    final tier = _tierFromProductId(purchase.productID) ?? ProTier.monthly;
-    final expires = _calcFallbackExpiry(tier);
 
-    await _persistEntitlements(
-      isPro: true,
-      tier: tier,
-      expiresAt: expires,
-      originalTxId: purchase.purchaseID,
-      signedToken: null,
-    );
-  }
 
   DateTime _calcFallbackExpiry(ProTier? tier) {
     final now = DateTime.now();

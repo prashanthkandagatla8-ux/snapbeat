@@ -104,7 +104,7 @@ class ProControlsCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
-                      'PRO',
+                      'MANUAL',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
@@ -115,7 +115,7 @@ class ProControlsCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'PRO MODE',
+                    'MANUAL MODE',
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 11,

@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// Configuration constants, ad unit IDs, and daily quota manager for AdMob Rewarded Video.
+import 'package:flutter/foundation.dart';
+
+/// Configuration constants, ad unit IDs for AdMob Interstitial.
 class AdConfig {
   AdConfig._();
 
@@ -11,80 +11,50 @@ class AdConfig {
   // ---------------------------------------------------------------------------
   // iOS App ID: Must also be placed in ios/Runner/Info.plist under GADApplicationIdentifier
   static const String prodIosAppId = 'ca-app-pub-2850833794586490~5758165037';
-  static const String prodAndroidAppId = 'ca-app-pub-3940256099942544~3347511713'; // REPLACE_BEFORE_RELEASE: e.g. ca-app-pub-XXXXXXXXXX~ZZZZZZZZZZ
+  static const String prodAndroidAppId = 'ca-app-pub-2850833794586490~7105482242';
 
   // ---------------------------------------------------------------------------
-  // REWARDED VIDEO AD UNIT IDs
+  // INTERSTITIAL AD UNIT IDs
   // ---------------------------------------------------------------------------
-  // Official Google AdMob Test Rewarded Ad Unit IDs
-  static const String testIosRewardedAdUnitId = 'ca-app-pub-3940256099942544/1712485313';
-  static const String testAndroidRewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
+  // Google's official test interstitial units. Safe to ship in debug only.
+  static const String testAndroidInterstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
+  static const String testIosInterstitialAdUnitId     = 'ca-app-pub-3940256099942544/4411468910';
 
-  // Production Rewarded Ad Unit IDs
-  static const String prodIosRewardedAdUnitId = 'ca-app-pub-2850833794586490/6137081169';
-  static const String prodAndroidRewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917'; // REPLACE_BEFORE_RELEASE: your Android Rewarded Ad Unit ID
+  // Live interstitial units, created 2026-09-20. "SnapBeat Android Interstitial Preroll" sits
+  // under the Android app (~7105482242) and "SnapBeat iOS Interstitial Preroll" under the iOS app
+  // (~5758165037) -- a unit only serves for the app it belongs to, so crossing these over yields
+  // no fill rather than an error, which is a slow thing to notice. The pairing was confirmed
+  // against the existing rewarded units already listed under each app.
+  static const String prodAndroidInterstitialAdUnitId = 'ca-app-pub-2850833794586490/2423468375';
+  static const String prodIosInterstitialAdUnitId     = 'ca-app-pub-2850833794586490/6557145349';
 
   /// True during development/debug, false in release builds.
   /// When true, official Google sample test ads are served.
   static bool get useTestAds => kDebugMode;
 
-  /// Returns active rewarded ad unit ID based on platform and build mode.
-  static String get rewardedAdUnitId {
-    if (useTestAds) {
-      return Platform.isIOS ? testIosRewardedAdUnitId : testAndroidRewardedAdUnitId;
+  /// Returns active interstitial ad unit ID based on platform and build mode.
+  ///
+  /// Falls back to the test unit if a production ID is ever blank. An empty ad unit ID makes
+  /// every load fail silently, which looks identical to having no fill, so it is better to serve
+  /// a test ad and complain loudly in the log than to ship a dead ad slot.
+  static String get interstitialAdUnitId {
+    final testId =
+        Platform.isIOS ? testIosInterstitialAdUnitId : testAndroidInterstitialAdUnitId;
+    if (useTestAds) return testId;
+
+    final prodId =
+        Platform.isIOS ? prodIosInterstitialAdUnitId : prodAndroidInterstitialAdUnitId;
+    if (prodId.isEmpty) {
+      debugPrint('[AdConfig] WARNING: production interstitial unit is blank for '
+          '${Platform.isIOS ? "iOS" : "Android"}. Falling back to the test unit.');
+      return testId;
     }
-    return Platform.isIOS ? prodIosRewardedAdUnitId : prodAndroidRewardedAdUnitId;
+    return prodId;
   }
 
-  // ---------------------------------------------------------------------------
-  // FAIR UX FREQUENCY CAPPING (MAX 5 CLEAN PASSES PER DAY)
-  // ---------------------------------------------------------------------------
-  static const int maxDailyAdCleanDownloads = 5;
-  static const String _keyDailyDate = 'snapbeat_ad_pass_date';
-  static const String _keyDailyCount = 'snapbeat_ad_pass_count';
-
-  /// Returns the number of ad clean passes remaining for today (0..maxDailyAdCleanDownloads).
-  static Future<int> getRemainingPassesToday() async {
-    final prefs = await SharedPreferences.getInstance();
-    final todayStr = _todayKey();
-    final storedDate = prefs.getString(_keyDailyDate) ?? '';
-
-    if (storedDate != todayStr) {
-      // New day: reset counter
-      await prefs.setString(_keyDailyDate, todayStr);
-      await prefs.setInt(_keyDailyCount, 0);
-      return maxDailyAdCleanDownloads;
-    }
-
-    final used = prefs.getInt(_keyDailyCount) ?? 0;
-    return (maxDailyAdCleanDownloads - used).clamp(0, maxDailyAdCleanDownloads);
-  }
-
-  /// Checks if the user still has at least 1 ad clean pass remaining today.
-  static Future<bool> hasPassesRemainingToday() async {
-    final remaining = await getRemainingPassesToday();
-    return remaining > 0;
-  }
-
-  /// Consumes 1 ad clean pass for today upon successfully watching the ad.
-  static Future<int> consumeDailyPass() async {
-    final prefs = await SharedPreferences.getInstance();
-    final todayStr = _todayKey();
-    final storedDate = prefs.getString(_keyDailyDate) ?? '';
-
-    int used = 0;
-    if (storedDate == todayStr) {
-      used = prefs.getInt(_keyDailyCount) ?? 0;
-    }
-
-    used += 1;
-    await prefs.setString(_keyDailyDate, todayStr);
-    await prefs.setInt(_keyDailyCount, used);
-    return (maxDailyAdCleanDownloads - used).clamp(0, maxDailyAdCleanDownloads);
-  }
-
-  static String _todayKey() {
-    final now = DateTime.now();
-    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-  }
+  /// Minimum gap between two pre-roll interstitials. The user asked for an ad on every play;
+  /// AdMob penalises interstitials shown in quick succession, so a short floor protects the
+  /// account without changing the intent. Set to Duration.zero to show one on literally every
+  /// play.
+  static const Duration minGapBetweenAds = Duration(seconds: 45);
 }

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import '../config/app_config.dart';
 
 class ApiService {
   static final ApiService instance = ApiService._internal();
@@ -11,7 +12,7 @@ class ApiService {
 
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "https://api.snapbeat.app",
+      baseUrl: AppConfig.apiBaseUrl,
       connectTimeout: const Duration(seconds: 45),
       sendTimeout: const Duration(minutes: 3),
       receiveTimeout: const Duration(minutes: 5),
@@ -31,6 +32,7 @@ class ApiService {
     required bool watermark,
     bool isInstant = false,
     bool autoArrange = true,
+    bool preview = false,
     int? audioStart,
     int? audioEnd,
     String? titleText,
@@ -99,6 +101,9 @@ class ApiService {
       formData.fields.add(MapEntry("entitlement_token", entitlementToken));
     }
     formData.fields.add(MapEntry("auto_arrange", autoArrange ? "true" : "false"));
+    if (preview) {
+      formData.fields.add(const MapEntry("preview", "true"));
+    }
 
     formData.fields.add(MapEntry('full_track', (audioEnd != null && audioEnd > 0 && audioStart != null && audioEnd > audioStart) ? 'false' : 'true'));
     if (audioStart != null && audioStart > 0) {

@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/subscription_manager.dart';
 import '../../theme/app_colors.dart';
-import 'privacy_policy_dialog.dart';
+import '../../config/app_config.dart';
 
 /// Production-ready Retro Metal Paywall dialog matching SnapBeat's warm analog chassis.
 class RetroSubscriptionDialog extends StatefulWidget {
@@ -344,15 +345,16 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
 
             // Tactile CTA Subscribe Button
             GestureDetector(
-              onTap: isPurchasing ? null : _handleSubscribe,
+              onTap: (isPurchasing || _sm.products[_selectedTier.productId] == null) ? null : _handleSubscribe,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  gradient: AppColors.ctaButtonGradient,
+                  gradient: _sm.products[_selectedTier.productId] == null ? null : AppColors.ctaButtonGradient,
+                  color: _sm.products[_selectedTier.productId] == null ? AppColors.metalScrewHead : null,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.yellowSpecular, width: 1.5),
-                  boxShadow: [
+                  border: Border.all(color: _sm.products[_selectedTier.productId] == null ? AppColors.chassisBevelLight : AppColors.yellowSpecular, width: 1.5),
+                  boxShadow: _sm.products[_selectedTier.productId] == null ? [] : [
                     BoxShadow(
                       color: AppColors.yellowShadow.withValues(alpha: 0.6),
                       offset: const Offset(0, 4),
@@ -371,9 +373,11 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                           ),
                         )
                       : Text(
-                          'SUBSCRIBE FOR ${_getPriceDisplay(_selectedTier).toUpperCase()}',
+                          _sm.products[_selectedTier.productId] == null 
+                              ? 'PRICING UNAVAILABLE — CHECK CONNECTION' 
+                              : 'SUBSCRIBE FOR ${_getPriceDisplay(_selectedTier).toUpperCase()}',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.2,
                             color: AppColors.hardwareGunmetal,
@@ -405,10 +409,12 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Column(
                 children: [
-                  const Text(
-                    'Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled in App Store Account Settings at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the period.',
+                  Text(
+                    Platform.isIOS
+                        ? 'Payment of ${_getPriceDisplay(_selectedTier)} will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled in App Store Account Settings at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the period.'
+                        : 'Payment of ${_getPriceDisplay(_selectedTier)} will be billed through Google Play at confirmation of purchase. Subscriptions automatically renew unless you manage or cancel in the Play Store before the end of the current period.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 9.0,
                       color: AppColors.textMuted,
                       height: 1.35,
@@ -419,7 +425,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: () => PrivacyPolicyDialog.show(context),
+                        onTap: () {
+                          launchUrl(Uri.parse(AppConfig.privacyPolicyUrl));
+                        },
                         child: const Text(
                           'Privacy Policy',
                           style: TextStyle(
@@ -434,7 +442,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                         style: TextStyle(fontSize: 10, color: AppColors.textMuted),
                       ),
                       GestureDetector(
-                        onTap: () => PrivacyPolicyDialog.showEula(context),
+                        onTap: () {
+                          launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
+                        },
                         child: const Text(
                           'Terms of Service (EULA)',
                           style: TextStyle(
@@ -560,7 +570,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                             ? '7 days full Pro access with fast priority queue'
                             : tier == ProTier.monthly
                                 ? 'Full monthly access • Auto-renews monthly'
-                                : '1 full year access • Auto-renews yearly (Save ~78%)',
+                                : '1 full year access • Auto-renews yearly (Save ~57%)',
                     style: const TextStyle(
                       fontSize: 10,
                       color: AppColors.textSecondary,

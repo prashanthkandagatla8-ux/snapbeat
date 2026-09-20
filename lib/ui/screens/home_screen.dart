@@ -17,11 +17,11 @@ import '../../models/sound_track.dart';
 import '../../services/ad_manager.dart';
 import '../../services/queue_manager.dart';
 import '../../services/api_service.dart';
-import '../../services/export_service.dart';
+
 import '../../theme/app_colors.dart';
 import '../../services/subscription_manager.dart';
 import '../components/retro_pro_badge.dart';
-import '../components/retro_tape_deck.dart';
+import '../components/web_audio_deck.dart';
 import '../components/interactive_waveform.dart';
 import '../components/snaps_reorder_strip.dart';
 import '../components/pro_controls_card.dart';
@@ -139,6 +139,7 @@ class HomeScreenState extends State<HomeScreen> {
   double _audioStart = 0.0;
   double _audioEnd = 30.0;
   bool _isPlayingAudio = false;
+  double _currentPlaybackSeconds = 0.0;
 
   // Title Intro
   bool _enableTitle = false;
@@ -552,9 +553,19 @@ class HomeScreenState extends State<HomeScreen> {
       _photos.addAll(widget.initialPhotos!);
     }
     _playerCompleteSubscription = _audioPlayer.onPlayerComplete.listen((_) {
-      if (mounted) setState(() => _isPlayingAudio = false);
+      if (mounted) {
+        setState(() {
+          _isPlayingAudio = false;
+          _currentPlaybackSeconds = _audioStart;
+        });
+      }
     });
     _playerPositionSubscription = _audioPlayer.onPositionChanged.listen((pos) {
+      if (mounted) {
+        setState(() {
+          _currentPlaybackSeconds = pos.inMilliseconds / 1000.0;
+        });
+      }
       if (_isPlayingAudio && pos.inMilliseconds >= (_audioEnd * 1000).toInt()) {
         _audioPlayer.pause();
         if (mounted) setState(() => _isPlayingAudio = false);
@@ -693,6 +704,44 @@ class HomeScreenState extends State<HomeScreen> {
         });
       },
     );
+  }
+
+  void _stopAudio() async {
+    await _audioPlayer.stop();
+    if (!mounted) return;
+    setState(() {
+      _isPlayingAudio = false;
+      _currentPlaybackSeconds = _audioStart;
+    });
+  }
+
+  void _onSelectBuiltInTrack(SoundTrack track) async {
+    await _audioPlayer.pause();
+    final file = await track.getCachedFile();
+    if (!mounted) return;
+    setState(() {
+      _selectedMusic = file;
+      _selectedMusicTitle = '${track.title} (${track.bpm})';
+      _audioDuration = track.durationSeconds;
+      _audioStart = 0.0;
+      _audioEnd = track.durationSeconds;
+      _currentPlaybackSeconds = 0.0;
+      _isPlayingAudio = false;
+    });
+  }
+
+  String? _getBpmFromTitle() {
+    final match = RegExp(r'(\d+\s*BPM)', caseSensitive: false).firstMatch(_selectedMusicTitle);
+    return match?.group(1);
+  }
+
+  String? _getGenreForSelected() {
+    for (final t in SoundTrack.builtInLibrary) {
+      if (_selectedMusicTitle.contains(t.title)) {
+        return t.genre;
+      }
+    }
+    return null;
   }
 
   Future<void> _pickPhotos() async {
@@ -967,11 +1016,30 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _triggerPreviewRender() async {
+    if (_isSubmittingRender) return;
+    _isSubmittingRender = true;
+    try {
+      if (_selectedMusic == null) {
+        _showNotice("Step 1: Please select a music track first!");
+        return;
+      }
+      if (_photos.isEmpty) {
+        _showNotice("Step 2: Please add at least 2 photos.");
+        return;
+      }
+
+      _executeRender(isInstant: false, isPreview: true);
+    } finally {
+      _isSubmittingRender = false;
+    }
+  }
+
 
   // Reserved for instant render & credits pack workflow (temporarily held):
   // void _showRenderChoiceDialog() { ... }
 
-  void _executeRender({required bool isInstant}) {
+  void _executeRender({required bool isInstant, bool isPreview = false}) {
     if (_selectedMusic == null) {
       _showNotice("Step 1: Please select a music track first.");
       return;
@@ -992,6 +1060,10 @@ class HomeScreenState extends State<HomeScreen> {
       tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
     }
 
+    if (isPreview) {
+      tDisplayName = "Preview: $tDisplayName";
+    }
+
     final isPro = sm.isPro;
 
     final jobId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -1006,12 +1078,12 @@ class HomeScreenState extends State<HomeScreen> {
     final musicSnapshot = _selectedMusic;
     final aspectRatioSnapshot = _selectedAspectRatio;
     // Pro subscribers get 1080p Master exports; Free users get 720p HD
-    final qualitySnapshot = isPro ? "1080p" : "720p";
-    // Pro subscribers have watermarks removed; Free videos have watermark
-    final shouldWatermark = !isPro;
-    // Pro subscribers get fast priority queue; Free users use standard queue
-    final renderTypeSnapshot = isPro ? "priority_queue" : "free_queue";
-    final entitlementTokenSnapshot = isPro ? sm.signedEntitlementToken : null;
+    final qualitySnapshot = isPreview ? "540p" : (isPro ? "1080p" : "720p");
+    // Pro subscribers have watermarks removed; Free videos have watermark (always for preview)
+    final shouldWatermark = isPreview ? true : !isPro;
+    // Pro subscribers get fast priority queue; Free users use standard queue (always free for preview)
+    final renderTypeSnapshot = isPreview ? "free_queue" : (isPro ? "priority_queue" : "free_queue");
+    final entitlementTokenSnapshot = isPreview ? null : (isPro ? sm.signedEntitlementToken : null);
     final audioStartSnapshot = _audioStart.toInt();
     final audioEndSnapshot = _audioEnd.toInt();
     final titleTextSnapshot = (_enableTitle && _titleText.trim().isNotEmpty) ? _titleText.trim() : null;
@@ -1078,6 +1150,7 @@ class HomeScreenState extends State<HomeScreen> {
       titleStyle: titleStyleSnapshot,
       titleFrame: titleFrameSnapshot,
       titleAudio: titleAudioSnapshot,
+      isPreview: isPreview,
     );
   }
 
@@ -1091,18 +1164,19 @@ class HomeScreenState extends State<HomeScreen> {
     required String quality,
     required bool watermark,
     required bool isInstant,
+    bool isPreview = false,
     String? renderType,
     String? entitlementToken,
     required int audioStart,
     required int audioEnd,
-    required String? titleText,
-    required String titleBg,
-    required int titleDuration,
-    required String titleFont,
-    required String titleFontSize,
-    required String titleStyle,
-    required String titleFrame,
-    required String titleAudio,
+    String? titleText,
+    String? titleBg,
+    int? titleDuration,
+    String? titleFont,
+    String? titleFontSize,
+    String? titleStyle,
+    String? titleFrame,
+    String? titleAudio,
   }) async {
     try {
       if (qm.isCancelled(jobId)) return;
@@ -1122,7 +1196,9 @@ class HomeScreenState extends State<HomeScreen> {
         aspectRatio: aspectRatio,
         quality: quality,
         watermark: watermark,
+        preview: isPreview,
         isInstant: isInstant,
+        autoArrange: _arrangementMode == "auto",
         renderType: renderType,
         entitlementToken: entitlementToken,
         audioStart: audioStart,
@@ -1165,15 +1241,7 @@ class HomeScreenState extends State<HomeScreen> {
         progress: 1.0,
       );
 
-      // Automatically save completed video directly to device Photos / Gallery
-      if (mounted) {
-        ExportService.saveToGallery(
-          context,
-          videoPath: videoPath,
-          templateName: templateId,
-          autoTriggered: true,
-        );
-      }
+
     } catch (e) {
       if (qm.isCancelled(jobId)) return;
       final cleanMsg = e.toString().replaceAll("Exception: ", "").trim();
@@ -1283,14 +1351,18 @@ class HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
                       if (_currentTab == "music") ...[
-                        // STAGE 1: MUSIC FIRST
-                        RetroTapeDeck(
+                        // STAGE 1: MUSIC FIRST - Web Audio Console Deck
+                        WebAudioConsoleDeck(
                           isPlaying: _isPlayingAudio,
                           trackTitle: _selectedMusicTitle,
-                          currentSeconds: _audioStart,
+                          currentSeconds: _currentPlaybackSeconds,
+                          totalSeconds: _audioDuration,
+                          bpm: _getBpmFromTitle(),
+                          genre: _getGenreForSelected(),
+                          isCustom: _selectedMusic != null && !_selectedMusicTitle.contains('BPM'),
                           onTogglePlay: _togglePlayAudio,
+                          onStop: _stopAudio,
                           onPickAudio: _pickMusic,
-                          onLoadSample: _openSoundLibrary,
                           onPickVideoAudio: _pickMusicFromVideo,
                         ),
 
@@ -1307,11 +1379,21 @@ class HomeScreenState extends State<HomeScreen> {
                               _audioEnd = e;
                             }),
                           ),
+                        ],
+
+                        // Curated Soundtrack Library (Inline, matching Web RetroTapeDeck)
+                        CuratedSoundtrackSection(
+                          selectedTrackTitle: _selectedMusicTitle,
+                          onSelectTrack: _onSelectBuiltInTrack,
+                        ),
+
+                        // Bottom Action CTA
+                        if (_selectedMusic != null) ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             child: _buildProceedButton(
-                              label: "NEXT: ADD PHOTOS →",
-                              subtitle: "Soundtrack configured • Select photos for your reel",
+                              label: "NEXT: ADD PHOTOS ->",
+                              subtitle: "Soundtrack configured * Select photos for your reel",
                               icon: Icons.photo_library_rounded,
                               onTap: () {
                                 if (_scrollController.hasClients) {
@@ -1344,7 +1426,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      "Loading default soundtrack... Tap Library or Choose Music if you want to change it.",
+                                      "Loading default soundtrack... Tap a track in the library above to select it.",
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -1661,7 +1743,7 @@ class HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 4),
                 _buildRenderModeSwitchOption(
                   mode: "pro",
-                  label: "PRO MODE",
+                  label: "MANUAL MODE",
                   icon: Icons.tune_rounded,
                   isSelected: _renderMode == "pro",
                 ),
@@ -1740,12 +1822,42 @@ class HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
           child: Column(
             children: [
-              Center(
-                child: RetroMechanicalButton(
-                  variant: RetroButtonVariant.render,
-                  height: 68,
-                  onTap: _triggerMasterReel,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RetroMechanicalButton(
+                    variant: RetroButtonVariant.render,
+                    height: 68,
+                    onTap: _triggerMasterReel,
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: _triggerPreviewRender,
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B2525),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF4A1010), width: 2),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black45, offset: Offset(2, 2), blurRadius: 4),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        "PREVIEW",
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 5),
               Text(
@@ -1889,7 +2001,7 @@ class HomeScreenState extends State<HomeScreen> {
                   border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
                 ),
                 child: Text(
-                  _renderMode == "auto" ? "AUTO PRESET" : "PRO CONFIG",
+                  _renderMode == "auto" ? "AUTO PRESET" : "MANUAL CONFIG",
                   style: const TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 7.5,
@@ -2368,11 +2480,11 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                       children: [
                         TextSpan(
-                          text: "Beta Notice: ",
+                          text: "Queue Notice: ",
                           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.amberJewel),
                         ),
                         TextSpan(
-                          text: "Free renders process sequentially (1-at-a-time) in a shared queue. Thank you for your patience! Instant priority renders arriving soon.",
+                          text: "Free renders process sequentially (1-at-a-time) in a shared queue. Upgrade to Pro for instant priority renders.",
                         ),
                       ],
                     ),
@@ -2812,30 +2924,19 @@ class HomeScreenState extends State<HomeScreen> {
                       await _audioPlayer.pause();
                       if (!mounted) return;
                       setState(() => _isPlayingAudio = false);
-                      VideoPreviewDialog.show(
-                        context,
-                        videoPath: job.videoPath!,
-                        templateName: job.templateName,
-                        customName: job.displayName,
-                        quality: job.quality,
+                      AdManager.instance.showBeforePlayback(
+                        context: context,
+                        onDone: () => VideoPreviewDialog.show(
+                          context,
+                          videoPath: job.videoPath!,
+                          templateName: job.templateName,
+                          customName: job.displayName,
+                          quality: job.quality,
+                        ),
                       );
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
-                // 2. SOCIAL SHARE (Primary)
-                Expanded(
-                  child: RetroMechanicalButton(
-                    variant: RetroButtonVariant.share,
-                    height: 44,
-                    onTap: () => ExportService.shareReel(
-                      context,
-                      videoPath: job.videoPath!,
-                      templateName: job.displayName,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 // 3. TACTILE RECESSED DELETE BUTTON (Quieter secondary action)
                 Tooltip(
                   message: 'Delete reel',

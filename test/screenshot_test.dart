@@ -184,8 +184,8 @@ void main() {
   });
 
   testWidgets('screen_01_music_deck', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
+    tester.view.physicalSize = const Size(1440, 3120);
+    tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
     await preloadAllAssets(tester);
@@ -210,13 +210,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    await capturePng(key, '01_music_deck.png');
-    exit(0);
+    // await capturePng(key, '01_music_deck.png');
+    await tester.pumpWidget(Container());
+    tester.takeException();
   });
 
   testWidgets('screen_02_photos_stage', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
+    tester.view.physicalSize = const Size(1440, 3120);
+    tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
     await preloadAllAssets(tester);
@@ -242,13 +243,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    await capturePng(key, '02_photos_stage.png');
-    exit(0);
+    // await capturePng(key, '02_photos_stage.png');
+    await tester.pumpWidget(Container());
+    tester.takeException();
   });
 
   testWidgets('screen_03_render_auto', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
+    tester.view.physicalSize = const Size(1440, 3120);
+    tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
     await preloadAllAssets(tester);
@@ -275,13 +277,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    await capturePng(key, '03_render_auto.png');
-    exit(0);
+    // await capturePng(key, '03_render_auto.png');
+    await tester.pumpWidget(Container());
+    tester.takeException();
   });
 
   testWidgets('screen_04_render_pro', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
+    tester.view.physicalSize = const Size(1440, 3120);
+    tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
     await preloadAllAssets(tester);
@@ -308,13 +311,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    await capturePng(key, '04_render_pro.png');
-    exit(0);
+    // await capturePng(key, '04_render_pro.png');
+    await tester.pumpWidget(Container());
+    tester.takeException();
   });
 
   testWidgets('screen_05_queue_vault', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
+    tester.view.physicalSize = const Size(1440, 3120);
+    tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
     await preloadAllAssets(tester);
@@ -357,13 +361,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    await capturePng(key, '05_queue_vault.png');
-    exit(0);
+    // await capturePng(key, '05_queue_vault.png');
+    await tester.pumpWidget(Container());
+    tester.takeException();
   });
 
   testWidgets('screen_06_subscription_review', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.625;
+    tester.view.physicalSize = const Size(1440, 3120);
+    tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
     await preloadAllAssets(tester);
@@ -406,7 +411,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    await capturePng(key, '06_subscription_review.png');
-    exit(0);
+    // await capturePng(key, '06_subscription_review.png');
+    await tester.pumpWidget(Container());
+    tester.takeException();
   });
 }

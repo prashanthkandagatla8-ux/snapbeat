@@ -32,10 +32,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Google AdMob Android App ID (Test ID: ca-app-pub-3940256099942544~3347511713). REPLACE_BEFORE_RELEASE -->
+        <!-- Google AdMob Android App ID (Production ID) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-2850833794586490~7105482242" />
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
