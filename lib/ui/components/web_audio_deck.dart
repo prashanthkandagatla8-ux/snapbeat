@@ -106,39 +106,44 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: widget.isPlaying ? AppColors.vuGreen : AppColors.amberJewel,
-                      boxShadow: [
-                        BoxShadow(
-                          color: widget.isPlaying
-                              ? AppColors.vuGreen.withValues(alpha: 0.6)
-                              : AppColors.amberJewel.withValues(alpha: 0.5),
-                          blurRadius: 8,
-                          spreadRadius: 1,
+              Expanded(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: widget.isPlaying ? AppColors.vuGreen : AppColors.amberJewel,
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.isPlaying
+                                ? AppColors.vuGreen.withValues(alpha: 0.6)
+                                : AppColors.amberJewel.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.music_note_rounded, size: 16, color: AppColors.brassGold),
+                    const SizedBox(width: 6),
+                    const Flexible(
+                      child: Text(
+                        "SOUNDTRACK & AUDIO WAVEFORM",
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textEngraved,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 1.1,
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.music_note_rounded, size: 16, color: AppColors.brassGold),
-                  const SizedBox(width: 6),
-                  const Text(
-                    "SOUNDTRACK & AUDIO WAVEFORM",
-                    style: TextStyle(
-                      color: AppColors.textEngraved,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 11,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -549,35 +554,42 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.brassGold),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "CURATED SOUNDTRACK LIBRARY",
-                        style: TextStyle(
-                          color: AppColors.textEngraved,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
-                          letterSpacing: 0.8,
-                        ),
+              Expanded(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.brassGold),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "CURATED SOUNDTRACK LIBRARY",
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppColors.textEngraved,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "Select from royalty-free beat-synchronized studio tracks.",
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 2),
-                      Text(
-                        "Select from royalty-free beat-synchronized studio tracks.",
-                        style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
