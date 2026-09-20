@@ -97,6 +97,8 @@ class ApiService {
     formData.fields.add(MapEntry("watermark", watermark.toString()));
     final effectiveRenderType = renderType ?? (isInstant ? "instant" : "free_queue");
     formData.fields.add(MapEntry("render_type", effectiveRenderType));
+    formData.fields.add(MapEntry("client", "mobile"));
+    formData.fields.add(MapEntry("platform", Platform.isIOS ? "ios" : (Platform.isAndroid ? "android" : "mobile")));
     if (entitlementToken != null && entitlementToken.isNotEmpty) {
       formData.fields.add(MapEntry("entitlement_token", entitlementToken));
     }
