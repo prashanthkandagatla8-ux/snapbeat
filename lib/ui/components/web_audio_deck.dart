@@ -5,6 +5,8 @@ import 'package:audioplayers/audioplayers.dart';
 import '../../models/sound_track.dart';
 import '../../theme/app_colors.dart';
 import 'sound_library_dialog.dart';
+import 'retro_metal_panel.dart';
+import 'tactile_action_button.dart';
 
 class WebAudioConsoleDeck extends StatefulWidget {
   final bool isPlaying;
@@ -18,6 +20,7 @@ class WebAudioConsoleDeck extends StatefulWidget {
   final VoidCallback onStop;
   final VoidCallback onPickAudio;
   final VoidCallback? onPickVideoAudio;
+  final VoidCallback? onOpenLibrary;
 
   const WebAudioConsoleDeck({
     super.key,
@@ -32,6 +35,7 @@ class WebAudioConsoleDeck extends StatefulWidget {
     required this.onStop,
     required this.onPickAudio,
     this.onPickVideoAudio,
+    this.onOpenLibrary,
   });
 
   @override
@@ -85,21 +89,9 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.panelCream,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+    return RetroMetalPanel(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -319,139 +311,47 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
             alignment: WrapAlignment.center,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              // Play / Pause Button
-              InkWell(
-                borderRadius: BorderRadius.circular(24),
+              // 1. Browse Music Library Button (Primary Action)
+              if (widget.onOpenLibrary != null)
+                TactileActionButton.primary(
+                  height: 38,
+                  label: "BROWSE LIBRARY",
+                  icon: Icons.library_music_rounded,
+                  onTap: widget.onOpenLibrary,
+                ),
+
+              // 2. Play / Pause Button
+              TactileActionButton(
+                variant: widget.isPlaying ? TactileButtonVariant.secondaryGunmetal : TactileButtonVariant.primaryGold,
+                height: 38,
+                label: widget.isPlaying ? "PAUSE" : "PLAY",
+                icon: widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                 onTap: widget.onTogglePlay,
-                child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  decoration: BoxDecoration(
-                    gradient: AppColors.ctaButtonGradient,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.brassGold.withValues(alpha: 0.35),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        size: 20,
-                        color: const Color(0xFF241903),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        widget.isPlaying ? "PAUSE AUDIO" : "PLAY AUDIO",
-                        style: const TextStyle(
-                          color: Color(0xFF241903),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
 
-              // Stop Button
-              InkWell(
-                borderRadius: BorderRadius.circular(24),
+              // 3. Stop Button
+              TactileActionButton.secondary(
+                height: 38,
+                label: "STOP",
+                icon: Icons.stop_rounded,
                 onTap: widget.onStop,
-                child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.metalHighlight.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.borderSubtle),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.stop_rounded, size: 16, color: AppColors.redGloss),
-                      SizedBox(width: 6),
-                      Text(
-                        "STOP",
-                        style: TextStyle(
-                          color: AppColors.textEngraved,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
 
-              // Load Custom MP3 Button
-              InkWell(
-                borderRadius: BorderRadius.circular(24),
+              // 4. Load Custom MP3 Button
+              TactileActionButton.secondary(
+                height: 38,
+                label: "CUSTOM MP3",
+                icon: Icons.file_upload_outlined,
                 onTap: widget.onPickAudio,
-                child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.metalHighlight.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.borderSubtle),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.file_upload_outlined, size: 16, color: AppColors.brassGold),
-                      SizedBox(width: 6),
-                      Text(
-                        "LOAD CUSTOM MP3",
-                        style: TextStyle(
-                          color: AppColors.textEngraved,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
 
-              // From Video Button (optional)
+              // 5. From Video Button (optional)
               if (widget.onPickVideoAudio != null)
-                InkWell(
-                  borderRadius: BorderRadius.circular(24),
+                TactileActionButton.secondary(
+                  height: 38,
+                  label: "FROM VIDEO",
+                  icon: Icons.video_library_outlined,
                   onTap: widget.onPickVideoAudio,
-                  child: Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.metalHighlight.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppColors.borderSubtle),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.video_library_outlined, size: 16, color: AppColors.brassGold),
-                        SizedBox(width: 6),
-                        Text(
-                          "FROM VIDEO",
-                          style: TextStyle(
-                            color: AppColors.textEngraved,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 11,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
             ],
           ),

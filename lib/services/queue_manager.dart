@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 
@@ -44,6 +46,27 @@ class QueueManager with ChangeNotifier {
         );
       }
     }
+
+    // Resilient path re-resolution for iOS container UUID shifts across restarts
+    try {
+      final docsDir = await getApplicationDocumentsDirectory();
+      for (int i = 0; i < _jobs.length; i++) {
+        final vPath = _jobs[i].videoPath;
+        if (vPath != null && vPath.isNotEmpty) {
+          final direct = File(vPath);
+          if (!direct.existsSync()) {
+            final fileName = p.basename(vPath);
+            final candidate = File(p.join(docsDir.path, fileName));
+            if (candidate.existsSync()) {
+              _jobs[i] = _jobs[i].copyWith(videoPath: candidate.path);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("QueueManager path healing notice: $e");
+    }
+
     await _save();
     notifyListeners();
   }

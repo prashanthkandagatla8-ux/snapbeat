@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
+import '../components/retro_metal_panel.dart';
+import '../components/tactile_action_button.dart';
 import 'home_screen.dart';
 
 class SampleReelShowcaseScreen extends StatefulWidget {
@@ -131,14 +133,42 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
         if (!didPop) _navigateToHome(fromShowcase: false);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF141210),
+        backgroundColor: AppColors.canvasSlateGrey,
         body: SafeArea(
           child: Column(
             children: [
+              // Top Branding Bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset(
+                      'assets/images/snapbeat_studio_logo.png',
+                      height: 28,
+                      fit: BoxFit.contain,
+                    ),
+                    TextButton(
+                      onPressed: () => _navigateToHome(fromShowcase: true),
+                      child: const Text(
+                        'SKIP ❯',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.brassGold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // 1. Framed Video Display (unobstructed, full video visible)
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.black,
@@ -196,26 +226,13 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
               ),
 
               // 2. Separate Buttons Panel Below the Frame
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.panelCream.withValues(alpha: 0.98),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.borderBrass, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        offset: const Offset(0, 4),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              RetroMetalPanel(
+                margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                       // Template & Track Badges Row
                       Row(
                         children: [
@@ -306,45 +323,14 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                       const SizedBox(height: 8),
 
                       // Master Call-to-Action
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
+                      TactileActionButton.primary(
+                        height: 46,
+                        label: 'CREATE YOUR OWN REEL',
+                        icon: Icons.auto_awesome_rounded,
                         onTap: _navigateToHome,
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
-                            ),
-                            borderRadius: BorderRadius.circular(9),
-                            border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 3),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.auto_awesome_rounded, size: 15, color: Color(0xFF1E1A10)),
-                              SizedBox(width: 8),
-                              Text(
-                                'CREATE YOUR OWN REEL ❯',
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.8,
-                                  color: Color(0xFF1E1A10),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
 
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
 
                       // Skip demo checkbox
                       GestureDetector(
@@ -395,7 +381,6 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                     ],
                   ),
                 ),
-              ),
             ],
           ),
         ),

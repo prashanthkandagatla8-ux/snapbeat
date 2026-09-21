@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle, SystemNavigator, PlatformException, HapticFeedback;
+import 'package:flutter/services.dart' show rootBundle, SystemNavigator, PlatformException;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -35,6 +35,9 @@ import '../components/metal_chassis_scaffold.dart';
 import '../components/snapbeat_pink_dot.dart';
 import '../components/retro_mechanical_button.dart';
 import '../components/retro_subscription_dialog.dart';
+import '../components/retro_metal_panel.dart';
+import '../components/tactile_action_button.dart';
+import 'package:gal/gal.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialTab;
@@ -109,7 +112,7 @@ class HomeScreenState extends State<HomeScreen> {
   final List<PhotoItem> _photos = [];
   String _selectedTemplate = "pendulum";
   String _selectedAspectRatio = "9:16";
-  String _selectedQuality = "540p";
+  String _selectedQuality = "360p";
   String _arrangementMode = "sequential";
 
   /// Calculates max photos dynamically based on track duration and beat tempo.
@@ -154,7 +157,7 @@ class HomeScreenState extends State<HomeScreen> {
   String _titleFrame = "none";
   String _titleAudio = "before_audio";
 
-  // Cult Effects (Manual Mode - Bursts, Teaser, Drop-It)
+  // Creative Motion Effects (Manual Mode - Bursts, Teaser, Drop-It)
   bool _enableBurst = true;
   bool _enableTeaser = true;
   bool _enableDropIt = false;
@@ -314,7 +317,11 @@ class HomeScreenState extends State<HomeScreen> {
               // Welcome Badge
               Row(
                 children: [
-                  const SnapBeatPinkDot(size: 14, withGlow: true),
+                  Image.asset(
+                    'assets/images/snapbeat_studio_logo.png',
+                    height: 32,
+                    fit: BoxFit.contain,
+                  ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -323,7 +330,7 @@ class HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
-                      'WELCOME TO SNAPBEAT',
+                      'WELCOME TO SNAPBEAT STUDIO',
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 9.5,
@@ -1017,30 +1024,10 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _triggerPreviewRender() async {
-    if (_isSubmittingRender) return;
-    _isSubmittingRender = true;
-    try {
-      if (_selectedMusic == null) {
-        _showNotice("Step 1: Please select a music track first!");
-        return;
-      }
-      if (_photos.isEmpty) {
-        _showNotice("Step 2: Please add at least 2 photos.");
-        return;
-      }
-
-      await _executeRender(isInstant: false, isPreview: true);
-    } finally {
-      _isSubmittingRender = false;
-    }
-  }
-
-
   // Reserved for instant render & credits pack workflow (temporarily held):
   // void _showRenderChoiceDialog() { ... }
 
-  Future<void> _executeRender({required bool isInstant, bool isPreview = false}) async {
+  Future<void> _executeRender({required bool isInstant}) async {
     if (_selectedMusic == null) {
       _showNotice("Step 1: Please select a music track first.");
       return;
@@ -1051,7 +1038,7 @@ class HomeScreenState extends State<HomeScreen> {
     }
 
     final isPro = sm.isPro;
-    if (!isPreview && !isPro) {
+    if (!isPro) {
       final prefs = await SharedPreferences.getInstance();
       final todayStr = DateTime.now().toIso8601String().substring(0, 10);
       final lastDate = prefs.getString('free_render_date') ?? '';
@@ -1086,10 +1073,6 @@ class HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    if (isPreview) {
-      tDisplayName = "Preview: $tDisplayName";
-    }
-
     final jobId = DateTime.now().millisecondsSinceEpoch.toString();
     final maxAllowed = maxPhotosForTrack;
     if (_photos.length > maxAllowed) {
@@ -1101,13 +1084,13 @@ class HomeScreenState extends State<HomeScreen> {
     final photosSnapshot = List<PhotoItem>.from(photosToSend);
     final musicSnapshot = _selectedMusic;
     final aspectRatioSnapshot = _selectedAspectRatio;
-    // Pro subscribers get 1080p Master exports; Free users get 540p Standard; Previews use 360p
-    final qualitySnapshot = isPreview ? "360p" : (isPro ? "1080p" : "540p");
-    // Pro subscribers have watermarks removed; Free videos have watermark (always for preview)
-    final shouldWatermark = isPreview ? true : !isPro;
-    // Pro subscribers get fast priority queue; Free users use standard queue (always free for preview)
-    final renderTypeSnapshot = isPreview ? "free_queue" : (isPro ? "priority_queue" : "free_queue");
-    final entitlementTokenSnapshot = isPreview ? null : (isPro ? sm.signedEntitlementToken : null);
+    // Pro subscribers get high quality (1080p Master / 720p HD); Free users default to 360p Standard
+    final qualitySnapshot = isPro ? (_selectedQuality == "360p" ? "1080p" : _selectedQuality) : "360p";
+    // Pro subscribers have watermarks removed; Free videos have watermark
+    final shouldWatermark = !isPro;
+    // Pro subscribers get fast priority queue; Free users use standard queue
+    final renderTypeSnapshot = isPro ? "priority_queue" : "free_queue";
+    final entitlementTokenSnapshot = isPro ? sm.signedEntitlementToken : null;
     final audioStartSnapshot = _audioStart.toInt();
     final audioEndSnapshot = _audioEnd.toInt();
     final titleTextSnapshot = (_enableTitle && _titleText.trim().isNotEmpty) ? _titleText.trim() : null;
@@ -1174,7 +1157,6 @@ class HomeScreenState extends State<HomeScreen> {
       titleStyle: titleStyleSnapshot,
       titleFrame: titleFrameSnapshot,
       titleAudio: titleAudioSnapshot,
-      isPreview: isPreview,
       enableBurst: _renderMode == "pro" ? _enableBurst : true,
       enableTeaser: _renderMode == "pro" ? _enableTeaser : true,
       dropIt: _renderMode == "pro" ? _enableDropIt : false,
@@ -1191,7 +1173,6 @@ class HomeScreenState extends State<HomeScreen> {
     required String quality,
     required bool watermark,
     required bool isInstant,
-    bool isPreview = false,
     String? renderType,
     String? entitlementToken,
     required int audioStart,
@@ -1226,7 +1207,7 @@ class HomeScreenState extends State<HomeScreen> {
         aspectRatio: aspectRatio,
         quality: quality,
         watermark: watermark,
-        preview: isPreview,
+        preview: false,
         isInstant: isInstant,
         autoArrange: _arrangementMode == "auto",
         renderType: renderType,
@@ -1273,6 +1254,13 @@ class HomeScreenState extends State<HomeScreen> {
         videoPath: videoPath,
         progress: 1.0,
       );
+
+      // Automatically export to device's native Camera Roll / Photos album
+      try {
+        await Gal.putVideo(videoPath, album: 'SnapBeat Studio');
+      } catch (galErr) {
+        debugPrint('Auto-save to phone gallery notice: $galErr');
+      }
 
 
     } catch (e) {
@@ -1397,6 +1385,11 @@ class HomeScreenState extends State<HomeScreen> {
                           onStop: _stopAudio,
                           onPickAudio: _pickMusic,
                           onPickVideoAudio: _pickMusicFromVideo,
+                          onOpenLibrary: () => SoundLibraryDialog.show(
+                            context: context,
+                            currentTrackTitle: _selectedMusicTitle,
+                            onSelectTrack: _onSelectBuiltInTrack,
+                          ),
                         ),
 
                         // Interactive Audio Waveform Trimmer (shown when music is loaded)
@@ -1413,12 +1406,6 @@ class HomeScreenState extends State<HomeScreen> {
                             }),
                           ),
                         ],
-
-                        // Curated Soundtrack Library (Inline, matching Web RetroTapeDeck)
-                        CuratedSoundtrackSection(
-                          selectedTrackTitle: _selectedMusicTitle,
-                          onSelectTrack: _onSelectBuiltInTrack,
-                        ),
 
                         // Bottom Action CTA
                         if (_selectedMusic != null) ...[
@@ -1815,7 +1802,7 @@ class HomeScreenState extends State<HomeScreen> {
             onSelectTitleAudio: (a) => setState(() => _titleAudio = a),
             representativePhoto: _photos.isNotEmpty ? File(_photos.first.path) : null,
             isPro: sm.isPro,
-            // Cult Effects (User-facing toggles: Bursts, Teaser, Drop-It)
+            // Creative Motion Effects (User-facing toggles: Bursts, Teaser, Drop-It)
             enableBurst: _enableBurst,
             onToggleBurst: (v) => setState(() => _enableBurst = v),
             enableTeaser: _enableTeaser,
@@ -1829,21 +1816,17 @@ class HomeScreenState extends State<HomeScreen> {
         _buildJobSummaryCard(),
 
         // 4. Render Reel Launch Button (Tactile 3D Skeuomorphic Button)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+        RetroMetalPanel(
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  RetroMechanicalButton(
-                    variant: RetroButtonVariant.render,
-                    height: 68,
-                    onTap: _triggerMasterReel,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildPreviewCueButton(),
-                ],
+              Center(
+                child: RetroMechanicalButton(
+                  variant: RetroButtonVariant.render,
+                  height: 68,
+                  onTap: _triggerMasterReel,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -1945,90 +1928,6 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPreviewCueButton() {
-    return GestureDetector(
-      onTapDown: (_) => HapticFeedback.lightImpact(),
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        _triggerPreviewRender();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF2C2825),
-              Color(0xFF191715),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.chassisBevelLight.withValues(alpha: 0.5),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              offset: const Offset(0, 3),
-              blurRadius: 6,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.amberJewel,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.amberGlow.withValues(alpha: 0.8),
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  "CUE DRAFT",
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textEngraved,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-                SizedBox(height: 1),
-                Text(
-                  "FAST PREVIEW",
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textMuted,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildJobSummaryCard() {
     final durationSec = (_audioEnd > _audioStart && _audioEnd <= _audioDuration)
@@ -2037,15 +1936,9 @@ class HomeScreenState extends State<HomeScreen> {
     final isMix = (_renderMode == "auto") || (_renderMode == "manual" && _selectedTemplate == "mix");
     final styleName = isMix ? "DYNAMIC MIX 🔀" : _selectedTemplate.toUpperCase();
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    return RetroMetalPanel(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        gradient: AppColors.luxDarkCardGradient,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
-        boxShadow: AppColors.luxCardShadow,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2129,7 +2022,7 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               _buildSummaryPill(
                 Icons.video_settings_rounded,
-                "$_selectedAspectRatio • $_selectedQuality",
+                "$_selectedAspectRatio • ${sm.isPro ? _selectedQuality : '360p (Free)'}",
                 subtitle: "OUTPUT",
               ),
               const SizedBox(width: 6),
@@ -2257,15 +2150,9 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAutoTemplateBanner() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    return RetroMetalPanel(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: AppColors.luxDarkCardGradient,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.8), width: 1.2),
-        boxShadow: AppColors.luxCardShadow,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2864,21 +2751,9 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildReadyJobCard(QueueJobItem job) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+    return RetroMetalPanel(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.panelCream,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderBrass, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
-            offset: const Offset(0, 3),
-            blurRadius: 6,
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2950,7 +2825,7 @@ class HomeScreenState extends State<HomeScreen> {
                           Icon(Icons.check_circle_rounded, size: 12, color: AppColors.vuGreen),
                           const SizedBox(width: 4),
                           Text(
-                            "Auto-saved to Photos (SnapBeat album)",
+                            "Auto-saved to Photos (SnapBeat Studio)",
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               fontSize: 10.5,
@@ -2981,11 +2856,11 @@ class HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 10),
             Row(
               children: [
-                // 1. PLAY BUTTON (Primary)
                 Expanded(
-                  child: RetroMechanicalButton(
-                    variant: RetroButtonVariant.play,
+                  child: TactileActionButton.primary(
                     height: 44,
+                    label: "PLAY REEL",
+                    icon: Icons.play_arrow_rounded,
                     onTap: () async {
                       await _audioPlayer.pause();
                       if (!mounted) return;
@@ -3003,39 +2878,12 @@ class HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
-                // 3. TACTILE RECESSED DELETE BUTTON (Quieter secondary action)
-                Tooltip(
-                  message: 'Delete reel',
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _confirmDeleteReel(job),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.metalDeepCavity,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppColors.chassisBevelDark,
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.35),
-                            offset: const Offset(1, 1),
-                            blurRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.delete_outline_rounded,
-                          size: 20,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
+                const SizedBox(width: 8),
+                TactileActionButton.destructive(
+                  height: 44,
+                  label: "DELETE",
+                  icon: Icons.delete_outline_rounded,
+                  onTap: () => _confirmDeleteReel(job),
                 ),
               ],
             ),

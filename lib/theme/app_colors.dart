@@ -9,8 +9,19 @@ class AppColors {
   static const Color metalScrewHead = Color(0xFF1E3A42);    // Screw/rivet detail
   static const Color hardwareGunmetal = Color(0xFF0A1B22);  // Dark hardware
 
+  // ─── Outer Canvas Backdrop (Slate Grey from Reference UI) ───
+  static const Color canvasSlateGrey = Color(0xFF141518);     // Neutral slate grey outside panels
+  static const Color canvasSlateGreyLight = Color(0xFF1C1E23); // Subtle radial highlight
+  static const Color canvasChassis = Color(0xFF141518);       // Matches outer slate grey
+
+  // ─── Realistic Metal Frame & Bezel (Hardware Reference UI) ───
+  static const Color metalBezelHighlight = Color(0xFFE8DFD0);  // Specular champagne top-left edge
+  static const Color metalBezelLight = Color(0xFFC8BA9C);      // Brushed warm gold-steel reflection
+  static const Color metalBezelMid = Color(0xFF7F7159);        // Satin metal body
+  static const Color metalBezelDark = Color(0xFF383124);       // Burnished bronze shadow bottom-right
+  static const Color metalBezelDeep = Color(0xFF17140F);       // Recessed frame edge
+
   // ─── Backward-compatible chassis & panels (dark) ───
-  static const Color canvasChassis = Color(0xFF0B0D10);       // Dark metal canvas
   static const Color chassisBevelLight = Color(0xFF203C46);   // Specular top edge
   static const Color chassisBevelDark = Color(0xFF071317);    // Edge bevel shadow
   static const Color panelCream = Color(0xFF0C242C);          // Primary dark card surface
@@ -145,7 +156,36 @@ class AppColors {
     stops: [0.0, 0.35, 0.75, 1.0],
   );
 
+  // ─── Realistic Metal Frame Bezel Gradient (Hardware Reference UI) ───
+  static const LinearGradient metalBezelGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFE8DFD0),
+      Color(0xFFC8BA9C),
+      Color(0xFF7F7159),
+      Color(0xFF383124),
+      Color(0xFF17140F),
+    ],
+    stops: [0.0, 0.22, 0.60, 0.88, 1.0],
+  );
+
   // ─── Elevation & Tactile Lighting Presets ───
+  static List<BoxShadow> get metalPanelShadow => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.70),
+      offset: const Offset(0, 10),
+      blurRadius: 22,
+      spreadRadius: -1,
+    ),
+    BoxShadow(
+      color: const Color(0xFFE8DFD0).withValues(alpha: 0.15),
+      offset: const Offset(0, -1),
+      blurRadius: 1,
+      spreadRadius: 0,
+    ),
+  ];
+
   static List<BoxShadow> get luxCardShadow => [
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.65),

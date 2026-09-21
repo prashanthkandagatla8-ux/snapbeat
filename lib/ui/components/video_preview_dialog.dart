@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../../theme/app_colors.dart';
 import '../../services/export_service.dart';
 import '../../services/subscription_manager.dart';
-
+import 'tactile_action_button.dart';
 
 class VideoPreviewDialog extends StatefulWidget {
   final String videoPath;
@@ -49,7 +51,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
   bool _isInitialized = false;
   bool _hasError = false;
   String _errorMessage = "";
-  final String _saveStatus = "✓ Auto-saved to Photos (SnapBeat album)";
+  final String _saveStatus = "✓ Auto-saved to Photos (SnapBeat Studio)";
 
   @override
   void initState() {
@@ -59,13 +61,21 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
 
   Future<void> _initPlayer() async {
     try {
-      final file = File(widget.videoPath);
+      File file = File(widget.videoPath);
       if (!file.existsSync()) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = "Video file not found.";
-        });
-        return;
+        // Fallback: recover relocated file in current application documents directory
+        final fileName = p.basename(widget.videoPath);
+        final docsDir = await getApplicationDocumentsDirectory();
+        final candidate = File(p.join(docsDir.path, fileName));
+        if (candidate.existsSync()) {
+          file = candidate;
+        } else {
+          setState(() {
+            _hasError = true;
+            _errorMessage = "Video file not found.";
+          });
+          return;
+        }
       }
 
       final controller = VideoPlayerController.file(file);
@@ -157,6 +167,11 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                           : null,
                     ),
                   ),
+                  Image.asset(
+                    'assets/images/snapbeat_studio_logo.png',
+                    height: 28,
+                    fit: BoxFit.contain,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -175,7 +190,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          "${widget.templateName?.toUpperCase() ?? 'SNAPBEAT'} • ${widget.quality ?? '1080P MASTER'}",
+                          "${widget.templateName?.toUpperCase() ?? 'MIX'} • ${widget.quality ?? '1080P MASTER'}",
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -428,28 +443,11 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                         return Row(
                           children: [
                             Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFFC72C),
-                                  foregroundColor: const Color(0xFF07080B),
-                                  elevation: 6,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.download_rounded, size: 20, color: Color(0xFF07080B)),
-                                label: const Text(
-                                  "DOWNLOAD",
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.8,
-                                    color: Color(0xFF07080B),
-                                  ),
-                                ),
-                                onPressed: () => ExportService.saveToGallery(
+                              child: TactileActionButton.primary(
+                                height: 46,
+                                icon: Icons.download_rounded,
+                                label: "SAVE TO PHOTOS",
+                                onTap: () => ExportService.saveToGallery(
                                   context,
                                   videoPath: widget.videoPath,
                                   templateName: tName,
@@ -458,28 +456,11 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF141722),
-                                  foregroundColor: const Color(0xFFF8FAFC),
-                                  side: const BorderSide(color: Color(0xFFFFC72C), width: 1.5),
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.share_rounded, size: 18, color: Color(0xFFFFC72C)),
-                                label: const Text(
-                                  "SHARE",
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.8,
-                                    color: Color(0xFFF8FAFC),
-                                  ),
-                                ),
-                                onPressed: () => ExportService.shareReel(
+                              child: TactileActionButton.secondary(
+                                height: 46,
+                                icon: Icons.share_rounded,
+                                label: "SHARE REEL",
+                                onTap: () => ExportService.shareReel(
                                   context,
                                   videoPath: widget.videoPath,
                                   templateName: tName,

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
 import 'snapbeat_pink_dot.dart';
+import 'retro_metal_panel.dart';
 
 class SnapsReorderStrip extends StatefulWidget {
   final List<PhotoItem> photos;
@@ -71,15 +72,9 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
     final isEnabled = widget.isEnabled;
     final maxPhotos = widget.maxPhotos;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    return RetroMetalPanel(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: AppColors.luxDarkCardGradient,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.9), width: 1.2),
-        boxShadow: AppColors.luxCardShadow,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

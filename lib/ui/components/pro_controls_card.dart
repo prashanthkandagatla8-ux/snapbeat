@@ -6,6 +6,7 @@ import '../../services/subscription_manager.dart';
 import 'retro_subscription_dialog.dart';
 import 'retro_template_preview.dart';
 import 'snapbeat_pink_dot.dart';
+import 'retro_metal_panel.dart';
 
 class ProControlsCard extends StatelessWidget {
   final String selectedTemplateId;
@@ -85,21 +86,9 @@ class ProControlsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.panelCream,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            offset: const Offset(3, 4),
-            blurRadius: 10,
-          ),
-        ],
-      ),
+    return RetroMetalPanel(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -148,7 +137,7 @@ class ProControlsCard extends StatelessWidget {
                     RetroSubscriptionDialog.show(context);
                     return;
                   }
-                  onSelectQuality(selectedQuality == '1080p' ? '540p' : '1080p');
+                  onSelectQuality(selectedQuality == '1080p' ? '720p' : '1080p');
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -164,19 +153,23 @@ class ProControlsCard extends StatelessWidget {
                         height: 7,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: selectedQuality == '1080p' ? AppColors.amberJewel : Colors.grey.withValues(alpha: 0.3),
-                          boxShadow: selectedQuality == '1080p' 
-                              ? [const BoxShadow(color: AppColors.amberGlow, blurRadius: 4, spreadRadius: 1)]
+                          color: (isPro ?? false)
+                              ? (selectedQuality == '1080p' ? AppColors.amberJewel : AppColors.neonCyan)
+                              : Colors.grey.withValues(alpha: 0.3),
+                          boxShadow: (isPro ?? false)
+                              ? [BoxShadow(color: selectedQuality == '1080p' ? AppColors.amberGlow : AppColors.cyanGlow, blurRadius: 4, spreadRadius: 1)]
                               : [],
                         ),
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        selectedQuality == '1080p' ? '1080p 60fps' : '540p Standard',
+                        (isPro ?? false)
+                            ? (selectedQuality == '1080p' ? '1080p Master' : '720p HD')
+                            : '360p Standard (Free)',
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
-                          color: selectedQuality == '1080p' ? AppColors.amberJewel : AppColors.textSecondary,
+                          color: (isPro ?? false) ? AppColors.amberJewel : AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -1223,7 +1216,7 @@ class _CultEffectsSectionState extends State<_CultEffectsSection> {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'CULT EFFECTS',
+                    'BEAT MOTION FX',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,

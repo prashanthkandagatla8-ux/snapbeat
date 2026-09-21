@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class BeatTemplate {
   final String id;
@@ -132,6 +135,17 @@ class QueueJobItem {
       queuePosition: (json['queuePosition'] as num?)?.toInt() ?? 0,
       stage: json['stage']?.toString(),
     );
+  }
+
+  Future<File?> getResolvedVideoFile() async {
+    if (videoPath == null || videoPath!.isEmpty) return null;
+    final direct = File(videoPath!);
+    if (direct.existsSync()) return direct;
+    final fileName = p.basename(videoPath!);
+    final docsDir = await getApplicationDocumentsDirectory();
+    final candidate = File(p.join(docsDir.path, fileName));
+    if (candidate.existsSync()) return candidate;
+    return null;
   }
 }
 

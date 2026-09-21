@@ -39,26 +39,26 @@ class MetalChassisScaffold extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0xFF162A32),
-                        Color(0xFF0C1B20),
-                        Color(0xFF0B0D10),
-                        Color(0xFF050E12),
+                        Color(0xFF1E2127),
+                        Color(0xFF17191E),
+                        Color(0xFF131417),
+                        Color(0xFF0F1012),
                       ],
-                      stops: [0.0, 0.25, 0.65, 1.0],
+                      stops: [0.0, 0.3, 0.7, 1.0],
                     ),
                   ),
                 ),
 
-          // 2. Ambient Studio Spotlight Glow (matches web radial-gradient)
+          // 2. Ambient Studio Spotlight Glow
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 center: const Alignment(0, -0.35),
-                radius: 1.15,
+                radius: 1.25,
                 colors: [
-                  AppColors.chassisBevelLight.withValues(alpha: 0.18),
+                  Colors.white.withValues(alpha: 0.04),
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.55),
+                  Colors.black.withValues(alpha: 0.45),
                 ],
                 stops: const [0.0, 0.55, 1.0],
               ),
