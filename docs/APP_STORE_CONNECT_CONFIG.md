@@ -55,13 +55,14 @@ Inside the `SnapBeat Pro Access` group, create each of the 4 subscription produc
   - **Subscription Display Name**: `Monthly VIP`
   - **Description**: `Full monthly creator access: watermark-free 1080p master renders with priority processing.`
 
-### Tier 4: Annual VIP (Best Value - Save 78%)
+### Tier 4: Annual VIP (Best Value - Save 57%)
 - **Reference Name**: `SnapBeat Pro Annual VIP`
 - **Product ID**: `snapbeat_pro_yearly`
 - **Subscription Duration**: `1 Year`
 - **Subscription Price**:
   - Currency: **INR (₹)**
-  - Base Price: **₹899.00** (Just ₹74.9/month)
+  - Base Price: **₹1,799.00** ($24.99 USD)
+  - Margin Protection: Guarantees >= 5.7x gross margin against compute render costs.
 - **Localization (English - U.S.)**:
   - **Subscription Display Name**: `Annual VIP`
   - **Description**: `1 full year of unlimited Pro creation: 1080p crisp renders, zero watermarks, and VIP queue.`

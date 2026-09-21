@@ -1,15 +1,37 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../services/subscription_manager.dart';
-import '../../theme/app_colors.dart';
 import '../../config/app_config.dart';
+import '../../services/subscription_manager.dart';
 
-/// Production-ready Retro Metal Paywall dialog matching SnapBeat's warm analog chassis.
+/// Configuration for paywall subscription tier cards.
+class _PaywallCardConfig {
+  final ProTier tier;
+  final String title;
+  final String? badge;
+  final IconData icon;
+  final List<String> features;
+  final String fallbackPrice;
+  final String period;
+
+  const _PaywallCardConfig({
+    required this.tier,
+    required this.title,
+    this.badge,
+    required this.icon,
+    required this.features,
+    required this.fallbackPrice,
+    required this.period,
+  });
+}
+
+/// Production-ready SnapBeat Pro Paywall dialog matching paywall_mockup_new_1789909194554.jpg.
+/// Fully compliant with App Store Guideline 3.1.2 and 100% pure ASCII.
 class RetroSubscriptionDialog extends StatefulWidget {
   const RetroSubscriptionDialog({super.key});
 
-  /// Displays the subscription modal.
+  /// Displays the subscription modal bottom sheet.
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet(
       context: context,
@@ -25,14 +47,53 @@ class RetroSubscriptionDialog extends StatefulWidget {
 
 class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   final SubscriptionManager _sm = SubscriptionManager.instance;
-  ProTier _selectedTier = ProTier.annual; // Default to best value
+  ProTier _selectedTier = ProTier.monthly; // Default to 'Best Value' tier as shown in mockup
+
+  static const List<_PaywallCardConfig> _cards = [
+    _PaywallCardConfig(
+      tier: ProTier.weekly,
+      title: 'Weekly Pass',
+      badge: null,
+      icon: Icons.calendar_today_outlined,
+      features: [
+        'Unlimited Exports',
+        'No Watermarks',
+        '100+ Pro Filters',
+      ],
+      fallbackPrice: '\u20B9149',
+      period: ' / Week',
+    ),
+    _PaywallCardConfig(
+      tier: ProTier.monthly,
+      title: 'Monthly VIP',
+      badge: 'Best Value',
+      icon: Icons.workspace_premium_rounded,
+      features: [
+        'All Weekly Features',
+        'Premium Transitions',
+        'Gold Assets & Music',
+      ],
+      fallbackPrice: '\u20B9349',
+      period: ' / Month',
+    ),
+    _PaywallCardConfig(
+      tier: ProTier.annual,
+      title: 'Annual VIP',
+      badge: 'Save 57%',
+      icon: Icons.cloud_outlined,
+      features: [
+        'Complete Creative Suite',
+        'Priority Support',
+        'Cloud Sync',
+      ],
+      fallbackPrice: '\u20B91,799',
+      period: ' / Year',
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
-    if (!SubscriptionManager.availableTiers.contains(_selectedTier)) {
-      _selectedTier = SubscriptionManager.availableTiers.first;
-    }
     _sm.addListener(_onManagerUpdate);
     if (_sm.products.isEmpty) {
       _sm.loadProducts();
@@ -49,12 +110,12 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     if (mounted) setState(() {});
   }
 
-  String _getPriceDisplay(ProTier tier) {
-    final product = _sm.products[tier.productId];
+  String _getPriceAmount(_PaywallCardConfig card) {
+    final product = _sm.products[card.tier.productId];
     if (product != null && product.price.isNotEmpty) {
-      return '${product.price}${tier.billingUnit}';
+      return product.price;
     }
-    return tier.defaultDisplayPrice;
+    return card.fallbackPrice;
   }
 
   Future<void> _handleSubscribe() async {
@@ -66,7 +127,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
             'Connecting to ${Platform.isIOS ? "App Store" : "Google Play"}... Please verify network.',
             style: const TextStyle(color: Colors.white),
           ),
-          backgroundColor: AppColors.hardwareGunmetal,
+          backgroundColor: const Color(0xFF1E1E24),
         ),
       );
       await _sm.loadProducts();
@@ -78,7 +139,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_sm.statusMessage!),
-          backgroundColor: AppColors.redSurface,
+          backgroundColor: const Color(0xFFEF4444),
         ),
       );
     }
@@ -94,7 +155,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           success ? 'Checking previous purchases...' : 'Failed to restore purchases.',
           style: const TextStyle(color: Colors.white),
         ),
-        backgroundColor: AppColors.hardwareGunmetal,
+        backgroundColor: const Color(0xFF1E1E24),
       ),
     );
   }
@@ -103,19 +164,20 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   Widget build(BuildContext context) {
     final isPro = _sm.isPro;
     final isPurchasing = _sm.isPurchasing;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.canvasChassis,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        color: Color(0xFF0F0F13),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         border: Border(
-          top: BorderSide(color: AppColors.chassisBevelLight, width: 2),
+          top: BorderSide(color: Color(0x33FFFFFF), width: 1.2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black54,
-            offset: Offset(0, -6),
-            blurRadius: 20,
+            color: Colors.black87,
+            offset: Offset(0, -8),
+            blurRadius: 28,
           ),
         ],
       ),
@@ -123,102 +185,109 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         left: 20,
         right: 20,
         top: 14,
-        bottom: MediaQuery.of(context).padding.bottom + 20,
+        bottom: bottomPadding + 20,
       ),
       child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top Pull Handle
+            // Pull Handle
             Center(
               child: Container(
-                width: 44,
-                height: 5,
+                width: 38,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.metalScrewHead.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2.5),
+                  color: Colors.white.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-            // Header with Rivets & Title
-            Row(
+            // Top Header: Close Button (left) + Center Logo & Title
+            Stack(
+              alignment: Alignment.topCenter,
               children: [
-                _buildRivet(),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.metalDeepCavity,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.amberJewel.withValues(alpha: 0.5),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.workspace_premium_rounded,
-                          color: AppColors.brassGold,
-                          size: 20,
-                        ),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.08),
                       ),
-                      const SizedBox(width: 10),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'SNAPBEAT PRO',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.5,
-                              color: AppColors.textEngraved,
-                            ),
-                          ),
-                          Text(
-                            'CREATOR PASS & PRIORITY ACCESS',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.8,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white70,
+                        size: 18,
                       ),
-                    ],
+                    ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
-                  visualDensity: VisualDensity.compact,
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Camera Shutter Aperture Logo
+                    CustomPaint(
+                      size: const Size(44, 44),
+                      painter: const _CameraShutterPainter(),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'SnapBeat',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFFFB800),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'SnapBeat Pro',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Unlock Your Creative Potential',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ],
                 ),
-                _buildRivet(),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // Active Pro Banner (if already subscriber)
+            // Active Pro Banner (if already subscribed)
             if (isPro) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.metalDeepCavity,
+                  color: const Color(0xFF141418),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.vuGreen, width: 1.5),
+                  border: Border.all(color: const Color(0xFF10B981), width: 1.5),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_rounded, color: AppColors.vuGreen, size: 20),
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: Color(0xFF10B981),
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -229,7 +298,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.vuGreen,
+                              color: Color(0xFF10B981),
                               letterSpacing: 1.0,
                             ),
                           ),
@@ -238,7 +307,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                               'Renews / Expires: ${_sm.expiresAt!.toLocal().toString().split(".")[0]}',
                               style: const TextStyle(
                                 fontSize: 10,
-                                color: AppColors.panelCream,
+                                color: Color(0xFF94A3B8),
                               ),
                             ),
                         ],
@@ -250,77 +319,14 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
               const SizedBox(height: 16),
             ],
 
-            // Feature Highlights Matrix
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.panelCream,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
-                boxShadow: AppColors.cardInsetShadows,
-              ),
-              child: Column(
-                children: [
-                  _buildFeatureRow(
-                    icon: Icons.water_drop_outlined,
-                    title: 'Remove Watermark',
-                    freeText: 'Watermarked',
-                    proText: 'Crystal Clean',
-                    highlightPro: true,
-                  ),
-                  const Divider(height: 16, color: Color(0x22000000)),
-                  _buildFeatureRow(
-                    icon: Icons.rocket_launch_rounded,
-                    title: 'Render Queue',
-                    freeText: 'Normal Speed',
-                    proText: 'Priority Track',
-                    highlightPro: true,
-                  ),
-                  const Divider(height: 16, color: Color(0x22000000)),
-                  _buildFeatureRow(
-                    icon: Icons.hd_rounded,
-                    title: 'Export Quality',
-                    freeText: '720p HD',
-                    proText: '1080p Master',
-                    highlightPro: true,
-                  ),
-                  const Divider(height: 16, color: Color(0x22000000)),
-                  _buildFeatureRow(
-                    icon: Icons.auto_awesome_rounded,
-                    title: 'All 14 Beat Templates',
-                    freeText: '2 Included',
-                    proText: 'All 14 Included',
-                    highlightPro: true,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+            // 3 Subscription Cards
+            for (int i = 0; i < _cards.length; i++) ...[
+              if (i > 0) const SizedBox(height: 12),
+              _buildTierCard(_cards[i]),
+            ],
+            const SizedBox(height: 22),
 
-            // Plan Selection Label
-            const Text(
-              'SELECT YOUR PASS',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
-                color: AppColors.textEngraved,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Available Tiers List (Platform-guarded: Daily excluded on iOS)
-            Column(
-              children: [
-                for (int i = 0; i < SubscriptionManager.availableTiers.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 8),
-                  _buildPlanCard(SubscriptionManager.availableTiers[i]),
-                ],
-              ],
-            ),
-            const SizedBox(height: 18),
-
-            // Status message (if any)
+            // Status message (if any error/progress)
             if (_sm.statusMessage != null) ...[
               Center(
                 child: Text(
@@ -329,257 +335,175 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.amberJewel,
+                    color: Color(0xFFFFB800),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
             ],
 
-            // Tactile CTA Subscribe Button
-            GestureDetector(
-              onTap: isPurchasing ? null : _handleSubscribe,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  gradient: AppColors.ctaButtonGradient,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.yellowSpecular, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.yellowShadow.withValues(alpha: 0.6),
-                      offset: const Offset(0, 4),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: isPurchasing
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.hardwareGunmetal),
-                          ),
-                        )
-                      : Text(
-                          'SUBSCRIBE FOR ${_getPriceDisplay(_selectedTier).toUpperCase()}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.2,
-                            color: AppColors.hardwareGunmetal,
-                          ),
-                        ),
-                ),
-              ),
-            ),
+            // Primary Glowing CTA Subscribe Button
+            _buildSubscribeButton(isPurchasing),
+            const SizedBox(height: 16),
+
+            // App Store Footer Links
+            _buildFooterLinks(isPurchasing),
             const SizedBox(height: 12),
 
-            // Restore Purchases Button
-            Center(
-              child: TextButton(
-                onPressed: isPurchasing ? null : _handleRestore,
-                child: const Text(
-                  'Restore Previous Purchases',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ),
-
-            // Legal & Terms of Use (App Store Compliance Requirement)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Column(
-                children: [
-                  Text(
-                    Platform.isIOS
-                        ? 'Payment of ${_getPriceDisplay(_selectedTier)} will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled in App Store Account Settings at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the period.'
-                        : 'Payment of ${_getPriceDisplay(_selectedTier)} will be billed through Google Play at confirmation of purchase. Subscriptions automatically renew unless you manage or cancel in the Play Store before the end of the current period.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 9.0,
-                      color: AppColors.textMuted,
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          launchUrl(Uri.parse(AppConfig.privacyPolicyUrl));
-                        },
-                        child: const Text(
-                          'Privacy Policy',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      const Text(
-                        '  •  ',
-                        style: TextStyle(fontSize: 10, color: AppColors.textMuted),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
-                        },
-                        child: const Text(
-                          'Terms of Service (EULA)',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            // App Store Guideline 3.1.2 Auto-Renewal Disclaimer
+            _buildLegalDisclaimer(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPlanCard(ProTier tier) {
-    final isSelected = _selectedTier == tier;
-    final priceStr = _getPriceDisplay(tier);
-    final isAnnual = tier == ProTier.annual;
-    final isMonthly = tier == ProTier.monthly;
+  Widget _buildTierCard(_PaywallCardConfig card) {
+    final isSelected = _selectedTier == card.tier;
+    final priceAmount = _getPriceAmount(card);
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedTier = tier),
+      onTap: () => setState(() => _selectedTier = card.tier),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.panelCream : AppColors.canvasChassis,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? const Color(0xFF1C1A14) : const Color(0xFF141418),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.brassGold : AppColors.chassisBevelDark.withValues(alpha: 0.4),
-            width: isSelected ? 2.0 : 1.0,
+            color: isSelected ? const Color(0xFFFFB800) : const Color(0xFF282832),
+            width: isSelected ? 1.8 : 1.0,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.brassGold.withValues(alpha: 0.3),
-                    blurRadius: 8,
+                    color: const Color(0xFFFFB800).withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    spreadRadius: 1,
                     offset: const Offset(0, 2),
                   ),
                 ]
               : const [
                   BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, 1),
+                    color: Color(0x22000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
                   ),
                 ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Analog Radio Dial Well
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.metalDeepCavity,
-                border: Border.all(
-                  color: isSelected ? AppColors.brassGold : AppColors.metalScrewHead,
-                  width: 1.5,
+            // Top Row: Leading Icon + Title + Optional Badge
+            Row(
+              children: [
+                Icon(
+                  card.icon,
+                  color: const Color(0xFFFFB800),
+                  size: 18,
                 ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.brassGold,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-
-            // Plan Title & Badges
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 8,
-                    runSpacing: 2,
-                    children: [
-                      Text(
-                        tier.displayName,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isSelected ? AppColors.textEngraved : AppColors.textSecondary,
-                        ),
-                      ),
-                      if (isAnnual || isMonthly)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: isAnnual ? AppColors.brassGold : AppColors.amberJewel,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            tier.badgeText,
-                            style: const TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.hardwareGunmetal,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  Text(
-                    tier == ProTier.daily
-                        ? '24 hours of unlimited watermark-free 1080p renders'
-                        : tier == ProTier.weekly
-                            ? '7 days full Pro access with fast priority queue'
-                            : tier == ProTier.monthly
-                                ? 'Full monthly access • Auto-renews monthly'
-                                : '1 full year access • Auto-renews yearly (Save ~57%)',
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    card.title,
                     style: const TextStyle(
-                      fontSize: 10,
-                      color: AppColors.textSecondary,
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                ],
-              ),
+                ),
+                if (card.badge != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFFFFB800)
+                          : const Color(0x26FFB800),
+                      borderRadius: BorderRadius.circular(6),
+                      border: isSelected
+                          ? null
+                          : Border.all(color: const Color(0x66FFB800), width: 1.0),
+                    ),
+                    child: Text(
+                      card.badge!,
+                      style: TextStyle(
+                        color: isSelected ? Colors.black : const Color(0xFFFFB800),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+              ],
             ),
+            const SizedBox(height: 10),
 
-            // Price Pill
-            Text(
-              priceStr,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: isSelected ? AppColors.textEngraved : AppColors.textSecondary,
-              ),
+            // Feature Checklist + Price Display Row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final feature in card.features) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_rounded,
+                                color: Color(0xFFFFB800),
+                                size: 14,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  feature,
+                                  style: const TextStyle(
+                                    color: Color(0xFFD1D1D6),
+                                    fontSize: 11.0,
+                                    letterSpacing: -0.2,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 2,
+                                  softWrap: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                RichText(
+                  textAlign: TextAlign.end,
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: priceAmount,
+                        style: const TextStyle(
+                          color: Color(0xFFFFB800),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      TextSpan(
+                        text: card.period,
+                        style: const TextStyle(
+                          color: Color(0xFF8E8E93),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -587,57 +511,97 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     );
   }
 
-  Widget _buildFeatureRow({
-    required IconData icon,
-    required String title,
-    required String freeText,
-    required String proText,
-    required bool highlightPro,
-  }) {
-    return Row(
+  Widget _buildSubscribeButton(bool isPurchasing) {
+    return GestureDetector(
+      onTap: isPurchasing ? null : _handleSubscribe,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFFCA28),
+              Color(0xFFFFA000),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFFA000).withValues(alpha: 0.45),
+              blurRadius: 20,
+              spreadRadius: 2,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: isPurchasing
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                  ),
+                )
+              : const Text(
+                  'Subscribe',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooterLinks(bool isPurchasing) {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 16,
+      runSpacing: 6,
       children: [
-        Icon(icon, size: 16, color: AppColors.hardwareGunmetal),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 4,
-          child: Text(
-            title,
-            style: const TextStyle(
+        GestureDetector(
+          onTap: () {
+            launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
+          },
+          child: const Text(
+            'Terms of Service',
+            style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textEngraved,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF8E8E93),
             ),
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: Text(
-            freeText,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 10.5,
-              color: AppColors.textSecondary,
+        GestureDetector(
+          onTap: () {
+            launchUrl(Uri.parse(AppConfig.privacyPolicyUrl));
+          },
+          child: const Text(
+            'Privacy Policy',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF8E8E93),
             ),
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: highlightPro
-                ? BoxDecoration(
-                    color: AppColors.brassGold.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  )
-                : null,
-            child: Text(
-              proText,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: highlightPro ? FontWeight.w900 : FontWeight.w500,
-                color: highlightPro ? AppColors.hardwareGunmetal : AppColors.textSecondary,
-              ),
+        GestureDetector(
+          onTap: isPurchasing ? null : _handleRestore,
+          child: const Text(
+            'Restore Purchase',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF8E8E93),
             ),
           ),
         ),
@@ -645,28 +609,83 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     );
   }
 
-  Widget _buildRivet() {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.metalScrewHead,
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            offset: Offset(1, 1),
-            blurRadius: 1,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: 5,
-          height: 1,
-          color: AppColors.metalShadow,
+  Widget _buildLegalDisclaimer() {
+    final currentCard = _cards.firstWhere(
+      (c) => c.tier == _selectedTier,
+      orElse: () => _cards[1],
+    );
+    final priceStr = '${_getPriceAmount(currentCard)}${currentCard.period}';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        Platform.isIOS
+            ? 'Payment of $priceStr will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless canceled in App Store Account Settings at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the period.'
+            : 'Payment of $priceStr will be billed through Google Play at confirmation of purchase. Subscription automatically renews unless canceled in Google Play Subscriptions before the end of the current period.',
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 9.5,
+          color: Color(0xFF64748B),
+          height: 1.35,
         ),
       ),
     );
   }
+}
+
+/// Custom painter rendering the radiant golden camera shutter aperture logo.
+class _CameraShutterPainter extends CustomPainter {
+  const _CameraShutterPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final outerRadius = size.width * 0.44;
+    final innerRadius = outerRadius * 0.28;
+    const bladeCount = 6;
+    const step = 2 * math.pi / bladeCount;
+    final phi = math.acos(innerRadius / outerRadius);
+
+    final bladePaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFFFD54F),
+          Color(0xFFFFB300),
+          Color(0xFFFFA000),
+        ],
+      ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: outerRadius))
+      ..style = PaintingStyle.fill;
+
+    final strokePaint = Paint()
+      ..color = const Color(0xFF0F0F13)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    for (int i = 0; i < bladeCount; i++) {
+      final a1 = i * step;
+      final a2 = (i + 1) * step;
+      final tangentAngle = a1 + phi;
+      final tx = cx + innerRadius * math.cos(tangentAngle);
+      final ty = cy + innerRadius * math.sin(tangentAngle);
+
+      final path = Path()
+        ..moveTo(cx + outerRadius * math.cos(a1), cy + outerRadius * math.sin(a1))
+        ..arcToPoint(
+          Offset(cx + outerRadius * math.cos(a2), cy + outerRadius * math.sin(a2)),
+          radius: Radius.circular(outerRadius),
+          clockwise: true,
+        )
+        ..lineTo(tx, ty)
+        ..close();
+
+      canvas.drawPath(path, bladePaint);
+      canvas.drawPath(path, strokePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

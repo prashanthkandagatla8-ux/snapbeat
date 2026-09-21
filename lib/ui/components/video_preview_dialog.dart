@@ -5,7 +5,6 @@ import '../../theme/app_colors.dart';
 import '../../services/export_service.dart';
 import '../../services/subscription_manager.dart';
 
-import 'retro_mechanical_button.dart';
 
 class VideoPreviewDialog extends StatefulWidget {
   final String videoPath;
@@ -429,22 +428,58 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                         return Row(
                           children: [
                             Expanded(
-                              child: RetroMechanicalButton(
-                                variant: RetroButtonVariant.download,
-                                height: 48,
-                                onTap: () => ExportService.saveToGallery(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFFC72C),
+                                  foregroundColor: const Color(0xFF07080B),
+                                  elevation: 6,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.download_rounded, size: 20, color: Color(0xFF07080B)),
+                                label: const Text(
+                                  "DOWNLOAD",
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.8,
+                                    color: Color(0xFF07080B),
+                                  ),
+                                ),
+                                onPressed: () => ExportService.saveToGallery(
                                   context,
                                   videoPath: widget.videoPath,
                                   templateName: tName,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: RetroMechanicalButton(
-                                variant: RetroButtonVariant.share,
-                                height: 48,
-                                onTap: () => ExportService.shareReel(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF141722),
+                                  foregroundColor: const Color(0xFFF8FAFC),
+                                  side: const BorderSide(color: Color(0xFFFFC72C), width: 1.5),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.share_rounded, size: 18, color: Color(0xFFFFC72C)),
+                                label: const Text(
+                                  "SHARE",
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.8,
+                                    color: Color(0xFFF8FAFC),
+                                  ),
+                                ),
+                                onPressed: () => ExportService.shareReel(
                                   context,
                                   videoPath: widget.videoPath,
                                   templateName: tName,

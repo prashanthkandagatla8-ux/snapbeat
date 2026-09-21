@@ -52,7 +52,7 @@ extension ProTierExtension on ProTier {
       case ProTier.monthly:
         return '₹349';
       case ProTier.annual:
-        return '₹899';
+        return '₹1,799';
     }
   }
 
@@ -65,7 +65,7 @@ extension ProTierExtension on ProTier {
       case ProTier.monthly:
         return '\$4.99';
       case ProTier.annual:
-        return '\$11.99';
+        return '\$24.99';
     }
   }
 
