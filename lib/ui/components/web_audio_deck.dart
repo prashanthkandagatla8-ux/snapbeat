@@ -644,6 +644,12 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                 value: currentTrack,
                 isExpanded: true,
                 dropdownColor: AppColors.panelCreamDark,
+                style: const TextStyle(
+                  color: AppColors.textEngraved,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Montserrat',
+                ),
                 borderRadius: BorderRadius.circular(16),
                 icon: const Icon(
                   Icons.keyboard_arrow_down_rounded,
