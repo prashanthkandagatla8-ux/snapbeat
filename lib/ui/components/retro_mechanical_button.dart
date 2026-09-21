@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 enum RetroButtonVariant {
   render('assets/images/btn_render.png', 'RENDER'),
@@ -51,34 +52,58 @@ class _RetroMechanicalButtonState extends State<RetroMechanicalButton> {
       enabled: enabled,
       label: widget.variant.label,
       child: GestureDetector(
-        onTapDown: enabled ? (_) => setState(() => _isPressed = true) : null,
+        onTapDown: enabled
+            ? (_) {
+                HapticFeedback.lightImpact();
+                setState(() => _isPressed = true);
+              }
+            : null,
         onTapUp: enabled ? (_) => setState(() => _isPressed = false) : null,
         onTapCancel: enabled ? () => setState(() => _isPressed = false) : null,
-        onTap: enabled ? widget.onTap : null,
+        onTap: enabled
+            ? () {
+                HapticFeedback.mediumImpact();
+                widget.onTap?.call();
+              }
+            : null,
         behavior: HitTestBehavior.opaque,
         child: AnimatedScale(
-          scale: _isPressed ? 0.94 : 1.0,
+          scale: _isPressed ? 0.93 : 1.0,
           duration: const Duration(milliseconds: 90),
           curve: Curves.easeOutCubic,
           child: AnimatedOpacity(
             opacity: enabled ? 1.0 : 0.45,
             duration: const Duration(milliseconds: 150),
-            child: SizedBox(
-              height: widget.height,
-              width: widget.width,
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: cachedUiImage != null
-                    ? RawImage(
-                        image: cachedUiImage,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.medium,
-                      )
-                    : Image.asset(
-                        widget.variant.assetPath,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.medium,
-                      ),
+            child: Container(
+              decoration: (enabled && widget.variant == RetroButtonVariant.render)
+                  ? BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF8A00).withValues(alpha: _isPressed ? 0.2 : 0.4),
+                          blurRadius: _isPressed ? 10 : 20,
+                          spreadRadius: _isPressed ? 1 : 3,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    )
+                  : null,
+              child: SizedBox(
+                height: widget.height,
+                width: widget.width,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: cachedUiImage != null
+                      ? RawImage(
+                          image: cachedUiImage,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
+                        )
+                      : Image.asset(
+                          widget.variant.assetPath,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
+                        ),
+                ),
               ),
             ),
           ),

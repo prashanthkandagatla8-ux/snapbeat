@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 import 'snapbeat_pink_dot.dart';
 
@@ -24,37 +25,37 @@ class MasterActionDeck extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.metalBase,
+        color: AppColors.luxObsidian,
         border: const Border(
           top: BorderSide(color: AppColors.chassisBevelLight, width: 1.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.55),
-            offset: const Offset(0, -4),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.75),
+            offset: const Offset(0, -6),
+            blurRadius: 18,
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Container(
-            height: 44,
-            padding: const EdgeInsets.all(3.5),
+            height: 48,
+            padding: const EdgeInsets.all(4.0),
             decoration: BoxDecoration(
               color: AppColors.panelInset,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppColors.chassisBevelLight.withValues(alpha: 0.7),
+                color: AppColors.chassisBevelLight.withValues(alpha: 0.8),
                 width: 1.2,
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  offset: const Offset(0, 2),
-                  blurRadius: 4,
+                  color: Colors.black45,
+                  offset: Offset(0, 2),
+                  blurRadius: 6,
                   spreadRadius: -1,
                 ),
               ],
@@ -110,8 +111,10 @@ class MasterActionDeck extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           if (!isEnabled) {
+            HapticFeedback.heavyImpact();
             if (onDisabledTabTap != null) onDisabledTabTap!(mode);
           } else {
+            HapticFeedback.selectionClick();
             onSelectMode(mode);
           }
         },
@@ -119,30 +122,21 @@ class MasterActionDeck extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           opacity: isEnabled ? 1.0 : 0.4,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              gradient: isSelected
-                  ? const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFFFFE082),
-                        Color(0xFFFFC72C),
-                        Color(0xFFE5A800),
-                      ],
-                    )
-                  : null,
+              gradient: isSelected ? AppColors.luxGoldGradient : null,
               border: isSelected
-                  ? Border.all(color: const Color(0xFFFFF6CC), width: 1)
+                  ? Border.all(color: const Color(0xFFFFF6CC), width: 1.2)
                   : null,
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: AppColors.brassGold.withValues(alpha: 0.35),
+                        color: AppColors.brassGold.withValues(alpha: 0.45),
                         offset: const Offset(0, 2),
-                        blurRadius: 6,
+                        blurRadius: 8,
+                        spreadRadius: 0.5,
                       ),
                     ]
                   : null,

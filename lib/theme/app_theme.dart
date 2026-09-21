@@ -18,18 +18,37 @@ class AppTheme {
         onSurface: AppColors.textEngraved,
       ),
       cardColor: AppColors.panelCream,
+      cardTheme: CardThemeData(
+        color: AppColors.panelCream,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.chassisBevelLight, width: 1.2),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return AppColors.hardwareGunmetal;
+          return AppColors.textMuted;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return AppColors.brassGold;
+          return AppColors.panelInset;
+        }),
+      ),
       dividerColor: AppColors.chassisBevelLight,
       textTheme: TextTheme(
         headlineLarge: GoogleFonts.montserrat(
           fontSize: 22,
           fontWeight: FontWeight.w900,
           color: AppColors.textEngraved,
-          letterSpacing: 0.5,
+          letterSpacing: 0.6,
         ),
         headlineMedium: GoogleFonts.montserrat(
           fontSize: 18,
           fontWeight: FontWeight.w800,
           color: AppColors.textEngraved,
+          letterSpacing: 0.4,
         ),
         titleMedium: GoogleFonts.montserrat(
           fontSize: 14,
@@ -41,11 +60,12 @@ class AppTheme {
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: AppColors.textSecondary,
+          height: 1.35,
         ),
         labelSmall: GoogleFonts.montserrat(
           fontSize: 10,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
+          letterSpacing: 0.9,
           color: AppColors.textMuted,
         ),
       ),

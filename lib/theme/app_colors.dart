@@ -102,6 +102,65 @@ class AppColors {
     ],
   );
 
+  static const Color goldGlow = Color(0x55FFC72C);
+  static const Color luxObsidian = Color(0xFF070A0D);
+  static const Color luxCardSurface = Color(0xFF0D222A);
+  static const Color luxCardSurfaceLight = Color(0xFF13323D);
+  static const Color neonCyan = Color(0xFF00F0FF);
+  static const Color cyanGlow = Color(0x4400F0FF);
+
+  // ─── Luxury Audio-Grade Gradients ───
+  static const LinearGradient luxDarkCardGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFF13333E),
+      Color(0xFF0D232B),
+      Color(0xFF08181E),
+    ],
+    stops: [0.0, 0.45, 1.0],
+  );
+
+  static const LinearGradient luxGoldGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFFFF0B3),
+      Color(0xFFFFD54F),
+      Color(0xFFFFC72C),
+      Color(0xFFC69200),
+    ],
+    stops: [0.0, 0.25, 0.7, 1.0],
+  );
+
+  static const LinearGradient luxRenderLaunchGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFFFFF176),
+      Color(0xFFFFC72C),
+      Color(0xFFFF9800),
+      Color(0xFFD84315),
+    ],
+    stops: [0.0, 0.35, 0.75, 1.0],
+  );
+
+  // ─── Elevation & Tactile Lighting Presets ───
+  static List<BoxShadow> get luxCardShadow => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.65),
+      offset: const Offset(0, 8),
+      blurRadius: 20,
+      spreadRadius: -2,
+    ),
+    BoxShadow(
+      color: const Color(0xFF203C46).withValues(alpha: 0.25),
+      offset: const Offset(0, -1),
+      blurRadius: 1,
+      spreadRadius: 0,
+    ),
+  ];
+
   static List<BoxShadow> get cardInsetShadows => [
     const BoxShadow(
       color: Color(0x35000000),
@@ -112,6 +171,15 @@ class AppColors {
       color: Color(0x20FFFFFF),
       offset: Offset(0, -1),
       blurRadius: 2,
+    ),
+  ];
+
+  static List<BoxShadow> luxGlowShadow(Color glowColor, {double blur = 14, double spread = 1}) => [
+    BoxShadow(
+      color: glowColor.withValues(alpha: 0.45),
+      blurRadius: blur,
+      spreadRadius: spread,
+      offset: const Offset(0, 2),
     ),
   ];
 }
