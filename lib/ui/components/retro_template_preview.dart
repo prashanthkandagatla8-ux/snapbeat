@@ -23,6 +23,7 @@ class RetroTemplatePreview extends StatefulWidget {
 
 class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
   late String _previewId;
+  String _lastSingleTemplateId = "pendulum";
   VideoPlayerController? _controller;
   bool _isMuted = true;
   bool _isPlaying = true;
@@ -33,7 +34,10 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
     super.initState();
     _previewId = widget.selectedTemplateId.isNotEmpty
         ? widget.selectedTemplateId
-        : BeatTemplate.allTemplates.first.id;
+        : "mix";
+    if (_previewId != "mix") {
+      _lastSingleTemplateId = _previewId;
+    }
     _initVideoPlayer(_previewId);
   }
 
@@ -48,6 +52,16 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
 
   Future<void> _initVideoPlayer(String templateId) async {
     final oldController = _controller;
+    if (templateId == "mix") {
+      setState(() {
+        _controller = null;
+        _isInitialized = false;
+        _isPlaying = false;
+      });
+      oldController?.dispose();
+      return;
+    }
+
     setState(() {
       _isInitialized = false;
     });
@@ -86,6 +100,9 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
   }
 
   void _changePreview(String templateId) {
+    if (templateId != "mix") {
+      _lastSingleTemplateId = templateId;
+    }
     if (_previewId == templateId) return;
     setState(() {
       _previewId = templateId;
@@ -147,6 +164,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
     final isCurrentSelected = widget.selectedTemplateId == _previewId;
     final isTemplatePro = activeTemplate.isPro;
     final canSelect = widget.isPro || !isTemplatePro;
+    final isMixActive = widget.selectedTemplateId == 'mix';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,6 +214,47 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
           ],
         ),
         const SizedBox(height: 8),
+
+        // Dedicated Mode Segment: MIX ALL STYLES vs SINGLE TEMPLATE
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: AppColors.panelInset,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.chassisBevelDark, width: 1),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildRockerTab(
+                  isSelected: isMixActive,
+                  icon: Icons.shuffle_rounded,
+                  title: 'MIX ALL STYLES',
+                  subtitle: 'Auto-cycles styles',
+                  onTap: () {
+                    widget.onSelectTemplate('mix');
+                    _changePreview('mix');
+                  },
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _buildRockerTab(
+                  isSelected: !isMixActive,
+                  icon: Icons.lock_outline_rounded,
+                  title: 'SINGLE TEMPLATE',
+                  subtitle: 'Lock to 1 style',
+                  onTap: () {
+                    final target = (_previewId != 'mix') ? _previewId : _lastSingleTemplateId;
+                    widget.onSelectTemplate(target);
+                    _changePreview(target);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
 
         // Retro CRT Viewfinder Screen
         Container(
@@ -299,90 +358,93 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                 ),
               ),
 
-              // 9:16 Video Player Area (height ~220px)
+              // 9:16 Video Player Area / Mix Visualizer (height ~220px)
               GestureDetector(
-                onTap: _togglePlay,
+                onTap: _previewId == "mix" ? null : _togglePlay,
                 behavior: HitTestBehavior.opaque,
                 child: Container(
                   height: 220,
                   width: double.infinity,
                   color: Colors.black,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Poster Image (shown immediately)
-                      Positioned.fill(
-                        child: Image.asset(
-                          'assets/previews/$_previewId.jpg',
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Center(
-                            child: Icon(Icons.movie_creation_rounded, color: Colors.white24, size: 36),
-                          ),
-                        ),
-                      ),
-
-                      // Video Player (when initialized)
-                      if (_isInitialized && _controller != null)
-                        Center(
-                          child: AspectRatio(
-                            aspectRatio: _controller!.value.aspectRatio > 0
-                                ? _controller!.value.aspectRatio
-                                : 9 / 16,
-                            child: VideoPlayer(_controller!),
-                          ),
-                        ),
-
-                      // Scanline overlay effect
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.05),
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.15),
-                                ],
+                  child: _previewId == "mix"
+                      ? _buildMixVisualizer()
+                      : Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Poster Image (shown immediately)
+                            Positioned.fill(
+                              child: Image.asset(
+                                'assets/previews/$_previewId.jpg',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) => const Center(
+                                  child: Icon(Icons.movie_creation_rounded, color: Colors.white24, size: 36),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
 
-                      // CRT Vignette glow
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color(0xFF00FFC2).withValues(alpha: 0.08),
-                                width: 2,
+                            // Video Player (when initialized)
+                            if (_isInitialized && _controller != null)
+                              Center(
+                                child: AspectRatio(
+                                  aspectRatio: _controller!.value.aspectRatio > 0
+                                      ? _controller!.value.aspectRatio
+                                      : 9 / 16,
+                                  child: VideoPlayer(_controller!),
+                                ),
+                              ),
+
+                            // Scanline overlay effect
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.white.withValues(alpha: 0.04),
+                                        Colors.transparent,
+                                        Colors.black.withValues(alpha: 0.15),
+                                      ],
+                                      stops: const [0.0, 0.5, 1.0],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
 
-                      // Paused overlay indicator
-                      if (!_isPlaying && _isInitialized)
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.75),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.brassGold, width: 1.5),
-                          ),
-                          child: const Icon(
-                            Icons.play_arrow_rounded,
-                            color: AppColors.brassGold,
-                            size: 22,
-                          ),
+                            // CRT Vignette glow
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: const Color(0xFF00FFC2).withValues(alpha: 0.08),
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Paused overlay indicator
+                            if (!_isPlaying && _isInitialized)
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.75),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppColors.brassGold, width: 1.5),
+                                ),
+                                child: const Icon(
+                                  Icons.play_arrow_rounded,
+                                  color: AppColors.brassGold,
+                                  size: 22,
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
                 ),
               ),
 
@@ -535,84 +597,270 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
         ),
         const SizedBox(height: 10),
 
-        // Template Selection Chips (All 14 styles)
-        const Text(
-          'TAP TO PREVIEW STYLE • CONFIRM TO SELECT',
-          style: TextStyle(
-            fontSize: 8.5,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.6,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: BeatTemplate.allTemplates.map((t) {
-            final isPreviewed = t.id == _previewId;
-            final isCommitted = t.id == widget.selectedTemplateId;
-            final isLocked = !widget.isPro && t.isPro;
+        const SizedBox(height: 10),
 
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                _changePreview(t.id);
-                if (isLocked) {
-                  RetroSubscriptionDialog.show(context);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isPreviewed
-                      ? AppColors.brassGold
-                      : (isCommitted ? AppColors.brassGold.withValues(alpha: 0.3) : AppColors.panelInset),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isPreviewed
-                        ? AppColors.brassGold
-                        : (isCommitted ? AppColors.borderBrass : AppColors.chassisBevelLight),
-                    width: isPreviewed ? 1.5 : 1.0,
+        if (isMixActive) ...[
+          // Explanatory card for Mix Mode
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.panelInset,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.chassisBevelDark, width: 1),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.auto_awesome_rounded, size: 16, color: AppColors.brassGold),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Mix mode alternates kinetic animations across all 14 motion styles on downbeats. Tap 'SINGLE TEMPLATE' above if you prefer locking into one specific style.",
+                    style: const TextStyle(
+                      fontSize: 9.5,
+                      color: AppColors.textSecondary,
+                      height: 1.25,
+                    ),
                   ),
-                  boxShadow: isPreviewed
-                      ? const [
-                          BoxShadow(color: AppColors.amberGlow, blurRadius: 4, spreadRadius: 1),
-                        ]
-                      : null,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      t.icon,
-                      size: 11,
-                      color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.brassGold,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      t.name.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: isPreviewed ? FontWeight.w900 : FontWeight.w700,
-                        letterSpacing: 0.4,
-                        color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.textSecondary,
-                      ),
-                    ),
-                    if (isLocked) ...[
-                      const SizedBox(width: 3),
-                      const Icon(Icons.lock_rounded, size: 9, color: AppColors.brassGold),
-                    ] else if (isCommitted) ...[
-                      const SizedBox(width: 3),
-                      const Icon(Icons.check_circle_rounded, size: 10, color: Colors.greenAccent),
-                    ],
-                  ],
+              ],
+            ),
+          ),
+        ] else ...[
+          // Template Selection Chips (All 14 styles, excluding 'mix')
+          Row(
+            children: const [
+              SnapBeatPinkDot(size: 8),
+              SizedBox(width: 6),
+              Text(
+                'TAP TO PREVIEW STYLE • CONFIRM TO LOCK',
+                style: TextStyle(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                  color: AppColors.textSecondary,
                 ),
               ),
-            );
-          }).toList(),
-        ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: BeatTemplate.allTemplates.where((t) => t.id != 'mix').map((t) {
+              final isPreviewed = t.id == _previewId;
+              final isCommitted = t.id == widget.selectedTemplateId;
+              final isLocked = !widget.isPro && t.isPro;
+
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  _changePreview(t.id);
+                  if (isLocked) {
+                    RetroSubscriptionDialog.show(context);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isPreviewed
+                        ? AppColors.brassGold
+                        : (isCommitted ? AppColors.brassGold.withValues(alpha: 0.3) : AppColors.panelInset),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isPreviewed
+                          ? AppColors.brassGold
+                          : (isCommitted ? AppColors.borderBrass : AppColors.chassisBevelLight),
+                      width: isPreviewed ? 1.5 : 1.0,
+                    ),
+                    boxShadow: isPreviewed
+                        ? const [
+                            BoxShadow(color: AppColors.amberGlow, blurRadius: 4, spreadRadius: 1),
+                          ]
+                        : null,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        t.icon,
+                        size: 11,
+                        color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.brassGold,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        t.name.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: isPreviewed ? FontWeight.w900 : FontWeight.w700,
+                          letterSpacing: 0.4,
+                          color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+                        ),
+                      ),
+                      if (isLocked) ...[
+                        const SizedBox(width: 3),
+                        const Icon(Icons.lock_rounded, size: 9, color: AppColors.brassGold),
+                      ] else if (isCommitted) ...[
+                        const SizedBox(width: 3),
+                        const Icon(Icons.check_circle_rounded, size: 10, color: Colors.greenAccent),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ],
+    );
+  }
+
+  Widget _buildRockerTab({
+    required bool isSelected,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.brassGold : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: isSelected
+              ? Border.all(color: AppColors.borderBrass, width: 1.2)
+              : null,
+          boxShadow: isSelected
+              ? const [
+                  BoxShadow(
+                    color: AppColors.amberGlow,
+                    blurRadius: 6,
+                    offset: Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: isSelected ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                      color: isSelected ? AppColors.hardwareGunmetal : AppColors.textEngraved,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.hardwareGunmetal.withValues(alpha: 0.8)
+                          : AppColors.textMuted,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMixVisualizer() {
+    return Container(
+      width: double.infinity,
+      height: 220,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF0C242C),
+            Color(0xFF071318),
+            Colors.black,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.brassGold.withValues(alpha: 0.15),
+                border: Border.all(color: AppColors.borderBrass, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(color: AppColors.amberGlow, blurRadius: 10, spreadRadius: 2),
+                ],
+              ),
+              child: const Icon(Icons.shuffle_rounded, size: 34, color: AppColors.brassGold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "DYNAMIC MOTION MIX",
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 12.5,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.panelInset,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.chassisBevelDark),
+              ),
+              child: const Text(
+                "CYCLES ALL 14 MOTION STYLES TO THE BEAT",
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: AppColors.brassGold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Pendulum • Bounce • Cinematic Zoom • Cuts & Slides",
+              style: TextStyle(
+                fontSize: 8.5,
+                color: Colors.white.withValues(alpha: 0.65),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
