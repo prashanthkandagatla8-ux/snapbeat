@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_config.dart';
 import '../../services/subscription_manager.dart';
@@ -119,6 +120,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   }
 
   Future<void> _handleSubscribe() async {
+    HapticFeedback.mediumImpact();
     final product = _sm.products[_selectedTier.productId];
     if (product == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -363,7 +365,10 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     final priceAmount = _getPriceAmount(card);
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedTier = card.tier),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedTier = card.tier);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeInOut,

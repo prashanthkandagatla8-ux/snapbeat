@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle, SystemNavigator, PlatformException;
+import 'package:flutter/services.dart' show rootBundle, SystemNavigator, PlatformException, HapticFeedback;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1469,9 +1469,10 @@ class HomeScreenState extends State<HomeScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: AppColors.panelCreamDark,
+                                gradient: AppColors.luxDarkCardGradient,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.chassisBevelLight),
+                                border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
+                                boxShadow: AppColors.luxCardShadow,
                               ),
                               child: Row(
                                 children: const [
@@ -1813,9 +1814,10 @@ class HomeScreenState extends State<HomeScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.panelCreamDark,
+                gradient: AppColors.luxDarkCardGradient,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.chassisBevelLight),
+                border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
+                boxShadow: AppColors.luxCardShadow,
               ),
               child: Row(
                 children: const [
@@ -1891,44 +1893,26 @@ class HomeScreenState extends State<HomeScreen> {
                     onTap: _triggerMasterReel,
                   ),
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: _triggerPreviewRender,
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8B2525),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFF4A1010), width: 2),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black45, offset: Offset(2, 2), blurRadius: 4),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        "PREVIEW",
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
+                  _buildPreviewCueButton(),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SnapBeatPinkDot(size: 6.5, withGlow: true),
+                  const SizedBox(width: 6),
+                  Text(
+                    "READY TO SYNC ${_photos.length} ${_photos.length == 1 ? 'PHOTO' : 'PHOTOS'} TO BEAT",
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.9,
+                      color: AppColors.textMuted,
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 5),
-              Text(
-                "READY TO SYNC ${_photos.length} ${_photos.length == 1 ? 'PHOTO' : 'PHOTOS'} TO BEAT",
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.9,
-                  color: AppColors.textMuted,
-                ),
               ),
             ],
           ),
@@ -2015,21 +1999,108 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildPreviewCueButton() {
+    return GestureDetector(
+      onTapDown: (_) => HapticFeedback.lightImpact(),
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        _triggerPreviewRender();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 60,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF2C2825),
+              Color(0xFF191715),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.chassisBevelLight.withValues(alpha: 0.5),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              offset: const Offset(0, 3),
+              blurRadius: 6,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.amberJewel,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.amberGlow.withValues(alpha: 0.8),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "CUE DRAFT",
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textEngraved,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                SizedBox(height: 1),
+                Text(
+                  "FAST PREVIEW",
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 7.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textMuted,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildJobSummaryCard() {
     final durationSec = (_audioEnd > _audioStart && _audioEnd <= _audioDuration)
         ? (_audioEnd - _audioStart).toInt()
         : _audioDuration.toInt();
+    final isMix = _renderMode == "manual" && _selectedTemplate == "mix";
     final styleName = _renderMode == "auto"
         ? _currentAutoTemplate.name.toUpperCase()
-        : _selectedTemplate.toUpperCase();
+        : (isMix ? "DYNAMIC MIX 🔀" : _selectedTemplate.toUpperCase());
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.panelCreamDark,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.chassisBevelLight),
+        gradient: AppColors.luxDarkCardGradient,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
+        boxShadow: AppColors.luxCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2054,14 +2125,14 @@ class HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                 decoration: BoxDecoration(
                   color: AppColors.panelInset,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
                 ),
                 child: Text(
-                  _renderMode == "auto" ? "AUTO PRESET" : "MANUAL CONFIG",
+                  _renderMode == "auto" ? "AUTO PRESET" : (isMix ? "MIX ENGINE" : "MANUAL CONFIG"),
                   style: const TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 7.5,
@@ -2073,7 +2144,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           // Row 1: Soundtrack & Duration
           Row(
             children: [
@@ -2082,7 +2153,7 @@ class HomeScreenState extends State<HomeScreen> {
                 _selectedMusicTitle.isEmpty ? "Track" : _selectedMusicTitle,
                 subtitle: "AUDIO",
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _buildSummaryPill(
                 Icons.timer_outlined,
                 "${durationSec}s length",
@@ -2090,7 +2161,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           // Row 2: Photo count & Motion style
           Row(
             children: [
@@ -2099,15 +2170,16 @@ class HomeScreenState extends State<HomeScreen> {
                 "${_photos.length} ${_photos.length == 1 ? 'photo' : 'photos'}",
                 subtitle: "MEDIA",
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _buildSummaryPill(
-                Icons.auto_awesome_mosaic_rounded,
+                isMix ? Icons.shuffle_rounded : Icons.auto_awesome_mosaic_rounded,
                 styleName,
                 subtitle: "STYLE",
+                highlight: isMix,
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           // Row 3: Aspect ratio & Quality + Watermark status
           Row(
             children: [
@@ -2116,7 +2188,7 @@ class HomeScreenState extends State<HomeScreen> {
                 "$_selectedAspectRatio • $_selectedQuality",
                 subtitle: "OUTPUT",
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _buildSummaryPill(
                 !sm.shouldWatermark ? Icons.verified_rounded : Icons.branding_watermark_rounded,
                 !sm.shouldWatermark ? "NONE (PRO)" : "SNAPBEAT",
@@ -2242,15 +2314,13 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAutoTemplateBanner() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.panelCreamDark,
+        gradient: AppColors.luxDarkCardGradient,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.brassGold, width: 1.4),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
-        ],
+        border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.8), width: 1.2),
+        boxShadow: AppColors.luxCardShadow,
       ),
       child: Row(
         children: [
@@ -2400,9 +2470,10 @@ class HomeScreenState extends State<HomeScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.panelCreamDark,
+            gradient: AppColors.luxDarkCardGradient,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.chassisBevelLight),
+            border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
+            boxShadow: AppColors.luxCardShadow,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2600,9 +2671,10 @@ class HomeScreenState extends State<HomeScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.panelCreamDark,
+              gradient: AppColors.luxDarkCardGradient,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.chassisBevelLight),
+              border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
+              boxShadow: AppColors.luxCardShadow,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2918,7 +2990,7 @@ class HomeScreenState extends State<HomeScreen> {
                             margin: const EdgeInsets.only(left: 6),
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: AppColors.panelCreamDark,
+                              color: AppColors.panelInset,
                               borderRadius: BorderRadius.circular(5),
                               border: Border.all(color: AppColors.chassisBevelLight, width: 0.8),
                             ),
@@ -2934,7 +3006,7 @@ class HomeScreenState extends State<HomeScreen> {
                         fontFamily: 'Montserrat',
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF5A5243),
+                        color: AppColors.textMuted,
                       ),
                     ),
                     if (job.videoPath != null) ...[
