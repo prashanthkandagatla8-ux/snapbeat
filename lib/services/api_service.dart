@@ -66,42 +66,20 @@ class ApiService {
 
     final formData = FormData();
 
-    // Attach music
-    formData.files.add(MapEntry(
-      "audio",
-      await MultipartFile.fromFile(
-        musicFile.path,
-        filename: 'audio${p.extension(musicFile.path)}',
-      ),
-    ));
-
-    // Attach photos under key 'photos' with unique indexed filenames to support duplicate photos
-    for (int i = 0; i < photoFiles.length; i++) {
-      final file = photoFiles[i];
-      final ext = p.extension(file.path).isNotEmpty ? p.extension(file.path) : '.jpg';
-      final indexedName = 'photo_${(i + 1).toString().padLeft(3, '0')}$ext';
-      formData.files.add(MapEntry(
-        "photos",
-        await MultipartFile.fromFile(
-          file.path,
-          filename: indexedName,
-        ),
-      ));
-    }
-
-    // Parameters
+    // Parameters (Added FIRST so reverse proxies and gateway inspect headers in the first 4KB)
     String frameValue = "portrait";
     if (aspectRatio == "1:1") frameValue = "square";
     if (aspectRatio == "16:9") frameValue = "landscape";
 
+    formData.fields.add(const MapEntry("mode", "cult"));
+    formData.fields.add(MapEntry("platform", Platform.isIOS ? "ios" : (Platform.isAndroid ? "android" : "mobile")));
+    formData.fields.add(const MapEntry("client", "mobile"));
+    final effectiveRenderType = renderType ?? (isInstant ? "instant" : "free_queue");
+    formData.fields.add(MapEntry("render_type", effectiveRenderType));
     formData.fields.add(MapEntry("template", templateId));
     formData.fields.add(MapEntry("frame", frameValue));
     formData.fields.add(MapEntry("quality", quality.toLowerCase().contains("1080") ? "master" : "fast"));
     formData.fields.add(MapEntry("watermark", watermark.toString()));
-    final effectiveRenderType = renderType ?? (isInstant ? "instant" : "free_queue");
-    formData.fields.add(MapEntry("render_type", effectiveRenderType));
-    formData.fields.add(MapEntry("client", "mobile"));
-    formData.fields.add(MapEntry("platform", Platform.isIOS ? "ios" : (Platform.isAndroid ? "android" : "mobile")));
     if (entitlementToken != null && entitlementToken.isNotEmpty) {
       formData.fields.add(MapEntry("entitlement_token", entitlementToken));
     }
@@ -140,6 +118,29 @@ class ApiService {
       if (titleAudio != null && titleAudio.isNotEmpty) {
         formData.fields.add(MapEntry("title_audio", titleAudio));
       }
+    }
+
+    // Attach music
+    formData.files.add(MapEntry(
+      "audio",
+      await MultipartFile.fromFile(
+        musicFile.path,
+        filename: 'audio${p.extension(musicFile.path)}',
+      ),
+    ));
+
+    // Attach photos under key 'photos' with unique indexed filenames to support duplicate photos
+    for (int i = 0; i < photoFiles.length; i++) {
+      final file = photoFiles[i];
+      final ext = p.extension(file.path).isNotEmpty ? p.extension(file.path) : '.jpg';
+      final indexedName = 'photo_${(i + 1).toString().padLeft(3, '0')}$ext';
+      formData.files.add(MapEntry(
+        "photos",
+        await MultipartFile.fromFile(
+          file.path,
+          filename: indexedName,
+        ),
+      ));
     }
 
     if (onProgress != null) onProgress(0.1);
