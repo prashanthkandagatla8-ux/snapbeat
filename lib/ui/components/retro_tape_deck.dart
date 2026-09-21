@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 import 'snapbeat_pink_dot.dart';
 
@@ -70,23 +71,10 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.panelCream,
+        gradient: AppColors.luxDarkCardGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
-        boxShadow: [
-          // Bevel light top-left
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
-          ),
-          // Bevel shadow bottom-right
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            offset: const Offset(4, 5),
-            blurRadius: 10,
-          ),
-        ],
+        border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.9), width: 1.2),
+        boxShadow: AppColors.luxCardShadow,
       ),
       child: IntrinsicHeight(
         child: Stack(
@@ -219,18 +207,24 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                   children: [
                     // Transport Play/Pause Lever
                     GestureDetector(
-                      onTap: widget.onTogglePlay,
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        widget.onTogglePlay();
+                      },
                       child: Container(
                         width: 46,
                         height: 46,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: AppColors.brassKnobGradient,
+                          gradient: AppColors.luxGoldGradient,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
-                              offset: const Offset(2, 3),
-                              blurRadius: 5,
+                              color: widget.isPlaying
+                                  ? AppColors.amberJewel.withValues(alpha: 0.5)
+                                  : Colors.black.withValues(alpha: 0.35),
+                              offset: const Offset(1, 2),
+                              blurRadius: widget.isPlaying ? 10 : 5,
+                              spreadRadius: widget.isPlaying ? 1 : 0,
                             ),
                           ],
                         ),
