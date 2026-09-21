@@ -38,12 +38,12 @@ class ExportService {
         }
       }
 
-      await Gal.putVideo(videoPath, album: 'SnapBeat');
+      await Gal.putVideo(videoPath, album: 'SnapBeat Studio');
 
       if (!context.mounted) return false;
       final toastText = autoTriggered
-          ? '✓ Render Complete — Auto-Saved to Photos (SnapBeat Album)'
-          : '✓ Saved to Photos — SnapBeat album';
+          ? '✓ Saved to Photos (SnapBeat Studio album)'
+          : '✓ Saved to Photos (SnapBeat Studio album)';
       _showToast(context, toastText);
       return true;
     } catch (e) {

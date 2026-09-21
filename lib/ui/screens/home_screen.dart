@@ -36,7 +36,6 @@ import '../components/snapbeat_pink_dot.dart';
 import '../components/retro_subscription_dialog.dart';
 import '../components/retro_metal_panel.dart';
 import '../components/tactile_action_button.dart';
-import 'package:gal/gal.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialTab;
@@ -1254,19 +1253,7 @@ class HomeScreenState extends State<HomeScreen> {
         progress: 1.0,
       );
 
-      // Automatically export to device's native Camera Roll / Photos album
-      try {
-        final hasAccess = await Gal.hasAccess(toAlbum: true);
-        final canSave = hasAccess || await Gal.requestAccess(toAlbum: true);
-        if (canSave) {
-          await Gal.putVideo(videoPath, album: 'SnapBeat Studio');
-        } else {
-          _showNotice('Auto-save to Photos failed — please grant Photos access in Settings.');
-        }
-      } catch (galErr) {
-        debugPrint('Auto-save to phone gallery error: $galErr');
-        _showNotice('Save to Photos failed: please grant Photos access in Settings.');
-      }
+      _showNotice('🎉 Reel ready! Tap Play to preview and save to Photos.');
 
 
     } catch (e) {
@@ -2866,7 +2853,7 @@ class HomeScreenState extends State<HomeScreen> {
                           Icon(Icons.check_circle_rounded, size: 12, color: AppColors.vuGreen),
                           const SizedBox(width: 4),
                           Text(
-                            "Auto-saved to Photos (SnapBeat Studio)",
+                            "Ready to Preview & Save",
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               fontSize: 10.5,
@@ -2906,15 +2893,12 @@ class HomeScreenState extends State<HomeScreen> {
                       await _audioPlayer.pause();
                       if (!mounted) return;
                       setState(() => _isPlayingAudio = false);
-                      AdManager.instance.showBeforePlayback(
-                        context: context,
-                        onDone: () => VideoPreviewDialog.show(
-                          context,
-                          videoPath: job.videoPath!,
-                          templateName: job.templateName,
-                          customName: job.displayName,
-                          quality: job.quality,
-                        ),
+                      VideoPreviewDialog.show(
+                        context,
+                        videoPath: job.videoPath!,
+                        templateName: job.templateName,
+                        customName: job.displayName,
+                        quality: job.quality,
                       );
                     },
                   ),

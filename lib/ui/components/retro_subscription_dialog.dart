@@ -60,7 +60,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         'No Watermarks',
         '100+ Pro Filters',
       ],
-      fallbackPrice: '\u20B9149',
+      fallbackPrice: '\u20B9169',
       period: ' / Week',
     ),
     _PaywallCardConfig(
@@ -73,7 +73,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         'Premium Transitions',
         'Gold Assets & Music',
       ],
-      fallbackPrice: '\u20B9349',
+      fallbackPrice: '\u20B9499',
       period: ' / Month',
     ),
     _PaywallCardConfig(
@@ -86,7 +86,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         'Priority Support',
         'Cloud Sync',
       ],
-      fallbackPrice: '\u20B91,799',
+      fallbackPrice: '\u20B92,499',
       period: ' / Year',
     ),
   ];
@@ -114,6 +114,10 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     final product = _sm.products[card.tier.productId];
     if (product != null && product.price.isNotEmpty) {
       return product.price;
+    }
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    if (locale.countryCode == 'IN') {
+      return card.tier.fallbackPriceInr;
     }
     return card.tier.fallbackPriceUsd;
   }

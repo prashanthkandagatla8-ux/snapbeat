@@ -46,13 +46,13 @@ extension ProTierExtension on ProTier {
   String get fallbackPriceInr {
     switch (this) {
       case ProTier.daily:
-        return '₹49';
+        return '₹99';
       case ProTier.weekly:
-        return '₹149';
+        return '₹169';
       case ProTier.monthly:
-        return '₹349';
+        return '₹499';
       case ProTier.annual:
-        return '₹1,799';
+        return '₹2,499';
     }
   }
 

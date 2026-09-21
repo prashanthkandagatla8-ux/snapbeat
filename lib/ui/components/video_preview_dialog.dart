@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../../theme/app_colors.dart';
 import '../../services/export_service.dart';
-import '../../services/subscription_manager.dart';
+import '../../services/ad_manager.dart';
 import 'tactile_action_button.dart';
 
 class VideoPreviewDialog extends StatefulWidget {
@@ -51,7 +51,9 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
   bool _isInitialized = false;
   bool _hasError = false;
   String _errorMessage = "";
-  final String _saveStatus = "✓ Auto-saved to Photos (SnapBeat Studio)";
+  bool _isSaving = false;
+  bool _isSaved = false;
+  String _saveStatus = "";
 
   @override
   void initState() {
@@ -114,6 +116,48 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$minutes:$seconds";
+  }
+
+  Future<void> _handleSaveToPhotos() async {
+    if (_isSaving) return;
+    final tName = widget.customName ?? widget.templateName ?? 'SnapBeat';
+
+    await AdManager.instance.showBeforePlayback(
+      context: context,
+      onDone: () async {
+        if (!mounted) return;
+        setState(() => _isSaving = true);
+        final success = await ExportService.saveToGallery(
+          context,
+          videoPath: widget.videoPath,
+          templateName: tName,
+        );
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+            if (success) {
+              _isSaved = true;
+              _saveStatus = "✓ Saved to Photos (SnapBeat Studio album)";
+            }
+          });
+        }
+      },
+    );
+  }
+
+  Future<void> _handleShareReel() async {
+    final tName = widget.customName ?? widget.templateName ?? 'SnapBeat';
+    await AdManager.instance.showBeforePlayback(
+      context: context,
+      onDone: () async {
+        if (!mounted) return;
+        await ExportService.shareReel(
+          context,
+          videoPath: widget.videoPath,
+          templateName: tName,
+        );
+      },
+    );
   }
 
   @override
@@ -433,43 +477,31 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     ],
 
                     const SizedBox(height: 10),
-                    // Action Buttons: Clean HD Unlock for Free users, Direct Share for Pro users
-                    // Action Buttons: DOWNLOAD and SHARE
-                    AnimatedBuilder(
-                      animation: SubscriptionManager.instance,
-                      builder: (context, _) {
-                        final tName = widget.customName ?? widget.templateName ?? 'SnapBeat';
-
-                        return Row(
-                          children: [
-                            Expanded(
-                              child: TactileActionButton.primary(
-                                height: 46,
-                                icon: Icons.download_rounded,
-                                label: "SAVE TO PHOTOS",
-                                onTap: () => ExportService.saveToGallery(
-                                  context,
-                                  videoPath: widget.videoPath,
-                                  templateName: tName,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TactileActionButton.secondary(
-                                height: 46,
-                                icon: Icons.share_rounded,
-                                label: "SHARE REEL",
-                                onTap: () => ExportService.shareReel(
-                                  context,
-                                  videoPath: widget.videoPath,
-                                  templateName: tName,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    // Action Buttons: SAVE TO PHOTOS and SHARE
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TactileActionButton.primary(
+                            height: 46,
+                            icon: _isSaved
+                                ? Icons.check_circle_rounded
+                                : (_isSaving ? Icons.hourglass_top_rounded : Icons.download_rounded),
+                            label: _isSaved
+                                ? "SAVED ✓"
+                                : (_isSaving ? "SAVING..." : "SAVE TO PHOTOS"),
+                            onTap: _handleSaveToPhotos,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TactileActionButton.secondary(
+                            height: 46,
+                            icon: Icons.share_rounded,
+                            label: "SHARE REEL",
+                            onTap: _handleShareReel,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     // Cloud Retention Expiry Notice
