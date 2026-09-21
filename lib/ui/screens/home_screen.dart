@@ -25,7 +25,6 @@ import '../components/web_audio_deck.dart';
 import '../components/interactive_waveform.dart';
 import '../components/snaps_reorder_strip.dart';
 import '../components/pro_controls_card.dart';
-import '../components/master_action_deck.dart';
 import '../components/video_preview_dialog.dart';
 import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
@@ -33,7 +32,6 @@ import '../components/tester_feedback_dialog.dart';
 import '../components/metal_chassis_scaffold.dart';
 import '../components/snapbeat_pink_dot.dart';
 import '../components/retro_mechanical_button.dart';
-import '../components/retro_subscription_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialTab;
@@ -70,8 +68,8 @@ class HomeScreenState extends State<HomeScreen> {
   StreamSubscription? _playerPositionSubscription;
   bool _isSubmittingRender = false;
 
-  String _currentTab = "music"; // "music", "photos", "render", "queue"
   String _renderMode = "auto"; // "auto", "pro"
+  bool _showQueueView = false;
   File? _selectedMusic;
   String _selectedMusicTitle = "";
 
@@ -91,7 +89,7 @@ class HomeScreenState extends State<HomeScreen> {
           _audioPlayer.pause();
           _isPlayingAudio = false;
         }
-        _currentTab = currentTab;
+        _showQueueView = (currentTab == 'queue');
       }
       if (renderMode != null) _renderMode = renderMode;
       if (musicFile != null) _selectedMusic = musicFile;
@@ -110,6 +108,7 @@ class HomeScreenState extends State<HomeScreen> {
   String _selectedAspectRatio = "9:16";
   String _selectedQuality = "720p";
   String _arrangementMode = "sequential";
+  bool _dropIt = true;
 
   /// Calculates max photos dynamically based on track duration and beat tempo.
   int get maxPhotosForTrack {
@@ -153,24 +152,6 @@ class HomeScreenState extends State<HomeScreen> {
   String _titleFrame = "none";
   String _titleAudio = "before_audio";
 
-  // Auto Mode Template Rotation
-  BeatTemplate _currentAutoTemplate = BeatTemplate.allTemplates.first;
-  String? _lastAutoTemplateId;
-
-  void _assignAutoTemplate() {
-    final pool = BeatTemplate.allTemplates.where((t) => t.id != _lastAutoTemplateId).toList();
-    final picked = pool.isNotEmpty
-        ? (List<BeatTemplate>.from(pool)..shuffle()).first
-        : BeatTemplate.allTemplates.first;
-    _lastAutoTemplateId = picked.id;
-    _currentAutoTemplate = picked;
-  }
-
-  void _rollAutoTemplate() {
-    setState(() {
-      _assignAutoTemplate();
-    });
-  }
 
   void _showNotice(String message) {
     if (!mounted) return;
@@ -519,21 +500,14 @@ class HomeScreenState extends State<HomeScreen> {
     super.initState();
     sm.init();
     AdManager.instance.init();
-    _currentTab = widget.initialTab;
     _renderMode = widget.initialRenderMode;
+    _showQueueView = widget.initialTab == "queue";
     _titleTextController = TextEditingController(text: _titleText);
     if (widget.fromShowcase) {
       _selectedTemplate = 'pendulum';
-      _currentAutoTemplate = BeatTemplate.allTemplates.firstWhere(
-        (t) => t.id == 'pendulum',
-        orElse: () => BeatTemplate.allTemplates.first,
-      );
-      _lastAutoTemplateId = 'pendulum';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showShowcaseWelcomeModal();
       });
-    } else {
-      _assignAutoTemplate();
     }
     if (widget.initialMusic != null) {
       _selectedMusic = widget.initialMusic;
@@ -1052,8 +1026,8 @@ class HomeScreenState extends State<HomeScreen> {
     String tId;
     String tDisplayName;
     if (_renderMode == "auto") {
-      tId = _currentAutoTemplate.id;
-      tDisplayName = _currentAutoTemplate.name;
+      tId = "auto";
+      tDisplayName = "Auto BeatSync (Mix)";
     } else {
       tId = _selectedTemplate;
       final matching = BeatTemplate.allTemplates.where((t) => t.id == tId).toList();
@@ -1076,9 +1050,11 @@ class HomeScreenState extends State<HomeScreen> {
         : _photos;
     final photosSnapshot = List<PhotoItem>.from(photosToSend);
     final musicSnapshot = _selectedMusic;
-    final aspectRatioSnapshot = _selectedAspectRatio;
+    final aspectRatioSnapshot = _renderMode == "auto" ? "9:16" : _selectedAspectRatio;
     // Pro subscribers get 1080p Master exports; Free users get 720p HD
-    final qualitySnapshot = isPreview ? "540p" : (isPro ? "1080p" : "720p");
+    final qualitySnapshot = isPreview
+        ? "540p"
+        : (_renderMode == "auto" ? (isPro ? "1080p" : "720p") : _selectedQuality);
     // Pro subscribers have watermarks removed; Free videos have watermark (always for preview)
     final shouldWatermark = isPreview ? true : !isPro;
     // Pro subscribers get fast priority queue; Free users use standard queue (always free for preview)
@@ -1107,12 +1083,11 @@ class HomeScreenState extends State<HomeScreen> {
 
     // Immediately switch user to "QUEUE" view and focus new job (retains all photo/music selections)
     setState(() {
-      const newTab = "queue";
-      if (_isPlayingAudio && newTab != 'music') {
+      _showQueueView = true;
+      if (_isPlayingAudio) {
         _audioPlayer.pause();
         _isPlayingAudio = false;
       }
-      _currentTab = newTab;
       _focusedJobId = jobId;
     });
 
@@ -1150,6 +1125,7 @@ class HomeScreenState extends State<HomeScreen> {
       titleStyle: titleStyleSnapshot,
       titleFrame: titleFrameSnapshot,
       titleAudio: titleAudioSnapshot,
+      dropIt: _dropIt,
       isPreview: isPreview,
     );
   }
@@ -1164,6 +1140,7 @@ class HomeScreenState extends State<HomeScreen> {
     required String quality,
     required bool watermark,
     required bool isInstant,
+    bool dropIt = true,
     bool isPreview = false,
     String? renderType,
     String? entitlementToken,
@@ -1198,6 +1175,7 @@ class HomeScreenState extends State<HomeScreen> {
         watermark: watermark,
         preview: isPreview,
         isInstant: isInstant,
+        dropIt: dropIt,
         autoArrange: _arrangementMode == "auto",
         renderType: renderType,
         entitlementToken: entitlementToken,
@@ -1259,617 +1237,1006 @@ class HomeScreenState extends State<HomeScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (_currentTab != 'music') {
+        if (_showQueueView) {
           if (_scrollController.hasClients) {
             _scrollController.jumpTo(0.0);
           }
-          setState(() {
-            const newTab = 'music';
-            if (_isPlayingAudio && newTab != 'music') {
-              _audioPlayer.pause();
-              _isPlayingAudio = false;
-            }
-            _currentTab = newTab;
-          });
+          setState(() => _showQueueView = false);
+        } else if (_renderMode != 'auto') {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(0.0);
+          }
+          setState(() => _renderMode = 'auto');
         } else {
-          // Optionally show exit confirmation or allow pop
           SystemNavigator.pop();
         }
       },
       child: MetalChassisScaffold(
         body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                // Top Brushed Stainless Steel Header Bar
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.metalBase.withValues(alpha: 0.9),
-                    border: const Border(
-                      bottom: BorderSide(color: Color(0xFF9E988D), width: 1.5),
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  // Top Brushed Stainless Steel Header Bar
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.metalBase.withValues(alpha: 0.9),
+                      border: const Border(
+                        bottom: BorderSide(color: Color(0xFF9E988D), width: 1.5),
+                      ),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 4),
+                      ],
                     ),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SnapBeatPinkDot(size: 14, withGlow: true),
+                              const SizedBox(width: 8),
+                              HomeScreen.logoUiImage != null
+                                  ? RawImage(
+                                      image: HomeScreen.logoUiImage,
+                                      height: 42,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : Image.asset(
+                                      'assets/images/snapbeat_studio_logo.png',
+                                      height: 42,
+                                      fit: BoxFit.contain,
+                                    ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Queue / Vault Button with Live Active Badge
+                        _buildHeaderQueueButton(),
+                        const SizedBox(width: 8),
+                        // Right Action Group: Pro Badge, Feedback & Privacy Policy
+                        const RetroProBadge(),
+                        const SizedBox(width: 4),
+                        // Tester Feedback only shown on Android (not on iOS App Store build)
+                        if (AppConfig.showTesterFeedback)
+                          IconButton(
+                            icon: const Icon(Icons.rate_review_outlined, color: AppColors.brassGold, size: 20),
+                            tooltip: 'Send Tester Feedback',
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                            onPressed: () => TesterFeedbackDialog.show(context),
+                          ),
+                        if (AppConfig.showTesterFeedback) const SizedBox(width: 4),
+                        IconButton(
+                          icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
+                          tooltip: 'Privacy Policy',
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                          onPressed: () => PrivacyPolicyDialog.show(context),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Top Persistent Segmented Mode Switcher (AUTO | MANUAL) or Queue Breadcrumb
+                  if (_showQueueView)
+                    _buildQueueHeaderBreadcrumb()
+                  else
+                    _buildTopModeSwitcher(),
+
+                  // Main Scrollable Console Deck
+                  Expanded(
+                    child: ListView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(bottom: 30),
+                      children: [
+                        if (_showQueueView) ...[
+                          _buildVaultView(),
+                        ] else if (_renderMode == "auto") ...[
+                          _buildAutoModeDeck(),
+                        ] else ...[
+                          _buildManualModeDeck(),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderQueueButton() {
+    final activeCount = qm.activeJobs.length;
+    return InkWell(
+      onTap: () {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(0.0);
+        }
+        setState(() => _showQueueView = !_showQueueView);
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: _showQueueView ? AppColors.accentPink.withValues(alpha: 0.2) : AppColors.panelInset,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: _showQueueView ? AppColors.accentPink : AppColors.chassisBevelLight,
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.video_collection_rounded,
+              size: 16,
+              color: _showQueueView ? AppColors.accentPink : AppColors.textPrimary,
+            ),
+            if (activeCount > 0) ...[
+              const SizedBox(width: 5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.accentPink,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  "$activeCount",
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    fontFamily: 'JetBrains Mono',
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopModeSwitcher() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF07090D),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF1C232E), width: 1.2),
+        boxShadow: const [
+          BoxShadow(color: Colors.black54, offset: Offset(0, 2), blurRadius: 4),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTopModeTab(
+              mode: "auto",
+              label: "AUTO",
+              badge: "AI BEATSYNC",
+              icon: Icons.auto_awesome_rounded,
+              isSelected: _renderMode == "auto",
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: _buildTopModeTab(
+              mode: "pro", // manual
+              label: "MANUAL",
+              badge: "WORKBENCH",
+              icon: Icons.tune_rounded,
+              isSelected: _renderMode == "pro",
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopModeTab({
+    required String mode,
+    required String label,
+    required String badge,
+    required IconData icon,
+    required bool isSelected,
+  }) {
+    return InkWell(
+      onTap: () {
+        if (_renderMode != mode) {
+          setState(() {
+            _renderMode = mode;
+            if (_scrollController.hasClients) {
+              _scrollController.jumpTo(0.0);
+            }
+          });
+        }
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF161D27) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? (mode == "auto" ? AppColors.accentPink : const Color(0xFF00F5FF))
+                : Colors.transparent,
+            width: isSelected ? 1.2 : 0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: (mode == "auto" ? AppColors.accentPink : const Color(0xFF00F5FF))
+                        .withValues(alpha: 0.2),
+                    blurRadius: 6,
+                    spreadRadius: -1,
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (mode == "auto" && isSelected) ...[
+              const SnapBeatPinkDot(size: 8, withGlow: true),
+              const SizedBox(width: 6),
+            ] else ...[
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected ? Colors.white : AppColors.textMuted,
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontFamily: 'Montserrat',
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                letterSpacing: 1.0,
+                color: isSelected ? Colors.white : AppColors.textMuted,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? (mode == "auto"
+                        ? AppColors.accentPink.withValues(alpha: 0.25)
+                        : const Color(0xFF00F5FF).withValues(alpha: 0.2))
+                    : Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                badge,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  fontFamily: 'JetBrains Mono',
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: isSelected
+                      ? (mode == "auto" ? AppColors.accentPink : const Color(0xFF00F5FF))
+                      : AppColors.textMuted,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQueueHeaderBreadcrumb() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: InkWell(
+        onTap: () {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(0.0);
+          }
+          setState(() => _showQueueView = false);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0D12),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF1C232E), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Colors.black45, offset: Offset(0, 2), blurRadius: 4),
+            ],
+          ),
+          child: Row(
+            children: const [
+              Icon(Icons.arrow_back_rounded, size: 16, color: AppColors.accentPink),
+              SizedBox(width: 8),
+              Text(
+                "BACK TO STUDIO",
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  fontFamily: 'Montserrat',
+                  letterSpacing: 0.8,
+                  color: Colors.white,
+                ),
+              ),
+              Spacer(),
+              Text(
+                "REEL VAULT",
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  fontFamily: 'JetBrains Mono',
+                  letterSpacing: 0.6,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAutoModeDeck() {
+    final maxAllowed = maxPhotosForTrack;
+    final isReady = _photos.length >= 2 && _selectedMusic != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. Photos Deck Card
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0D12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF1C232E), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Colors.black45, offset: Offset(0, 2), blurRadius: 4),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.photo_library_rounded, size: 16, color: AppColors.accentPink),
+                      SizedBox(width: 8),
+                      Text(
+                        "1. PHOTOS",
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          color: Colors.white,
+                        ),
+                      ),
                     ],
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _photos.length >= 2
+                          ? AppColors.accentGreen.withValues(alpha: 0.15)
+                          : AppColors.brassGold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: _photos.length >= 2 ? AppColors.accentGreen : AppColors.brassGold,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      "${_photos.length} / $maxAllowed",
+                      style: TextStyle(
+                        fontFamily: 'JetBrains Mono',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: _photos.length >= 2 ? AppColors.accentGreen : AppColors.brassGold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (_photos.isEmpty) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF040508),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF161D27)),
+                  ),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SnapBeatPinkDot(size: 14, withGlow: true),
-                            const SizedBox(width: 8),
-                            HomeScreen.logoUiImage != null
-                                ? RawImage(
-                                    image: HomeScreen.logoUiImage,
-                                    height: 42,
-                                    fit: BoxFit.contain,
-                                  )
-                                : Image.asset(
-                                    'assets/images/snapbeat_studio_logo.png',
-                                    height: 42,
-                                    fit: BoxFit.contain,
+                      const Icon(Icons.add_photo_alternate_outlined, size: 30, color: AppColors.textMuted),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Add at least 2 photos to generate your reel",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _pickPhotos,
+                            icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                            label: const Text(
+                              "ADD PHOTOS",
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.8,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.accentPink,
+                              elevation: 2,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          OutlinedButton.icon(
+                            onPressed: _loadSamplePhotos,
+                            icon: const Icon(Icons.auto_awesome_rounded, size: 14, color: AppColors.brassGold),
+                            label: const Text(
+                              "LOAD SAMPLES",
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.6,
+                                color: AppColors.brassGold,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF1C232E)),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                SizedBox(
+                  height: 95,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _photos.length + 1,
+                    separatorBuilder: (context, index) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      if (index == _photos.length) {
+                        return InkWell(
+                          onTap: _pickPhotos,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            width: 75,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF040508),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFF1C232E)),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.add_rounded, size: 20, color: AppColors.accentPink),
+                                SizedBox(height: 4),
+                                Text(
+                                  "ADD",
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontFamily: 'Montserrat',
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.accentPink,
                                   ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      final photo = _photos[index];
+                      return Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(photo.path),
+                              width: 75,
+                              height: 95,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            left: 4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                "#${index + 1}",
+                                style: const TextStyle(
+                                  fontSize: 8.5,
+                                  fontFamily: 'JetBrains Mono',
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: InkWell(
+                              onTap: () => setState(() => _photos.removeAt(index)),
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black87,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.close_rounded, size: 12, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _autoShufflePhotos,
+                      icon: const Icon(Icons.shuffle_rounded, size: 13, color: AppColors.textSecondary),
+                      label: const Text(
+                        "Shuffle Order",
+                        style: TextStyle(fontSize: 10, fontFamily: 'Montserrat', color: AppColors.textSecondary),
+                      ),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                    ),
+                    TextButton.icon(
+                      onPressed: _resetPhotos,
+                      icon: const Icon(Icons.delete_outline_rounded, size: 13, color: AppColors.accentRed),
+                      label: const Text(
+                        "Clear All",
+                        style: TextStyle(fontSize: 10, fontFamily: 'Montserrat', color: AppColors.accentRed),
+                      ),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        // 2. Soundtrack Deck Card
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0D12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF1C232E), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Colors.black45, offset: Offset(0, 2), blurRadius: 4),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.library_music_rounded, size: 16, color: Color(0xFF00F5FF)),
+                      SizedBox(width: 8),
+                      Text(
+                        "2. SOUNDTRACK",
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_selectedMusic != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00F5FF).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF00F5FF), width: 1),
+                      ),
+                      child: Text(
+                        "${_getBpmFromTitle()} BPM",
+                        style: const TextStyle(
+                          fontFamily: 'JetBrains Mono',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF00F5FF),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (_selectedMusic == null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF040508),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF161D27)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.music_note_rounded, size: 30, color: AppColors.textMuted),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Select a soundtrack to synchronize beat drops",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _openSoundLibrary,
+                            icon: const Icon(Icons.library_music_rounded, size: 16, color: Colors.black),
+                            label: const Text(
+                              "CHOOSE SOUNDTRACK",
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.8,
+                                color: Colors.black,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00F5FF),
+                              elevation: 2,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          OutlinedButton.icon(
+                            onPressed: _pickMusic,
+                            icon: const Icon(Icons.file_upload_outlined, size: 14, color: AppColors.textSecondary),
+                            label: const Text(
+                              "UPLOAD AUDIO",
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.6,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF1C232E)),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF040508),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF161D27)),
+                  ),
+                  child: Row(
+                    children: [
+                      InkWell(
+                        onTap: _togglePlayAudio,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00F5FF).withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFF00F5FF)),
+                          ),
+                          child: Icon(
+                            _isPlayingAudio ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                            size: 20,
+                            color: const Color(0xFF00F5FF),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedMusicTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                fontFamily: 'Montserrat',
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              "${_audioDuration.toInt()}s • Auto Beat-Grid Aligned",
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                                fontFamily: 'JetBrains Mono',
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Right Action Group: Pro Badge, Feedback & Privacy Policy
-                      const RetroProBadge(),
-                      const SizedBox(width: 4),
-                      // Tester Feedback only shown on Android (not on iOS App Store build)
-                      if (AppConfig.showTesterFeedback)
-                        IconButton(
-                          icon: const Icon(Icons.rate_review_outlined, color: AppColors.brassGold, size: 20),
-                          tooltip: 'Send Tester Feedback',
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.all(6),
-                          constraints: const BoxConstraints(),
-                          onPressed: () => TesterFeedbackDialog.show(context),
+                      InkWell(
+                        onTap: _openSoundLibrary,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF161D27),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFF1C232E)),
+                          ),
+                          child: const Text(
+                            "CHANGE",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              fontFamily: 'Montserrat',
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      if (AppConfig.showTesterFeedback) const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
-                        tooltip: 'Privacy Policy',
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.all(6),
-                        constraints: const BoxConstraints(),
-                        onPressed: () => PrivacyPolicyDialog.show(context),
                       ),
                     ],
                   ),
                 ),
-
-                // Main Scrollable Console Deck
-                Expanded(
-                  child: ListView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 80),
-                    children: [
-                      if (_currentTab == "music") ...[
-                        // STAGE 1: MUSIC FIRST - Web Audio Console Deck
-                        WebAudioConsoleDeck(
-                          isPlaying: _isPlayingAudio,
-                          trackTitle: _selectedMusicTitle,
-                          currentSeconds: _currentPlaybackSeconds,
-                          totalSeconds: _audioDuration,
-                          bpm: _getBpmFromTitle(),
-                          genre: _getGenreForSelected(),
-                          isCustom: _selectedMusic != null && !_selectedMusicTitle.contains('BPM'),
-                          onTogglePlay: _togglePlayAudio,
-                          onStop: _stopAudio,
-                          onPickAudio: _pickMusic,
-                          onPickVideoAudio: _pickMusicFromVideo,
-                        ),
-
-                        // Interactive Audio Waveform Trimmer (shown when music is loaded)
-                        if (_selectedMusic != null) ...[
-                          InteractiveWaveform(
-                            durationSeconds: _audioDuration,
-                            startSeconds: _audioStart,
-                            endSeconds: _audioEnd,
-                            isPlaying: _isPlayingAudio,
-                            onTogglePlay: _togglePlayAudio,
-                            onTrimChanged: (s, e) => setState(() {
-                              _audioStart = s;
-                              _audioEnd = e;
-                            }),
-                          ),
-                        ],
-
-                        // Curated Soundtrack Library (Inline, matching Web RetroTapeDeck)
-                        CuratedSoundtrackSection(
-                          selectedTrackTitle: _selectedMusicTitle,
-                          onSelectTrack: _onSelectBuiltInTrack,
-                        ),
-
-                        // Bottom Action CTA
-                        if (_selectedMusic != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            child: _buildProceedButton(
-                              label: "NEXT: ADD PHOTOS ->",
-                              subtitle: "Soundtrack configured * Select photos for your reel",
-                              icon: Icons.photo_library_rounded,
-                              onTap: () {
-                                if (_scrollController.hasClients) {
-                                  _scrollController.jumpTo(0.0);
-                                }
-                                setState(() {
-                                  const newTab = "photos";
-                                  if (_isPlayingAudio && newTab != 'music') {
-                                    _audioPlayer.pause();
-                                    _isPlayingAudio = false;
-                                  }
-                                  _currentTab = newTab;
-                                });
-                              },
-                            ),
-                          ),
-                        ] else ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: AppColors.panelCreamDark,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.chassisBevelLight),
-                              ),
-                              child: Row(
-                                children: const [
-                                  Icon(Icons.info_outline_rounded, size: 20, color: AppColors.textMuted),
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      "Loading default soundtrack... Tap a track in the library above to select it.",
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textSecondary,
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ] else if (_currentTab == "photos") ...[
-                        // STAGE 2: PHOTOS (Curate & Arrange)
-                        SnapsReorderStrip(
-                          photos: _photos,
-                          isEnabled: true,
-                          maxPhotos: maxPhotosForTrack,
-                          onPromptSelectMusic: _openSoundLibrary,
-                          onAddPhotos: _pickPhotos,
-                          onDuplicate: _duplicatePhoto,
-                          onReorder: (oldIdx, newIdx) {
-                            setState(() {
-                              if (newIdx > oldIdx) newIdx -= 1;
-                              final item = _photos.removeAt(oldIdx);
-                              _photos.insert(newIdx, item);
-                              _arrangementMode = 'manual';
-                            });
-                          },
-                          onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
-                          arrangementMode: _arrangementMode,
-                          onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
-                          onLoadSample: _loadSamplePhotos,
-                          onAutoShuffle: _autoShufflePhotos,
-                          onClearAll: _resetPhotos,
-                          onResetPhotos: _resetPhotos,
-                        ),
-                        if (_photos.length >= 2)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: _buildProceedButton(
-                              label: "NEXT: CHOOSE STYLE & RENDER →",
-                              subtitle: "${_photos.length} photos ready • Pick template and motion style",
-                              icon: Icons.movie_creation_rounded,
-                              onTap: () {
-                                if (_scrollController.hasClients) {
-                                  _scrollController.jumpTo(0.0);
-                                }
-                                setState(() {
-                                  const newTab = "render";
-                                  _currentTab = newTab;
-                                });
-                              },
-                            ),
-                          )
-                        else
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: _buildProceedButton(
-                              label: "SELECT AT LEAST 2 PHOTOS",
-                              subtitle: "Tap 'Add Photos' or 'Sample Photos' to start your reel",
-                              icon: Icons.add_photo_alternate_rounded,
-                              onTap: _pickPhotos,
-                            ),
-                          ),
-                      ] else if (_currentTab == "render") ...[
-                        // STAGE 3: RENDER OPTIONS (Auto vs Pro)
-                        if (_selectedMusic == null)
-                          _buildGatedCard(
-                            icon: Icons.library_music_rounded,
-                            title: "Music Required",
-                            description: "Please select a music track in Step 1 before configuring render options.",
-                            buttonText: "GO TO MUSIC",
-                            onButtonTap: () {
-                              if (_scrollController.hasClients) {
-                                _scrollController.jumpTo(0.0);
-                              }
-                              setState(() {
-                                const newTab = "music";
-                                if (_isPlayingAudio && newTab != 'music') {
-                                  _audioPlayer.pause();
-                                  _isPlayingAudio = false;
-                                }
-                                _currentTab = newTab;
-                              });
-                            },
-                          )
-                        else if (_photos.isEmpty)
-                          _buildGatedCard(
-                            icon: Icons.photo_library_rounded,
-                            title: "PHOTOS REQUIRED FIRST",
-                            description: "Please add at least 2 photos in Step 2 before configuring render options.",
-                            buttonText: "GO TO PHOTOS",
-                            onButtonTap: () {
-                              if (_scrollController.hasClients) {
-                                _scrollController.jumpTo(0.0);
-                              }
-                              setState(() {
-                                const newTab = "photos";
-                                if (_isPlayingAudio && newTab != 'music') {
-                                  _audioPlayer.pause();
-                                  _isPlayingAudio = false;
-                                }
-                                _currentTab = newTab;
-                              });
-                            },
-                          )
-                        else
-                          _buildRenderOptionsView(),
-                      ] else ...[
-                        // STAGE 4: QUEUE (Processing & Finished Reels)
-                        _buildVaultView(),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // Bottom Action Deck (With 4-Stage Navigation Switcher: MUSIC, PHOTOS, RENDER, QUEUE)
-                MasterActionDeck(
-                  currentMode: _currentTab,
-                  onSelectMode: (tab) {
-                    if (_isPlayingAudio && tab != 'music') {
-                      _audioPlayer.pause();
-                      _isPlayingAudio = false;
-                    }
-                    if (_scrollController.hasClients) {
-                      _scrollController.jumpTo(0.0);
-                    }
-                    setState(() {
-                      _currentTab = tab;
-                      if (tab == "render" && _renderMode == "auto") {
-                        _assignAutoTemplate();
-                      }
-                    });
-                  },
-                  isPhotosEnabled: _selectedMusic != null,
-                  isRenderEnabled: _selectedMusic != null && _photos.isNotEmpty,
-                  activeJobsCount: qm.activeJobs.length,
-                  onDisabledTabTap: (tab) {
-                    if (tab == 'photos') {
-                      _showNotice("🎵 Select a music track first to unlock photos!");
-                    } else if (tab == 'render') {
-                      final msg = _selectedMusic == null
-                          ? "🎵 Select a music track first!"
-                          : "📸 Add at least 2 photos to configure render options!";
-                      _showNotice(msg);
-                    }
-                  },
-                ),
               ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-  }
-
-  Widget _buildProceedButton({
-    required String label,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
-          ),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
-          boxShadow: const [
-            BoxShadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 4),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: const Color(0xFF1E1A10)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                        color: Color(0xFF1E1A10),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF4A463F),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF1E1A10)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGatedCard({
-    required IconData icon,
-    required String title,
-    required String description,
-    required String buttonText,
-    required VoidCallback onButtonTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.panelCream,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.chassisBevelDark),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.panelInset,
-              border: Border.all(color: AppColors.chassisBevelLight),
-            ),
-            child: Icon(icon, size: 36, color: AppColors.textMuted),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
-              color: AppColors.textEngraved,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
-          ),
-          const SizedBox(height: 18),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brassGold,
-              foregroundColor: AppColors.hardwareGunmetal,
-              elevation: 2,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            icon: const Icon(Icons.arrow_back_rounded, size: 16),
-            label: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-            onPressed: onButtonTap,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRenderOptionsView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 1. Dual Mode Toggle: AUTO vs PRO
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFB8AE9F),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFDED8CE), width: 1),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, offset: Offset(0, 1), blurRadius: 2),
-              ],
-            ),
-            child: Row(
-              children: [
-                _buildRenderModeSwitchOption(
-                  mode: "auto",
-                  label: "AUTO MODE",
-                  icon: Icons.auto_awesome_rounded,
-                  isSelected: _renderMode == "auto",
-                ),
-                const SizedBox(width: 4),
-                _buildRenderModeSwitchOption(
-                  mode: "pro",
-                  label: "MANUAL MODE",
-                  icon: Icons.tune_rounded,
-                  isSelected: _renderMode == "pro",
-                ),
-              ],
-            ),
+            ],
           ),
         ),
 
-        // 2. Mode Content
-        if (_renderMode == "auto") ...[
-          _buildAutoTemplateBanner(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.panelCreamDark,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.chassisBevelLight),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.bolt_rounded, size: 16, color: AppColors.brassGold),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      "Auto beat-sync dynamically arranges transitions and pacing to match the soundtrack rhythm. Tap the dice to roll a different preset style!",
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
-                        height: 1.25,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+        // 3. Optional Title Card
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0D12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF1C232E), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Colors.black45, offset: Offset(0, 2), blurRadius: 4),
+            ],
           ),
-        ] else ...[
-          ProControlsCard(
-            selectedTemplateId: _selectedTemplate,
-            onSelectTemplate: (t) => setState(() => _selectedTemplate = t),
-            selectedAspectRatio: _selectedAspectRatio,
-            onSelectAspectRatio: (r) => setState(() => _selectedAspectRatio = r),
-            selectedQuality: _selectedQuality,
-            onSelectQuality: (q) => setState(() => _selectedQuality = q),
-            enableTitle: _enableTitle,
-            onToggleTitle: (v) => setState(() => _enableTitle = v),
-            titleText: _titleText,
-            titleController: _titleTextController,
-            onTitleTextChanged: (t) => setState(() => _titleText = t),
-            titleBg: _titleBg,
-            onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
-            titleDuration: _titleDuration,
-            onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
-            titleFont: _titleFont,
-            onSelectTitleFont: (f) => setState(() => _titleFont = f),
-            titleFontSize: _titleFontSize,
-            onSelectTitleFontSize: (s) => setState(() => _titleFontSize = s),
-            titleStyle: _titleStyle,
-            onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
-            titleFrame: _titleFrame,
-            onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
-            titleAudio: _titleAudio,
-            onSelectTitleAudio: (a) => setState(() => _titleAudio = a),
-            representativePhoto: _photos.isNotEmpty ? File(_photos.first.path) : null,
-            isPro: sm.isPro,
-          ),
-        ],
-
-        // 3. Job Summary Badge
-        _buildJobSummaryCard(),
-
-        // 4. Render Reel Launch Button (Tactile 3D Skeuomorphic Button)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  RetroMechanicalButton(
-                    variant: RetroButtonVariant.render,
-                    height: 68,
-                    onTap: _triggerMasterReel,
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: _triggerPreviewRender,
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8B2525),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFF4A1010), width: 2),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black45, offset: Offset(2, 2), blurRadius: 4),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        "PREVIEW",
+                  Row(
+                    children: const [
+                      Icon(Icons.title_rounded, size: 16, color: AppColors.brassGold),
+                      SizedBox(width: 8),
+                      Text(
+                        "3. OPENING TITLE",
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 12,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
                           color: Colors.white,
-                          letterSpacing: 1.0,
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                  Switch.adaptive(
+                    value: _enableTitle,
+                    onChanged: (v) => setState(() => _enableTitle = v),
+                    activeTrackColor: AppColors.accentPink,
                   ),
                 ],
               ),
-              const SizedBox(height: 5),
-              Text(
-                "READY TO SYNC ${_photos.length} ${_photos.length == 1 ? 'PHOTO' : 'PHOTOS'} TO BEAT",
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.9,
-                  color: AppColors.textMuted,
+              if (_enableTitle) ...[
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _titleTextController,
+                  onChanged: (t) => setState(() => _titleText = t),
+                  style: const TextStyle(fontSize: 13, color: Colors.white, fontFamily: 'Montserrat'),
+                  decoration: InputDecoration(
+                    hintText: "Enter title for opening card...",
+                    hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    filled: true,
+                    fillColor: const Color(0xFF040508),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF1C232E)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.brassGold),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        // 4. Hero Action Deck
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Column(
+            children: [
+              InkWell(
+                onTap: isReady && !_isSubmittingRender ? _triggerMasterReel : null,
+                borderRadius: BorderRadius.circular(14),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: isReady ? const Color(0xFF0E131B) : const Color(0xFF07090D),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isReady ? AppColors.accentPink : const Color(0xFF1C232E),
+                      width: isReady ? 1.8 : 1.0,
+                    ),
+                    boxShadow: isReady
+                        ? [
+                            BoxShadow(
+                              color: AppColors.accentPink.withValues(alpha: 0.35),
+                              offset: const Offset(0, 4),
+                              blurRadius: 14,
+                              spreadRadius: -2,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SnapBeatPinkDot(size: 10, withGlow: true),
+                      const SizedBox(width: 8),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "CREATE REEL",
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.2,
+                              color: isReady ? Colors.white : AppColors.textMuted,
+                            ),
+                          ),
+                          Text(
+                            "AUTO BEATSYNC CULT ENGINE • AI DROPS & PACING",
+                            style: TextStyle(
+                              fontFamily: 'JetBrains Mono',
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                              color: isReady ? AppColors.accentPink : AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(height: 10),
+              InkWell(
+                onTap: isReady && !_isSubmittingRender ? _triggerPreviewRender : null,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF07090D),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF1C232E), width: 1.0),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.visibility_rounded, size: 14, color: isReady ? Colors.white : AppColors.textMuted),
+                      const SizedBox(width: 6),
+                      Text(
+                        "QUICK PREVIEW (540P)",
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          color: isReady ? Colors.white : AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (!isReady) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _selectedMusic == null
+                      ? "Select a music track to unlock reel creation"
+                      : (_photos.length < 2 ? "Add at least 2 photos to generate your reel" : ""),
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1877,385 +2244,209 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRenderModeSwitchOption({
-    required String mode,
-    required String label,
-    required IconData icon,
-    required bool isSelected,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          setState(() {
-            _renderMode = mode;
-            if (mode == "auto") {
-              _assignAutoTemplate();
-            }
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 90),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(9),
-            gradient: isSelected
-                ? const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFFFFE082),
-                      Color(0xFFFFC72C),
-                    ],
-                  )
-                : null,
-            border: isSelected ? Border.all(color: const Color(0xFFBF8A00), width: 1) : null,
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      offset: const Offset(0, 2),
-                      blurRadius: 3,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (isSelected) ...[
-                const SnapBeatPinkDot(size: 8, withGlow: true),
-                const SizedBox(width: 4),
-              ],
-              Icon(
-                icon,
-                size: 13,
-                color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF5A554D),
-              ),
-              const SizedBox(width: 5),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                      color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+  Widget _buildManualModeDeck() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. Photos Reorder Strip
+        SnapsReorderStrip(
+          photos: _photos,
+          isEnabled: true,
+          maxPhotos: maxPhotosForTrack,
+          onPromptSelectMusic: _openSoundLibrary,
+          onAddPhotos: _pickPhotos,
+          onDuplicate: _duplicatePhoto,
+          onReorder: (oldIdx, newIdx) {
+            setState(() {
+              if (newIdx > oldIdx) newIdx -= 1;
+              final item = _photos.removeAt(oldIdx);
+              _photos.insert(newIdx, item);
+              _arrangementMode = 'manual';
+            });
+          },
+          onDelete: (id) => setState(() => _photos.removeWhere((p) => p.id == id)),
+          arrangementMode: _arrangementMode,
+          onArrangementModeChanged: (m) => setState(() => _arrangementMode = m),
+          onLoadSample: _loadSamplePhotos,
+          onAutoShuffle: _autoShufflePhotos,
+          onClearAll: _resetPhotos,
+          onResetPhotos: _resetPhotos,
         ),
-      ),
-    );
-  }
 
-  Widget _buildJobSummaryCard() {
-    final durationSec = (_audioEnd > _audioStart && _audioEnd <= _audioDuration)
-        ? (_audioEnd - _audioStart).toInt()
-        : _audioDuration.toInt();
-    final styleName = _renderMode == "auto"
-        ? _currentAutoTemplate.name.toUpperCase()
-        : _selectedTemplate.toUpperCase();
+        // 2. Audio Console Deck
+        WebAudioConsoleDeck(
+          isPlaying: _isPlayingAudio,
+          trackTitle: _selectedMusicTitle,
+          currentSeconds: _currentPlaybackSeconds,
+          totalSeconds: _audioDuration,
+          bpm: _getBpmFromTitle(),
+          genre: _getGenreForSelected(),
+          isCustom: _selectedMusic != null && !_selectedMusicTitle.contains('BPM'),
+          onTogglePlay: _togglePlayAudio,
+          onStop: _stopAudio,
+          onPickAudio: _pickMusic,
+          onPickVideoAudio: _pickMusicFromVideo,
+        ),
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.panelCreamDark,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.chassisBevelLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: const [
-                  SnapBeatPinkDot(size: 8.5, withGlow: true),
-                  SizedBox(width: 6),
-                  Text(
-                    "JOB SPECIFICATIONS",
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                      color: AppColors.textEngraved,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.panelInset,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
-                ),
-                child: Text(
-                  _renderMode == "auto" ? "AUTO PRESET" : "MANUAL CONFIG",
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                    color: AppColors.brassGold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          // Row 1: Soundtrack & Duration
-          Row(
-            children: [
-              _buildSummaryPill(
-                Icons.music_note_rounded,
-                _selectedMusicTitle.isEmpty ? "Track" : _selectedMusicTitle,
-                subtitle: "AUDIO",
-              ),
-              const SizedBox(width: 4),
-              _buildSummaryPill(
-                Icons.timer_outlined,
-                "${durationSec}s length",
-                subtitle: "DURATION",
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          // Row 2: Photo count & Motion style
-          Row(
-            children: [
-              _buildSummaryPill(
-                Icons.photo_library_outlined,
-                "${_photos.length} ${_photos.length == 1 ? 'photo' : 'photos'}",
-                subtitle: "MEDIA",
-              ),
-              const SizedBox(width: 4),
-              _buildSummaryPill(
-                Icons.auto_awesome_mosaic_rounded,
-                styleName,
-                subtitle: "STYLE",
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          // Row 3: Aspect ratio & Quality + Watermark status
-          Row(
-            children: [
-              _buildSummaryPill(
-                Icons.video_settings_rounded,
-                "$_selectedAspectRatio • $_selectedQuality",
-                subtitle: "OUTPUT",
-              ),
-              const SizedBox(width: 4),
-              _buildSummaryPill(
-                !sm.shouldWatermark ? Icons.verified_rounded : Icons.branding_watermark_rounded,
-                !sm.shouldWatermark ? "NONE (PRO)" : "SNAPBEAT",
-                subtitle: "WATERMARK",
-                highlight: sm.shouldWatermark,
-                trailingAffordance: sm.shouldWatermark ? "UPGRADE" : null,
-                onTap: sm.shouldWatermark ? () => RetroSubscriptionDialog.show(context) : null,
-              ),
-            ],
+        // 3. Audio Trimmer (when music selected)
+        if (_selectedMusic != null) ...[
+          InteractiveWaveform(
+            durationSeconds: _audioDuration,
+            startSeconds: _audioStart,
+            endSeconds: _audioEnd,
+            isPlaying: _isPlayingAudio,
+            onTogglePlay: _togglePlayAudio,
+            onTrimChanged: (s, e) => setState(() {
+              _audioStart = s;
+              _audioEnd = e;
+            }),
           ),
         ],
-      ),
+
+        // 4. Curated Track Library
+        CuratedSoundtrackSection(
+          selectedTrackTitle: _selectedMusicTitle,
+          onSelectTrack: _onSelectBuiltInTrack,
+        ),
+
+        // 5. Pro Controls Card (Templates, Aspect Ratio, Quality, Title Studio)
+        ProControlsCard(
+          selectedTemplateId: _selectedTemplate,
+          onSelectTemplate: (t) => setState(() => _selectedTemplate = t),
+          selectedAspectRatio: _selectedAspectRatio,
+          onSelectAspectRatio: (r) => setState(() => _selectedAspectRatio = r),
+          selectedQuality: _selectedQuality,
+          onSelectQuality: (q) => setState(() => _selectedQuality = q),
+          enableTitle: _enableTitle,
+          onToggleTitle: (v) => setState(() => _enableTitle = v),
+          titleText: _titleText,
+          titleController: _titleTextController,
+          onTitleTextChanged: (t) => setState(() => _titleText = t),
+          titleBg: _titleBg,
+          onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
+          titleDuration: _titleDuration,
+          onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
+          titleFont: _titleFont,
+          onSelectTitleFont: (f) => setState(() => _titleFont = f),
+          titleFontSize: _titleFontSize,
+          onSelectTitleFontSize: (s) => setState(() => _titleFontSize = s),
+          titleStyle: _titleStyle,
+          onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
+          titleFrame: _titleFrame,
+          onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
+          titleAudio: _titleAudio,
+          onSelectTitleAudio: (a) => setState(() => _titleAudio = a),
+          representativePhoto: _photos.isNotEmpty ? File(_photos.first.path) : null,
+          isPro: sm.isPro,
+          dropIt: _dropIt,
+          onToggleDropIt: (v) => setState(() => _dropIt = v),
+        ),
+
+        // 6. Action Deck
+        _buildManualActionDeck(),
+      ],
     );
   }
 
-  Widget _buildSummaryPill(
-    IconData icon,
-    String text, {
-    String? subtitle,
-    bool highlight = false,
-    String? trailingAffordance,
-    VoidCallback? onTap,
-  }) {
-    final pillWidget = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-      decoration: BoxDecoration(
-        color: highlight ? const Color(0xFF2E2614) : AppColors.panelInset,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: highlight ? AppColors.amberGlow : AppColors.chassisBevelDark.withValues(alpha: 0.5),
-          width: highlight ? 1.2 : 0.8,
-        ),
-        boxShadow: highlight
-            ? [
-                BoxShadow(
-                  color: AppColors.amberGlow.withValues(alpha: 0.25),
-                  blurRadius: 4,
-                  spreadRadius: 0.5,
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
+  Widget _buildManualActionDeck() {
+    final isReady = _photos.length >= 2 && _selectedMusic != null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      child: Column(
         children: [
-          Icon(icon, size: 12, color: highlight ? const Color(0xFFFFD54F) : AppColors.brassGold),
-          const SizedBox(width: 5),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (subtitle != null) ...[
+          InkWell(
+            onTap: isReady && !_isSubmittingRender ? _triggerMasterReel : null,
+            borderRadius: BorderRadius.circular(14),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 54,
+              decoration: BoxDecoration(
+                color: isReady ? const Color(0xFF0E131B) : const Color(0xFF07090D),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isReady ? const Color(0xFF00F5FF) : const Color(0xFF1C232E),
+                  width: isReady ? 1.8 : 1.0,
+                ),
+                boxShadow: isReady
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF00F5FF).withValues(alpha: 0.3),
+                          offset: const Offset(0, 4),
+                          blurRadius: 14,
+                          spreadRadius: -2,
+                        ),
+                      ]
+                    : null,
+              ),
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.tune_rounded,
+                    size: 16,
+                    color: isReady ? const Color(0xFF00F5FF) : AppColors.textMuted,
+                  ),
+                  const SizedBox(width: 8),
                   Text(
-                    subtitle,
+                    "RENDER MANUAL REEL",
                     style: TextStyle(
                       fontFamily: 'Montserrat',
-                      fontSize: 6.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      color: highlight ? AppColors.amberJewel : AppColors.textMuted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      color: isReady ? Colors.white : AppColors.textMuted,
                     ),
                   ),
-                ],
-                Text(
-                  text,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: highlight ? const Color(0xFFFFE082) : AppColors.textEngraved,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (trailingAffordance != null) ...[
-            const SizedBox(width: 3),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
-              decoration: BoxDecoration(
-                color: AppColors.brassGold,
-                borderRadius: BorderRadius.circular(3),
-                boxShadow: const [
-                  BoxShadow(color: AppColors.amberGlow, blurRadius: 2),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          InkWell(
+            onTap: isReady && !_isSubmittingRender ? _triggerPreviewRender : null,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF07090D),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF1C232E), width: 1.0),
+              ),
+              alignment: Alignment.center,
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Icon(Icons.visibility_rounded, size: 14, color: isReady ? Colors.white : AppColors.textMuted),
+                  const SizedBox(width: 6),
                   Text(
-                    trailingAffordance,
-                    style: const TextStyle(
+                    "QUICK PREVIEW (540P)",
+                    style: TextStyle(
                       fontFamily: 'Montserrat',
-                      fontSize: 6.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
-                      color: AppColors.hardwareGunmetal,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: isReady ? Colors.white : AppColors.textMuted,
                     ),
                   ),
-                  const SizedBox(width: 1.5),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 5.5, color: AppColors.hardwareGunmetal),
                 ],
+              ),
+            ),
+          ),
+          if (!isReady) ...[
+            const SizedBox(height: 10),
+            Text(
+              _selectedMusic == null
+                  ? "Select a music track to configure manual render"
+                  : (_photos.length < 2 ? "Add at least 2 photos" : ""),
+              style: const TextStyle(
+                fontSize: 10.5,
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
               ),
             ),
           ],
-        ],
-      ),
-    );
-
-    if (onTap != null) {
-      return Expanded(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: pillWidget,
-        ),
-      );
-    }
-
-    return Expanded(child: pillWidget);
-  }
-
-  Widget _buildAutoTemplateBanner() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.panelCreamDark,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.brassGold, width: 1.4),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
-        ],
-      ),
-      child: Row(
-        children: [
-          const SnapBeatPinkDot(size: 13, withGlow: true),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Text(
-                      'STYLE: ',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    Flexible(
-                      child: Text(
-                        _currentAutoTemplate.name.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textEngraved,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Icon(_currentAutoTemplate.icon, size: 11, color: AppColors.brassGold),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        '${_currentAutoTemplate.subtitle} (tap dice to change)',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: _rollAutoTemplate,
-            child: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppColors.panelInset,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.chassisBevelDark),
-              ),
-              child: const Icon(Icons.casino_outlined, size: 20, color: AppColors.textEngraved),
-            ),
-          ),
         ],
       ),
     );
@@ -2302,19 +2493,12 @@ class HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.auto_awesome, size: 16),
               label: const Text("CREATE REEL", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
               onPressed: () {
-                final newTab = _selectedMusic == null
-                    ? "music"
-                    : _photos.isEmpty
-                        ? "photos"
-                        : "render";
-                if (_isPlayingAudio && newTab != 'music') {
-                  _audioPlayer.pause();
-                  _isPlayingAudio = false;
-                }
                 if (_scrollController.hasClients) {
                   _scrollController.jumpTo(0.0);
                 }
-                setState(() => _currentTab = newTab);
+                setState(() {
+                  _showQueueView = false;
+                });
               },
             ),
           ],
@@ -2405,19 +2589,12 @@ class HomeScreenState extends State<HomeScreen> {
                   ],
                   GestureDetector(
                     onTap: () {
-                      final newTab = _selectedMusic == null
-                          ? "music"
-                          : _photos.isEmpty
-                              ? "photos"
-                              : "render";
-                      if (_isPlayingAudio && newTab != 'music') {
-                        _audioPlayer.pause();
-                        _isPlayingAudio = false;
-                      }
                       if (_scrollController.hasClients) {
                         _scrollController.jumpTo(0.0);
                       }
-                      setState(() => _currentTab = newTab);
+                      setState(() {
+                        _showQueueView = false;
+                      });
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

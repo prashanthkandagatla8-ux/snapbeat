@@ -52,9 +52,10 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
       _isInitialized = false;
     });
 
-    final newController = VideoPlayerController.asset(
-      'assets/previews/$templateId.mp4',
-    );
+    final assetPath = templateId == 'mix'
+        ? 'assets/previews/pendulum.mp4'
+        : 'assets/previews/$templateId.mp4';
+    final newController = VideoPlayerController.asset(assetPath);
 
     try {
       await newController.initialize();
@@ -160,7 +161,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                 const SnapBeatPinkDot(size: 10, withGlow: true),
                 const SizedBox(width: 6),
                 Text(
-                  widget.isPro ? 'MOTION TEMPLATES (14)' : 'MOTION TEMPLATE PREVIEW',
+                  widget.isPro ? 'MOTION TEMPLATES (${BeatTemplate.allTemplates.length})' : 'MOTION TEMPLATE PREVIEW',
                   style: const TextStyle(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w900,

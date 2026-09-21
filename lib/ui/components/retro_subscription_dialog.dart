@@ -52,16 +52,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   String _getPriceDisplay(ProTier tier) {
     final product = _sm.products[tier.productId];
     if (product != null && product.price.isNotEmpty) {
-      final unit = tier == ProTier.daily
-          ? '/day'
-          : tier == ProTier.weekly
-              ? '/week'
-              : tier == ProTier.monthly
-                  ? '/mo'
-                  : '/yr';
-      return '${product.price}$unit';
+      return '${product.price}${tier.billingUnit}';
     }
-    return tier.fallbackPriceInr;
+    return tier.defaultDisplayPrice;
   }
 
   Future<void> _handleSubscribe() async {
@@ -345,16 +338,15 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
 
             // Tactile CTA Subscribe Button
             GestureDetector(
-              onTap: (isPurchasing || _sm.products[_selectedTier.productId] == null) ? null : _handleSubscribe,
+              onTap: isPurchasing ? null : _handleSubscribe,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  gradient: _sm.products[_selectedTier.productId] == null ? null : AppColors.ctaButtonGradient,
-                  color: _sm.products[_selectedTier.productId] == null ? AppColors.metalScrewHead : null,
+                  gradient: AppColors.ctaButtonGradient,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _sm.products[_selectedTier.productId] == null ? AppColors.chassisBevelLight : AppColors.yellowSpecular, width: 1.5),
-                  boxShadow: _sm.products[_selectedTier.productId] == null ? [] : [
+                  border: Border.all(color: AppColors.yellowSpecular, width: 1.5),
+                  boxShadow: [
                     BoxShadow(
                       color: AppColors.yellowShadow.withValues(alpha: 0.6),
                       offset: const Offset(0, 4),
@@ -373,9 +365,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                           ),
                         )
                       : Text(
-                          _sm.products[_selectedTier.productId] == null 
-                              ? 'PRICING UNAVAILABLE — CHECK CONNECTION' 
-                              : 'SUBSCRIBE FOR ${_getPriceDisplay(_selectedTier).toUpperCase()}',
+                          'SUBSCRIBE FOR ${_getPriceDisplay(_selectedTier).toUpperCase()}',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -533,7 +523,10 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 2,
                     children: [
                       Text(
                         tier.displayName,
@@ -543,7 +536,6 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                           color: isSelected ? AppColors.textEngraved : AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(width: 8),
                       if (isAnnual || isMonthly)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

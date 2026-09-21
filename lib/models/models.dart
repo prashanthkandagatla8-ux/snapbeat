@@ -18,6 +18,7 @@ class BeatTemplate {
   });
 
   static const List<BeatTemplate> allTemplates = [
+    BeatTemplate(id: "mix", name: "Mix Templates", subtitle: "Cycles kinetic motion styles to the beat", emoji: "🔀", icon: Icons.shuffle_rounded, isPro: false),
     BeatTemplate(id: "pendulum", name: "Pendulum", subtitle: "Swinging cuts with mirrored borders", emoji: "🪞", icon: Icons.swap_horiz, isPro: false),
     BeatTemplate(id: "beat-cut", name: "Beat Cut", subtitle: "Classic snappy beat drop transitions", emoji: "⚡", icon: Icons.flash_on),
     BeatTemplate(id: "beat-bounce", name: "Bounce", subtitle: "Kinetic bassline scale bounces", emoji: "🏀", icon: Icons.sports_basketball, isPro: true),

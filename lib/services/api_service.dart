@@ -33,6 +33,7 @@ class ApiService {
     bool isInstant = false,
     bool autoArrange = true,
     bool preview = false,
+    bool dropIt = false,
     int? audioStart,
     int? audioEnd,
     String? titleText,
@@ -106,6 +107,7 @@ class ApiService {
     if (preview) {
       formData.fields.add(const MapEntry("preview", "true"));
     }
+    formData.fields.add(MapEntry("drop_it", dropIt ? "true" : "false"));
 
     formData.fields.add(MapEntry('full_track', (audioEnd != null && audioEnd > 0 && audioStart != null && audioEnd > audioStart) ? 'false' : 'true'));
     if (audioStart != null && audioStart > 0) {

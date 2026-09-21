@@ -411,7 +411,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // await capturePng(key, '06_subscription_review.png');
+    await capturePng(key, '06_subscription_review.png');
     await tester.pumpWidget(Container());
     tester.takeException();
   });

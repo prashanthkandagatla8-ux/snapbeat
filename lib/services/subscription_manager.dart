@@ -44,8 +44,45 @@ extension ProTierExtension on ProTier {
   }
 
   String get fallbackPriceInr {
-    return '—';
+    switch (this) {
+      case ProTier.daily:
+        return '₹49';
+      case ProTier.weekly:
+        return '₹149';
+      case ProTier.monthly:
+        return '₹349';
+      case ProTier.annual:
+        return '₹899';
+    }
   }
+
+  String get fallbackPriceUsd {
+    switch (this) {
+      case ProTier.daily:
+        return '\$0.99';
+      case ProTier.weekly:
+        return '\$1.99';
+      case ProTier.monthly:
+        return '\$4.99';
+      case ProTier.annual:
+        return '\$11.99';
+    }
+  }
+
+  String get billingUnit {
+    switch (this) {
+      case ProTier.daily:
+        return '/day';
+      case ProTier.weekly:
+        return '/week';
+      case ProTier.monthly:
+        return '/mo';
+      case ProTier.annual:
+        return '/yr';
+    }
+  }
+
+  String get defaultDisplayPrice => '$fallbackPriceInr$billingUnit';
 
   String get badgeText {
     switch (this) {
@@ -56,7 +93,7 @@ extension ProTierExtension on ProTier {
       case ProTier.monthly:
         return 'POPULAR';
       case ProTier.annual:
-        return 'BEST VALUE (SAVE 57%)';
+        return 'SAVE 57%';
     }
   }
 }
