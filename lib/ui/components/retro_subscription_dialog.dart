@@ -115,7 +115,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     if (product != null && product.price.isNotEmpty) {
       return product.price;
     }
-    return card.fallbackPrice;
+    return card.tier.fallbackPriceUsd;
   }
 
   Future<void> _handleSubscribe() async {
@@ -126,7 +126,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         SnackBar(
           content: Text(
             'Connecting to ${Platform.isIOS ? "App Store" : "Google Play"}... Please verify network.',
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(fontFamily: 'Montserrat', color: Colors.white),
           ),
           backgroundColor: const Color(0xFF1E1E24),
         ),
@@ -154,7 +154,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
       SnackBar(
         content: Text(
           success ? 'Checking previous purchases...' : 'Failed to restore purchases.',
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(fontFamily: 'Montserrat', color: Colors.white),
         ),
         backgroundColor: const Color(0xFF1E1E24),
       ),
@@ -300,7 +300,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                         children: [
                           Text(
                             'ACTIVE: ${_sm.activeTier?.displayName.toUpperCase() ?? "PRO SUBSCRIBER"}',
-                            style: const TextStyle(
+                            style: const TextStyle(fontFamily: 'Montserrat', 
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                               color: Color(0xFF10B981),
@@ -310,7 +310,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                           if (_sm.expiresAt != null)
                             Text(
                               'Renews / Expires: ${_sm.expiresAt!.toLocal().toString().split(".")[0]}',
-                              style: const TextStyle(
+                              style: const TextStyle(fontFamily: 'Montserrat', 
                                 fontSize: 10,
                                 color: Color(0xFF94A3B8),
                               ),
@@ -337,7 +337,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 child: Text(
                   _sm.statusMessage!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: const TextStyle(fontFamily: 'Montserrat', 
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFFFFB800),
@@ -415,7 +415,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 Expanded(
                   child: Text(
                     card.title,
-                    style: const TextStyle(
+                    style: const TextStyle(fontFamily: 'Montserrat', 
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -436,7 +436,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                     ),
                     child: Text(
                       card.badge!,
-                      style: TextStyle(
+                      style: TextStyle(fontFamily: 'Montserrat', 
                         color: isSelected ? Colors.black : const Color(0xFFFFB800),
                         fontSize: 10.5,
                         fontWeight: FontWeight.w900,
@@ -470,7 +470,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                               Expanded(
                                 child: Text(
                                   feature,
-                                  style: const TextStyle(
+                                  style: const TextStyle(fontFamily: 'Montserrat', 
                                     color: Color(0xFFD1D1D6),
                                     fontSize: 11.0,
                                     letterSpacing: -0.2,
@@ -494,7 +494,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                     children: [
                       TextSpan(
                         text: priceAmount,
-                        style: const TextStyle(
+                        style: const TextStyle(fontFamily: 'Montserrat', 
                           color: Color(0xFFFFB800),
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
@@ -502,7 +502,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                       ),
                       TextSpan(
                         text: card.period,
-                        style: const TextStyle(
+                        style: const TextStyle(fontFamily: 'Montserrat', 
                           color: Color(0xFF8E8E93),
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -557,7 +557,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 )
               : const Text(
                   'Subscribe',
-                  style: TextStyle(
+                  style: TextStyle(fontFamily: 'Montserrat', 
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                     color: Colors.black,
@@ -582,7 +582,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           },
           child: const Text(
             'Terms of Service',
-            style: TextStyle(
+            style: TextStyle(fontFamily: 'Montserrat', 
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: Color(0xFF8E8E93),
@@ -595,7 +595,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           },
           child: const Text(
             'Privacy Policy',
-            style: TextStyle(
+            style: TextStyle(fontFamily: 'Montserrat', 
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: Color(0xFF8E8E93),
@@ -606,7 +606,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           onTap: isPurchasing ? null : _handleRestore,
           child: const Text(
             'Restore Purchase',
-            style: TextStyle(
+            style: TextStyle(fontFamily: 'Montserrat', 
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: Color(0xFF8E8E93),
@@ -627,11 +627,11 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(
-        Platform.isIOS
+        (Platform.isIOS || !Platform.isAndroid)
             ? 'Payment of $priceStr will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless canceled in App Store Account Settings at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the period.'
             : 'Payment of $priceStr will be billed through Google Play at confirmation of purchase. Subscription automatically renews unless canceled in Google Play Subscriptions before the end of the current period.',
         textAlign: TextAlign.center,
-        style: const TextStyle(
+        style: const TextStyle(fontFamily: 'Montserrat', 
           fontSize: 9.5,
           color: Color(0xFF64748B),
           height: 1.35,

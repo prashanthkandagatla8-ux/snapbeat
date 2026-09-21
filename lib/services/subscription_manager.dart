@@ -100,24 +100,34 @@ extension ProTierExtension on ProTier {
 
 /// Centralized In-App Purchase and Entitlement Manager for SnapBeat Pro.
 class SubscriptionManager with ChangeNotifier {
-  // Store Product Identifiers
-  static const String idDaily = 'snapbeat_pro_daily';
-  static const String idWeekly = 'snapbeat_pro_weekly';
-  static const String idMonthly = 'snapbeat_pro_monthly';
-  static const String idAnnual = 'snapbeat_pro_yearly';
+  // Store Product Identifiers (Updated to snapbeat_studio_* because Apple permanently reserves deleted IDs)
+  static const String idDaily = 'snapbeat_studio_pro_daily';
+  static const String idWeekly = 'snapbeat_studio_pro_weekly';
+  static const String idMonthly = 'snapbeat_studio_pro_monthly';
+  static const String idAnnual = 'snapbeat_studio_pro_yearly';
+
+  // Legacy fallback identifiers
+  static const String legacyIdDaily = 'snapbeat_pro_daily';
+  static const String legacyIdWeekly = 'snapbeat_pro_weekly';
+  static const String legacyIdMonthly = 'snapbeat_pro_monthly';
+  static const String legacyIdAnnual = 'snapbeat_pro_yearly';
 
   static const Set<String> allProductIds = {
     idDaily,
     idWeekly,
     idMonthly,
     idAnnual,
+    legacyIdDaily,
+    legacyIdWeekly,
+    legacyIdMonthly,
+    legacyIdAnnual,
   };
 
   /// Product IDs enabled for store queries on current platform.
   /// On iOS, 1-day auto-renewable subscriptions are prohibited by Apple (Guideline 3.1.2).
   static Set<String> get activeProductIds => Platform.isIOS
       ? {idWeekly, idMonthly, idAnnual}
-      : allProductIds;
+      : {idDaily, idWeekly, idMonthly, idAnnual};
 
   /// Available subscription tiers for current platform.
   /// On iOS, Daily is excluded to comply with Apple App Store review rules.
@@ -405,10 +415,10 @@ class SubscriptionManager with ChangeNotifier {
   }
 
   ProTier? _tierFromProductId(String id) {
-    if (id == idDaily) return ProTier.daily;
-    if (id == idWeekly) return ProTier.weekly;
-    if (id == idMonthly) return ProTier.monthly;
-    if (id == idAnnual) return ProTier.annual;
+    if (id == idDaily || id == legacyIdDaily) return ProTier.daily;
+    if (id == idWeekly || id == legacyIdWeekly) return ProTier.weekly;
+    if (id == idMonthly || id == legacyIdMonthly) return ProTier.monthly;
+    if (id == idAnnual || id == legacyIdAnnual) return ProTier.annual;
     return null;
   }
 

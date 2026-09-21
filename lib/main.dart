@@ -22,7 +22,7 @@ class SnapBeatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SnapBeat',
+      title: 'SnapBeat Studio',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.retroMetalClassic,
       home: const HomeScreen(fromShowcase: false),

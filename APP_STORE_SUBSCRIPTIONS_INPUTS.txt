@@ -1,0 +1,182 @@
+================================================================================
+SNAPBEAT STUDIO — APP STORE CONNECT INPUTS SPECIFICATION
+================================================================================
+Use this document as your exact copy-paste guide when setting up Auto-Renewable
+Subscriptions and Consumable In-App Purchases (Credit Top-Ups) in App Store Connect.
+All naming consistently reflects our official app name: "SnapBeat Studio".
+
+NOTE ON PRODUCT IDENTIFIERS:
+Because Apple App Store permanently reserves previously deleted product IDs,
+SnapBeat Studio uses the updated namespace "snapbeat_studio_pro_*".
+The app's SubscriptionManager also maintains backwards-compatible fallbacks for
+legacy IDs ("snapbeat_pro_*").
+
+--------------------------------------------------------------------------------
+PART 1: SUBSCRIPTION GROUP SETUP
+--------------------------------------------------------------------------------
+Navigate to: App Store Connect > Apps > SnapBeat Studio > Monetization > Subscriptions
+
+Click '+' to Create a Subscription Group:
+• Reference Name: SnapBeat Studio Pro Pass
+• Subscription Group Display Name (English - US): SnapBeat Studio Pro All-Access
+
+--------------------------------------------------------------------------------
+PART 2: AUTO-RENEWABLE SUBSCRIPTION PRODUCTS
+--------------------------------------------------------------------------------
+(Note: Apple Guideline 3.1.2 strictly permits Weekly, Monthly, 2-Month, 
+ 3-Month, 6-Month, and 1-Year auto-renewable durations. 1-Day auto-renewable
+ subscriptions are NOT permitted on iOS and are filtered out by SubscriptionManager
+ on iOS devices. Daily Pass is documented below for cross-platform / Play Store parity.)
+
+--------------------------------------------------
+PRODUCT 1: ANNUAL VIP (HIGHEST RANK / LEVEL 1)
+--------------------------------------------------
+• Reference Name: SnapBeat Studio Pro Annual VIP
+• Product ID: snapbeat_studio_pro_yearly
+• Subscription Duration: 1 Year
+• Subscription Level: Rank 1 (Top / Highest tier)
+
+Pricing:
+• Pricing Tier: Tier 25 (or custom price equivalent)
+• Standard Price (USD): $24.99
+• Standard Price (INR): ₹2,499.00  ← This is what Apple auto-maps for $24.99 (confirmed in App Store Connect)
+• Free Trial / Intro Offer (Optional): 3 Days Free Trial (or None)
+
+Localization (English - US):
+• Subscription Display Name: SnapBeat Studio Annual VIP
+• Description: Unlock SnapBeat Studio Pro: 1080p Master exports, 432 Pro credits/yr, zero watermark, all 14 motion FX templates, and cloud priority queue.
+
+Review Information:
+• Review Notes: Unlocks SnapBeat Studio Pro 1080p Master resolution, gives 432 annual cloud rendering credits, removes watermarks, and grants cloud priority queue.
+• Screenshot: Upload store_assets/iap_review_screenshots/iap_screenshot_1290x2796.png
+
+--------------------------------------------------
+PRODUCT 2: MONTHLY VIP (POPULAR / LEVEL 2)
+--------------------------------------------------
+• Reference Name: SnapBeat Studio Pro Monthly VIP
+• Product ID: snapbeat_studio_pro_monthly
+• Subscription Duration: 1 Month
+• Subscription Level: Rank 2
+
+Pricing:
+• Pricing Tier: Tier 5 (or custom price equivalent)
+• Standard Price (USD): $4.99
+• Standard Price (INR): ₹499.00  ← Apple's auto-mapped price for $4.99
+
+Localization (English - US):
+• Subscription Display Name: SnapBeat Studio Monthly VIP
+• Description: Unlock SnapBeat Studio Pro: 1080p Master exports, 40 Pro credits/month, zero watermark, all 14 motion FX templates, and cloud priority queue.
+
+Review Information:
+• Review Notes: Grants 1 month of SnapBeat Studio Pro access: 1080p export resolution, 40 credits for serverless renders, watermark removal, and priority queue.
+• Screenshot: Upload store_assets/iap_review_screenshots/iap_screenshot_1290x2796.png
+
+--------------------------------------------------
+PRODUCT 3: WEEKLY PASS (FLEXIBLE / LEVEL 3)
+--------------------------------------------------
+• Reference Name: SnapBeat Studio Pro Weekly Pass
+• Product ID: snapbeat_studio_pro_weekly
+• Subscription Duration: 1 Week
+• Subscription Level: Rank 3
+
+Pricing:
+• Pricing Tier: Tier 2 (or custom price equivalent)
+• Standard Price (USD): $1.99
+• Standard Price (INR): ₹169.00  ← Apple's auto-mapped price for $1.99
+
+Localization (English - US):
+• Subscription Display Name: SnapBeat Studio Weekly Pass
+• Description: Unlock SnapBeat Studio Pro: 1080p Master exports, 8 Pro credits/week, zero watermark, all 14 motion FX templates, and cloud priority queue.
+
+Review Information:
+• Review Notes: Grants 1 week of SnapBeat Studio Pro access: 1080p export resolution, 8 credits for serverless renders, watermark removal, and priority queue.
+• Screenshot: Upload store_assets/iap_review_screenshots/iap_screenshot_1290x2796.png
+
+--------------------------------------------------
+PRODUCT 4: DAILY PASS (CROSS-PLATFORM / ANDROID ONLY)
+--------------------------------------------------
+• Reference Name: SnapBeat Studio Pro Daily Pass
+• Product ID: snapbeat_studio_pro_daily
+• Platform Availability: Android / Google Play Store Only
+  (Per Apple App Store Review Guideline 3.1.2, 1-day auto-renewable subscriptions
+   are prohibited on iOS. On iOS, SubscriptionManager.activeProductIds excludes this ID.)
+• Subscription Duration: 1 Day (Android)
+• Standard Price (USD): $0.99
+• Standard Price (INR): ₹99.00  ← Apple's auto-mapped price for $0.99
+
+Localization (English - US):
+• Subscription Display Name: SnapBeat Studio Daily Pass
+• Description: Unlock SnapBeat Studio Pro: 1080p Master exports for 24 hours, zero watermark, all 14 motion FX templates, and cloud priority queue.
+
+Review Information:
+• Review Notes: 24-hour access pass for SnapBeat Studio Pro. Active on Google Play; excluded from iOS active query list in compliance with Apple Guideline 3.1.2.
+
+
+--------------------------------------------------------------------------------
+PART 3: CONSUMABLE IN-APP PURCHASES (CREDIT TOP-UPS)
+--------------------------------------------------------------------------------
+Navigate to: App Store Connect > Apps > SnapBeat Studio > Monetization > In-App Purchases
+Click '+' to create Consumable In-App Purchases:
+
+--------------------------------------------------
+CONSUMABLE 1: 10 PRO CREDITS
+--------------------------------------------------
+• Reference Name: SnapBeat Studio 10 Pro Credits
+• Product ID: snapbeat_credits_10
+• Type: Consumable
+• Pricing: Tier 1 ($0.99 USD / ₹99.00 INR)
+
+Localization (English - US):
+• Display Name: 10 Pro Credits
+• Description: Top up 10 credits in SnapBeat Studio for instant serverless HD/1080p renders with zero watermark.
+
+Review Information:
+• Review Notes: Consumable pack granting 10 render credits in SnapBeat Studio for instant serverless video processing.
+• Screenshot: Upload store_assets/iap_review_screenshots/iap_screenshot_1290x2796.png
+
+--------------------------------------------------
+CONSUMABLE 2: 50 PRO CREDITS
+--------------------------------------------------
+• Reference Name: SnapBeat Studio 50 Pro Credits
+• Product ID: snapbeat_credits_50
+• Type: Consumable
+• Pricing: Tier 4 ($3.99 USD / ₹399.00 INR)
+
+Localization (English - US):
+• Display Name: 50 Pro Credits
+• Description: Top up 50 credits in SnapBeat Studio for instant serverless HD/1080p renders with zero watermark.
+
+Review Information:
+• Review Notes: Consumable pack granting 50 render credits in SnapBeat Studio for instant serverless video processing.
+• Screenshot: Upload store_assets/iap_review_screenshots/iap_screenshot_1290x2796.png
+
+
+--------------------------------------------------------------------------------
+PART 4: APP STORE REVIEW INFORMATION & NOTES
+--------------------------------------------------------------------------------
+Paste this into the App Review Information "Notes" field:
+
+```
+APP REVIEW NOTES FOR SNAPBEAT STUDIO v1.0.7:
+
+1. MONETIZATION MODEL:
+- Free users have FULL CREATIVE FREEDOM in SnapBeat Studio: All 14 cinematic templates, transitions, aspect ratios (9:16, 1:1, 16:9), beat-sync algorithms, audio trimming, and title card creators are completely unlocked and free.
+- Free users render at 360p Standard resolution with an embossed 3D watermark processed on a shared standard queue.
+- Pro subscriptions (Weekly, Monthly, Annual) unlock 720p HD and 1080p Master exports, eliminate watermarks, grant cloud priority queue processing, and provide render credits for instant Google Cloud Run serverless renders (8 credits/wk, 40 credits/mo, 432 credits/yr).
+
+2. HOW TO TEST IN-APP PURCHASES:
+- Launch SnapBeat Studio.
+- Tap 'HD 720p PRO' or '1080p MASTER PRO' in the Quality Selector, or tap 'START CREATING REEL' with a Pro resolution selected.
+- The Retro Metal Subscription Dialog appears showing Weekly Pass ($1.99), Monthly VIP ($4.99), and Annual VIP ($24.99).
+- Tapping any plan triggers the StoreKit sandbox purchase sheet.
+- Restoring purchases is accessible via the 'Restore Purchases' link at the bottom of the paywall dialog.
+
+3. PRIVACY POLICY & TERMS:
+- Privacy Policy: https://snapbeat.app/privacy
+- Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+4. BACKEND API:
+- Secure production endpoint: https://api.snapbeat.app (TLS 1.3 / HTTPS).
+- No sensitive user personal data is collected or retained.
+```
+================================================================================

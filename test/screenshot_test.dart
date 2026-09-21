@@ -51,7 +51,7 @@ ThemeData get testTheme => ThemeData(
   ),
   cardColor: AppColors.panelCream,
   dividerColor: AppColors.chassisBevelLight,
-  fontFamily: 'Montserrat',
+  fontFamily: 'Montserrat', fontFamilyFallback: const ['Montserrat', 'Segoe UI', 'Roboto'], 
 );
 
 List<PhotoItem> getSamplePhotos() {
@@ -133,7 +133,12 @@ void main() {
       'plugins.flutter.io/google_mobile_ads',
     ];
     for (final ch in channels) {
-      messenger.setMockMethodCallHandler(MethodChannel(ch), (call) async => 1);
+      messenger.setMockMethodCallHandler(MethodChannel(ch), (call) async {
+        if (ch == 'plugins.flutter.io/google_mobile_ads') {
+          return <dynamic, dynamic>{};
+        }
+        return 1;
+      });
     }
 
     // Material icons
@@ -177,6 +182,11 @@ void main() {
     await loadFont('Segoe UI', segoePath);
     await loadFont('Segoe UI Bold', segoeBoldPath);
     await loadFont('sans-serif', segoePath);
+    await loadFont('monospace', r'C:\Windows\Fonts\consolab.ttf');
+    await loadFont('Monospace', r'C:\Windows\Fonts\consolab.ttf');
+    await loadFont('Ahem', segoeBoldPath);
+    await loadFont('packages/flutter_test/Ahem', segoeBoldPath);
+    await loadFont('.AppleSystemUIFont', segoeBoldPath);
   });
 
   setUp(() async {
@@ -210,8 +220,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // await capturePng(key, '01_music_deck.png');
-    await tester.pumpWidget(Container());
+    await capturePng(key, '01_music_deck.png');
+    await tester.pumpWidget(const SizedBox());
     tester.takeException();
   });
 
@@ -243,8 +253,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // await capturePng(key, '02_photos_stage.png');
-    await tester.pumpWidget(Container());
+    await capturePng(key, '02_photos_stage.png');
+    await tester.pumpWidget(const SizedBox());
     tester.takeException();
   });
 
@@ -277,8 +287,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // await capturePng(key, '03_render_auto.png');
-    await tester.pumpWidget(Container());
+    await capturePng(key, '03_render_auto.png');
+    await tester.pumpWidget(const SizedBox());
     tester.takeException();
   });
 
@@ -311,8 +321,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // await capturePng(key, '04_render_pro.png');
-    await tester.pumpWidget(Container());
+    await capturePng(key, '04_render_pro.png');
+    await tester.pumpWidget(const SizedBox());
     tester.takeException();
   });
 
@@ -361,8 +371,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // await capturePng(key, '05_queue_vault.png');
-    await tester.pumpWidget(Container());
+    await capturePng(key, '05_queue_vault.png');
+    await tester.pumpWidget(const SizedBox());
     tester.takeException();
   });
 
@@ -414,5 +424,6 @@ void main() {
     await capturePng(key, '06_subscription_review.png');
     await tester.pumpWidget(Container());
     tester.takeException();
+    
   });
 }

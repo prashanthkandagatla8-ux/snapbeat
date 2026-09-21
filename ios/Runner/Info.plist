@@ -8,15 +8,15 @@
 		<true/>
 	</dict>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>SnapBeat needs access to save your rendered reels to your photo library.</string>
+	<string>SnapBeat Studio needs access to save your rendered reels to your photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>SnapBeat needs photo library access to select photos for your reel and save exported videos.</string>
+	<string>SnapBeat Studio needs photo library access to select photos for your reel and save exported videos.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>SnapBeat needs camera access if you wish to take photos directly for your reel.</string>
+	<string>SnapBeat Studio needs camera access if you wish to take photos directly for your reel.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>SnapBeat needs microphone access when recording audio or video for reels.</string>
+	<string>SnapBeat Studio needs microphone access when recording audio or video for reels.</string>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>SnapBeat needs access to your music to use a track as your reel's soundtrack.</string>
+	<string>SnapBeat Studio needs access to your music to use a track as your reel's soundtrack.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- Google AdMob iOS App ID -->
