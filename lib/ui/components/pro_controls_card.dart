@@ -38,10 +38,6 @@ class ProControlsCard extends StatelessWidget {
   final File? representativePhoto;
   final bool? isPro;
 
-  // Drop It (Black on Silence)
-  final bool dropIt;
-  final Function(bool enabled)? onToggleDropIt;
-
   const ProControlsCard({
     super.key,
     required this.selectedTemplateId,
@@ -71,8 +67,6 @@ class ProControlsCard extends StatelessWidget {
     required this.onSelectTitleAudio,
     this.representativePhoto,
     this.isPro,
-    this.dropIt = true,
-    this.onToggleDropIt,
   });
 
   @override
@@ -206,59 +200,6 @@ class ProControlsCard extends StatelessWidget {
               const SizedBox(width: 8),
               _buildAspectRocker('16:9', 'Wide', '16:9'),
             ],
-          ),
-          const SizedBox(height: 14),
-
-          // Drop It! (Black on Silence)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.panelInset,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.chassisBevelDark, width: 1),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const SnapBeatPinkDot(size: 11, withGlow: true),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'DROP IT!',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
-                            color: AppColors.brassGold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Black screen holds during audio silence',
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Switch(
-                  value: dropIt,
-                  activeThumbColor: AppColors.hardwareGunmetal,
-                  activeTrackColor: AppColors.brassGold,
-                  inactiveThumbColor: AppColors.textSecondary,
-                  inactiveTrackColor: AppColors.panelCreamDark,
-                  onChanged: onToggleDropIt,
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: 14),
 

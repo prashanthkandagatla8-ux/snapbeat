@@ -182,45 +182,38 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
 
           const Divider(height: 1, color: AppColors.chassisBevelDark),
 
-          // Track List with Visible Scrollbar
+          // Track List
           Expanded(
-            child: RawScrollbar(
-              thumbVisibility: true,
-              thickness: 5,
-              radius: const Radius.circular(4),
-              thumbColor: AppColors.pinkAccent.withValues(alpha: 0.6),
-              trackVisibility: true,
-              trackColor: Colors.black.withValues(alpha: 0.3),
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                itemCount: tracks.length,
-                itemBuilder: (context, index) {
-                  final track = tracks[index];
-                  final cleanCurrentTitle = widget.currentTrackTitle.trim().toLowerCase();
-                  final isSelected = cleanCurrentTitle.isNotEmpty &&
-                      (cleanCurrentTitle == track.title.toLowerCase() ||
-                       cleanCurrentTitle == track.assetPath.toLowerCase() ||
-                       cleanCurrentTitle == track.fileName.toLowerCase());
-                  final isCurrentPreview = (_previewingId == track.id && _isPlaying);
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              itemCount: tracks.length,
+              itemBuilder: (context, index) {
+                final track = tracks[index];
+                final cleanCurrentTitle = widget.currentTrackTitle.trim().toLowerCase();
+                final isSelected = cleanCurrentTitle.isNotEmpty &&
+                    (cleanCurrentTitle == track.title.toLowerCase() ||
+                     cleanCurrentTitle == track.assetPath.toLowerCase() ||
+                     cleanCurrentTitle == track.fileName.toLowerCase());
+                final isCurrentPreview = (_previewingId == track.id && _isPlaying);
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.panelCream,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isSelected ? AppColors.pinkAccent : AppColors.chassisBevelLight,
-                        width: isSelected ? 1.5 : 0.8,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          offset: const Offset(0, 1),
-                          blurRadius: 3,
-                        ),
-                      ],
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.panelCream,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
+                      width: isSelected ? 1.8 : 1.0,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        offset: const Offset(1, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -386,7 +379,6 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
               },
             ),
           ),
-        ),
         ],
       ),
     );
