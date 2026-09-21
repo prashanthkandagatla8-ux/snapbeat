@@ -14,10 +14,12 @@ BASE_DIR = Path(__file__).resolve().parent
 RAW_DIR = BASE_DIR / "store_assets" / "screenshots"
 OUT_67 = BASE_DIR / "store_assets" / "ios_screenshots_6.7"
 OUT_65 = BASE_DIR / "store_assets" / "ios_screenshots_6.5"
+OUT_IPAD = BASE_DIR / "store_assets" / "ios_screenshots_ipad_13"
 OUT_IAP = BASE_DIR / "store_assets" / "iap_review_screenshots"
 
 OUT_67.mkdir(parents=True, exist_ok=True)
 OUT_65.mkdir(parents=True, exist_ok=True)
+OUT_IPAD.mkdir(parents=True, exist_ok=True)
 OUT_IAP.mkdir(parents=True, exist_ok=True)
 
 SCREENS = [
@@ -75,7 +77,18 @@ def main():
         img.save(dst, format="PNG")
         print(f"  [+] Saved {dst.name}: {img.size} {img.mode} ({os.path.getsize(dst):,} bytes)")
 
-    # 3. Generate IAP Review Screenshots from 06_subscription_review.png
+    # 3. Generate 13" iPad Pro Screenshots (2048 x 2732)
+    print("\n--- Generating 13\" iPad Pro Screenshots (2048 x 2732) ---")
+    for name in SCREENS:
+        src = RAW_DIR / name
+        if not src.exists():
+            continue
+        dst = OUT_IPAD / name
+        img = format_image(src, 2048, 2732)
+        img.save(dst, format="PNG")
+        print(f"  [+] Saved {dst.name}: {img.size} {img.mode} ({os.path.getsize(dst):,} bytes)")
+
+    # 4. Generate IAP Review Screenshots from 06_subscription_review.png
     sub_src = RAW_DIR / "06_subscription_review.png"
     if sub_src.exists():
         print("\n--- Generating In-App Purchase Review Screenshots ---")
