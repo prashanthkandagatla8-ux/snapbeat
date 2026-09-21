@@ -134,7 +134,7 @@ class ProControlsCard extends StatelessWidget {
                     RetroSubscriptionDialog.show(context);
                     return;
                   }
-                  onSelectQuality(selectedQuality == '1080p' ? '720p' : '1080p');
+                  onSelectQuality(selectedQuality == '1080p' ? '540p' : '1080p');
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -158,7 +158,7 @@ class ProControlsCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        selectedQuality == '1080p' ? '1080p 60fps' : '720p Standard',
+                        selectedQuality == '1080p' ? '1080p 60fps' : '540p Standard',
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,

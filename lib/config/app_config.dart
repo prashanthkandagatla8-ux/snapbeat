@@ -18,7 +18,7 @@ class AppConfig {
   
   // App version info
   static const String appVersion = "1.0.7";
-  static const String buildNumber = "26";
+  static const String buildNumber = "27";
 
   // Live privacy policy (verified reachable 2026-09-20). Apple requires a working link on the
   // paywall and in App Store Connect metadata; a null here made the paywall Privacy link a

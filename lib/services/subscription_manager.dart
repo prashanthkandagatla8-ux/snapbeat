@@ -178,7 +178,7 @@ class SubscriptionManager with ChangeNotifier {
 
   // Pro Feature Gate Entitlements
   bool get shouldWatermark => !isPro;
-  String get defaultQuality => isPro ? '1080p' : '720p';
+  String get defaultQuality => isPro ? '1080p' : '540p';
   String get renderType => isPro ? 'priority_queue' : 'free_queue';
   bool get canBuyTopUps => isPro;
 

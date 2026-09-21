@@ -3,7 +3,8 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle, SystemNavigator;
+import 'package:flutter/services.dart' show rootBundle, SystemNavigator, PlatformException;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -108,7 +109,7 @@ class HomeScreenState extends State<HomeScreen> {
   final List<PhotoItem> _photos = [];
   String _selectedTemplate = "pendulum";
   String _selectedAspectRatio = "9:16";
-  String _selectedQuality = "720p";
+  String _selectedQuality = "540p";
   String _arrangementMode = "sequential";
 
   /// Calculates max photos dynamically based on track duration and beat tempo.
@@ -619,26 +620,36 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _pickMusic() async {
-    final result = await FilePicker.pickFiles(type: FileType.audio);
-    if (result.isNotEmpty && result.first.path != null) {
-      final file = File(result.first.path!);
-      final fileName = result.first.name;
-      double dur = 60.0;
-      try {
-        await _audioPlayer.setSource(DeviceFileSource(file.path));
-        final d = await _audioPlayer.getDuration();
-        if (d != null && d.inSeconds > 0) {
-          dur = d.inSeconds.toDouble();
-        }
-      } catch (_) {}
-      if (!mounted) return;
-      setState(() {
-        _selectedMusic = file;
-        _selectedMusicTitle = fileName;
-        _audioDuration = dur;
-        _audioStart = 0.0;
-        _audioEnd = dur;
-      });
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'm4a', 'aac'],
+      );
+      if (result.isNotEmpty && result.first.path != null) {
+        final file = File(result.first.path!);
+        final fileName = result.first.name;
+        double dur = 60.0;
+        try {
+          await _audioPlayer.setSource(DeviceFileSource(file.path));
+          final d = await _audioPlayer.getDuration();
+          if (d != null && d.inSeconds > 0) {
+            dur = d.inSeconds.toDouble();
+          }
+        } catch (_) {}
+        if (!mounted) return;
+        setState(() {
+          _selectedMusic = file;
+          _selectedMusicTitle = fileName;
+          _audioDuration = dur;
+          _audioStart = 0.0;
+          _audioEnd = dur;
+        });
+      }
+    } catch (e) {
+      debugPrint("Audio picker error: $e");
+      if (mounted) {
+        _showNotice("Unable to load selected audio. Please ensure it is a standard non-DRM MP3, WAV, or M4A file.");
+      }
     }
   }
 
@@ -751,25 +762,34 @@ class HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final picker = ImagePicker();
-    final pickedList = await picker.pickMultiImage();
-    if (pickedList.isNotEmpty) {
-      int added = 0;
-      for (final xfile in pickedList) {
-        if (_photos.length < maxAllowed) {
-          _photos.add(PhotoItem(
-            id: DateTime.now().microsecondsSinceEpoch.toString() + added.toString(),
-            path: xfile.path,
-            order: _photos.length,
-          ));
-          added++;
+    try {
+      final picker = ImagePicker();
+      final pickedList = await picker.pickMultiImage();
+      if (pickedList.isNotEmpty) {
+        int added = 0;
+        for (final xfile in pickedList) {
+          if (_photos.length < maxAllowed) {
+            _photos.add(PhotoItem(
+              id: DateTime.now().microsecondsSinceEpoch.toString() + added.toString(),
+              path: xfile.path,
+              order: _photos.length,
+            ));
+            added++;
+          }
+        }
+        if (!mounted) return;
+        setState(() {});
+        if (pickedList.length > added && mounted) {
+          _showNotice("Added $added photos (capped at $maxAllowed).");
         }
       }
-      if (!mounted) return;
-      setState(() {});
-      if (pickedList.length > added && mounted) {
-        _showNotice("Added $added photos (capped at $maxAllowed).");
+    } on PlatformException catch (e) {
+      debugPrint("Photo picker permission error: $e");
+      if (mounted) {
+        _showNotice("Photo access is needed to choose pictures. Please enable it in Settings.");
       }
+    } catch (e) {
+      debugPrint("Error picking photos: $e");
     }
   }
 
@@ -1010,7 +1030,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
 
       // Direct single render execution for testing (holding instant modal for now)
-      _executeRender(isInstant: false);
+      await _executeRender(isInstant: false);
     } finally {
       _isSubmittingRender = false;
     }
@@ -1029,7 +1049,7 @@ class HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      _executeRender(isInstant: false, isPreview: true);
+      await _executeRender(isInstant: false, isPreview: true);
     } finally {
       _isSubmittingRender = false;
     }
@@ -1039,7 +1059,7 @@ class HomeScreenState extends State<HomeScreen> {
   // Reserved for instant render & credits pack workflow (temporarily held):
   // void _showRenderChoiceDialog() { ... }
 
-  void _executeRender({required bool isInstant, bool isPreview = false}) {
+  Future<void> _executeRender({required bool isInstant, bool isPreview = false}) async {
     if (_selectedMusic == null) {
       _showNotice("Step 1: Please select a music track first.");
       return;
@@ -1047,6 +1067,27 @@ class HomeScreenState extends State<HomeScreen> {
     if (_photos.isEmpty) {
       _showNotice("Step 2: Please select photos before rendering.");
       return;
+    }
+
+    final isPro = sm.isPro;
+    if (!isPreview && !isPro) {
+      final prefs = await SharedPreferences.getInstance();
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      final lastDate = prefs.getString('free_render_date') ?? '';
+      int count = prefs.getInt('free_render_count') ?? 0;
+      if (lastDate != todayStr) {
+        count = 0;
+        await prefs.setString('free_render_date', todayStr);
+        await prefs.setInt('free_render_count', 0);
+      }
+      if (count >= 3) {
+        if (mounted) {
+          RetroSubscriptionDialog.show(context);
+          _showNotice("Daily limit of 3 free renders reached. Upgrade to VIP for unlimited exports!");
+        }
+        return;
+      }
+      await prefs.setInt('free_render_count', count + 1);
     }
 
     String tId;
@@ -1064,8 +1105,6 @@ class HomeScreenState extends State<HomeScreen> {
       tDisplayName = "Preview: $tDisplayName";
     }
 
-    final isPro = sm.isPro;
-
     final jobId = DateTime.now().millisecondsSinceEpoch.toString();
     final maxAllowed = maxPhotosForTrack;
     if (_photos.length > maxAllowed) {
@@ -1077,8 +1116,8 @@ class HomeScreenState extends State<HomeScreen> {
     final photosSnapshot = List<PhotoItem>.from(photosToSend);
     final musicSnapshot = _selectedMusic;
     final aspectRatioSnapshot = _selectedAspectRatio;
-    // Pro subscribers get 1080p Master exports; Free users get 720p HD
-    final qualitySnapshot = isPreview ? "540p" : (isPro ? "1080p" : "720p");
+    // Pro subscribers get 1080p Master exports; Free users get 540p Standard; Previews use 360p
+    final qualitySnapshot = isPreview ? "360p" : (isPro ? "1080p" : "540p");
     // Pro subscribers have watermarks removed; Free videos have watermark (always for preview)
     final shouldWatermark = isPreview ? true : !isPro;
     // Pro subscribers get fast priority queue; Free users use standard queue (always free for preview)
