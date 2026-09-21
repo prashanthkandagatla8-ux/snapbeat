@@ -78,7 +78,9 @@ class ApiService {
     formData.fields.add(MapEntry("render_type", effectiveRenderType));
     formData.fields.add(MapEntry("template", templateId));
     formData.fields.add(MapEntry("frame", frameValue));
-    formData.fields.add(MapEntry("quality", quality.toLowerCase().contains("1080") ? "master" : "fast"));
+    final String ql = quality.toLowerCase();
+    final String qualityParam = ql.contains("1080") ? "master" : (ql.contains("720") || ql.contains("hd") ? "hd" : "fast");
+    formData.fields.add(MapEntry("quality", qualityParam));
     formData.fields.add(MapEntry("watermark", watermark.toString()));
     if (entitlementToken != null && entitlementToken.isNotEmpty) {
       formData.fields.add(MapEntry("entitlement_token", entitlementToken));

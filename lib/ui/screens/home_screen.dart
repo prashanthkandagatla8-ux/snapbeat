@@ -1256,9 +1256,16 @@ class HomeScreenState extends State<HomeScreen> {
 
       // Automatically export to device's native Camera Roll / Photos album
       try {
-        await Gal.putVideo(videoPath, album: 'SnapBeat Studio');
+        final hasAccess = await Gal.hasAccess(toAlbum: true);
+        final canSave = hasAccess || await Gal.requestAccess(toAlbum: true);
+        if (canSave) {
+          await Gal.putVideo(videoPath, album: 'SnapBeat Studio');
+        } else {
+          _showNotice('Auto-save to Photos failed — please grant Photos access in Settings.');
+        }
       } catch (galErr) {
-        debugPrint('Auto-save to phone gallery notice: $galErr');
+        debugPrint('Auto-save to phone gallery error: $galErr');
+        _showNotice('Save to Photos failed: please grant Photos access in Settings.');
       }
 
 
