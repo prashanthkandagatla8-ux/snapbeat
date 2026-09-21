@@ -1195,6 +1195,9 @@ class HomeScreenState extends State<HomeScreen> {
       titleFrame: titleFrameSnapshot,
       titleAudio: titleAudioSnapshot,
       isPreview: isPreview,
+      enableBurst: _renderMode == "pro" ? _enableBurst : true,
+      enableTeaser: _renderMode == "pro" ? _enableTeaser : true,
+      dropIt: _renderMode == "pro" ? _enableDropIt : false,
     );
   }
 
@@ -1221,6 +1224,9 @@ class HomeScreenState extends State<HomeScreen> {
     String? titleStyle,
     String? titleFrame,
     String? titleAudio,
+    bool enableBurst = true,
+    bool enableTeaser = true,
+    bool dropIt = false,
   }) async {
     try {
       if (qm.isCancelled(jobId)) return;
@@ -1255,6 +1261,9 @@ class HomeScreenState extends State<HomeScreen> {
         titleStyle: titleStyle,
         titleFrame: titleFrame,
         titleAudio: titleAudio,
+        enableBurst: enableBurst,
+        enableTeaser: enableTeaser,
+        dropIt: dropIt,
         onProgress: (p) {
           if (!qm.isCancelled(jobId)) {
             qm.updateJobProgress(jobId, p);
