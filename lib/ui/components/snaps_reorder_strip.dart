@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
 import 'snapbeat_pink_dot.dart';
@@ -74,16 +75,10 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.panelCream,
+        gradient: AppColors.luxDarkCardGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.chassisBevelLight, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            offset: const Offset(0, 4),
-            blurRadius: 8,
-          ),
-        ],
+        border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.9), width: 1.2),
+        boxShadow: AppColors.luxCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,25 +213,30 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   flex: 3,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: photos.length >= maxPhotos ? null : widget.onAddPhotos,
+                    onTap: photos.length >= maxPhotos
+                        ? null
+                        : () {
+                            HapticFeedback.lightImpact();
+                            widget.onAddPhotos();
+                          },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       decoration: BoxDecoration(
-                        gradient: photos.length >= maxPhotos
-                            ? null
-                            : const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
-                              ),
+                        gradient: photos.length >= maxPhotos ? null : AppColors.luxGoldGradient,
                         color: photos.length >= maxPhotos ? AppColors.panelCreamDark : null,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: photos.length >= maxPhotos ? AppColors.chassisBevelLight : const Color(0xFFBF8A00),
+                          color: photos.length >= maxPhotos ? AppColors.chassisBevelLight : const Color(0xFFFFF6CC),
                           width: 1.2,
                         ),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: photos.length >= maxPhotos
+                                ? Colors.black26
+                                : AppColors.brassGold.withValues(alpha: 0.35),
+                            offset: const Offset(0, 2),
+                            blurRadius: 6,
+                          ),
                         ],
                       ),
                       child: Row(
@@ -777,7 +777,10 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: index > 0
-                      ? () => widget.onReorder(index, index - 1)
+                      ? () {
+                          HapticFeedback.selectionClick();
+                          widget.onReorder(index, index - 1);
+                        }
                       : null,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: isSmall ? 3 : 5, vertical: 2),
@@ -797,17 +800,26 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: isSmall ? 4 : 6, vertical: 1.5),
                   decoration: BoxDecoration(
-                    color: AppColors.panelCreamDark,
+                    gradient: index == 0 ? AppColors.luxGoldGradient : null,
+                    color: index == 0 ? null : AppColors.panelCreamDark,
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.chassisBevelLight),
+                    border: Border.all(color: index == 0 ? const Color(0xFFFFF6CC) : AppColors.chassisBevelLight),
+                    boxShadow: index == 0
+                        ? [
+                            BoxShadow(
+                              color: AppColors.brassGold.withValues(alpha: 0.35),
+                              blurRadius: 4,
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Text(
-                    '#${(index + 1).toString().padLeft(2, '0')}',
+                    index == 0 ? 'COVER' : '#${(index + 1).toString().padLeft(2, '0')}',
                     style: TextStyle(
-                      fontFamily: 'Courier',
-                      fontSize: isSmall ? 8.5 : 10,
+                      fontFamily: index == 0 ? 'Montserrat' : 'Courier',
+                      fontSize: isSmall ? 8 : 9,
                       fontWeight: FontWeight.w900,
-                      color: AppColors.textEngraved,
+                      color: index == 0 ? AppColors.hardwareGunmetal : AppColors.textEngraved,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -817,7 +829,10 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: index < widget.photos.length - 1
-                      ? () => widget.onReorder(index, index + 2)
+                      ? () {
+                          HapticFeedback.selectionClick();
+                          widget.onReorder(index, index + 2);
+                        }
                       : null,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: isSmall ? 3 : 5, vertical: 2),
