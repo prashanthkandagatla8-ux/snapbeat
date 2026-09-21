@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../models/sound_track.dart';
 import '../../theme/app_colors.dart';
+import 'sound_library_dialog.dart';
 
 class WebAudioConsoleDeck extends StatefulWidget {
   final bool isPlaying;
@@ -531,6 +532,15 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
   @override
   Widget build(BuildContext context) {
     final tracks = SoundTrack.builtInLibrary;
+    SoundTrack currentTrack = tracks.first;
+    for (final t in tracks) {
+      if (widget.selectedTrackTitle.toLowerCase().contains(t.title.toLowerCase()) ||
+          widget.selectedTrackTitle.toLowerCase().contains(t.id.toLowerCase())) {
+        currentTrack = t;
+        break;
+      }
+    }
+    final isPreviewing = (_previewingId == currentTrack.id && _isPlayingPreview);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -558,7 +568,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.brassGold),
+                    const Icon(Icons.library_music_rounded, size: 18, color: AppColors.brassGold),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -609,180 +619,245 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Track List
-          ...tracks.map((track) {
-            final isSelected = widget.selectedTrackTitle.toLowerCase().contains(track.title.toLowerCase()) ||
-                widget.selectedTrackTitle.toLowerCase().contains(track.id.toLowerCase());
-            final isPreviewing = (_previewingId == track.id && _isPlayingPreview);
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.brassGold.withValues(alpha: 0.12)
-                    : AppColors.panelCreamDark,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
-                  width: isSelected ? 1.5 : 1.0,
+          // Dropdown Track Selector Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.panelInset,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.brassGold.withValues(alpha: 0.7),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  offset: const Offset(0, 2),
+                  blurRadius: 6,
                 ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.brassGold.withValues(alpha: 0.25),
-                          blurRadius: 12,
-                          offset: const Offset(0, 3),
+              ],
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<SoundTrack>(
+                value: currentTrack,
+                isExpanded: true,
+                dropdownColor: AppColors.panelCreamDark,
+                borderRadius: BorderRadius.circular(16),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.brassGold,
+                  size: 26,
+                ),
+                selectedItemBuilder: (BuildContext context) {
+                  return tracks.map<Widget>((SoundTrack track) {
+                    return Row(
+                      children: [
+                        const Icon(
+                          Icons.audiotrack_rounded,
+                          size: 16,
+                          color: AppColors.brassGold,
                         ),
-                      ]
-                    : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          track.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textEngraved,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            track.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textEngraved,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.panelInset,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.grooveLight),
-                        ),
-                        child: Text(
-                          track.bpm,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.brassGold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    track.genre,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.brassGold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    track.vibe,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      height: 1.3,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(height: 1, color: AppColors.grooveLight),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Preview Button
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => _togglePreview(track),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.metalHighlight.withValues(alpha: 0.4),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.borderSubtle),
+                            color: AppColors.panelCream,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.borderBrass),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isPreviewing ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
-                                size: 15,
-                                color: isPreviewing ? AppColors.pinkAccent : AppColors.textEngraved,
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                isPreviewing ? "PLAYING" : "PREVIEW",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: isPreviewing ? AppColors.pinkAccent : AppColors.textSecondary,
+                          child: Text(
+                            track.bpm,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.brassGold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList();
+                },
+                items: tracks.map((SoundTrack track) {
+                  final isItemCurrent = track.id == currentTrack.id;
+                  return DropdownMenuItem<SoundTrack>(
+                    value: track,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  track.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: isItemCurrent ? FontWeight.w900 : FontWeight.w700,
+                                    color: isItemCurrent ? AppColors.brassGold : AppColors.textEngraved,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Select Track Button
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => _handleSelect(track),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: isSelected ? null : AppColors.ctaButtonGradient,
-                            color: isSelected ? AppColors.vuGreen : null,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (isSelected ? AppColors.vuGreen : AppColors.brassGold)
-                                    .withValues(alpha: 0.35),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (isSelected) ...[
-                                const Icon(Icons.check_rounded, size: 14, color: Colors.white),
-                                const SizedBox(width: 4),
+                                const SizedBox(height: 2),
+                                Text(
+                                  track.genre,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.textMuted,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
-                              Text(
-                                isSelected ? "SELECTED" : "SELECT TRACK",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: isSelected ? Colors.white : const Color(0xFF241903),
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.panelInset,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.grooveLight),
+                            ),
+                            child: Text(
+                              track.bpm,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.brassGold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (SoundTrack? newTrack) {
+                  if (newTrack != null) {
+                    _handleSelect(newTrack);
+                  }
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Track Details & Quick Actions Row
+          Row(
+            children: [
+              // Vibe / Genre info
+              Expanded(
+                child: Text(
+                  "${currentTrack.genre} • ${currentTrack.vibe}",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Quick Preview Button
+              InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => _togglePreview(currentTrack),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: isPreviewing
+                        ? AppColors.pinkAccent.withValues(alpha: 0.2)
+                        : AppColors.metalHighlight.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isPreviewing ? AppColors.pinkAccent : AppColors.borderSubtle,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isPreviewing ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
+                        size: 14,
+                        color: isPreviewing ? AppColors.pinkAccent : AppColors.textEngraved,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isPreviewing ? "PLAYING" : "PREVIEW",
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: isPreviewing ? AppColors.pinkAccent : AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            );
-          }),
+              const SizedBox(width: 6),
+
+              // Browse All Button (Opens Full Sound Library Dialog)
+              InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  SoundLibraryDialog.show(
+                    context: context,
+                    currentTrackTitle: widget.selectedTrackTitle,
+                    onSelectTrack: (t) => _handleSelect(t),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.brassGold.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.borderBrass),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.search_rounded, size: 14, color: AppColors.brassGold),
+                      SizedBox(width: 4),
+                      Text(
+                        "BROWSE ALL",
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.brassGold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 }
+

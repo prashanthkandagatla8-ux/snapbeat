@@ -26,32 +26,36 @@ class MasterActionDeck extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.metalBase,
         border: const Border(
-          top: BorderSide(color: Color(0xFFE8E3DA), width: 1.8),
+          top: BorderSide(color: AppColors.chassisBevelLight, width: 1.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            offset: const Offset(0, -3),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.55),
+            offset: const Offset(0, -4),
+            blurRadius: 12,
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Container(
-            height: 42,
-            padding: const EdgeInsets.all(3),
+            height: 44,
+            padding: const EdgeInsets.all(3.5),
             decoration: BoxDecoration(
-              color: const Color(0xFFB8AE9F),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFDED8CE), width: 1),
-              boxShadow: const [
+              color: AppColors.panelInset,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.chassisBevelLight.withValues(alpha: 0.7),
+                width: 1.2,
+              ),
+              boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  offset: Offset(0, 1),
-                  blurRadius: 2,
+                  color: Colors.black.withValues(alpha: 0.5),
+                  offset: const Offset(0, 2),
+                  blurRadius: 4,
+                  spreadRadius: -1,
                 ),
               ],
             ),
@@ -113,12 +117,12 @@ class MasterActionDeck extends StatelessWidget {
         },
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 150),
-          opacity: isEnabled ? 1.0 : 0.42,
+          opacity: isEnabled ? 1.0 : 0.4,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 90),
+            duration: const Duration(milliseconds: 120),
             padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(10),
               gradient: isSelected
                   ? const LinearGradient(
                       begin: Alignment.topCenter,
@@ -126,16 +130,19 @@ class MasterActionDeck extends StatelessWidget {
                       colors: [
                         Color(0xFFFFE082),
                         Color(0xFFFFC72C),
+                        Color(0xFFE5A800),
                       ],
                     )
                   : null,
-              border: isSelected ? Border.all(color: const Color(0xFFBF8A00), width: 1) : null,
+              border: isSelected
+                  ? Border.all(color: const Color(0xFFFFF6CC), width: 1)
+                  : null,
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: AppColors.brassGold.withValues(alpha: 0.35),
                         offset: const Offset(0, 2),
-                        blurRadius: 3,
+                        blurRadius: 6,
                       ),
                     ]
                   : null,
@@ -144,15 +151,15 @@ class MasterActionDeck extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (isSelected) ...[
-                  const SnapBeatPinkDot(size: 8, withGlow: true),
+                  const SnapBeatPinkDot(size: 7, withGlow: true),
                   const SizedBox(width: 3),
                 ],
                 Icon(
                   isEnabled ? icon : Icons.lock_outline_rounded,
-                  size: 12,
-                  color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF5A554D),
+                  size: 13,
+                  color: isSelected ? const Color(0xFF241903) : AppColors.textMuted,
                 ),
-                const SizedBox(width: 3),
+                const SizedBox(width: 4),
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
@@ -161,10 +168,12 @@ class MasterActionDeck extends StatelessWidget {
                       maxLines: 1,
                       style: TextStyle(
                         fontFamily: 'Montserrat',
-                        fontSize: 9.0,
+                        fontSize: 9.5,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 0.3,
-                        color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+                        letterSpacing: 0.4,
+                        color: isSelected
+                            ? const Color(0xFF241903)
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ),
@@ -174,7 +183,7 @@ class MasterActionDeck extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFFFF3366),
+                      color: isSelected ? const Color(0xFF241903) : const Color(0xFFFF3366),
                       borderRadius: BorderRadius.circular(7),
                     ),
                     child: Text(

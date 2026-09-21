@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'hardware_accents.dart';
+import '../../theme/app_colors.dart';
 
 class MetalChassisScaffold extends StatelessWidget {
   final Widget body;
@@ -19,58 +19,62 @@ class MetalChassisScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFC2B8A5),
+      backgroundColor: AppColors.canvasChassis,
       appBar: appBar,
       bottomNavigationBar: bottomNavigationBar,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. High-resolution clean brushed metal plate texture from wishlist
+          // 1. Dark Brushed Gunmetal Base Texture / Gradient
           backgroundUiImage != null
               ? RawImage(
                   image: backgroundUiImage,
                   fit: BoxFit.cover,
+                  color: const Color(0xFF0B0D10).withValues(alpha: 0.88),
+                  colorBlendMode: BlendMode.srcOver,
                 )
-              : Image.asset(
-                  'assets/images/brushed_metal_background.jpg',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFFC8C4BD),
-                    Color(0xFFC2B8A5),
-                    Color(0xFFAFA592),
-                    Color(0xFF8F8B83),
-                  ],
+              : Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFF162A32),
+                        Color(0xFF0C1B20),
+                        Color(0xFF0B0D10),
+                        Color(0xFF050E12),
+                      ],
+                      stops: [0.0, 0.25, 0.65, 1.0],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
 
-          // 2. Subtle directional room light gradient & vignette
+          // 2. Ambient Studio Spotlight Glow (matches web radial-gradient)
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                center: const Alignment(0, -0.4),
-                radius: 1.1,
+                center: const Alignment(0, -0.35),
+                radius: 1.15,
                 colors: [
-                  Colors.white.withValues(alpha: 0.12),
+                  AppColors.chassisBevelLight.withValues(alpha: 0.18),
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.25),
+                  Colors.black.withValues(alpha: 0.55),
                 ],
-                stops: const [0.0, 0.6, 1.0],
+                stops: const [0.0, 0.55, 1.0],
               ),
             ),
           ),
 
-          // 3. Corner industrial screws
-          const Positioned(top: 10, left: 10, child: HardwareScrew()),
-          const Positioned(top: 10, right: 10, child: HardwareScrew()),
-          const Positioned(bottom: 10, left: 10, child: HardwareScrew()),
-          const Positioned(bottom: 10, right: 10, child: HardwareScrew()),
+          // 3. Subtle edge hairline highlight
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 1.5,
+            child: Container(
+              color: AppColors.chassisBevelLight.withValues(alpha: 0.4),
+            ),
+          ),
 
           // 4. Main content
           body,
