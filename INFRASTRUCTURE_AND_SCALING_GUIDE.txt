@@ -1,0 +1,143 @@
+================================================================================
+SNAPBEAT STUDIO - INFRASTRUCTURE, VPS SPECS & SCALING COST GUIDE
+================================================================================
+Generated: 2026-09-21
+Scope: Post-Google Cloud Free Credit Continuation & Cost Optimization Strategy
+Author: Antigravity Team
+
+--------------------------------------------------------------------------------
+1. CURRENT LIVE INFRASTRUCTURE PROFILE (GOOGLE CLOUD PLATFORM)
+--------------------------------------------------------------------------------
+As verified on the live instance (34.93.112.240 / snapbeat-server):
+
+* Provider:           Google Cloud Platform (GCE)
+* Machine Type:       e2-standard-4 (Shared-core Intel Xeon @ 2.20 GHz)
+* Datacenter Zone:    asia-south1-a (Mumbai, India)
+* Hardware Specs:     4 vCPUs, 16 GB RAM (15 GiB usable), 50 GB SSD
+* Operating System:   Ubuntu 22.04.5 LTS (Kernel 5.15.0)
+* GPU / Accelerator:  None (CPU-only rendering via FFmpeg libx264)
+* Serverless Layer:   Google Cloud Run (asia-south1, snapbeat-cult-serverless)
+* Running Services:
+    - snapbeat-gateway.service (Port 8000) -> Master API Gateway & Router
+    - snapbeat-cult.service    (Port 8772) -> Cult Beat-Sync Render Engine
+    - snapbeat-classic.service (Port 8771) -> Classic Android/Web Engine
+* Estimated GCP Bill: $110 - $125 / month (~₹9,200 - ₹10,500 / month)
+    - Compute: ~$95/mo (Mumbai region pricing)
+    - Storage: ~$5/mo (50 GB persistent balanced SSD)
+    - Network Egress: ~$10 - $25/mo (video file downloads)
+
+Conclusion: Once Google free credits run out, paying $120+/mo for a single 4-core
+instance with no autoscaling is economically inefficient for a startup.
+
+--------------------------------------------------------------------------------
+2. CONTABO VPS vs. MODAL SERVERLESS - HEAD-TO-HEAD COMPARISON
+--------------------------------------------------------------------------------
+
++----------------------+-----------------------------+-----------------------------+
+| Feature              | Contabo VPS (Cloud VPS M)   | Modal Serverless (modal.com)|
++----------------------+-----------------------------+-----------------------------+
+| Architecture Model   | Dedicated 24/7 Linux Server | Pay-per-Second Container    |
+| Monthly Cost Model   | Fixed Flat Rate ($15/month) | Usage-Based ($0 when idle)  |
+| Free Tier Allowance  | None                        | $30/mo free compute credits |
+| Datacenter Region    | Mumbai, India (Local IP)    | US / Europe cloud regions   |
+| Network Latency      | Ultra-Low (15-30ms in India)| ~150-180ms round-trip       |
+| Concurrency Capacity | Fixed (2-3 simultaneous jobs| Elastic (100+ parallel jobs)|
+| Traffic Surge Risk   | High (Queue bottlenecks)    | Zero (Instantly spins up)   |
+| Server Management    | You maintain Ubuntu/systemd | Zero Ops (Pure Python code) |
++----------------------+-----------------------------+-----------------------------+
+
+A. Contabo VPS (Cloud VPS M)
+   * Price: ~$14 - $18 / month (~₹1,200 - ₹1,500 / month)
+   * Specs: 6 vCPU Cores, 16 GB RAM, 400 GB SSD (or 100 GB NVMe)
+   * Location: Mumbai, India datacenter available.
+   * Strengths:
+     - 6 dedicated CPU cores and 16 GB RAM for a tiny fraction of GCP.
+     - Files stay inside India -> fastest upload of photos & download of reels.
+     - Uncapped rendering: 1,000 renders/day still costs the exact same $15.
+   * Weaknesses:
+     - Fixed compute ceiling. If 10 users click render simultaneously, jobs
+       must queue up and wait.
+
+B. Modal Serverless (modal.com)
+   * Price: ~$0.10 / CPU-core hour (~$0.00045 per 15-second 4-core render)
+   * Free Allowance: $30 of free compute every month for every account.
+   * Strengths:
+     - Completely free at low volume (first ~60,000 render-seconds are $0).
+     - Scale-to-Zero: At night when no one is rendering, your cost is $0.00.
+     - Massive concurrency: If an Instagram/TikTok trend explodes and 100 users
+       hit render at once, Modal spawns 100 isolated workers in under 2 seconds.
+   * Weaknesses:
+     - Datacenters are currently in US/EU. Uploading 15 MB of photos across the
+       ocean adds ~1.5 to 2.5 seconds of network transit time for Indian users.
+
+--------------------------------------------------------------------------------
+3. FINANCIAL BREAK-EVEN SCENARIOS
+--------------------------------------------------------------------------------
+
+* Scenario 1: Launch Phase (50 - 150 renders/day)
+    - Contabo: ~$15/month
+    - Modal:   $0.00/month (Fully absorbed by Modal's $30 monthly free credit)
+    -> WINNER: Modal Serverless
+
+* Scenario 2: Steady Traction (500 - 1,000 renders/day)
+    - Contabo: ~$15/month (Fixed flat fee)
+    - Modal:   ~$12 - $18/month
+    -> WINNER: Tie (Both cost around ₹1,200 - ₹1,500/month)
+
+* Scenario 3: High Volume / Viral Spikes (5,000+ renders/day)
+    - Contabo: Contabo CPU maxes out at 100%; users face long queue delays.
+    - Modal:   Renders cost ~$70 - $90/month, but zero queue waiting or crashes.
+    -> WINNER: Modal for reliability; Contabo for raw dollar cap.
+
+--------------------------------------------------------------------------------
+4. OTHER TOP ALTERNATIVE VPS PROVIDERS
+--------------------------------------------------------------------------------
+
+1. Hetzner Cloud (The Industry Performance Benchmark)
+   * Plan: CPX31 (4 AMD EPYC vCPUs, 8 GB RAM) -> ~€12.50/mo (~$14/mo)
+   * Plan: CCX23 (4 Dedicated AMD EPYC vCPUs, 16 GB RAM) -> ~€23/mo (~$25/mo)
+   * Datacenter: Singapore (🇸🇬) or Germany/Finland.
+   * Best For: Fastest raw CPU video encoding speed (AMD EPYC encodes 35% faster
+     than Intel Xeon per clock cycle).
+
+2. Linode / Akamai Cloud
+   * Plan: Shared 4 CPU / 8 GB RAM -> $40/mo (~₹3,300/mo)
+   * Datacenter: Mumbai, India (Local).
+   * Best For: High network bandwidth (4 TB transfer included) and direct Mumbai presence.
+
+3. DigitalOcean
+   * Plan: Basic Droplet (4 vCPU, 8 GB RAM) -> $48/mo (~₹4,000/mo)
+   * Datacenter: Bangalore (BLR1), India.
+   * Best For: Excellent developer dashboard, 99.99% uptime, reliable API.
+
+--------------------------------------------------------------------------------
+5. RECOMMENDED PRODUCTION STRATEGY: THE HYBRID ARCHITECTURE
+--------------------------------------------------------------------------------
+The optimal setup that blends low latency, rock-bottom cost, and unlimited burst:
+
+1. Primary Gateway & Free Queue -> Contabo VPS (Mumbai) @ ~$15/month:
+   - Hosts api.snapbeat.app (Nginx / SSL / FastAPI Gateway)
+   - Runs SQLite database and user rate limits
+   - Processes standard free user renders locally in India with zero lag.
+
+2. Pro VIP & Overflow Burst -> Modal Serverless:
+   - Paid Pro subscribers get routed to Modal for instant, unthrottled 1080p renders.
+   - When the Contabo local queue exceeds 2 active jobs, excess traffic overflows
+     automatically to Modal instead of making users wait.
+   - Monthly cost remains ~₹1,500 total while supporting enterprise-grade scaling.
+
+--------------------------------------------------------------------------------
+6. ZERO-DOWNTIME MIGRATION STEPS (WHEN READY)
+--------------------------------------------------------------------------------
+Because the Flutter mobile app communicates strictly with:
+    https://api.snapbeat.app
+
+No mobile app update or App Store re-submission is needed to migrate servers:
+1. Spin up the new Ubuntu 22.04 VPS (e.g. on Contabo Mumbai).
+2. Install dependencies:
+   sudo apt update && sudo apt install -y python3-pip python3-venv ffmpeg git
+3. Clone repository and install requirements.txt.
+4. Copy systemd service files (snapbeat-gateway, snapbeat-cult, snapbeat-classic).
+5. Update DNS A-Record for "api.snapbeat.app" to the new VPS public IP.
+6. Mobile apps automatically switch over to the new provider with zero downtime!
+================================================================================
