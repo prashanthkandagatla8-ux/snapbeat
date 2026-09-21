@@ -57,6 +57,7 @@ class SnapsReorderStrip extends StatefulWidget {
 class _SnapsReorderStripState extends State<SnapsReorderStrip> {
   final ScrollController _gridScrollController = ScrollController();
   bool _isSmallThumbnails = false;
+  double _thumbnailScale = 1.0;
 
   VoidCallback? get _effectiveClear => widget.onClearAll ?? widget.onResetPhotos;
 
@@ -377,13 +378,37 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                             _buildOrderingModeChip('manual', 'MANUAL', Icons.pan_tool_alt_rounded),
                           ],
                         ),
-                        // 2. VIEW Group: BIG Thumbnails
+                        // 2. VIEW Group: Photo Preview Size Slider
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildGroupLabel('VIEW:'),
+                            _buildGroupLabel('SIZE:'),
                             const SizedBox(width: 4),
-                            _buildBigModeChip(),
+                            const Icon(Icons.photo_size_select_small_rounded, size: 12, color: AppColors.textMuted),
+                            SizedBox(
+                              width: 75,
+                              height: 24,
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 2.5,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.5),
+                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 9),
+                                  activeTrackColor: AppColors.brassGold,
+                                  inactiveTrackColor: AppColors.chassisBevelDark,
+                                  thumbColor: AppColors.brassGold,
+                                ),
+                                child: Slider(
+                                  value: _thumbnailScale,
+                                  min: 0.75,
+                                  max: 1.25,
+                                  onChanged: (val) => setState(() {
+                                    _thumbnailScale = val;
+                                    _isSmallThumbnails = val < 0.95;
+                                  }),
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.photo_size_select_large_rounded, size: 13, color: AppColors.brassGold),
                           ],
                         ),
                       ],
@@ -564,7 +589,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 ),
                 padding: const EdgeInsets.all(6),
                 child: SizedBox(
-                  height: _isSmallThumbnails ? 195 : 215,
+                  height: (215 * _thumbnailScale).clamp(170.0, 260.0),
                   child: RawScrollbar(
                     controller: _gridScrollController,
                     thumbVisibility: true,
@@ -915,56 +940,6 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.4,
                 color: isSel ? AppColors.hardwareGunmetal : AppColors.textMuted,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBigModeChip() {
-    final isBig = !_isSmallThumbnails;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() => _isSmallThumbnails = !_isSmallThumbnails),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-        decoration: BoxDecoration(
-          color: isBig ? AppColors.brassGold : AppColors.metalDeepCavity,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: isBig ? const Color(0xFFBF8A00) : AppColors.chassisBevelDark,
-            width: isBig ? 1.4 : 1.0,
-          ),
-          boxShadow: isBig
-              ? [
-                  BoxShadow(
-                    color: AppColors.amberGlow.withValues(alpha: 0.6),
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.view_agenda_rounded,
-              size: 10.5,
-              color: isBig ? AppColors.hardwareGunmetal : AppColors.textMuted,
-            ),
-            const SizedBox(width: 3.5),
-            Text(
-              'BIG',
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontSize: 8.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.4,
-                color: isBig ? AppColors.hardwareGunmetal : AppColors.textMuted,
               ),
             ),
           ],

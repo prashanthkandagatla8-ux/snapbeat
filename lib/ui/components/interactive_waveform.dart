@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import 'retro_metal_panel.dart';
 
 class InteractiveWaveform extends StatefulWidget {
   final String trackTitle;
@@ -70,15 +71,9 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
     double endMax = dur;
     if (endMax <= endMin) endMax = endMin + 0.1; // Ensure max > min
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: AppColors.luxDarkCardGradient,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.9), width: 1.2),
-        boxShadow: AppColors.luxCardShadow,
-      ),
+    return RetroMetalPanel(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

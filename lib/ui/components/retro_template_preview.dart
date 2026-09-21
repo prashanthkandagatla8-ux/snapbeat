@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
-import 'retro_subscription_dialog.dart';
 import 'snapbeat_pink_dot.dart';
 
 class RetroTemplatePreview extends StatefulWidget {
@@ -163,7 +162,6 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
     );
     final isCurrentSelected = widget.selectedTemplateId == _previewId;
     final isTemplatePro = activeTemplate.isPro;
-    final canSelect = widget.isPro || !isTemplatePro;
     final isMixActive = widget.selectedTemplateId == 'mix';
 
     return Column(
@@ -509,39 +507,8 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                       ),
                     ),
 
-                    // Action Button: Select Style / Active / Unlock Pro
-                    if (!canSelect)
-                      GestureDetector(
-                        onTap: () => RetroSubscriptionDialog.show(context),
-                        behavior: HitTestBehavior.opaque,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: AppColors.brassKnobGradient,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: const [
-                              BoxShadow(color: AppColors.amberGlow, blurRadius: 4),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.workspace_premium, size: 12, color: AppColors.hardwareGunmetal),
-                              SizedBox(width: 3),
-                              Text(
-                                'PRO PASS',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.hardwareGunmetal,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else if (isCurrentSelected)
+                    // Action Button: Select Style / Active
+                    if (isCurrentSelected)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                         decoration: BoxDecoration(
@@ -649,15 +616,12 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
             children: BeatTemplate.allTemplates.where((t) => t.id != 'mix').map((t) {
               final isPreviewed = t.id == _previewId;
               final isCommitted = t.id == widget.selectedTemplateId;
-              final isLocked = !widget.isPro && t.isPro;
 
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   _changePreview(t.id);
-                  if (isLocked) {
-                    RetroSubscriptionDialog.show(context);
-                  }
+                  widget.onSelectTemplate(t.id);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -696,10 +660,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                           color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.textSecondary,
                         ),
                       ),
-                      if (isLocked) ...[
-                        const SizedBox(width: 3),
-                        const Icon(Icons.lock_rounded, size: 9, color: AppColors.brassGold),
-                      ] else if (isCommitted) ...[
+                      if (isCommitted) ...[
                         const SizedBox(width: 3),
                         const Icon(Icons.check_circle_rounded, size: 10, color: Colors.greenAccent),
                       ],
@@ -911,8 +872,6 @@ class _FullscreenTemplatePreviewDialogState
 
   @override
   Widget build(BuildContext context) {
-    final canSelect = widget.isPro || !widget.template.isPro;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
@@ -1018,35 +977,18 @@ class _FullscreenTemplatePreviewDialogState
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: canSelect ? AppColors.brassGold : AppColors.amberJewel,
+                        backgroundColor: AppColors.brassGold,
                         foregroundColor: AppColors.hardwareGunmetal,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onPressed: () {
-                        if (canSelect) {
-                          widget.onSelect();
-                        } else {
-                          Navigator.of(context).pop();
-                          RetroSubscriptionDialog.show(context);
-                        }
+                        widget.onSelect();
                       },
-                      child: !canSelect
-                          ? const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.workspace_premium, size: 16),
-                                SizedBox(width: 6),
-                                Text(
-                                  'UNLOCK PRO TO USE THIS STYLE',
-                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-                                ),
-                              ],
-                            )
-                          : Text(
-                              widget.isSelected ? 'CURRENTLY SELECTED ✓' : 'USE THIS TEMPLATE',
-                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-                            ),
+                      child: Text(
+                        widget.isSelected ? 'CURRENTLY SELECTED ✓' : 'USE THIS TEMPLATE',
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                      ),
                     ),
                   ),
                 ],

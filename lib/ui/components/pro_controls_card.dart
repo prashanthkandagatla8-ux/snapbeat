@@ -186,6 +186,47 @@ class ProControlsCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
+          // Render Quality Selector (3-Tier Hardware Rockers)
+          Row(
+            children: const [
+              SnapBeatPinkDot(size: 10),
+              SizedBox(width: 6),
+              Text(
+                'RENDER QUALITY',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildQualityRocker(
+                context: context,
+                label: '360p',
+                sublabel: 'Standard (Free)',
+                value: '360p',
+                isProRequired: false,
+              ),
+              const SizedBox(width: 8),
+              _buildQualityRocker(
+                context: context,
+                label: '720p HD',
+                sublabel: 'PRO 🔒',
+                value: '720p',
+                isProRequired: true,
+              ),
+              const SizedBox(width: 8),
+              _buildQualityRocker(
+                context: context,
+                label: '1080p Master',
+                sublabel: 'PRO 🔒',
+                value: '1080p',
+                isProRequired: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
           // Aspect Ratio Rocker Switches
           Row(
             children: const [
@@ -333,6 +374,40 @@ class ProControlsCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
+                  SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 3.5,
+                      activeTrackColor: AppColors.brassGold,
+                      inactiveTrackColor: AppColors.chassisBevelDark,
+                      thumbColor: AppColors.brassGold,
+                      overlayColor: AppColors.amberGlow.withValues(alpha: 0.2),
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+                    ),
+                    child: Slider(
+                      value: () {
+                        if (titleFontSize == 'small') return 0.0;
+                        if (titleFontSize == 'medium') return 1.0;
+                        if (titleFontSize == 'xlarge' || titleFontSize == 'xl') return 3.0;
+                        return 2.0; // large default
+                      }(),
+                      min: 0.0,
+                      max: 3.0,
+                      divisions: 3,
+                      onChanged: (val) {
+                        if (val <= 0.5) {
+                          onSelectTitleFontSize('small');
+                        } else if (val <= 1.5) {
+                          onSelectTitleFontSize('medium');
+                        } else if (val <= 2.5) {
+                          onSelectTitleFontSize('large');
+                        } else {
+                          onSelectTitleFontSize('xlarge');
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       _buildSizeChip('small', 'S  Small', titleFontSize == 'small', onSelectTitleFontSize),
@@ -588,7 +663,7 @@ class ProControlsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          _CultEffectsSection(
+          _BeatMotionEffectsSection(
             enableBurst: enableBurst,
             onToggleBurst: onToggleBurst,
             enableTeaser: enableTeaser,
@@ -1157,11 +1232,86 @@ class ProControlsCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildQualityRocker({
+    required BuildContext context,
+    required String label,
+    required String sublabel,
+    required String value,
+    required bool isProRequired,
+  }) {
+    final userIsPro = isPro ?? SubscriptionManager.instance.isPro;
+    final isSelected = selectedQuality == value || (value == '360p' && !userIsPro);
+    final isLocked = isProRequired && !userIsPro;
+
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (isLocked) {
+            RetroSubscriptionDialog.show(context);
+            return;
+          }
+          onSelectQuality(value);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.brassGold
+                : (isLocked ? AppColors.panelCreamDark.withValues(alpha: 0.5) : AppColors.panelInset),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
+              width: 1.0,
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: isSelected
+                          ? AppColors.hardwareGunmetal
+                          : (isLocked ? AppColors.textMuted : AppColors.textEngraved),
+                    ),
+                  ),
+                  if (isLocked) ...[
+                    const SizedBox(width: 3),
+                    const Icon(Icons.lock_rounded, size: 10, color: AppColors.amberJewel),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                isLocked ? 'PRO ONLY' : sublabel,
+                style: TextStyle(
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.4,
+                  color: isSelected
+                      ? AppColors.hardwareGunmetal.withValues(alpha: 0.8)
+                      : (isLocked ? AppColors.amberJewel : AppColors.textMuted),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-// ─── Cult Effects Section ─────────────────────────────────────────────────────
+// ─── Beat Motion Effects Section (Open & Default Enabled) ───────────────────────────
 
-class _CultEffectsSection extends StatefulWidget {
+class _BeatMotionEffectsSection extends StatelessWidget {
   final bool enableBurst;
   final Function(bool) onToggleBurst;
   final bool enableTeaser;
@@ -1169,7 +1319,7 @@ class _CultEffectsSection extends StatefulWidget {
   final bool enableDropIt;
   final Function(bool) onToggleDropIt;
 
-  const _CultEffectsSection({
+  const _BeatMotionEffectsSection({
     required this.enableBurst,
     required this.onToggleBurst,
     required this.enableTeaser,
@@ -1179,133 +1329,90 @@ class _CultEffectsSection extends StatefulWidget {
   });
 
   @override
-  State<_CultEffectsSection> createState() => _CultEffectsSectionState();
-}
-
-class _CultEffectsSectionState extends State<_CultEffectsSection> {
-  bool _expanded = false;
-
-  @override
   Widget build(BuildContext context) {
+    final activeCount = [enableBurst, enableTeaser, enableDropIt].where((v) => v).length;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.panelInset,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.chassisBevelDark, width: 1),
       ),
+      padding: const EdgeInsets.all(12),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header — tap to expand/collapse
-          GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.pinkAccent,
-                      boxShadow: [
-                        BoxShadow(color: AppColors.pinkGlow, blurRadius: 5, spreadRadius: 1),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'BEAT MOTION FX',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const Spacer(),
-                  // Active indicator count
-                  if (!_expanded) ...[
-                    _activeCountBadge(),
-                    const SizedBox(width: 8),
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.pinkAccent,
+                  boxShadow: [
+                    BoxShadow(color: AppColors.pinkGlow, blurRadius: 5, spreadRadius: 1),
                   ],
-                  AnimatedRotation(
-                    turns: _expanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.keyboard_arrow_down_rounded,
-                        size: 18, color: AppColors.textMuted),
-                  ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              const Text(
+                'BEAT MOTION EFFECTS',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.hardwareGunmetal,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  '$activeCount ACTIVE',
+                  style: const TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.brassGold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
           ),
-          // Expandable content
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Column(
-                children: [
-                  Container(
-                    height: 1,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    color: AppColors.chassisBevelDark,
-                  ),
-                  _buildToggleRow(
-                    icon: Icons.flash_on_rounded,
-                    label: 'Burst Effects',
-                    hint: 'Rapid slice reveals on fast beats',
-                    value: widget.enableBurst,
-                    onChanged: widget.onToggleBurst,
-                  ),
-                  _buildToggleRow(
-                    icon: Icons.center_focus_strong_rounded,
-                    label: 'Beat Teaser',
-                    hint: 'Face and crop punch zoom on quiet beats',
-                    value: widget.enableTeaser,
-                    onChanged: widget.onToggleTeaser,
-                  ),
-                  _buildToggleRow(
-                    icon: Icons.vertical_align_bottom_rounded,
-                    label: 'Drop Impact',
-                    hint: 'Atmospheric gap before bass drops',
-                    value: widget.enableDropIt,
-                    onChanged: widget.onToggleDropIt,
-                    isLast: true,
-                  ),
-                ],
-              ),
-            ),
-            crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 220),
+          const SizedBox(height: 10),
+          Container(
+            height: 1,
+            color: AppColors.chassisBevelDark,
+          ),
+          const SizedBox(height: 10),
+          _buildToggleRow(
+            icon: Icons.flash_on_rounded,
+            label: 'Burst Effects',
+            hint: 'Rapid slice reveals on fast beats',
+            value: enableBurst,
+            onChanged: onToggleBurst,
+          ),
+          _buildToggleRow(
+            icon: Icons.center_focus_strong_rounded,
+            label: 'Beat Teaser',
+            hint: 'Face and crop punch zoom on quiet beats',
+            value: enableTeaser,
+            onChanged: onToggleTeaser,
+          ),
+          _buildToggleRow(
+            icon: Icons.vertical_align_bottom_rounded,
+            label: 'Drop Impact',
+            hint: 'Atmospheric gap before bass drops',
+            value: enableDropIt,
+            onChanged: onToggleDropIt,
+            isLast: true,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _activeCountBadge() {
-    final active = [
-      widget.enableBurst,
-      widget.enableTeaser,
-      widget.enableDropIt,
-    ].where((v) => v).length;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.hardwareGunmetal,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.5)),
-      ),
-      child: Text(
-        '$active ON',
-        style: const TextStyle(
-          fontSize: 8,
-          fontWeight: FontWeight.w900,
-          color: AppColors.brassGold,
-          letterSpacing: 0.8,
-        ),
       ),
     );
   }

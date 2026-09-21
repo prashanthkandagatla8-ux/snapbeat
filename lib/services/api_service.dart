@@ -100,6 +100,7 @@ class ApiService {
     }
     final effectiveTitleText = (titleText != null && titleText.trim().isNotEmpty) ? titleText.trim() : null;
     if (effectiveTitleText != null) {
+      formData.fields.add(const MapEntry("enable_title", "true"));
       formData.fields.add(MapEntry("title_text", effectiveTitleText));
       formData.fields.add(MapEntry("title_bg", titleBg ?? "black"));
       formData.fields.add(MapEntry("title_duration", (titleDuration ?? 2).toString()));

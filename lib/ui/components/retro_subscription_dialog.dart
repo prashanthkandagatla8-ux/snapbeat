@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -234,38 +233,42 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Camera Shutter Aperture Logo
-                    CustomPaint(
-                      size: const Size(44, 44),
-                      painter: const _CameraShutterPainter(),
+                    // Official 3D SnapBeat Studio Logo
+                    Image.asset(
+                      'assets/images/snapbeat_studio_logo.png',
+                      height: 52,
+                      fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'SnapBeat',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFFFFB800),
-                        letterSpacing: 0.8,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB800),
+                        borderRadius: BorderRadius.circular(5),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black38, offset: Offset(0, 2), blurRadius: 4),
+                        ],
+                      ),
+                      child: const Text(
+                        'STUDIO PRO',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF141518),
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     const Text(
-                      'SnapBeat Pro',
+                      'Unlock 1080p Master & Zero Watermark',
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    const Text(
-                      'Unlock Your Creative Potential',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF94A3B8),
+                        fontFamily: 'Montserrat',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFE2E8F0),
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ],
@@ -636,61 +639,4 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
       ),
     );
   }
-}
-
-/// Custom painter rendering the radiant golden camera shutter aperture logo.
-class _CameraShutterPainter extends CustomPainter {
-  const _CameraShutterPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final outerRadius = size.width * 0.44;
-    final innerRadius = outerRadius * 0.28;
-    const bladeCount = 6;
-    const step = 2 * math.pi / bladeCount;
-    final phi = math.acos(innerRadius / outerRadius);
-
-    final bladePaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFFFD54F),
-          Color(0xFFFFB300),
-          Color(0xFFFFA000),
-        ],
-      ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: outerRadius))
-      ..style = PaintingStyle.fill;
-
-    final strokePaint = Paint()
-      ..color = const Color(0xFF0F0F13)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    for (int i = 0; i < bladeCount; i++) {
-      final a1 = i * step;
-      final a2 = (i + 1) * step;
-      final tangentAngle = a1 + phi;
-      final tx = cx + innerRadius * math.cos(tangentAngle);
-      final ty = cy + innerRadius * math.sin(tangentAngle);
-
-      final path = Path()
-        ..moveTo(cx + outerRadius * math.cos(a1), cy + outerRadius * math.sin(a1))
-        ..arcToPoint(
-          Offset(cx + outerRadius * math.cos(a2), cy + outerRadius * math.sin(a2)),
-          radius: Radius.circular(outerRadius),
-          clockwise: true,
-        )
-        ..lineTo(tx, ty)
-        ..close();
-
-      canvas.drawPath(path, bladePaint);
-      canvas.drawPath(path, strokePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

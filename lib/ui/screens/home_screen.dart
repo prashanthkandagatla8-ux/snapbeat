@@ -33,7 +33,6 @@ import '../components/privacy_policy_dialog.dart';
 import '../components/tester_feedback_dialog.dart';
 import '../components/metal_chassis_scaffold.dart';
 import '../components/snapbeat_pink_dot.dart';
-import '../components/retro_mechanical_button.dart';
 import '../components/retro_subscription_dialog.dart';
 import '../components/retro_metal_panel.dart';
 import '../components/tactile_action_button.dart';
@@ -160,7 +159,7 @@ class HomeScreenState extends State<HomeScreen> {
   // Creative Motion Effects (Manual Mode - Bursts, Teaser, Drop-It)
   bool _enableBurst = true;
   bool _enableTeaser = true;
-  bool _enableDropIt = false;
+  bool _enableDropIt = true;
 
 
 
@@ -1303,63 +1302,97 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             Column(
               children: [
-                // Top Brushed Stainless Steel Header Bar
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.metalBase.withValues(alpha: 0.9),
-                    border: const Border(
-                      bottom: BorderSide(color: Color(0xFF9E988D), width: 1.5),
-                    ),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 4),
-                    ],
-                  ),
+                // Top Master Console Header (Rectangular RetroMetalPanel)
+                RetroMetalPanel(
+                  margin: const EdgeInsets.fromLTRB(14, 6, 14, 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
+                      // Left: Official 3D Puffy Studio Logo + Pink Dot
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SnapBeatPinkDot(size: 11, withGlow: true),
+                          const SizedBox(width: 8),
+                          HomeScreen.logoUiImage != null
+                              ? RawImage(
+                                  image: HomeScreen.logoUiImage,
+                                  height: 34,
+                                  fit: BoxFit.contain,
+                                )
+                              : Image.asset(
+                                  'assets/images/snapbeat_studio_logo.png',
+                                  height: 34,
+                                  fit: BoxFit.contain,
+                                ),
+                        ],
+                      ),
+                      // Center: Recessed Digital Studio Clock Bay
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.panelInset,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.chassisBevelDark),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black45, offset: Offset(0, 1), blurRadius: 2),
+                          ],
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const SnapBeatPinkDot(size: 14, withGlow: true),
-                            const SizedBox(width: 8),
-                            HomeScreen.logoUiImage != null
-                                ? RawImage(
-                                    image: HomeScreen.logoUiImage,
-                                    height: 42,
-                                    fit: BoxFit.contain,
-                                  )
-                                : Image.asset(
-                                    'assets/images/snapbeat_studio_logo.png',
-                                    height: 42,
-                                    fit: BoxFit.contain,
-                                  ),
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.amberJewel,
+                                boxShadow: [
+                                  BoxShadow(color: AppColors.amberGlow, blurRadius: 4, spreadRadius: 0.5),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              DateFormat('HH:mm').format(DateTime.now()),
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.brassGold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Right Action Group: Pro Badge, Feedback & Privacy Policy
-                      const RetroProBadge(),
-                      const SizedBox(width: 4),
-                      // Tester Feedback only shown on Android (not on iOS App Store build)
-                      if (AppConfig.showTesterFeedback)
-                        IconButton(
-                          icon: const Icon(Icons.rate_review_outlined, color: AppColors.brassGold, size: 20),
-                          tooltip: 'Send Tester Feedback',
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.all(6),
-                          constraints: const BoxConstraints(),
-                          onPressed: () => TesterFeedbackDialog.show(context),
-                        ),
-                      if (AppConfig.showTesterFeedback) const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 20),
-                        tooltip: 'Privacy Policy',
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.all(6),
-                        constraints: const BoxConstraints(),
-                        onPressed: () => PrivacyPolicyDialog.show(context),
+                      // Right Action Group: Pro Badge, Feedback & Privacy
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const RetroProBadge(),
+                          if (AppConfig.showTesterFeedback) ...[
+                            const SizedBox(width: 2),
+                            IconButton(
+                              icon: const Icon(Icons.rate_review_outlined, color: AppColors.brassGold, size: 18),
+                              tooltip: 'Send Tester Feedback',
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.all(4),
+                              constraints: const BoxConstraints(),
+                              onPressed: () => TesterFeedbackDialog.show(context),
+                            ),
+                          ],
+                          const SizedBox(width: 2),
+                          IconButton(
+                            icon: const Icon(Icons.shield_outlined, color: AppColors.brassGold, size: 18),
+                            tooltip: 'Privacy Policy',
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(4),
+                            constraints: const BoxConstraints(),
+                            onPressed: () => PrivacyPolicyDialog.show(context),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1822,9 +1855,10 @@ class HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               Center(
-                child: RetroMechanicalButton(
-                  variant: RetroButtonVariant.render,
-                  height: 68,
+                child: TactileActionButton.primary(
+                  height: 56,
+                  label: "START CREATING REEL",
+                  icon: Icons.movie_filter_rounded,
                   onTap: _triggerMasterReel,
                 ),
               ),
