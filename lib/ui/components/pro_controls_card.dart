@@ -38,6 +38,18 @@ class ProControlsCard extends StatelessWidget {
   final File? representativePhoto;
   final bool? isPro;
 
+  // Cult Effects
+  final bool enableBurst;
+  final Function(bool) onToggleBurst;
+  final bool enableTeaser;
+  final Function(bool) onToggleTeaser;
+  final bool enableContinuousBurst;
+  final Function(bool) onToggleContinuousBurst;
+  final bool enableDropIt;
+  final Function(bool) onToggleDropIt;
+  final bool enableSmoothCuts;
+  final Function(bool) onToggleSmoothCuts;
+
   const ProControlsCard({
     super.key,
     required this.selectedTemplateId,
@@ -67,6 +79,16 @@ class ProControlsCard extends StatelessWidget {
     required this.onSelectTitleAudio,
     this.representativePhoto,
     this.isPro,
+    required this.enableBurst,
+    required this.onToggleBurst,
+    required this.enableTeaser,
+    required this.onToggleTeaser,
+    required this.enableContinuousBurst,
+    required this.onToggleContinuousBurst,
+    required this.enableDropIt,
+    required this.onToggleDropIt,
+    required this.enableSmoothCuts,
+    required this.onToggleSmoothCuts,
   });
 
   @override
@@ -579,6 +601,19 @@ class ProControlsCard extends StatelessWidget {
                 ],
               ],
             ),
+          ),
+          const SizedBox(height: 14),
+          _CultEffectsSection(
+            enableBurst: enableBurst,
+            onToggleBurst: onToggleBurst,
+            enableTeaser: enableTeaser,
+            onToggleTeaser: onToggleTeaser,
+            enableContinuousBurst: enableContinuousBurst,
+            onToggleContinuousBurst: onToggleContinuousBurst,
+            enableDropIt: enableDropIt,
+            onToggleDropIt: onToggleDropIt,
+            enableSmoothCuts: enableSmoothCuts,
+            onToggleSmoothCuts: onToggleSmoothCuts,
           ),
         ],
       ),
@@ -1142,3 +1177,252 @@ class ProControlsCard extends StatelessWidget {
     );
   }
 }
+
+// ─── Cult Effects Section ─────────────────────────────────────────────────────
+
+class _CultEffectsSection extends StatefulWidget {
+  final bool enableBurst;
+  final Function(bool) onToggleBurst;
+  final bool enableTeaser;
+  final Function(bool) onToggleTeaser;
+  final bool enableContinuousBurst;
+  final Function(bool) onToggleContinuousBurst;
+  final bool enableDropIt;
+  final Function(bool) onToggleDropIt;
+  final bool enableSmoothCuts;
+  final Function(bool) onToggleSmoothCuts;
+
+  const _CultEffectsSection({
+    required this.enableBurst,
+    required this.onToggleBurst,
+    required this.enableTeaser,
+    required this.onToggleTeaser,
+    required this.enableContinuousBurst,
+    required this.onToggleContinuousBurst,
+    required this.enableDropIt,
+    required this.onToggleDropIt,
+    required this.enableSmoothCuts,
+    required this.onToggleSmoothCuts,
+  });
+
+  @override
+  State<_CultEffectsSection> createState() => _CultEffectsSectionState();
+}
+
+class _CultEffectsSectionState extends State<_CultEffectsSection> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.panelInset,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.chassisBevelDark, width: 1),
+      ),
+      child: Column(
+        children: [
+          // Header — tap to expand/collapse
+          GestureDetector(
+            onTap: () => setState(() => _expanded = !_expanded),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.pinkAccent,
+                      boxShadow: [
+                        BoxShadow(color: AppColors.pinkGlow, blurRadius: 5, spreadRadius: 1),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'CULT EFFECTS',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  // Active indicator count
+                  if (!_expanded) ...[
+                    _activeCountBadge(),
+                    const SizedBox(width: 8),
+                  ],
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.keyboard_arrow_down_rounded,
+                        size: 18, color: AppColors.textMuted),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Expandable content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                children: [
+                  Container(
+                    height: 1,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    color: AppColors.chassisBevelDark,
+                  ),
+                  _buildToggleRow(
+                    icon: Icons.flash_on_rounded,
+                    label: 'Burst Effects',
+                    hint: 'Rapid slice reveal on fast beats',
+                    value: widget.enableBurst,
+                    onChanged: widget.onToggleBurst,
+                  ),
+                  _buildToggleRow(
+                    icon: Icons.center_focus_strong_rounded,
+                    label: 'Beat Teaser',
+                    hint: 'Face/saliency crop zoom on quiet beats',
+                    value: widget.enableTeaser,
+                    onChanged: widget.onToggleTeaser,
+                  ),
+                  _buildToggleRow(
+                    icon: Icons.swap_horiz_rounded,
+                    label: 'Continuous Burst',
+                    hint: 'Switch photos on long bursts (>1s)',
+                    value: widget.enableContinuousBurst,
+                    onChanged: widget.onToggleContinuousBurst,
+                  ),
+                  _buildToggleRow(
+                    icon: Icons.vertical_align_bottom_rounded,
+                    label: 'Drop-It Blank',
+                    hint: 'Black flash before big drops',
+                    value: widget.enableDropIt,
+                    onChanged: widget.onToggleDropIt,
+                  ),
+                  _buildToggleRow(
+                    icon: Icons.blur_on_rounded,
+                    label: 'Smooth Cuts',
+                    hint: 'Prefer cinematic transitions over flash cuts',
+                    value: widget.enableSmoothCuts,
+                    onChanged: widget.onToggleSmoothCuts,
+                    isLast: true,
+                  ),
+                ],
+              ),
+            ),
+            crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 220),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _activeCountBadge() {
+    final active = [
+      widget.enableBurst,
+      widget.enableTeaser,
+      widget.enableContinuousBurst,
+      widget.enableDropIt,
+      widget.enableSmoothCuts,
+    ].where((v) => v).length;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.hardwareGunmetal,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.borderBrass.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        '$active ON',
+        style: const TextStyle(
+          fontSize: 8,
+          fontWeight: FontWeight.w900,
+          color: AppColors.brassGold,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleRow({
+    required IconData icon,
+    required String label,
+    required String hint,
+    required bool value,
+    required Function(bool) onChanged,
+    bool isLast = false,
+  }) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: value
+                    ? AppColors.brassGold.withValues(alpha: 0.15)
+                    : AppColors.panelCreamDark,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: value ? AppColors.borderBrass : AppColors.chassisBevelDark,
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon,
+                  size: 15,
+                  color: value ? AppColors.brassGold : AppColors.textMuted),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: value ? AppColors.textEngraved : AppColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    hint,
+                    style: const TextStyle(
+                      fontSize: 8.5,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: AppColors.hardwareGunmetal,
+              activeTrackColor: AppColors.brassGold,
+              inactiveThumbColor: AppColors.textMuted,
+              inactiveTrackColor: AppColors.panelCreamDark,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ],
+        ),
+        if (!isLast)
+          Container(
+            height: 1,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            color: AppColors.chassisBevelDark.withValues(alpha: 0.5),
+          ),
+      ],
+    );
+  }
+}
