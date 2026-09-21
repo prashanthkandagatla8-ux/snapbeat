@@ -159,24 +159,7 @@ class HomeScreenState extends State<HomeScreen> {
   bool _enableTeaser = true;
   bool _enableDropIt = false;
 
-  // Auto Mode Template Rotation
-  BeatTemplate _currentAutoTemplate = BeatTemplate.allTemplates.first;
-  String? _lastAutoTemplateId;
 
-  void _assignAutoTemplate() {
-    final pool = BeatTemplate.allTemplates.where((t) => t.id != _lastAutoTemplateId).toList();
-    final picked = pool.isNotEmpty
-        ? (List<BeatTemplate>.from(pool)..shuffle()).first
-        : BeatTemplate.allTemplates.first;
-    _lastAutoTemplateId = picked.id;
-    _currentAutoTemplate = picked;
-  }
-
-  void _rollAutoTemplate() {
-    setState(() {
-      _assignAutoTemplate();
-    });
-  }
 
   void _showNotice(String message) {
     if (!mounted) return;
@@ -530,16 +513,9 @@ class HomeScreenState extends State<HomeScreen> {
     _titleTextController = TextEditingController(text: _titleText);
     if (widget.fromShowcase) {
       _selectedTemplate = 'pendulum';
-      _currentAutoTemplate = BeatTemplate.allTemplates.firstWhere(
-        (t) => t.id == 'pendulum',
-        orElse: () => BeatTemplate.allTemplates.first,
-      );
-      _lastAutoTemplateId = 'pendulum';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showShowcaseWelcomeModal();
       });
-    } else {
-      _assignAutoTemplate();
     }
     if (widget.initialMusic != null) {
       _selectedMusic = widget.initialMusic;
@@ -1098,12 +1074,16 @@ class HomeScreenState extends State<HomeScreen> {
     String tId;
     String tDisplayName;
     if (_renderMode == "auto") {
-      tId = _currentAutoTemplate.id;
-      tDisplayName = _currentAutoTemplate.name;
+      tId = "mix";
+      tDisplayName = "Dynamic Auto Mix";
     } else {
       tId = _selectedTemplate;
-      final matching = BeatTemplate.allTemplates.where((t) => t.id == tId).toList();
-      tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
+      if (tId == "mix") {
+        tDisplayName = "Dynamic Mix";
+      } else {
+        final matching = BeatTemplate.allTemplates.where((t) => t.id == tId).toList();
+        tDisplayName = matching.isNotEmpty ? matching.first.name : "Beat Cut";
+      }
     }
 
     if (isPreview) {
@@ -1612,9 +1592,6 @@ class HomeScreenState extends State<HomeScreen> {
                     }
                     setState(() {
                       _currentTab = tab;
-                      if (tab == "render" && _renderMode == "auto") {
-                        _assignAutoTemplate();
-                      }
                     });
                   },
                   isPhotosEnabled: _selectedMusic != null,
@@ -1809,34 +1786,6 @@ class HomeScreenState extends State<HomeScreen> {
         // 2. Mode Content
         if (_renderMode == "auto") ...[
           _buildAutoTemplateBanner(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: AppColors.luxDarkCardGradient,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
-                boxShadow: AppColors.luxCardShadow,
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.bolt_rounded, size: 16, color: AppColors.brassGold),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      "Auto beat-sync dynamically arranges transitions and pacing to match the soundtrack rhythm. Tap the dice to roll a different preset style!",
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
-                        height: 1.25,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ] else ...[
           ProControlsCard(
             selectedTemplateId: _selectedTemplate,
@@ -1933,9 +1882,6 @@ class HomeScreenState extends State<HomeScreen> {
         onTap: () {
           setState(() {
             _renderMode = mode;
-            if (mode == "auto") {
-              _assignAutoTemplate();
-            }
           });
         },
         child: AnimatedContainer(
@@ -2088,10 +2034,8 @@ class HomeScreenState extends State<HomeScreen> {
     final durationSec = (_audioEnd > _audioStart && _audioEnd <= _audioDuration)
         ? (_audioEnd - _audioStart).toInt()
         : _audioDuration.toInt();
-    final isMix = _renderMode == "manual" && _selectedTemplate == "mix";
-    final styleName = _renderMode == "auto"
-        ? _currentAutoTemplate.name.toUpperCase()
-        : (isMix ? "DYNAMIC MIX 🔀" : _selectedTemplate.toUpperCase());
+    final isMix = (_renderMode == "auto") || (_renderMode == "manual" && _selectedTemplate == "mix");
+    final styleName = isMix ? "DYNAMIC MIX 🔀" : _selectedTemplate.toUpperCase();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -2315,75 +2259,65 @@ class HomeScreenState extends State<HomeScreen> {
   Widget _buildAutoTemplateBanner() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         gradient: AppColors.luxDarkCardGradient,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.8), width: 1.2),
         boxShadow: AppColors.luxCardShadow,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SnapBeatPinkDot(size: 13, withGlow: true),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Row(
+            children: [
+              const SnapBeatPinkDot(size: 10, withGlow: true),
+              const SizedBox(width: 8),
+              const Text(
+                'AI AUTO BEAT-SYNC',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: AppColors.brassGold,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: AppColors.panelInset,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.chassisBevelDark, width: 0.8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'STYLE: ',
+                    Icon(Icons.shuffle_rounded, size: 10, color: AppColors.brassGold),
+                    SizedBox(width: 4),
+                    Text(
+                      'DYNAMIC MIX',
                       style: TextStyle(
                         fontFamily: 'Montserrat',
-                        fontSize: 9,
+                        fontSize: 8,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    Flexible(
-                      child: Text(
-                        _currentAutoTemplate.name.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textEngraved,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                        letterSpacing: 0.6,
+                        color: AppColors.textEngraved,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Icon(_currentAutoTemplate.icon, size: 11, color: AppColors.brassGold),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        '${_currentAutoTemplate.subtitle} (tap dice to change)',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: _rollAutoTemplate,
-            child: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppColors.panelInset,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.chassisBevelDark),
               ),
-              child: const Icon(Icons.casino_outlined, size: 20, color: AppColors.textEngraved),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Hands-free multi-style choreography. Automatically arranges transitions, continuous bursts, and teaser crops to match soundtrack rhythm and energy.',
+            style: TextStyle(
+              fontSize: 10.5,
+              color: AppColors.textSecondary,
+              height: 1.35,
             ),
           ),
         ],
