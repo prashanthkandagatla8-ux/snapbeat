@@ -79,7 +79,12 @@ class ApiService {
     formData.fields.add(MapEntry("template", templateId));
     formData.fields.add(MapEntry("frame", frameValue));
     final String ql = quality.toLowerCase();
-    final String qualityParam = ql.contains("1080") ? "master" : (ql.contains("720") || ql.contains("hd") ? "hd" : "fast");
+    // Send the literal values worker.py:748-753 matches on. "hd" is NOT in that
+    // list and silently falls through to the 0.3333 scale, i.e. a 720p purchase
+    // rendering at 360p. Verified live: quality="hd" -> 360x640, "720p" -> 720x1280.
+    final String qualityParam = ql.contains("1080")
+        ? "master"
+        : (ql.contains("720") || ql.contains("hd") ? "720p" : "fast");
     formData.fields.add(MapEntry("quality", qualityParam));
     formData.fields.add(MapEntry("watermark", watermark.toString()));
     if (entitlementToken != null && entitlementToken.isNotEmpty) {
@@ -91,6 +96,7 @@ class ApiService {
     }
     formData.fields.add(MapEntry("drop_it", dropIt ? "true" : "false"));
     formData.fields.add(MapEntry("enable_burst", enableBurst ? "true" : "false"));
+    formData.fields.add(const MapEntry("burst_effect", "slice_h"));
     formData.fields.add(MapEntry("enable_teaser", enableTeaser ? "true" : "false"));
 
     formData.fields.add(MapEntry('full_track', (audioEnd != null && audioEnd > 0 && audioStart != null && audioEnd > audioStart) ? 'false' : 'true'));
