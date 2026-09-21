@@ -154,12 +154,10 @@ class HomeScreenState extends State<HomeScreen> {
   String _titleFrame = "none";
   String _titleAudio = "before_audio";
 
-  // Cult Effects (Manual Mode)
+  // Cult Effects (Manual Mode - Bursts, Teaser, Drop-It)
   bool _enableBurst = true;
   bool _enableTeaser = true;
-  bool _enableContinuousBurst = true;
   bool _enableDropIt = false;
-  bool _enableSmoothCuts = false;
 
   // Auto Mode Template Rotation
   BeatTemplate _currentAutoTemplate = BeatTemplate.allTemplates.first;
@@ -1857,17 +1855,13 @@ class HomeScreenState extends State<HomeScreen> {
             onSelectTitleAudio: (a) => setState(() => _titleAudio = a),
             representativePhoto: _photos.isNotEmpty ? File(_photos.first.path) : null,
             isPro: sm.isPro,
-            // Cult Effects
+            // Cult Effects (User-facing toggles: Bursts, Teaser, Drop-It)
             enableBurst: _enableBurst,
             onToggleBurst: (v) => setState(() => _enableBurst = v),
             enableTeaser: _enableTeaser,
             onToggleTeaser: (v) => setState(() => _enableTeaser = v),
-            enableContinuousBurst: _enableContinuousBurst,
-            onToggleContinuousBurst: (v) => setState(() => _enableContinuousBurst = v),
             enableDropIt: _enableDropIt,
             onToggleDropIt: (v) => setState(() => _enableDropIt = v),
-            enableSmoothCuts: _enableSmoothCuts,
-            onToggleSmoothCuts: (v) => setState(() => _enableSmoothCuts = v),
           ),
         ],
 

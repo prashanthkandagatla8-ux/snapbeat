@@ -38,17 +38,13 @@ class ProControlsCard extends StatelessWidget {
   final File? representativePhoto;
   final bool? isPro;
 
-  // Cult Effects
+  // Cult Effects (user-facing toggles only)
   final bool enableBurst;
   final Function(bool) onToggleBurst;
   final bool enableTeaser;
   final Function(bool) onToggleTeaser;
-  final bool enableContinuousBurst;
-  final Function(bool) onToggleContinuousBurst;
   final bool enableDropIt;
   final Function(bool) onToggleDropIt;
-  final bool enableSmoothCuts;
-  final Function(bool) onToggleSmoothCuts;
 
   const ProControlsCard({
     super.key,
@@ -83,12 +79,8 @@ class ProControlsCard extends StatelessWidget {
     required this.onToggleBurst,
     required this.enableTeaser,
     required this.onToggleTeaser,
-    required this.enableContinuousBurst,
-    required this.onToggleContinuousBurst,
     required this.enableDropIt,
     required this.onToggleDropIt,
-    required this.enableSmoothCuts,
-    required this.onToggleSmoothCuts,
   });
 
   @override
@@ -608,12 +600,8 @@ class ProControlsCard extends StatelessWidget {
             onToggleBurst: onToggleBurst,
             enableTeaser: enableTeaser,
             onToggleTeaser: onToggleTeaser,
-            enableContinuousBurst: enableContinuousBurst,
-            onToggleContinuousBurst: onToggleContinuousBurst,
             enableDropIt: enableDropIt,
             onToggleDropIt: onToggleDropIt,
-            enableSmoothCuts: enableSmoothCuts,
-            onToggleSmoothCuts: onToggleSmoothCuts,
           ),
         ],
       ),
@@ -1185,24 +1173,16 @@ class _CultEffectsSection extends StatefulWidget {
   final Function(bool) onToggleBurst;
   final bool enableTeaser;
   final Function(bool) onToggleTeaser;
-  final bool enableContinuousBurst;
-  final Function(bool) onToggleContinuousBurst;
   final bool enableDropIt;
   final Function(bool) onToggleDropIt;
-  final bool enableSmoothCuts;
-  final Function(bool) onToggleSmoothCuts;
 
   const _CultEffectsSection({
     required this.enableBurst,
     required this.onToggleBurst,
     required this.enableTeaser,
     required this.onToggleTeaser,
-    required this.enableContinuousBurst,
-    required this.onToggleContinuousBurst,
     required this.enableDropIt,
     required this.onToggleDropIt,
-    required this.enableSmoothCuts,
-    required this.onToggleSmoothCuts,
   });
 
   @override
@@ -1282,37 +1262,23 @@ class _CultEffectsSectionState extends State<_CultEffectsSection> {
                   _buildToggleRow(
                     icon: Icons.flash_on_rounded,
                     label: 'Burst Effects',
-                    hint: 'Rapid slice reveal on fast beats',
+                    hint: 'Rapid slice reveals on fast beats',
                     value: widget.enableBurst,
                     onChanged: widget.onToggleBurst,
                   ),
                   _buildToggleRow(
                     icon: Icons.center_focus_strong_rounded,
                     label: 'Beat Teaser',
-                    hint: 'Face/saliency crop zoom on quiet beats',
+                    hint: 'Face and crop punch zoom on quiet beats',
                     value: widget.enableTeaser,
                     onChanged: widget.onToggleTeaser,
                   ),
                   _buildToggleRow(
-                    icon: Icons.swap_horiz_rounded,
-                    label: 'Continuous Burst',
-                    hint: 'Switch photos on long bursts (>1s)',
-                    value: widget.enableContinuousBurst,
-                    onChanged: widget.onToggleContinuousBurst,
-                  ),
-                  _buildToggleRow(
                     icon: Icons.vertical_align_bottom_rounded,
-                    label: 'Drop-It Blank',
-                    hint: 'Black flash before big drops',
+                    label: 'Drop Impact',
+                    hint: 'Atmospheric gap before bass drops',
                     value: widget.enableDropIt,
                     onChanged: widget.onToggleDropIt,
-                  ),
-                  _buildToggleRow(
-                    icon: Icons.blur_on_rounded,
-                    label: 'Smooth Cuts',
-                    hint: 'Prefer cinematic transitions over flash cuts',
-                    value: widget.enableSmoothCuts,
-                    onChanged: widget.onToggleSmoothCuts,
                     isLast: true,
                   ),
                 ],
@@ -1330,9 +1296,7 @@ class _CultEffectsSectionState extends State<_CultEffectsSection> {
     final active = [
       widget.enableBurst,
       widget.enableTeaser,
-      widget.enableContinuousBurst,
       widget.enableDropIt,
-      widget.enableSmoothCuts,
     ].where((v) => v).length;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
