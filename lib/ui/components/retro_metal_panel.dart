@@ -45,7 +45,7 @@ class RetroMetalPanel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(borderRadius - 2.5),
                 // Recessed inner dark boundary lip
                 border: Border.all(
-                  color: const Color(0xFF060B0E),
+                  color: const Color(0xFF050608),
                   width: 1.0,
                 ),
                 // Interior Studio Console Gradient Surface
@@ -53,10 +53,10 @@ class RetroMetalPanel extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF12313B),
-                    Color(0xFF0C242C),
-                    Color(0xFF07181E),
-                    Color(0xFF051014),
+                    Color(0xFF161A20),
+                    Color(0xFF101318),
+                    Color(0xFF0C0F12),
+                    Color(0xFF080A0D),
                   ],
                   stops: [0.0, 0.35, 0.75, 1.0],
                 ),

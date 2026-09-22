@@ -104,14 +104,14 @@ class _TactileActionButtonState extends State<TactileActionButton> {
             : const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF28363D), Color(0xFF17242A), Color(0xFF0F1A1F)],
+                colors: [Color(0xFF1C2028), Color(0xFF12151B), Color(0xFF0A0C10)],
               );
 
     final borderColor = isGold
         ? (_isPressed ? const Color(0xFFBF8A00) : const Color(0xFFFFE082))
         : isDestructive
             ? const Color(0xFF7A2020)
-            : const Color(0xFF3E5A66);
+            : const Color(0xFF282E38);
 
     final textColor = isGold
         ? const Color(0xFF14120B)

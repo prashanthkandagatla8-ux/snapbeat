@@ -2,33 +2,33 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // ─── Dark Teal Chassis (ported from web app globals.css) ───
-  static const Color metalHighlight = Color(0xFF203C46);    // Top bevel highlight
-  static const Color metalBase = Color(0xFF0B0D10);         // Dark chassis mid
-  static const Color metalShadow = Color(0xFF071317);       // Bottom vignette & cavity shadow
-  static const Color metalDeepCavity = Color(0xFF03090C);   // Inner punched recess
-  static const Color metalScrewHead = Color(0xFF1E3A42);    // Screw/rivet detail
-  static const Color hardwareGunmetal = Color(0xFF0A1B22);  // Dark hardware
+  static const Color metalHighlight = Color(0xFF20252B);    // Top bevel highlight
+  static const Color metalBase = Color(0xFF0C0F12);         // Dark chassis mid
+  static const Color metalShadow = Color(0xFF050608);       // Bottom vignette & cavity shadow
+  static const Color metalDeepCavity = Color(0xFF030406);   // Inner punched recess
+  static const Color metalScrewHead = Color(0xFF161A20);    // Screw/rivet detail
+  static const Color hardwareGunmetal = Color(0xFF080A0D);  // Dark hardware
 
   // ─── Outer Canvas Backdrop (Slate Grey from Reference UI) ───
-  static const Color canvasSlateGrey = Color(0xFF141518);     // Neutral slate grey outside panels
-  static const Color canvasSlateGreyLight = Color(0xFF1C1E23); // Subtle radial highlight
-  static const Color canvasChassis = Color(0xFF141518);       // Matches outer slate grey
+  static const Color canvasSlateGrey = Color(0xFF090B0E);     // Neutral slate grey outside panels
+  static const Color canvasSlateGreyLight = Color(0xFF0D1014); // Subtle radial highlight
+  static const Color canvasChassis = Color(0xFF090B0E);       // Matches outer slate grey
 
   // ─── Realistic Metal Frame & Bezel (Hardware Reference UI) ───
-  static const Color metalBezelHighlight = Color(0xFFE8DFD0);  // Specular champagne top-left edge
-  static const Color metalBezelLight = Color(0xFFC8BA9C);      // Brushed warm gold-steel reflection
-  static const Color metalBezelMid = Color(0xFF7F7159);        // Satin metal body
-  static const Color metalBezelDark = Color(0xFF383124);       // Burnished bronze shadow bottom-right
-  static const Color metalBezelDeep = Color(0xFF17140F);       // Recessed frame edge
+  static const Color metalBezelHighlight = Color(0xFF20252B);  // Specular champagne top-left edge
+  static const Color metalBezelLight = Color(0xFF181D24);      // Brushed warm gold-steel reflection
+  static const Color metalBezelMid = Color(0xFF12151B);        // Satin metal body
+  static const Color metalBezelDark = Color(0xFF0A0C10);       // Burnished bronze shadow bottom-right
+  static const Color metalBezelDeep = Color(0xFF050608);       // Recessed frame edge
 
   // ─── Backward-compatible chassis & panels (dark) ───
-  static const Color chassisBevelLight = Color(0xFF203C46);   // Specular top edge
-  static const Color chassisBevelDark = Color(0xFF071317);    // Edge bevel shadow
-  static const Color panelCream = Color(0xFF0C242C);          // Primary dark card surface
-  static const Color panelCreamDark = Color(0xFF081A20);      // Secondary recessed card
-  static const Color panelInset = Color(0xFF051419);          // Recessed bays & wells
-  static const Color metalBrushedLight = Color(0xFF203C46);
-  static const Color metalBrushedDark = Color(0xFF081A20);
+  static const Color chassisBevelLight = Color(0xFF20252B);   // Specular top edge
+  static const Color chassisBevelDark = Color(0xFF050608);    // Edge bevel shadow
+  static const Color panelCream = Color(0xFF101318);          // Primary dark card surface
+  static const Color panelCreamDark = Color(0xFF0C0F12);      // Secondary recessed card
+  static const Color panelInset = Color(0xFF080A0D);          // Recessed bays & wells
+  static const Color metalBrushedLight = Color(0xFF20252B);
+  static const Color metalBrushedDark = Color(0xFF0C0F12);
 
   // ─── SnapBeat Bubbly Yellow & Gold ───
   static const Color yellowPrimary = Color(0xFFFFC72C);     // Primary button & logo yellow
@@ -74,10 +74,10 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF203C46),
-      Color(0xFF0C242C),
-      Color(0xFF081A20),
-      Color(0xFF051419),
+      Color(0xFF20252B),
+      Color(0xFF101318),
+      Color(0xFF0C0F12),
+      Color(0xFF080A0D),
     ],
     stops: [0.0, 0.3, 0.7, 1.0],
   );
@@ -97,9 +97,9 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF203C46),
-      Color(0xFF0C242C),
-      Color(0xFF081A20),
+      Color(0xFF20252B),
+      Color(0xFF101318),
+      Color(0xFF0C0F12),
     ],
   );
 
@@ -114,9 +114,9 @@ class AppColors {
   );
 
   static const Color goldGlow = Color(0x55FFC72C);
-  static const Color luxObsidian = Color(0xFF070A0D);
-  static const Color luxCardSurface = Color(0xFF0D222A);
-  static const Color luxCardSurfaceLight = Color(0xFF13323D);
+  static const Color luxObsidian = Color(0xFF050608);
+  static const Color luxCardSurface = Color(0xFF101318);
+  static const Color luxCardSurfaceLight = Color(0xFF161A20);
   static const Color neonCyan = Color(0xFF00F0FF);
   static const Color cyanGlow = Color(0x4400F0FF);
 
@@ -125,9 +125,9 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF13333E),
-      Color(0xFF0D232B),
-      Color(0xFF08181E),
+      Color(0xFF161A20),
+      Color(0xFF101318),
+      Color(0xFF080A0D),
     ],
     stops: [0.0, 0.45, 1.0],
   );
@@ -161,11 +161,11 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFE8DFD0),
-      Color(0xFFC8BA9C),
-      Color(0xFF7F7159),
-      Color(0xFF383124),
-      Color(0xFF17140F),
+      Color(0xFF20252B),
+      Color(0xFF181D24),
+      Color(0xFF12151B),
+      Color(0xFF0A0C10),
+      Color(0xFF050608),
     ],
     stops: [0.0, 0.22, 0.60, 0.88, 1.0],
   );
@@ -179,7 +179,7 @@ class AppColors {
       spreadRadius: -1,
     ),
     BoxShadow(
-      color: const Color(0xFFE8DFD0).withValues(alpha: 0.15),
+      color: const Color(0xFF20252B).withValues(alpha: 0.15),
       offset: const Offset(0, -1),
       blurRadius: 1,
       spreadRadius: 0,
@@ -194,7 +194,7 @@ class AppColors {
       spreadRadius: -2,
     ),
     BoxShadow(
-      color: const Color(0xFF203C46).withValues(alpha: 0.25),
+      color: const Color(0xFF20252B).withValues(alpha: 0.25),
       offset: const Offset(0, -1),
       blurRadius: 1,
       spreadRadius: 0,
