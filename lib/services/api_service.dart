@@ -97,6 +97,7 @@ class ApiService {
     formData.fields.add(MapEntry("drop_it", dropIt ? "true" : "false"));
     formData.fields.add(MapEntry("enable_burst", enableBurst ? "true" : "false"));
     formData.fields.add(const MapEntry("burst_effect", "slice_h"));
+    formData.fields.add(const MapEntry("burst_min_run_length", "3"));
     formData.fields.add(MapEntry("enable_teaser", enableTeaser ? "true" : "false"));
 
     formData.fields.add(MapEntry('full_track', (audioEnd != null && audioEnd > 0 && audioStart != null && audioEnd > audioStart) ? 'false' : 'true'));

@@ -29,15 +29,16 @@ class _PaywallCardConfig {
 /// Production-ready SnapBeat Pro Paywall dialog matching paywall_mockup_new_1789909194554.jpg.
 /// Fully compliant with App Store Guideline 3.1.2 and 100% pure ASCII.
 class RetroSubscriptionDialog extends StatefulWidget {
-  const RetroSubscriptionDialog({super.key});
+  final String? reason;
+  const RetroSubscriptionDialog({super.key, this.reason});
 
   /// Displays the subscription modal bottom sheet.
-  static Future<void> show(BuildContext context) {
+  static Future<void> show(BuildContext context, {String? reason}) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => const RetroSubscriptionDialog(),
+      builder: (ctx) => RetroSubscriptionDialog(reason: reason),
     );
   }
 
@@ -279,7 +280,46 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // Informative Notice Banner (e.g. Daily Free Limit Reached)
+            if (widget.reason != null && widget.reason!.trim().isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2E2410),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFFB800), width: 1.2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_rounded, color: Color(0xFFFFB800), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.reason!.trim(),
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Color(0xFFFFE082),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
 
             // Active Pro Banner (if already subscribed)
             if (isPro) ...[

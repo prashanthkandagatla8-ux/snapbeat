@@ -45,6 +45,36 @@ class SoundTrack {
   /// Curated library of built-in studio analog tapes
   static const List<SoundTrack> builtInLibrary = [
     SoundTrack(
+      id: 'little_do_you_know',
+      title: 'Little Do You Know',
+      genre: 'Cinematic / Emotional Beat',
+      bpm: '74 BPM',
+      vibe: 'Atmospheric piano chords and emotive slow-burn rhythm for storytelling',
+      assetPath: 'assets/audio/little_do_you_know.mp3',
+      durationSeconds: 154.2,
+      fileName: 'little_do_you_know.mp3',
+    ),
+    SoundTrack(
+      id: 'powerful_percussion',
+      title: 'Powerful Percussion',
+      genre: 'Percussive / Action',
+      bpm: '128 BPM',
+      vibe: 'High-impact dynamic drums, stomp accents, and driving cinematic energy',
+      assetPath: 'assets/audio/powerful_percussion.mp3',
+      durationSeconds: 37.4,
+      fileName: 'powerful_percussion.mp3',
+    ),
+    SoundTrack(
+      id: 'indian_percussion_beat',
+      title: 'Indian Percussion Beat',
+      genre: 'Ethnic / Rhythmic',
+      bpm: '112 BPM',
+      vibe: 'Authentic Indian rhythm section with folk percussion and dynamic groove',
+      assetPath: 'assets/audio/indian_percussion_beat.mp3',
+      durationSeconds: 61.4,
+      fileName: 'indian_percussion_beat.mp3',
+    ),
+    SoundTrack(
       id: 'funk_smooth_party',
       title: 'Funk Smooth Party',
       genre: 'Nu-Funk / Retro',

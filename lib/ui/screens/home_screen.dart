@@ -145,7 +145,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   // Title Intro
   bool _enableTitle = false;
-  String _titleText = "";
+  String _titleText = "SnapBeat";
   late final TextEditingController _titleTextController;
   String _titleBg = "black";
   int _titleDuration = 2;
@@ -516,6 +516,9 @@ class HomeScreenState extends State<HomeScreen> {
     _currentTab = widget.initialTab;
     _renderMode = widget.initialRenderMode;
     _titleTextController = TextEditingController(text: _titleText);
+    _titleTextController.addListener(() {
+      _titleText = _titleTextController.text;
+    });
     if (widget.fromShowcase) {
       _selectedTemplate = 'pendulum';
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1048,8 +1051,10 @@ class HomeScreenState extends State<HomeScreen> {
       }
       if (count >= 3) {
         if (mounted) {
-          RetroSubscriptionDialog.show(context);
-          _showNotice("Daily limit of 3 free renders reached. Upgrade to VIP for unlimited exports!");
+          RetroSubscriptionDialog.show(
+            context,
+            reason: "Daily limit of 3 free renders reached for today. Upgrade to VIP for unlimited daily exports!",
+          );
         }
         return;
       }
@@ -1091,7 +1096,12 @@ class HomeScreenState extends State<HomeScreen> {
     final entitlementTokenSnapshot = isPro ? sm.signedEntitlementToken : null;
     final audioStartSnapshot = _audioStart.toInt();
     final audioEndSnapshot = _audioEnd.toInt();
-    final titleTextSnapshot = (_enableTitle && _titleText.trim().isNotEmpty) ? _titleText.trim() : null;
+    final enteredTitle = _titleTextController.text.trim();
+    final stateTitle = _titleText.trim();
+    final effectiveTitle = enteredTitle.isNotEmpty
+        ? enteredTitle
+        : (stateTitle.isNotEmpty ? stateTitle : "SnapBeat");
+    final titleTextSnapshot = _enableTitle ? effectiveTitle : null;
     final titleBgSnapshot = _titleBg;
     final titleDurationSnapshot = _titleDuration;
     final titleFontSnapshot = _titleFont;
@@ -1800,6 +1810,42 @@ class HomeScreenState extends State<HomeScreen> {
         // 2. Mode Content
         if (_renderMode == "auto") ...[
           _buildAutoTemplateBanner(),
+          ProControlsCard(
+            isAutoMode: true,
+            selectedTemplateId: _selectedTemplate,
+            onSelectTemplate: (t) => setState(() => _selectedTemplate = t),
+            selectedAspectRatio: _selectedAspectRatio,
+            onSelectAspectRatio: (r) => setState(() => _selectedAspectRatio = r),
+            selectedQuality: _selectedQuality,
+            onSelectQuality: (q) => setState(() => _selectedQuality = q),
+            enableTitle: _enableTitle,
+            onToggleTitle: (v) => setState(() => _enableTitle = v),
+            titleText: _titleText,
+            titleController: _titleTextController,
+            onTitleTextChanged: (t) => setState(() => _titleText = t),
+            titleBg: _titleBg,
+            onSelectTitleBg: (bg) => setState(() => _titleBg = bg),
+            titleDuration: _titleDuration,
+            onTitleDurationChanged: (d) => setState(() => _titleDuration = d),
+            titleFont: _titleFont,
+            onSelectTitleFont: (f) => setState(() => _titleFont = f),
+            titleFontSize: _titleFontSize,
+            onSelectTitleFontSize: (s) => setState(() => _titleFontSize = s),
+            titleStyle: _titleStyle,
+            onSelectTitleStyle: (s) => setState(() => _titleStyle = s),
+            titleFrame: _titleFrame,
+            onSelectTitleFrame: (fr) => setState(() => _titleFrame = fr),
+            titleAudio: _titleAudio,
+            onSelectTitleAudio: (a) => setState(() => _titleAudio = a),
+            representativePhoto: _photos.isNotEmpty ? File(_photos.first.path) : null,
+            isPro: sm.isPro,
+            enableBurst: _enableBurst,
+            onToggleBurst: (v) => setState(() => _enableBurst = v),
+            enableTeaser: _enableTeaser,
+            onToggleTeaser: (v) => setState(() => _enableTeaser = v),
+            enableDropIt: _enableDropIt,
+            onToggleDropIt: (v) => setState(() => _enableDropIt = v),
+          ),
         ] else ...[
           ProControlsCard(
             selectedTemplateId: _selectedTemplate,

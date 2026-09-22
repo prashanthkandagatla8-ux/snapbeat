@@ -46,6 +46,7 @@ class ProControlsCard extends StatelessWidget {
   final Function(bool) onToggleTeaser;
   final bool enableDropIt;
   final Function(bool) onToggleDropIt;
+  final bool isAutoMode;
 
   const ProControlsCard({
     super.key,
@@ -82,6 +83,7 @@ class ProControlsCard extends StatelessWidget {
     required this.onToggleTeaser,
     required this.enableDropIt,
     required this.onToggleDropIt,
+    this.isAutoMode = false,
   });
 
   @override
@@ -106,9 +108,9 @@ class ProControlsCard extends StatelessWidget {
                       color: AppColors.brassGold,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text(
-                      'MANUAL',
-                      style: TextStyle(
+                    child: Text(
+                      isAutoMode ? 'AUTO' : 'MANUAL',
+                      style: const TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
                         color: AppColors.hardwareGunmetal,
@@ -117,9 +119,9 @@ class ProControlsCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'MANUAL MODE',
-                    style: TextStyle(
+                  Text(
+                    isAutoMode ? 'REEL SETTINGS & TITLE' : 'MANUAL MODE',
+                    style: const TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -178,12 +180,14 @@ class ProControlsCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          RetroTemplatePreview(
-            selectedTemplateId: selectedTemplateId,
-            onSelectTemplate: onSelectTemplate,
-            isPro: isPro ?? SubscriptionManager.instance.isPro,
-          ),
+          if (!isAutoMode) ...[
+            const SizedBox(height: 14),
+            RetroTemplatePreview(
+              selectedTemplateId: selectedTemplateId,
+              onSelectTemplate: onSelectTemplate,
+              isPro: isPro ?? SubscriptionManager.instance.isPro,
+            ),
+          ],
           const SizedBox(height: 14),
 
           // Render Quality Selector (3-Tier Hardware Rockers)
@@ -662,15 +666,17 @@ class ProControlsCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          _BeatMotionEffectsSection(
-            enableBurst: enableBurst,
-            onToggleBurst: onToggleBurst,
-            enableTeaser: enableTeaser,
-            onToggleTeaser: onToggleTeaser,
-            enableDropIt: enableDropIt,
-            onToggleDropIt: onToggleDropIt,
-          ),
+          if (!isAutoMode) ...[
+            const SizedBox(height: 14),
+            _BeatMotionEffectsSection(
+              enableBurst: enableBurst,
+              onToggleBurst: onToggleBurst,
+              enableTeaser: enableTeaser,
+              onToggleTeaser: onToggleTeaser,
+              enableDropIt: enableDropIt,
+              onToggleDropIt: onToggleDropIt,
+            ),
+          ],
         ],
       ),
     );
