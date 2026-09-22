@@ -37,9 +37,17 @@ class RetroMetalPanel extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(borderRadius),
-              gradient: AppColors.metalBezelGradient,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0x332E3440),
+                  Color(0x1A252932),
+                  Color(0x0A101216),
+                ],
+              ),
             ),
-            padding: const EdgeInsets.all(2.5), // Bezel thickness
+            padding: const EdgeInsets.all(1.0), // Bezel thickness
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(borderRadius - 2.5),
@@ -53,10 +61,10 @@ class RetroMetalPanel extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF161A20),
-                    Color(0xFF101318),
-                    Color(0xFF0C0F12),
-                    Color(0xFF080A0D),
+                    Color(0xFF1E222A),
+                    Color(0xFF191C22),
+                    Color(0xFF15171D),
+                    Color(0xFF111317),
                   ],
                   stops: [0.0, 0.35, 0.75, 1.0],
                 ),

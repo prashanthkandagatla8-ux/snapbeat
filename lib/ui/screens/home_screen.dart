@@ -173,7 +173,7 @@ class HomeScreenState extends State<HomeScreen> {
             fontFamily: 'Montserrat',
             fontWeight: FontWeight.w700,
             fontSize: 11,
-            color: Color(0xFF1E1A10),
+            color: Colors.white,
           ),
         ),
         backgroundColor: const Color(0xFFFFD54F),
@@ -421,7 +421,7 @@ class HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Icon(Icons.explore_rounded, size: 16, color: Color(0xFF1E1A10)),
+                      Icon(Icons.explore_rounded, size: 16, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
                         'EXPLORE STUDIO ❯',
@@ -430,7 +430,7 @@ class HomeScreenState extends State<HomeScreen> {
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.6,
-                          color: Color(0xFF1E1A10),
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -1666,7 +1666,7 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: const Color(0xFF1E1A10)),
+            Icon(icon, size: 18, color: Colors.white),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -1683,7 +1683,7 @@ class HomeScreenState extends State<HomeScreen> {
                         fontSize: 11,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.8,
-                        color: Color(0xFF1E1A10),
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -1692,13 +1692,13 @@ class HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF4A463F),
+                      color: Color(0xFFCBD5E1),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF1E1A10)),
+            const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white),
           ],
         ),
       ),
@@ -1780,9 +1780,9 @@ class HomeScreenState extends State<HomeScreen> {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFFB8AE9F),
+              color: const Color(0xFF0C0E12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFDED8CE), width: 1),
+              border: Border.all(color: const Color(0x22252932), width: 1),
               boxShadow: const [
                 BoxShadow(color: Colors.black12, offset: Offset(0, 1), blurRadius: 2),
               ],
@@ -1951,12 +1951,13 @@ class HomeScreenState extends State<HomeScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFFFFE082),
-                      Color(0xFFFFC72C),
+                      Color(0xFF252A34),
+                      Color(0xFF1B1E26),
+                      Color(0xFF14171E),
                     ],
                   )
                 : null,
-            border: isSelected ? Border.all(color: const Color(0xFFBF8A00), width: 1) : null,
+            border: isSelected ? Border.all(color: const Color(0x668B5CF6), width: 1) : null,
             boxShadow: isSelected
                 ? [
                     BoxShadow(
@@ -1977,7 +1978,7 @@ class HomeScreenState extends State<HomeScreen> {
               Icon(
                 icon,
                 size: 13,
-                color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF5A554D),
+                color: isSelected ? const Color(0xFFA78BFA) : const Color(0xFF64748B),
               ),
               const SizedBox(width: 5),
               Flexible(
@@ -1990,7 +1991,7 @@ class HomeScreenState extends State<HomeScreen> {
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.8,
-                      color: isSelected ? const Color(0xFF1E1A10) : const Color(0xFF4A463F),
+                      color: isSelected ? Colors.white : const Color(0xFF64748B),
                     ),
                   ),
                 ),

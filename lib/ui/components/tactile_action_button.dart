@@ -79,23 +79,20 @@ class _TactileActionButtonState extends State<TactileActionButton> {
 
     final gradient = isGold
         ? LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: _isPressed
                 ? [
-                    const Color(0xFFFFD54F),
-                    const Color(0xFFFFC72C),
-                    const Color(0xFFC69200),
+                    const Color(0xFF7C3AED),
+                    const Color(0xFF5B21B6),
+                    const Color(0xFF3B0764),
                   ]
                 : [
-                    const Color(0xFFFFF0B3),
-                    const Color(0xFFFFD54F),
-                    const Color(0xFFFFC72C),
-                    const Color(0xFFD49A00),
+                    const Color(0xFF9061F9),
+                    const Color(0xFF6C2BD9),
+                    const Color(0xFF4A1D96),
                   ],
-            stops: _isPressed ? const [0.0, 0.4, 1.0] : const [0.0, 0.25, 0.7, 1.0],
-          )
-        : isDestructive
+          ) : isDestructive
             ? const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -104,23 +101,23 @@ class _TactileActionButtonState extends State<TactileActionButton> {
             : const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF1C2028), Color(0xFF12151B), Color(0xFF0A0C10)],
+                colors: [Color(0xFF252A34), Color(0xFF1B1E26), Color(0xFF13151B)],
               );
 
     final borderColor = isGold
-        ? (_isPressed ? const Color(0xFFBF8A00) : const Color(0xFFFFE082))
+        ? (_isPressed ? const Color(0xFF7C3AED) : const Color(0xFFA78BFA))
         : isDestructive
             ? const Color(0xFF7A2020)
-            : const Color(0xFF282E38);
+            : const Color(0x33374151);
 
     final textColor = isGold
-        ? const Color(0xFF14120B)
+        ? Colors.white
         : isDestructive
             ? const Color(0xFFFF7A7A)
             : AppColors.textEngraved;
 
     final iconColor = isGold
-        ? const Color(0xFF14120B)
+        ? Colors.white
         : isDestructive
             ? const Color(0xFFFF5252)
             : (widget.variant == TactileButtonVariant.secondaryGunmetal
@@ -165,9 +162,7 @@ class _TactileActionButtonState extends State<TactileActionButton> {
                 boxShadow: enabled
                     ? [
                         BoxShadow(
-                          color: isGold
-                              ? const Color(0xFFFFC72C).withValues(alpha: _isPressed ? 0.2 : 0.4)
-                              : Colors.black.withValues(alpha: 0.5),
+                          color: isGold ? const Color(0xFF8B5CF6).withValues(alpha: _isPressed ? 0.3 : 0.55) : Colors.black.withValues(alpha: 0.5),
                           offset: _isPressed ? const Offset(0, 1) : const Offset(0, 4),
                           blurRadius: _isPressed ? 4 : 10,
                           spreadRadius: _isPressed ? 0 : 1,

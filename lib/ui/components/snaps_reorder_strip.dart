@@ -90,7 +90,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isEnabled ? AppColors.brassGold : AppColors.panelCreamDark,
+                      color: isEnabled ? const Color(0xFF252A34) : const Color(0xFF13151B),
                       borderRadius: BorderRadius.circular(4),
                       border: isEnabled ? null : Border.all(color: AppColors.chassisBevelLight),
                     ),
@@ -172,7 +172,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppColors.metalBrushedDark,
+                          color: const Color(0xFF1E222A),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AppColors.chassisBevelLight),
                           boxShadow: const [
