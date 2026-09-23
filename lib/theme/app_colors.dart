@@ -1,229 +1,246 @@
 import 'package:flutter/material.dart';
 
+/// SNAPBEAT STUDIO – GRAPHITE NEO v3.0 Design Tokens
+/// Material-First Industrial UI System (Graphite Substrate + Piano Black Lacquer)
+/// Reference: C:\MyProjects\SnapBeat\References\Final UI Design\NewDesignSystem.txt
 class AppColors {
-  // ─── Reference UI Violet Accent & Glow (design ref.png) ───
-  static const Color violetAccent = Color(0xFF8B5CF6);
-  static const Color violetAccentLight = Color(0xFFA78BFA);
-  static const Color violetAccentDark = Color(0xFF6D28D9);
-  static const Color violetGlow = Color(0x668B5CF6);
-  static const Color statusGreen = Color(0xFF10B981);
+  // ─── 01. Canonical Graphite Neo v3.0 Tokens ───
 
-  // ─── Dark Teal Chassis (ported from web app globals.css) ───
-  static const Color metalHighlight = Color(0xFF252932);    // Top bevel highlight
-  static const Color metalBase = Color(0xFF181B20);         // Dark chassis mid
-  static const Color metalShadow = Color(0xFF08090C);       // Bottom vignette & cavity shadow
-  static const Color metalDeepCavity = Color(0xFF08090C);   // Inner punched recess
-  static const Color metalScrewHead = Color(0xFF1E222A);    // Screw/rivet detail
-  static const Color hardwareGunmetal = Color(0xFF0C0E12);  // Dark hardware
+  // M0 — GRAPHITE SUBSTRATE (65% Application Surface — Visibly Grey)
+  static const Color graphiteSubstrate = Color(0xFF2B2D30); // Primary visible grey base
+  static const Color graphiteLight     = Color(0xFF303236); // Top-left studio illumination
+  static const Color graphiteMid       = Color(0xFF292B2E); // Surface mid-tone
+  static const Color graphiteDeep      = Color(0xFF26282B); // Bottom shadow / separator tone
+  static const Color graphiteDarkest   = Color(0xFF232528);
 
-  // ─── Outer Canvas Backdrop (Slate Grey from Reference UI) ───
-  static const Color canvasSlateGrey = Color(0xFF121418);     // Neutral slate grey outside panels
-  static const Color canvasSlateGreyLight = Color(0xFF0D1014); // Subtle radial highlight
-  static const Color canvasChassis = Color(0xFF121418);       // Matches outer slate grey
+  // M1 — GRAPHITE RECESS (Wells, cavities, waveform, inputs, slider tracks)
+  static const Color graphiteRecessDeep    = Color(0xFF1D1F22); // Deepest cavity
+  static const Color graphiteRecess        = Color(0xFF202225); // Standard recess well
+  static const Color graphiteRecessLight   = Color(0xFF24262A); // Inner edge catchlight
 
-  // ─── Realistic Metal Frame & Bezel (Hardware Reference UI) ───
-  static const Color metalBezelHighlight = Color(0xFF252932);  // Specular champagne top-left edge
-  static const Color metalBezelLight = Color(0xFF181D24);      // Brushed warm gold-steel reflection
-  static const Color metalBezelMid = Color(0xFF12151B);        // Satin metal body
-  static const Color metalBezelDark = Color(0xFF0A0C10);       // Burnished bronze shadow bottom-right
-  static const Color metalBezelDeep = Color(0xFF08090C);       // Recessed frame edge
+  // M2 — PIANO BLACK (22% Inserted Lacquered Controls, Primary CTA, Video Frame)
+  static const Color pianoLacquer     = Color(0xFF161719); // Primary CTA surface
+  static const Color pianoMid         = Color(0xFF121315); // Lacquer mid-tone
+  static const Color pianoDeep        = Color(0xFF0D0F11); // Lacquer shadow edge
+  static const Color pianoRim         = Color(0xFF1C1D20); // Top catchlight
 
-  // ─── Backward-compatible chassis & panels (dark) ───
-  static const Color chassisBevelLight = Color(0xFF252932);   // Specular top edge
-  static const Color chassisBevelDark = Color(0xFF08090C);    // Edge bevel shadow
-  static const Color panelCream = Color(0xFF1D2027);          // Primary dark card surface
-  static const Color panelCreamDark = Color(0xFF181B20);      // Secondary recessed card
-  static const Color panelInset = Color(0xFF0C0E12);          // Recessed bays & wells
-  static const Color metalBrushedLight = Color(0xFF252932);
-  static const Color metalBrushedDark = Color(0xFF181B20);
+  // M4 — INDICATOR ACCENT (2% Restrained LED Indicator Light — NOT Decorative)
+  static const Color indicatorAccent      = Color(0xFF8A7CFF); // Precision violet indicator
+  static const Color indicatorAccentLight = Color(0xFFA59BFF);
+  static const Color indicatorAccentDark  = Color(0xFF7061FF);
+  static const Color indicatorGlow        = Color(0x338A7CFF); // Controlled 2% indicator glow
 
-  // ─── SnapBeat Bubbly Yellow & Gold ───
-  static const Color yellowPrimary = Color(0xFFFFC72C);     // Primary button & logo yellow
-  static const Color yellowSpecular = Color(0xFFFFE082);    // Specular top light
-  static const Color yellowShadow = Color(0xFFBF8A00);      // Bevel depth & 3D shadow
-  static const Color brassGold = Color(0xFFFFC72C);
-  static const Color brassHighlight = Color(0xFFFFE082);
-  static const Color brassDark = Color(0xFFBF8A00);
+  // TYPOGRAPHY (Clean, flat, high contrast)
+  static const Color textPrimary   = Color(0xFFF0F1F3); // Main headings, CTA labels
+  static const Color textSecondary = Color(0xFFB6B8BD); // Subtitles, descriptions
+  static const Color textTertiary  = Color(0xFF85878D); // Monospace specs, track times
+  static const Color textDisabled  = Color(0xFF616369); // Inactive items, placeholders
+  static const Color textWhite     = Color(0xFFFFFFFF);
 
-  // ─── Master Red Lacquer ───
-  static const Color redSurface = Color(0xFFD62828);        // Center dome lacquer
-  static const Color redGloss = Color(0xFFFF4D4D);          // Specular hotspot
-  static const Color redSocket = Color(0xFF7A0000);         // Recessed dark rim
-  static const Color redDeepRim = Color(0xFF17120F);        // Pitch dark bezel shadow
+  // ─── 02. Backward-Compatible Aliases (Zero Broken Callers) ───
 
-  // ─── Pink / Coral Sphere Accent ───
-  static const Color pinkAccent = Color(0xFFFF3366);        // Vibrancy dot
-  static const Color pinkGlow = Color(0xFFFF5588);
+  // Violet Accent Aliases
+  static const Color violetAccent      = indicatorAccent;
+  static const Color violetAccentLight = indicatorAccentLight;
+  static const Color violetAccentDark  = indicatorAccentDark;
+  static const Color violetGlow        = indicatorGlow;
+  static const Color statusGreen       = Color(0xFF10B981);
 
-  // ─── Backlit Indicators & VU Meters ───
-  static const Color amberJewel = Color(0xFFFF8A00);        // Backlit amber LED
-  static const Color amberGlow = Color(0x55FF8A00);         // Amber glow halo
-  static const Color tubeWarmOrange = Color(0xFFFF6A00);    // Nixie tube warm
-  static const Color vuGreen = Color(0xFF00C853);           // VU safe level
-  static const Color vuAmber = Color(0xFFFFB300);           // VU mid level
-  static const Color vuRed = Color(0xFFD50000);             // VU peak/clip
+  // Chassis & Canvas Aliases -> Graphite Neo Substrate
+  static const Color canvasChassis         = graphiteSubstrate;
+  static const Color canvasSlateGrey       = graphiteSubstrate;
+  static const Color canvasSlateGreyLight  = graphiteLight;
+  static const Color metalBase             = graphiteMid;
+  static const Color metalHighlight        = graphiteLight;
+  static const Color metalShadow           = graphiteRecess;
+  static const Color metalDeepCavity       = graphiteRecessDeep;
+  static const Color metalScrewHead        = graphiteDeep;
+  static const Color hardwareGunmetal      = pianoLacquer;
 
-  // ─── Typography (light on dark, ported from web) ───
-  static const Color textEngraved = Color(0xFFF8FAFC);      // Primary text (near-white)
-  static const Color textSecondary = Color(0xFFCBD5E1);     // Subtitle
-  static const Color textMuted = Color(0xFF94A3B8);         // Fine labels
-  static const Color textWhite = Color(0xFFFFFFFF);
-  static const Color textFoilGold = Color(0xFFFFC72C);
+  // Frame & Bezel Aliases
+  static const Color metalBezelHighlight = graphiteLight;
+  static const Color metalBezelLight     = graphiteMid;
+  static const Color metalBezelMid       = graphiteDeep;
+  static const Color metalBezelDark      = graphiteRecess;
+  static const Color metalBezelDeep      = graphiteRecessDeep;
 
-  // ─── Borders & Grooves ───
-  static const Color grooveLight = Color(0x22FFFFFF);       // Top bevel highlight (dark)
-  static const Color grooveDark = Color(0x66000000);        // Bottom shadow (deeper on dark)
-  static const Color borderBrass = Color(0x88FFC72C);       // Yellow border accent
-  static const Color borderSubtle = Color(0x33FFFFFF);      // Fine border (light on dark)
+  // Panels & Insets Aliases -> Graphite Materials
+  static const Color chassisBevelLight = graphiteLight;
+  static const Color chassisBevelDark  = graphiteRecessDeep;
+  static const Color panelCream        = graphiteMid;
+  static const Color panelCreamDark    = graphiteDeep;
+  static const Color panelInset        = graphiteRecess;
+  static const Color metalBrushedLight = graphiteLight;
+  static const Color metalBrushedDark  = graphiteDeep;
 
-  // ─── Metallic Gradients ───
+  // Primary / Secondary Brand Aliases -> Piano Black & Indicator
+  static const Color yellowPrimary  = indicatorAccent;
+  static const Color yellowSpecular = indicatorAccentLight;
+  static const Color yellowShadow   = indicatorAccentDark;
+  static const Color brassGold      = indicatorAccent;
+  static const Color brassHighlight = indicatorAccentLight;
+  static const Color brassDark      = indicatorAccentDark;
+
+  // Dome & Indicators
+  static const Color redSurface     = Color(0xFFD62828);
+  static const Color redGloss       = Color(0xFFFF4D4D);
+  static const Color redSocket      = Color(0xFF7A0000);
+  static const Color redDeepRim     = Color(0xFF17120F);
+  static const Color pinkAccent     = indicatorAccent;
+  static const Color pinkGlow       = indicatorGlow;
+  static const Color amberJewel     = Color(0xFFFF8A00);
+  static const Color amberGlow      = Color(0x44FF8A00);
+  static const Color tubeWarmOrange = Color(0xFFFF6A00);
+  static const Color vuGreen        = Color(0xFF00C853);
+  static const Color vuAmber        = Color(0xFFFFB300);
+  static const Color vuRed          = Color(0xFFD50000);
+
+  // Typography Aliases
+  static const Color textEngraved = textPrimary;
+  static const Color textFoilGold = indicatorAccent;
+  static const Color textMuted    = textTertiary;
+
+  // Borders & Grooves
+  static const Color grooveLight  = Color(0x0AFFFFFF); // Subtle 1px edge catch
+  static const Color grooveDark   = Color(0x55000000); // Contact occlusion
+  static const Color borderBrass  = Color(0x448A7CFF);
+  static const Color borderSubtle = Color(0x10FFFFFF);
+
+  static const Color goldGlow           = indicatorGlow;
+  static const Color luxObsidian        = pianoDeep;
+  static const Color luxCardSurface     = graphiteMid;
+  static const Color luxCardSurfaceLight = graphiteLight;
+  static const Color neonCyan           = indicatorAccent;
+  static const Color cyanGlow           = indicatorGlow;
+
+  // ─── 03. Graphite Neo v3.0 Gradients ───
+
+  // Primary Graphite Substrate Gradient (Top-Left Studio Light)
   static const LinearGradient brushedMetalGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFF252932),
-      Color(0xFF1D2027),
-      Color(0xFF181B20),
-      Color(0xFF0C0E12),
-    ],
-    stops: [0.0, 0.3, 0.7, 1.0],
-  );
-
-  static const LinearGradient brassKnobGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFFE082),
-      Color(0xFFFFC72C),
-      Color(0xFFBF8A00),
-      Color(0xFFFFE082),
+      graphiteLight,
+      graphiteSubstrate,
+      graphiteMid,
+      graphiteDeep,
     ],
+    stops: [0.0, 0.35, 0.70, 1.0],
   );
 
   static const LinearGradient chassisPlateGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF252932),
-      Color(0xFF1D2027),
-      Color(0xFF181B20),
+      graphiteLight,
+      graphiteSubstrate,
+      graphiteMid,
     ],
   );
 
+  // Piano Black CTA Button Gradient (Lacquered Finish)
   static const LinearGradient ctaButtonGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFFFE082),
-      Color(0xFFFFC72C),
-      Color(0xFFE5A800),
+      pianoRim,
+      pianoLacquer,
+      pianoMid,
+      pianoDeep,
     ],
+    stops: [0.0, 0.22, 0.68, 1.0],
   );
 
-  static const Color goldGlow = Color(0x55FFC72C);
-  static const Color luxObsidian = Color(0xFF08090C);
-  static const Color luxCardSurface = Color(0xFF1D2027);
-  static const Color luxCardSurfaceLight = Color(0xFF1E222A);
-  static const Color neonCyan = Color(0xFF00F0FF);
-  static const Color cyanGlow = Color(0x4400F0FF);
-
-  // ─── Luxury Audio-Grade Gradients ───
+  static const LinearGradient brassKnobGradient = ctaButtonGradient;
   static const LinearGradient luxDarkCardGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF1E222A),
-      Color(0xFF1D2027),
-      Color(0xFF0C0E12),
+      graphiteLight,
+      graphiteMid,
+      graphiteDeep,
     ],
     stops: [0.0, 0.45, 1.0],
   );
 
-  static const LinearGradient luxGoldGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFFFF0B3),
-      Color(0xFFFFD54F),
-      Color(0xFFFFC72C),
-      Color(0xFFC69200),
-    ],
-    stops: [0.0, 0.25, 0.7, 1.0],
-  );
+  static const LinearGradient luxGoldGradient = ctaButtonGradient;
+  static const LinearGradient luxRenderLaunchGradient = ctaButtonGradient;
 
-  static const LinearGradient luxRenderLaunchGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFFFF176),
-      Color(0xFFFFC72C),
-      Color(0xFFFF9800),
-      Color(0xFFD84315),
-    ],
-    stops: [0.0, 0.35, 0.75, 1.0],
-  );
-
-  // ─── Realistic Metal Frame Bezel Gradient (Hardware Reference UI) ───
   static const LinearGradient metalBezelGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF252932),
-      Color(0xFF181D24),
-      Color(0xFF12151B),
-      Color(0xFF0A0C10),
-      Color(0xFF08090C),
+      graphiteLight,
+      graphiteSubstrate,
+      graphiteMid,
+      graphiteDeep,
+      graphiteRecess,
     ],
     stops: [0.0, 0.22, 0.60, 0.88, 1.0],
   );
 
-  // ─── Elevation & Tactile Lighting Presets ───
-  static List<BoxShadow> get metalPanelShadow => [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.50),
-      offset: const Offset(0, 6),
-      blurRadius: 16,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: const Color(0xFF252932).withValues(alpha: 0.25),
-      offset: const Offset(0, -1),
-      blurRadius: 1,
-      spreadRadius: 0,
-    ),
-  ];
+  // ─── 04. Graphite Neo v3.0 Physical Contact Shadows (No Neumorphic Bloat) ───
 
-  static List<BoxShadow> get luxCardShadow => [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.65),
-      offset: const Offset(0, 8),
-      blurRadius: 20,
-      spreadRadius: -2,
-    ),
-    BoxShadow(
-      color: const Color(0xFF252932).withValues(alpha: 0.25),
-      offset: const Offset(0, -1),
-      blurRadius: 1,
-      spreadRadius: 0,
-    ),
-  ];
-
-  static List<BoxShadow> get cardInsetShadows => [
+  // Contact Subtle: For secondary controls, photo tiles, panels
+  static List<BoxShadow> get contactSubtle => [
     const BoxShadow(
-      color: Color(0x35000000),
+      color: Color(0x80000000),
+      spreadRadius: 1,
+      offset: Offset(0, 0),
+    ),
+    const BoxShadow(
+      color: Color(0x47000000),
       offset: Offset(0, 3),
-      blurRadius: 6,
+      blurRadius: 10,
     ),
     const BoxShadow(
-      color: Color(0x20FFFFFF),
-      offset: Offset(0, -1),
-      blurRadius: 2,
+      color: Color(0x08FFFFFF),
+      offset: Offset(0, 1),
+      blurRadius: 0,
     ),
   ];
 
-  static List<BoxShadow> luxGlowShadow(Color glowColor, {double blur = 14, double spread = 1}) => [
+  // Contact Hero: For Primary CTA ("Create Video") and Video Frame
+  static List<BoxShadow> get contactHero => [
+    const BoxShadow(
+      color: Color(0x9E000000),
+      spreadRadius: 1,
+      offset: Offset(0, 0),
+    ),
+    const BoxShadow(
+      color: Color(0x75000000),
+      offset: Offset(0, 10),
+      blurRadius: 28,
+    ),
+    const BoxShadow(
+      color: Color(0x0AFFFFFF),
+      offset: Offset(0, 1),
+      blurRadius: 0,
+    ),
+  ];
+
+  // Inner Recess: For waveform wells, inputs, slider tracks
+  static List<BoxShadow> get innerRecess => [
+    const BoxShadow(
+      color: Color(0x75000000),
+      offset: Offset(2, 2.5),
+      blurRadius: 5,
+    ),
+    const BoxShadow(
+      color: Color(0x08FFFFFF),
+      offset: Offset(-0.5, -0.5),
+      blurRadius: 1,
+    ),
+  ];
+
+  // Backward-compatible getters
+  static List<BoxShadow> get metalPanelShadow => contactSubtle;
+  static List<BoxShadow> get luxCardShadow     => contactHero;
+  static List<BoxShadow> get cardInsetShadows  => innerRecess;
+
+  static List<BoxShadow> luxGlowShadow(Color glowColor, {double blur = 10, double spread = 0}) => [
     BoxShadow(
-      color: glowColor.withValues(alpha: 0.45),
+      color: glowColor.withValues(alpha: 0.25),
       blurRadius: blur,
       spreadRadius: spread,
       offset: const Offset(0, 2),

@@ -3,15 +3,15 @@ import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 
 enum TactileButtonVariant {
-  /// Golden-amber capsule CTA styled after the "Start Creating" button in the reference UI.
+  /// Piano Black lacquer CTA with contact-hero shadow.
   primaryGold,
-  /// Brushed gunmetal with metallic bevel and glowing jewel accent.
+  /// Graphite mid-tone control with contact-subtle shadow.
   secondaryGunmetal,
-  /// Recessed cavity action (e.g. Delete, Dismiss).
+  /// Recessed cavity destructive action (e.g. Delete, Dismiss).
   destructive,
 }
 
-/// A responsive, vector-rendered tactile hardware button replacing old raster cutouts.
+/// A responsive tactile hardware button strictly adhering to Graphite Neo v3.0.
 class TactileActionButton extends StatefulWidget {
   final String label;
   final IconData? icon;
@@ -73,56 +73,56 @@ class _TactileActionButtonState extends State<TactileActionButton> {
   Widget build(BuildContext context) {
     final enabled = widget.isEnabled && widget.onTap != null;
 
-    // Dimensions and styling based on variant
-    final isGold = widget.variant == TactileButtonVariant.primaryGold;
+    final isPrimary = widget.variant == TactileButtonVariant.primaryGold;
     final isDestructive = widget.variant == TactileButtonVariant.destructive;
 
-    final gradient = isGold
-        ? LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _isPressed
-                ? [
-                    const Color(0xFF7C3AED),
-                    const Color(0xFF5B21B6),
-                    const Color(0xFF3B0764),
-                  ]
-                : [
-                    const Color(0xFF9061F9),
-                    const Color(0xFF6C2BD9),
-                    const Color(0xFF4A1D96),
-                  ],
-          ) : isDestructive
-            ? const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF3A1818), Color(0xFF220D0D), Color(0xFF160808)],
-              )
-            : const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF252A34), Color(0xFF1B1E26), Color(0xFF13151B)],
-              );
+    final Gradient gradient;
+    final Color borderColor;
+    final Color textColor;
+    final Color iconColor;
+    final List<BoxShadow> shadows;
 
-    final borderColor = isGold
-        ? (_isPressed ? const Color(0xFF7C3AED) : const Color(0xFFA78BFA))
-        : isDestructive
-            ? const Color(0xFF7A2020)
-            : const Color(0x33374151);
-
-    final textColor = isGold
-        ? Colors.white
-        : isDestructive
-            ? const Color(0xFFFF7A7A)
-            : AppColors.textEngraved;
-
-    final iconColor = isGold
-        ? Colors.white
-        : isDestructive
-            ? const Color(0xFFFF5252)
-            : (widget.variant == TactileButtonVariant.secondaryGunmetal
-                ? AppColors.brassGold
-                : AppColors.textSecondary);
+    if (isPrimary) {
+      gradient = _isPressed
+          ? const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.pianoMid,
+                AppColors.pianoDeep,
+                Color(0xFF08090B),
+              ],
+            )
+          : AppColors.ctaButtonGradient;
+      borderColor = const Color(0x18FFFFFF);
+      textColor = AppColors.textPrimary;
+      iconColor = AppColors.indicatorAccent;
+      shadows = _isPressed ? AppColors.contactSubtle : AppColors.contactHero;
+    } else if (isDestructive) {
+      gradient = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF28181A), Color(0xFF1D1113), Color(0xFF140B0D)],
+      );
+      borderColor = const Color(0x33FF5252);
+      textColor = const Color(0xFFFF7A7A);
+      iconColor = const Color(0xFFFF5252);
+      shadows = AppColors.innerRecess;
+    } else {
+      gradient = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          AppColors.graphiteLight,
+          AppColors.graphiteMid,
+          AppColors.graphiteDeep,
+        ],
+      );
+      borderColor = const Color(0x0DFFFFFF);
+      textColor = AppColors.textSecondary;
+      iconColor = AppColors.indicatorAccent;
+      shadows = AppColors.contactSubtle;
+    }
 
     return Semantics(
       button: true,
@@ -145,7 +145,7 @@ class _TactileActionButtonState extends State<TactileActionButton> {
               }
             : null,
         child: AnimatedScale(
-          scale: _isPressed ? 0.94 : 1.0,
+          scale: _isPressed ? 0.98 : 1.0,
           duration: const Duration(milliseconds: 90),
           curve: Curves.easeOutCubic,
           child: AnimatedOpacity(
@@ -154,29 +154,20 @@ class _TactileActionButtonState extends State<TactileActionButton> {
             child: Container(
               height: widget.height,
               width: widget.width,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 18),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(16),
                 gradient: gradient,
-                border: Border.all(color: borderColor, width: 1.4),
-                boxShadow: enabled
-                    ? [
-                        BoxShadow(
-                          color: isGold ? const Color(0xFF8B5CF6).withValues(alpha: _isPressed ? 0.3 : 0.55) : Colors.black.withValues(alpha: 0.5),
-                          offset: _isPressed ? const Offset(0, 1) : const Offset(0, 4),
-                          blurRadius: _isPressed ? 4 : 10,
-                          spreadRadius: _isPressed ? 0 : 1,
-                        ),
-                      ]
-                    : [],
+                border: Border.all(color: borderColor, width: 1.0),
+                boxShadow: enabled ? shadows : [],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (widget.icon != null) ...[
-                    Icon(widget.icon, size: 17, color: iconColor),
-                    const SizedBox(width: 7),
+                    Icon(widget.icon, size: 16, color: iconColor),
+                    const SizedBox(width: 8),
                   ],
                   Flexible(
                     child: Text(
@@ -184,10 +175,10 @@ class _TactileActionButtonState extends State<TactileActionButton> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.7,
+                        fontFamily: 'Inter',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.6,
                         color: textColor,
                       ),
                     ),

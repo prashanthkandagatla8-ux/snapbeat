@@ -19,64 +19,64 @@ class MetalChassisScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvasChassis,
+      backgroundColor: AppColors.graphiteSubstrate,
       appBar: appBar,
       bottomNavigationBar: bottomNavigationBar,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Dark Brushed Gunmetal Base Texture / Gradient
+          // 1. Graphite Neo v3.0 Continuous Substrate (#2B2D30)
           backgroundUiImage != null
               ? RawImage(
                   image: backgroundUiImage,
                   fit: BoxFit.cover,
-                  color: const Color(0xFF0B0D10).withValues(alpha: 0.88),
+                  color: AppColors.graphiteSubstrate.withValues(alpha: 0.90),
                   colorBlendMode: BlendMode.srcOver,
                 )
               : Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF1E2127),
-                        Color(0xFF17191E),
-                        Color(0xFF131417),
-                        Color(0xFF0F1012),
+                        AppColors.graphiteLight,     // #303236
+                        AppColors.graphiteSubstrate, // #2B2D30
+                        AppColors.graphiteMid,       // #292B2E
+                        AppColors.graphiteDeep,      // #26282B
                       ],
-                      stops: [0.0, 0.3, 0.7, 1.0],
+                      stops: [0.0, 0.35, 0.70, 1.0],
                     ),
                   ),
                 ),
 
-          // 2. Ambient Studio Spotlight Glow
+          // 2. Single Top-Left Studio Softbox Illumination
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                center: const Alignment(0, -0.35),
-                radius: 1.25,
+                center: const Alignment(-0.6, -0.7),
+                radius: 1.6,
                 colors: [
-                  Colors.white.withValues(alpha: 0.04),
+                  Colors.white.withValues(alpha: 0.035),
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.45),
+                  Colors.black.withValues(alpha: 0.18),
                 ],
                 stops: const [0.0, 0.55, 1.0],
               ),
             ),
           ),
 
-          // 3. Subtle edge hairline highlight
+          // 3. Subtle Substrate Edge Catchlight (1px)
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: 1.5,
+            height: 1.0,
             child: Container(
-              color: AppColors.chassisBevelLight.withValues(alpha: 0.4),
+              color: Colors.white.withValues(alpha: 0.04),
             ),
           ),
 
-          // 4. Main content
+          // 4. Main content (Zero layout modification)
           body,
         ],
       ),

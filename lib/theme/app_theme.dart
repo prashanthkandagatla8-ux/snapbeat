@@ -7,66 +7,66 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.canvasChassis,
-      primaryColor: AppColors.brassGold,
+      scaffoldBackgroundColor: AppColors.graphiteSubstrate,
+      primaryColor: AppColors.indicatorAccent,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.brassGold,
-        secondary: AppColors.brassHighlight,
-        surface: AppColors.panelCream,
-        onPrimary: AppColors.hardwareGunmetal,
-        onSecondary: AppColors.hardwareGunmetal,
-        onSurface: AppColors.textEngraved,
+        primary: AppColors.indicatorAccent,
+        secondary: AppColors.indicatorAccentLight,
+        surface: AppColors.graphiteMid,
+        onPrimary: AppColors.textPrimary,
+        onSecondary: AppColors.textPrimary,
+        onSurface: AppColors.textPrimary,
       ),
-      cardColor: AppColors.panelCream,
+      cardColor: AppColors.graphiteMid,
       cardTheme: CardThemeData(
-        color: AppColors.panelCream,
+        color: AppColors.graphiteMid,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.chassisBevelLight, width: 1.2),
+          side: const BorderSide(color: Color(0x0AFFFFFF), width: 1.0),
         ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.hardwareGunmetal;
-          return AppColors.textMuted;
+          if (states.contains(WidgetState.selected)) return AppColors.textPrimary;
+          return AppColors.textTertiary;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.brassGold;
-          return AppColors.panelInset;
+          if (states.contains(WidgetState.selected)) return AppColors.indicatorAccent;
+          return AppColors.graphiteRecess;
         }),
       ),
-      dividerColor: AppColors.chassisBevelLight,
+      dividerColor: AppColors.graphiteDeep,
       textTheme: TextTheme(
-        headlineLarge: GoogleFonts.montserrat(
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          color: AppColors.textEngraved,
-          letterSpacing: 0.6,
-        ),
-        headlineMedium: GoogleFonts.montserrat(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textEngraved,
-          letterSpacing: 0.4,
-        ),
-        titleMedium: GoogleFonts.montserrat(
-          fontSize: 14,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textEngraved,
-          letterSpacing: 0.5,
-        ),
-        bodyMedium: GoogleFonts.montserrat(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
-          height: 1.35,
-        ),
-        labelSmall: GoogleFonts.montserrat(
-          fontSize: 10,
+        headlineLarge: GoogleFonts.inter(
+          fontSize: 24,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.9,
-          color: AppColors.textMuted,
+          color: AppColors.textPrimary,
+          letterSpacing: -0.5,
+        ),
+        headlineMedium: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+          letterSpacing: -0.3,
+        ),
+        titleMedium: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+          letterSpacing: -0.1,
+        ),
+        bodyMedium: GoogleFonts.inter(
+          fontSize: 13,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textSecondary,
+          height: 1.4,
+        ),
+        labelSmall: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.8,
+          color: AppColors.textTertiary,
         ),
       ),
     );

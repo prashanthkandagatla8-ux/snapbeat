@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
-import 'snapbeat_pink_dot.dart';
 
 class MasterActionDeck extends StatelessWidget {
   final String currentMode; // 'music', 'photos', 'render', 'queue'
@@ -25,15 +24,15 @@ class MasterActionDeck extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF121418),
+        color: AppColors.graphiteSubstrate,
         border: const Border(
-          top: BorderSide(color: AppColors.chassisBevelLight, width: 1.5),
+          top: BorderSide(color: Color(0x0AFFFFFF), width: 1.0),
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.75),
-            offset: const Offset(0, -6),
-            blurRadius: 18,
+            color: Color(0x75000000),
+            offset: Offset(0, -4),
+            blurRadius: 16,
           ),
         ],
       ),
@@ -45,20 +44,13 @@ class MasterActionDeck extends StatelessWidget {
             height: 48,
             padding: const EdgeInsets.all(4.0),
             decoration: BoxDecoration(
-              color: const Color(0xFF0C0E12),
+              color: AppColors.graphiteRecess,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppColors.chassisBevelLight.withValues(alpha: 0.8),
-                width: 1.2,
+                color: const Color(0x08FFFFFF),
+                width: 1.0,
               ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black45,
-                  offset: Offset(0, 2),
-                  blurRadius: 6,
-                  spreadRadius: -1,
-                ),
-              ],
+              boxShadow: AppColors.innerRecess,
             ),
             child: Row(
               children: [
@@ -126,41 +118,37 @@ class MasterActionDeck extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              gradient: isSelected
-                  ? const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF8B5CF6),
-                        Color(0xFF6D28D9),
-                      ],
-                    )
-                  : null,
+              gradient: isSelected ? AppColors.ctaButtonGradient : null,
               border: isSelected
-                  ? Border.all(color: const Color(0xFFA78BFA), width: 1.0)
+                  ? Border.all(color: const Color(0x1AFFFFFF), width: 1.0)
                   : null,
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
-                        offset: const Offset(0, 3),
-                        blurRadius: 10,
-                        spreadRadius: 0.5,
-                      ),
-                    ]
-                  : null,
+              boxShadow: isSelected ? AppColors.contactSubtle : null,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (isSelected) ...[
-                  const SnapBeatPinkDot(size: 7, withGlow: true),
-                  const SizedBox(width: 3),
+                  Container(
+                    width: 4,
+                    height: 4,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.indicatorAccent,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.indicatorGlow,
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 4),
                 ],
                 Icon(
                   isEnabled ? icon : Icons.lock_outline_rounded,
                   size: 13,
-                  color: isSelected ? Colors.white : const Color(0xFF717682),
+                  color: isSelected ? AppColors.textPrimary : AppColors.textTertiary,
                 ),
                 const SizedBox(width: 4),
                 Flexible(
@@ -170,11 +158,11 @@ class MasterActionDeck extends StatelessWidget {
                       label,
                       maxLines: 1,
                       style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.4,
-                        color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                        fontFamily: 'Inter',
+                        fontSize: 10,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        letterSpacing: 0.5,
+                        color: isSelected ? AppColors.textPrimary : AppColors.textTertiary,
                       ),
                     ),
                   ),
@@ -184,16 +172,16 @@ class MasterActionDeck extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : const Color(0xFFFF3366),
+                      color: isSelected ? AppColors.indicatorAccent : AppColors.graphiteDeep,
                       borderRadius: BorderRadius.circular(7),
                     ),
                     child: Text(
                       '$badgeCount',
                       style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.w900,
-                        color: isSelected ? const Color(0xFFFFE082) : Colors.white,
+                        fontFamily: 'Inter',
+                        fontSize: 8,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? AppColors.graphiteSubstrate : AppColors.textPrimary,
                       ),
                     ),
                   ),
