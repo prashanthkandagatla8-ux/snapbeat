@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
-/// SNAPBEAT STUDIO – GRAPHITE NEO v3.0 Hardware Panel
-/// Precision graphite console panel with contact-subtle elevation and optical bevel.
+/// SNAPBEAT STUDIO – FLOATING HIGH-GLOSS SHINY PIANO BLACK HARDWARE CONSOLE PANEL
+/// Neumorphic luxury panel:
+/// - 3D extruded beveled liquid lacquer (#07080A -> #030405 -> #000000)
+/// - 0.5px liquid gloss specular rim chamfer (AppColors.specularRim)
+/// - Dual-shadow neumorphic lighting: top-left specularHighlight + bottom-right ambientShadow
+/// Reference: watermark_clean.png
 class RetroMetalPanel extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? margin;
@@ -16,82 +20,69 @@ class RetroMetalPanel extends StatelessWidget {
     required this.child,
     this.margin,
     this.padding,
-    this.borderRadius = 18.0,
-    this.showRedRivet = true,
+    this.borderRadius = 20.0,
+    this.showRedRivet = false,
     this.header,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: margin ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: AppColors.contactSubtle,
+        boxShadow: const [
+          // Neumorphic dual-shadow: top-left specular highlight + bottom-right ambient shadow
+          BoxShadow(
+            color: AppColors.specularHighlight,
+            offset: Offset(-2, -2),
+            blurRadius: 6,
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: AppColors.ambientShadow,
+            offset: Offset(3, 6),
+            blurRadius: 14,
+            spreadRadius: 1,
+          ),
+        ],
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // 1. Graphite Neo Panel Surface
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: const Color(0x0AFFFFFF), // Subtle 1px edge catchlight
-                width: 1.0,
-              ),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.graphiteLight,     // #303236
-                  AppColors.graphiteSubstrate, // #2B2D30
-                  AppColors.graphiteMid,       // #292B2E
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(borderRadius),
+          // 0.5px liquid gloss specular rim chamfer
+          border: Border.all(
+            color: AppColors.specularRim,
+            width: 0.5,
+          ),
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF07080A), // 3D Extruded beveled liquid lacquer
+              Color(0xFF030405),
+              Color(0xFF000000),
+            ],
+            stops: [0.0, 0.4, 1.0],
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius - 1.0),
+          child: Container(
+            padding: padding ?? const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (header != null) ...[
+                  header!,
+                  const SizedBox(height: 12),
                 ],
-                stops: [0.0, 0.20, 1.0],
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(borderRadius - 1),
-              child: Padding(
-                padding: padding ?? const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (header != null) ...[
-                      header!,
-                      const SizedBox(height: 10),
-                    ],
-                    child,
-                  ],
-                ),
-              ),
+                child,
+              ],
             ),
           ),
-
-          // 2. Hardware Indicator LED (Top-Right Restrained Status Dot)
-          if (showRedRivet)
-            Positioned(
-              top: 6,
-              right: 12,
-              child: Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.indicatorAccent,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.indicatorAccent.withValues(alpha: 0.6),
-                      blurRadius: 4,
-                      spreadRadius: 0.5,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }

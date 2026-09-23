@@ -86,101 +86,104 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
   Widget build(BuildContext context) {
     final tracks = SoundTrack.builtInLibrary;
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.78,
-      decoration: BoxDecoration(
-        color: AppColors.canvasChassis,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-        border: Border.all(color: AppColors.chassisBevelLight, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 25,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Drag handle
-          Container(
-            margin: const EdgeInsets.only(top: 10, bottom: 6),
-            width: 44,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.textMuted,
-              borderRadius: BorderRadius.circular(2),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.78,
+        decoration: BoxDecoration(
+          color: AppColors.ceramicWhite,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 25,
+              offset: const Offset(0, -6),
+              spreadRadius: 2,
             ),
-          ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFCBD5E1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
 
-          // Header Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.panelInset,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'LIBRARY',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.0,
-                              color: AppColors.textSecondary,
+            // Header Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.pianoBlack,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'LIBRARY',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
+                                color: AppColors.amberGold,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Music Library',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textEngraved,
+                          const SizedBox(width: 8),
+                          Text(
+                            'Music Library',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textInkBlack,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Tap to preview, then select a track',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textMuted,
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.panelCreamDark,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.chassisBevelDark),
-                    ),
-                    child: const Icon(Icons.close_rounded, size: 16, color: AppColors.textEngraved),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Tap to preview, then select a track',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textInkSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Icon(Icons.close_rounded, size: 16, color: AppColors.textInkBlack),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          const Divider(height: 1, color: AppColors.chassisBevelDark),
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
           // Track List
           Expanded(
@@ -200,17 +203,17 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.panelCream,
-                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? AppColors.brassGold : AppColors.chassisBevelLight,
+                      color: isSelected ? AppColors.indicatorAccent : const Color(0xFFE2E8F0),
                       width: isSelected ? 1.8 : 1.0,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        offset: const Offset(1, 2),
-                        blurRadius: 4,
+                        color: Colors.black.withValues(alpha: 0.04),
+                        offset: const Offset(0, 2),
+                        blurRadius: 6,
                       ),
                     ],
                   ),
@@ -229,14 +232,16 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                               height: 44,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.amberJewel,
+                                color: AppColors.pianoBlack,
                                 border: Border.all(
-                                  color: AppColors.amberGlow,
+                                  color: isCurrentPreview
+                                      ? AppColors.indicatorAccent
+                                      : const Color(0x35FFFFFF),
                                   width: 1.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.25),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     blurRadius: 4,
                                     spreadRadius: 0,
                                   ),
@@ -244,7 +249,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                               ),
                               child: Icon(
                                 isCurrentPreview ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                color: Colors.white,
+                                color: isCurrentPreview ? AppColors.indicatorAccent : Colors.white,
                                 size: 24,
                               ),
                             ),
@@ -262,12 +267,11 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                     Expanded(
                                       child: Text(
                                         track.title,
-                                        style: const TextStyle(
-                                          fontFamily: 'Montserrat',
+                                        style: GoogleFonts.montserrat(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w800,
                                           letterSpacing: 0.3,
-                                          color: AppColors.textEngraved,
+                                          color: AppColors.textInkBlack,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -281,9 +285,9 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                       decoration: BoxDecoration(
-                                        color: AppColors.panelInset,
+                                        color: const Color(0xFFF1F5F9),
                                         borderRadius: BorderRadius.circular(3),
-                                        border: Border.all(color: AppColors.chassisBevelDark),
+                                        border: Border.all(color: const Color(0xFFE2E8F0)),
                                       ),
                                       child: Text(
                                         track.genre.toUpperCase(),
@@ -291,7 +295,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                           fontFamily: 'Montserrat',
                                           fontSize: 8,
                                           fontWeight: FontWeight.w800,
-                                          color: AppColors.textSecondary,
+                                          color: AppColors.textInkSecondary,
                                         ),
                                       ),
                                     ),
@@ -302,7 +306,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                         fontFamily: 'Courier',
                                         fontSize: 9.5,
                                         fontWeight: FontWeight.w700,
-                                        color: AppColors.textSecondary,
+                                        color: AppColors.textInkSecondary,
                                       ),
                                     ),
                                   ],
@@ -323,22 +327,23 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                               decoration: BoxDecoration(
-                                gradient: isSelected ? null : AppColors.brassKnobGradient,
-                                color: isSelected ? AppColors.vuGreen.withValues(alpha: 0.15) : null,
+                                color: isSelected
+                                    ? AppColors.indicatorAccent
+                                    : AppColors.pianoBlack,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: isSelected ? AppColors.vuGreen : AppColors.brassDark,
+                                  color: isSelected
+                                      ? AppColors.indicatorAccent
+                                      : const Color(0x35FFFFFF),
                                   width: 1.2,
                                 ),
-                                boxShadow: isSelected
-                                    ? []
-                                    : [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.2),
-                                          offset: const Offset(1, 2),
-                                          blurRadius: 3,
-                                        ),
-                                      ],
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 3,
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -350,7 +355,9 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 0.8,
-                                      color: isSelected ? AppColors.vuGreen : AppColors.hardwareGunmetal,
+                                      color: isSelected
+                                          ? const Color(0xFF0C0E13)
+                                          : Colors.white,
                                     ),
                                   ),
                                 ],
@@ -369,7 +376,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                             fontFamily: 'Montserrat',
                             fontSize: 9.5,
                             fontStyle: FontStyle.italic,
-                            color: AppColors.textMuted,
+                            color: AppColors.textInkSecondary,
                           ),
                         ),
                       ),
@@ -381,6 +388,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

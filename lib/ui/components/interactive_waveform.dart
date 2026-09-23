@@ -72,7 +72,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
     if (endMax <= endMin) endMax = endMin + 0.1; // Ensure max > min
 
     return RetroMetalPanel(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,15 +86,19 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
-                      gradient: AppColors.brassKnobGradient,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2B2F3D), Color(0xFF14161E)],
+                      ),
                       borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0x35FFFFFF), width: 1.0),
                     ),
                     child: const Text(
                       'TRIM',
                       style: TextStyle(
+                        fontFamily: 'Montserrat',
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.hardwareGunmetal,
+                        color: AppColors.amberGold,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -107,7 +111,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.2,
-                      color: AppColors.textSecondary,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -118,24 +122,24 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                   fontFamily: 'Courier',
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.textFoilGold,
+                  color: AppColors.amberGold,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
 
-          // Recessed Waveform Display
+          // Recessed Waveform Display (Piano Black cavity)
           Container(
             height: 64,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.panelInset,
+              color: const Color(0xFF08090C),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.chassisBevelDark, width: 1.2),
+              border: Border.all(color: const Color(0x20FFFFFF), width: 1.0),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
+                  color: Colors.black.withValues(alpha: 0.5),
                   offset: const Offset(0, 2),
                   blurRadius: 4,
                   spreadRadius: 1,
@@ -169,15 +173,20 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                   children: [
                     Text(
                       'START: ${widget.startSeconds.toStringAsFixed(1)}s',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xB3FFFFFF),
+                      ),
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: AppColors.amberJewel,
-                        inactiveTrackColor: AppColors.panelInset,
-                        thumbColor: AppColors.amberJewel,
+                        activeTrackColor: AppColors.amberGold,
+                        inactiveTrackColor: const Color(0xFF1E212B),
+                        thumbColor: Colors.white,
                         trackHeight: 3,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                       ),
                       child: Slider(
                         value: widget.startSeconds.clamp(0.0, startMax),
@@ -199,15 +208,20 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                   children: [
                     Text(
                       'END: ${widget.endSeconds.toStringAsFixed(1)}s',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xB3FFFFFF),
+                      ),
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: AppColors.amberJewel,
-                        inactiveTrackColor: AppColors.panelInset,
-                        thumbColor: AppColors.amberJewel,
+                        activeTrackColor: AppColors.amberGold,
+                        inactiveTrackColor: const Color(0xFF1E212B),
+                        thumbColor: Colors.white,
                         trackHeight: 3,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                       ),
                       child: Slider(
                         value: widget.endSeconds.clamp(endMin, endMax),
@@ -250,12 +264,12 @@ class _RetroWaveformPainter extends CustomPainter {
     final spacing = barWidth * 0.6;
 
     final unselectedPaint = Paint()
-      ..color = const Color(0xFF4A443A)
+      ..color = const Color(0x35FFFFFF)
       ..strokeCap = StrokeCap.round
       ..strokeWidth = barWidth;
 
     final activePaint = Paint()
-      ..color = AppColors.amberJewel
+      ..color = const Color(0xFFFFFFFF)
       ..strokeCap = StrokeCap.round
       ..strokeWidth = barWidth;
 

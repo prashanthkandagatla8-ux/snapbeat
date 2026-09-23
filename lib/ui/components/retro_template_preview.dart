@@ -259,7 +259,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
           decoration: BoxDecoration(
             color: const Color(0xFF071318),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.5), width: 1.5),
+            border: Border.all(color: const Color(0x20FFFFFF), width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.6),
@@ -283,7 +283,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4), width: 0.8),
+                        border: Border.all(color: const Color(0x25FFFFFF), width: 0.8),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -303,7 +303,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                               fontFamily: 'Montserrat',
                               fontSize: 8,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.brassGold,
+                              color: Colors.white,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -463,7 +463,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                         children: [
                           Row(
                             children: [
-                              Icon(activeTemplate.icon, size: 13, color: AppColors.brassGold),
+                              Icon(activeTemplate.icon, size: 13, color: Colors.white),
                               const SizedBox(width: 5),
                               Text(
                                 activeTemplate.name,
@@ -478,15 +478,16 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                   decoration: BoxDecoration(
-                                    color: AppColors.brassGold,
+                                    color: const Color(0xFF07080A),
                                     borderRadius: BorderRadius.circular(3),
+                                    border: Border.all(color: const Color(0x30FFFFFF), width: 0.8),
                                   ),
                                   child: const Text(
                                     'PRO',
                                     style: TextStyle(
                                       fontSize: 7.5,
                                       fontWeight: FontWeight.w900,
-                                      color: Colors.black,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
@@ -512,21 +513,33 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.2),
+                          color: const Color(0xFF07080A),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.greenAccent, width: 1),
+                          border: Border.all(color: const Color(0x30FFFFFF), width: 1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              blurRadius: 1,
+                              offset: const Offset(0, -1),
+                            ),
+                          ],
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_rounded, size: 11, color: Colors.greenAccent),
+                            Icon(Icons.check_rounded, size: 11, color: Colors.white),
                             SizedBox(width: 3),
                             Text(
                               'ACTIVE',
                               style: TextStyle(
                                 fontSize: 8.5,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.greenAccent,
+                                color: Colors.white,
                               ),
                             ),
                           ],
@@ -539,10 +552,20 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppColors.brassGold,
+                            color: const Color(0xFF07080A),
                             borderRadius: BorderRadius.circular(8),
-                            boxShadow: const [
-                              BoxShadow(color: AppColors.amberGlow, blurRadius: 4),
+                            border: Border.all(color: const Color(0x30FFFFFF), width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.08),
+                                blurRadius: 1,
+                                offset: const Offset(0, -1),
+                              ),
                             ],
                           ),
                           child: const Text(
@@ -550,7 +573,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.hardwareGunmetal,
+                              color: Colors.white,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -627,18 +650,27 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
                     color: isPreviewed
-                        ? AppColors.brassGold
-                        : (isCommitted ? AppColors.brassGold.withValues(alpha: 0.3) : AppColors.panelInset),
+                        ? const Color(0xFF07080A)
+                        : (isCommitted ? const Color(0xFF15181E) : AppColors.panelInset),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isPreviewed
-                          ? AppColors.brassGold
-                          : (isCommitted ? AppColors.borderBrass : AppColors.chassisBevelLight),
-                      width: isPreviewed ? 1.5 : 1.0,
+                          ? const Color(0x30FFFFFF)
+                          : (isCommitted ? const Color(0x20FFFFFF) : AppColors.chassisBevelLight),
+                      width: 1.0,
                     ),
                     boxShadow: isPreviewed
-                        ? const [
-                            BoxShadow(color: AppColors.amberGlow, blurRadius: 4, spreadRadius: 1),
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              blurRadius: 1,
+                              offset: const Offset(0, -1),
+                            ),
                           ]
                         : null,
                   ),
@@ -648,7 +680,9 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                       Icon(
                         t.icon,
                         size: 11,
-                        color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.brassGold,
+                        color: isPreviewed
+                            ? Colors.white
+                            : (isCommitted ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -657,7 +691,9 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                           fontSize: 9,
                           fontWeight: isPreviewed ? FontWeight.w900 : FontWeight.w700,
                           letterSpacing: 0.4,
-                          color: isPreviewed ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+                          color: isPreviewed
+                              ? Colors.white
+                              : (isCommitted ? const Color(0xFFCBD5E1) : AppColors.textSecondary),
                         ),
                       ),
                       if (isCommitted) ...[
@@ -689,17 +725,22 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.brassGold : Colors.transparent,
+          color: isSelected ? const Color(0xFF07080A) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: isSelected
-              ? Border.all(color: AppColors.borderBrass, width: 1.2)
+              ? Border.all(color: const Color(0x30FFFFFF), width: 1.0)
               : null,
           boxShadow: isSelected
-              ? const [
+              ? [
                   BoxShadow(
-                    color: AppColors.amberGlow,
+                    color: Colors.black.withValues(alpha: 0.6),
                     blurRadius: 6,
-                    offset: Offset(0, 1),
+                    offset: const Offset(0, 3),
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    blurRadius: 1,
+                    offset: const Offset(0, -1),
                   ),
                 ]
               : null,
@@ -710,7 +751,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
             Icon(
               icon,
               size: 15,
-              color: isSelected ? AppColors.hardwareGunmetal : AppColors.textSecondary,
+              color: isSelected ? Colors.white : AppColors.textSecondary,
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -725,7 +766,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                       fontSize: 9.5,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.6,
-                      color: isSelected ? AppColors.hardwareGunmetal : AppColors.textEngraved,
+                      color: isSelected ? Colors.white : AppColors.textEngraved,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -736,7 +777,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                       fontSize: 8,
                       fontWeight: FontWeight.w600,
                       color: isSelected
-                          ? AppColors.hardwareGunmetal.withValues(alpha: 0.8)
+                          ? const Color(0xB3FFFFFF)
                           : AppColors.textMuted,
                     ),
                     maxLines: 1,

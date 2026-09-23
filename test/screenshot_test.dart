@@ -12,6 +12,7 @@ import 'package:snapbeat_flutter/ui/components/metal_chassis_scaffold.dart';
 import 'package:snapbeat_flutter/ui/components/retro_mechanical_button.dart';
 import 'package:snapbeat_flutter/ui/components/snaps_reorder_strip.dart';
 import 'package:snapbeat_flutter/ui/components/retro_subscription_dialog.dart';
+import 'package:snapbeat_flutter/ui/components/sound_library_dialog.dart';
 import 'package:snapbeat_flutter/ui/screens/home_screen.dart';
 
 Future<void> loadFont(String family, String path) async {
@@ -23,17 +24,19 @@ Future<void> loadFont(String family, String path) async {
   await fontLoader.load();
 }
 
-Future<void> capturePng(GlobalKey key, String filename) async {
-  final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-  final image = await boundary.toImage(pixelRatio: 2.625);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  if (byteData != null) {
-    final file = File('store_assets/screenshots/$filename');
-    file.parent.createSync(recursive: true);
-    file.writeAsBytesSync(byteData.buffer.asUint8List());
-    // ignore: avoid_print
-    print('SAVED_SCREENSHOT: $filename');
-  }
+Future<void> capturePng(WidgetTester tester, GlobalKey key, String filename) async {
+  await tester.runAsync(() async {
+    final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final image = await boundary.toImage(pixelRatio: 2.625);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData != null) {
+      final file = File('store_assets/screenshots/$filename');
+      file.parent.createSync(recursive: true);
+      file.writeAsBytesSync(byteData.buffer.asUint8List());
+      // ignore: avoid_print
+      print('SAVED_SCREENSHOT: $filename');
+    }
+  });
 }
 
 ThemeData get testTheme => ThemeData(
@@ -97,7 +100,7 @@ Future<void> preloadAllAssets(WidgetTester tester) async {
 
     // 3. Logo
     if (HomeScreen.logoUiImage == null) {
-      final file = File(r'C:\MyProjects\snapbeat_flutter\assets\images\snapbeat_studio_logo.png');
+      final file = File(r'C:\MyProjects\snapbeat_flutter\assets\images\snapbeat_app_icon.png');
       if (file.existsSync()) {
         final bytes = file.readAsBytesSync();
         final codec = await ui.instantiateImageCodec(bytes);
@@ -123,7 +126,7 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Mock audioplayers channels
+    // Mock channels
     final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     const channels = [
       'xyz.luan/audioplayers',
@@ -131,11 +134,16 @@ void main() {
       'xyz.luan/audioplayers/events',
       'xyz.luan/audioplayers.global/events',
       'plugins.flutter.io/google_mobile_ads',
+      'plugins.flutter.io/path_provider',
+      'plugins.flutter.io/path_provider_macos',
     ];
     for (final ch in channels) {
       messenger.setMockMethodCallHandler(MethodChannel(ch), (call) async {
         if (ch == 'plugins.flutter.io/google_mobile_ads') {
-          return <dynamic, dynamic>{};
+          return null;
+        }
+        if (ch.contains('path_provider')) {
+          return r'C:\MyProjects\snapbeat_flutter\_data';
         }
         return 1;
       });
@@ -176,6 +184,28 @@ void main() {
     ]) {
       await loadFont(variant, segoeBoldPath);
     }
+    await loadFont('Inter', segoePath);
+    await loadFont('Inter-Regular', segoePath);
+    await loadFont('Inter-Bold', segoeBoldPath);
+    await loadFont('Inter-Medium', segoePath);
+    await loadFont('Inter-SemiBold', segoeBoldPath);
+    for (final variant in [
+      'Inter_regular',
+      'Inter_medium',
+      'Inter_semiBold',
+      'Inter_bold',
+      'Inter_extraBold',
+      'Inter_black',
+      'Inter_300',
+      'Inter_400',
+      'Inter_500',
+      'Inter_600',
+      'Inter_700',
+      'Inter_800',
+      'Inter_900',
+    ]) {
+      await loadFont(variant, segoeBoldPath);
+    }
     await loadFont('Courier', courPath);
     await loadFont('Courier New', courPath);
     await loadFont('Courier_bold', courBoldPath);
@@ -193,7 +223,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('screen_01_music_deck', (WidgetTester tester) async {
+  testWidgets('generate_all_ui_screenshots', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1440, 3120);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
@@ -201,6 +231,7 @@ void main() {
     await preloadAllAssets(tester);
 
     final key = GlobalKey();
+    // 1. Music Deck
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -215,124 +246,34 @@ void main() {
         ),
       ),
     );
-
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    await capturePng(tester, key, '01_music_deck.png');
 
-    await capturePng(key, '01_music_deck.png');
-    await tester.pumpWidget(const SizedBox());
-    tester.takeException();
-  });
-
-  testWidgets('screen_02_photos_stage', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1440, 3120);
-    tester.view.devicePixelRatio = 3.0;
-    addTearDown(tester.view.reset);
-
-    await preloadAllAssets(tester);
-
-    final key = GlobalKey();
-    await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: testTheme,
-        home: RepaintBoundary(
-          key: key,
-          child: HomeScreen(
-            initialTab: "photos",
-            initialMusic: dummyMusicFile,
-            initialMusicTitle: "Funk Smooth Party (124 BPM)",
-            initialPhotos: getSamplePhotos(),
-          ),
-        ),
-      ),
-    );
-
+    // 2. Photos Stage
+    final homeState = tester.state<HomeScreenState>(find.byType(HomeScreen));
+    homeState.setScreenshotState(currentTab: "photos", photos: getSamplePhotos());
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    await capturePng(tester, key, '02_photos_stage.png');
 
-    await capturePng(key, '02_photos_stage.png');
-    await tester.pumpWidget(const SizedBox());
-    tester.takeException();
-  });
-
-  testWidgets('screen_03_render_auto', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1440, 3120);
-    tester.view.devicePixelRatio = 3.0;
-    addTearDown(tester.view.reset);
-
-    await preloadAllAssets(tester);
-
-    final key = GlobalKey();
-    await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: testTheme,
-        home: RepaintBoundary(
-          key: key,
-          child: HomeScreen(
-            initialTab: "render",
-            initialRenderMode: "auto",
-            initialMusic: dummyMusicFile,
-            initialMusicTitle: "Funk Smooth Party (124 BPM)",
-            initialPhotos: getSamplePhotos(),
-          ),
-        ),
-      ),
-    );
-
+    // 3. Title Stage (Dedicated stage with ON/OFF switch & Live Typography Preview)
+    homeState.setScreenshotState(currentTab: "title", isTitleCardEnabled: true);
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    await capturePng(tester, key, '03_title_stage.png');
 
-    await capturePng(key, '03_render_auto.png');
-    await tester.pumpWidget(const SizedBox());
-    tester.takeException();
-  });
-
-  testWidgets('screen_04_render_pro', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1440, 3120);
-    tester.view.devicePixelRatio = 3.0;
-    addTearDown(tester.view.reset);
-
-    await preloadAllAssets(tester);
-
-    final key = GlobalKey();
-    await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: testTheme,
-        home: RepaintBoundary(
-          key: key,
-          child: HomeScreen(
-            initialTab: "render",
-            initialRenderMode: "pro",
-            initialMusic: dummyMusicFile,
-            initialMusicTitle: "Funk Smooth Party (124 BPM)",
-            initialPhotos: getSamplePhotos(),
-          ),
-        ),
-      ),
-    );
-
+    // 4. Render Manual / Pro Stage (Available when MANUAL mode is toggled)
+    homeState.setScreenshotState(currentTab: "render", isManualMode: true, renderMode: "pro");
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    await capturePng(tester, key, '04_render_pro.png');
 
-    await capturePng(key, '04_render_pro.png');
-    await tester.pumpWidget(const SizedBox());
-    tester.takeException();
-  });
-
-  testWidgets('screen_05_queue_vault', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1440, 3120);
-    tester.view.devicePixelRatio = 3.0;
-    addTearDown(tester.view.reset);
-
-    await preloadAllAssets(tester);
-
+    // 5. Queue Vault
     final qm = QueueManager.instance;
     await qm.addJob(QueueJobItem(
       id: "rec_job_01",
@@ -352,44 +293,20 @@ void main() {
       quality: "1080p (9:16)",
       progress: 0.68,
     ));
-
-    final key = GlobalKey();
-    await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: testTheme,
-        home: RepaintBoundary(
-          key: key,
-          child: const HomeScreen(
-            initialTab: "queue",
-          ),
-        ),
-      ),
-    );
-
+    homeState.setScreenshotState(currentTab: "queue");
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    await capturePng(tester, key, '05_queue_vault.png');
 
-    await capturePng(key, '05_queue_vault.png');
-    await tester.pumpWidget(const SizedBox());
-    tester.takeException();
-  });
-
-  testWidgets('screen_06_subscription_review', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1440, 3120);
-    tester.view.devicePixelRatio = 3.0;
-    addTearDown(tester.view.reset);
-
-    await preloadAllAssets(tester);
-
-    final key = GlobalKey();
+    // 6. Subscription Paywall Dialog
+    final paywallKey = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: testTheme,
         home: RepaintBoundary(
-          key: key,
+          key: paywallKey,
           child: Stack(
             children: [
               HomeScreen(
@@ -416,14 +333,49 @@ void main() {
         ),
       ),
     );
-
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    await capturePng(tester, paywallKey, '06_subscription_review.png');
 
-    await capturePng(key, '06_subscription_review.png');
-    await tester.pumpWidget(Container());
-    tester.takeException();
-    
+    // 7. Sound Library Dialog (High-Contrast Buttons)
+    final soundKey = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: testTheme,
+        home: RepaintBoundary(
+          key: soundKey,
+          child: Stack(
+            children: [
+              HomeScreen(
+                initialTab: "music",
+                initialMusic: dummyMusicFile,
+                initialMusicTitle: "Funk Smooth Party (124 BPM)",
+              ),
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.65),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                right: 16,
+                top: 80,
+                bottom: 80,
+                child: SoundLibraryDialog(
+                  currentTrackTitle: "Funk Smooth Party",
+                  onSelectTrack: (_) {},
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await capturePng(tester, soundKey, '07_sound_library_contrast.png');
   });
 }

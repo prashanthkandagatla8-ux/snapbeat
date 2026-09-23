@@ -103,24 +103,7 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: widget.isPlaying ? AppColors.vuGreen : AppColors.amberJewel,
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.isPlaying
-                                ? AppColors.vuGreen.withValues(alpha: 0.6)
-                                : AppColors.amberJewel.withValues(alpha: 0.5),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
+
                     const Icon(Icons.music_note_rounded, size: 16, color: AppColors.brassGold),
                     const SizedBox(width: 6),
                     const Flexible(
@@ -147,7 +130,7 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
                       fontFamily: 'monospace',
                       fontWeight: FontWeight.w800,
                       fontSize: 10,
-                      color: Color(0xFFA78BFA),
+                      color: AppColors.amberGold,
                       letterSpacing: 0.8,
                     ),
                   ),
@@ -225,9 +208,9 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
                                       begin: Alignment.bottomCenter,
                                       end: Alignment.topCenter,
                                       colors: [
-                                  Color(0xFF6D28D9),
-                                  Color(0xFF8B5CF6),
-                                  Color(0xFFA78BFA),
+                                  Color(0xFF64748B),
+                                  Color(0xFFCBD5E1),
+                                  Color(0xFFFFFFFF),
                                 ],
                                     )
                                   : null,
@@ -256,9 +239,9 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                    color: AppColors.amberGold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0x668B5CF6)),
+                    border: Border.all(color: AppColors.amberGold.withValues(alpha: 0.35)),
                   ),
                   child: Text(
                     widget.isCustom ? "CUSTOM AUDIO" : "PREMIUM STUDIO AUDIO",
@@ -266,7 +249,7 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
                       fontFamily: 'monospace',
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFFA78BFA),
+                      color: AppColors.amberGold,
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -295,7 +278,7 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
                           : "Beat-Synchronized Audio",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Color(0xFFA78BFA),
+                    color: AppColors.amberGold,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
@@ -503,7 +486,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                  color: AppColors.amberGold.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.borderBrass),
                 ),
@@ -513,7 +496,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                     fontFamily: 'monospace',
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
-                    color: Color(0xFFA78BFA),
+                    color: AppColors.amberGold,
                   ),
                 ),
               ),
@@ -553,7 +536,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                 borderRadius: BorderRadius.circular(16),
                 icon: const Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: Color(0xFFA78BFA),
+                  color: AppColors.amberGold,
                   size: 26,
                 ),
                 selectedItemBuilder: (BuildContext context) {
@@ -563,7 +546,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                         const Icon(
                           Icons.audiotrack_rounded,
                           size: 16,
-                          color: Color(0xFFA78BFA),
+                          color: AppColors.amberGold,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -592,7 +575,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                               fontFamily: 'monospace',
                               fontSize: 9.5,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFFA78BFA),
+                              color: AppColors.amberGold,
                             ),
                           ),
                         ),
@@ -650,7 +633,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                                 fontFamily: 'monospace',
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFFA78BFA),
+                                color: AppColors.amberGold,
                               ),
                             ),
                           ),
@@ -738,7 +721,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                    color: AppColors.amberGold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.borderBrass),
                   ),
@@ -752,7 +735,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                         style: TextStyle(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFFA78BFA),
+                          color: AppColors.amberGold,
                         ),
                       ),
                     ],

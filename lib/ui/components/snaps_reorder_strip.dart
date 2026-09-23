@@ -286,11 +286,15 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   children: [
                     Row(
                       children: [
-                        Image.asset(
-                          'assets/images/snapbeat_mascot.png',
-                          height: 48,
+                        Container(
                           width: 48,
-                          fit: BoxFit.contain,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.graphiteRecess,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0x1AFFFFFF)),
+                          ),
+                          child: const Icon(Icons.music_note_rounded, size: 26, color: AppColors.indicatorAccent),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -367,15 +371,40 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // 1. ARRANGE Group: AUTO & MANUAL
+                        // Quick Actions: Auto Shuffle & Reset
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildGroupLabel('ARRANGE:'),
-                            const SizedBox(width: 4),
-                            _buildOrderingModeChip('auto', 'AUTO', Icons.auto_mode_rounded),
-                            const SizedBox(width: 3),
-                            _buildOrderingModeChip('manual', 'MANUAL', Icons.pan_tool_alt_rounded),
+                            if (widget.onAutoShuffle != null)
+                              InkWell(
+                                onTap: widget.onAutoShuffle,
+                                borderRadius: BorderRadius.circular(5),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.brassGold.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.shuffle_rounded, size: 12, color: AppColors.brassGold),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'SHUFFLE',
+                                        style: TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.brassGold,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                         // 2. VIEW Group: Photo Preview Size Slider
@@ -470,21 +499,21 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: AppColors.vuRed.withValues(alpha: 0.12),
+                                      color: AppColors.amberGold.withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5)),
+                                      border: Border.all(color: AppColors.amberGold.withValues(alpha: 0.5)),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: const [
-                                        Icon(Icons.restart_alt_rounded, size: 10, color: AppColors.vuRed),
+                                        Icon(Icons.restart_alt_rounded, size: 10, color: AppColors.amberGold),
                                         SizedBox(width: 3),
                                         Text(
                                           'CLEAR',
                                           style: TextStyle(
                                             fontSize: 8.5,
                                             fontWeight: FontWeight.w900,
-                                            color: AppColors.vuRed,
+                                            color: AppColors.amberGold,
                                             letterSpacing: 0.3,
                                           ),
                                         ),
@@ -548,11 +577,15 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/images/snapbeat_mascot.png',
-                        height: 38,
-                        width: 38,
-                        fit: BoxFit.contain,
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.graphiteRecess,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0x1AFFFFFF)),
+                        ),
+                        child: const Icon(Icons.add_photo_alternate_outlined, size: 24, color: AppColors.indicatorAccent),
                       ),
                       const SizedBox(height: 6),
                       const Text(
@@ -589,7 +622,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 ),
                 padding: const EdgeInsets.all(6),
                 child: SizedBox(
-                  height: (215 * _thumbnailScale).clamp(170.0, 260.0),
+                  height: (560 * _thumbnailScale).clamp(500.0, 680.0),
                   child: RawScrollbar(
                     controller: _gridScrollController,
                     thumbVisibility: true,
@@ -605,7 +638,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       padding: const EdgeInsets.only(right: 6),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: _isSmallThumbnails ? 3 : 2,
-                        childAspectRatio: _isSmallThumbnails ? 0.80 : 0.86,
+                        childAspectRatio: _isSmallThumbnails ? 0.72 : 0.75,
                         crossAxisSpacing: _isSmallThumbnails ? 6 : 8,
                         mainAxisSpacing: _isSmallThumbnails ? 6 : 8,
                       ),
@@ -667,212 +700,194 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
 
   Widget _buildGridPhotoCard(PhotoItem p, int index, {bool isDragging = false}) {
     final isSmall = _isSmallThumbnails;
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.panelCreamDark,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: widget.arrangementMode == 'manual' ? AppColors.brassGold : AppColors.metalBrushedDark,
-          width: widget.arrangementMode == 'manual' ? 1.6 : 1.2,
+    final angle = isDragging ? 0.0 : ((index % 5 - 2) * 0.012);
+
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDFEFE),
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDragging ? 0.6 : 0.25),
+              offset: const Offset(2, 4),
+              blurRadius: isDragging ? 12 : 8,
+              spreadRadius: isDragging ? 2 : 0,
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDragging ? 0.6 : 0.3),
-            offset: const Offset(1, 2),
-            blurRadius: isDragging ? 6 : 3,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // 35mm Slide Image Window
-          Expanded(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    isSmall ? 4 : 5,
-                    isSmall ? 4 : 5,
-                    isSmall ? 4 : 5,
-                    isSmall ? 2 : 2,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: SnapsReorderStrip.photoImageCache[p.path] != null
+        padding: EdgeInsets.fromLTRB(
+          isSmall ? 3 : 4,
+          isSmall ? 3 : 4,
+          isSmall ? 3 : 4,
+          isSmall ? 4 : 6,
+        ),
+        child: Column(
+          children: [
+            // Glossy photo inset
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    SnapsReorderStrip.photoImageCache[p.path] != null
                         ? RawImage(
                             image: SnapsReorderStrip.photoImageCache[p.path],
-                            width: double.infinity,
-                            height: double.infinity,
                             fit: BoxFit.cover,
                           )
                         : Image.file(
                             File(p.path),
-                            width: double.infinity,
-                            height: double.infinity,
                             fit: BoxFit.cover,
                             cacheWidth: 240,
                             cacheHeight: 300,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: AppColors.panelInset,
+                                color: const Color(0xFFE2E8F0),
                                 alignment: Alignment.center,
-                                child: Icon(Icons.broken_image_rounded, size: isSmall ? 20 : 26, color: AppColors.textMuted),
+                                child: Icon(Icons.broken_image_rounded, size: isSmall ? 20 : 26, color: const Color(0xFF94A3B8)),
                               );
                             },
                           ),
-                  ),
-                ),
-                // Tactile Delete Pin Button (top-right)
-                Positioned(
-                  top: isSmall ? 2 : 4,
-                  right: isSmall ? 2 : 4,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      final removed = SnapsReorderStrip.photoImageCache.remove(p.id) ??
-                          SnapsReorderStrip.photoImageCache.remove(p.path);
-                      removed?.dispose();
-                      widget.onDelete(p.id);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
+                    // Subtle photo gloss reflection
+                    Container(
                       decoration: BoxDecoration(
-                        color: AppColors.vuRed,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Icon(Icons.close_rounded, size: isSmall ? 10 : 12, color: Colors.white),
-                    ),
-                  ),
-                ),
-                // Tactile Duplicate Pin Button (top-left)
-                if (widget.onDuplicate != null)
-                  Positioned(
-                    top: isSmall ? 2 : 4,
-                    left: isSmall ? 2 : 4,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => widget.onDuplicate!(p.id),
-                      child: Container(
-                        padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
-                        decoration: BoxDecoration(
-                          color: AppColors.brassGold,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.12),
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.15),
                           ],
+                          stops: const [0.0, 0.4, 1.0],
                         ),
-                        child: Icon(Icons.copy_rounded, size: isSmall ? 9 : 11, color: const Color(0xFF1E1A10)),
+                      ),
+                    ),
+                    // Tactile Delete Pin Button (top-right) - Dark pill with specular rim
+                    Positioned(
+                      top: isSmall ? 2 : 4,
+                      right: isSmall ? 2 : 4,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          final removed = SnapsReorderStrip.photoImageCache.remove(p.id) ??
+                              SnapsReorderStrip.photoImageCache.remove(p.path);
+                          removed?.dispose();
+                          widget.onDelete(p.id);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F1116),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0x50FFFFFF), width: 0.8),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x60000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Icon(Icons.close_rounded, size: isSmall ? 10 : 12, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    // Tactile Duplicate Pin Button (top-left)
+                    if (widget.onDuplicate != null)
+                      Positioned(
+                        top: isSmall ? 2 : 4,
+                        left: isSmall ? 2 : 4,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => widget.onDuplicate!(p.id),
+                          child: Container(
+                            padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F1116),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0x50FFFFFF), width: 0.8),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x60000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Icon(Icons.copy_rounded, size: isSmall ? 9 : 11, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Polaroid Bottom Chin (Index stamp & tactile nudge arrows)
+            Padding(
+              padding: EdgeInsets.only(top: isSmall ? 3 : 5, bottom: isSmall ? 1 : 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Move Earlier nudge arrow
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: index > 0
+                        ? () {
+                            HapticFeedback.selectionClick();
+                            widget.onReorder(index, index - 1);
+                          }
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Icon(
+                        Icons.arrow_back_ios_rounded,
+                        size: isSmall ? 9 : 11,
+                        color: index > 0 ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
                       ),
                     ),
                   ),
-              ],
-            ),
-          ),
 
-          // 35mm Slide Mount Footer Controls
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isSmall ? 4 : 6,
-              vertical: isSmall ? 2 : 3,
-            ),
-            decoration: const BoxDecoration(
-              color: AppColors.panelInset,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(7)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Move Earlier button
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: index > 0
-                      ? () {
-                          HapticFeedback.selectionClick();
-                          widget.onReorder(index, index - 1);
-                        }
-                      : null,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: isSmall ? 3 : 5, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: index > 0 ? AppColors.panelCreamDark : Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Icon(
-                      Icons.arrow_back_ios_rounded,
-                      size: isSmall ? 9 : 11,
-                      color: index > 0 ? AppColors.textEngraved : AppColors.textMuted.withValues(alpha: 0.25),
-                    ),
-                  ),
-                ),
-
-                // Order Number Badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: isSmall ? 4 : 6, vertical: 1.5),
-                  decoration: BoxDecoration(
-                    gradient: index == 0 ? AppColors.luxGoldGradient : null,
-                    color: index == 0 ? null : AppColors.panelCreamDark,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: index == 0 ? const Color(0xFFFFF6CC) : AppColors.chassisBevelLight),
-                    boxShadow: index == 0
-                        ? [
-                            BoxShadow(
-                              color: AppColors.brassGold.withValues(alpha: 0.35),
-                              blurRadius: 4,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Text(
+                  // Polaroid Chin Index Stamp
+                  Text(
                     index == 0 ? 'COVER' : '#${(index + 1).toString().padLeft(2, '0')}',
                     style: TextStyle(
                       fontFamily: index == 0 ? 'Montserrat' : 'Courier',
-                      fontSize: isSmall ? 8 : 9,
+                      fontSize: isSmall ? 8.5 : 10,
                       fontWeight: FontWeight.w900,
-                      color: index == 0 ? AppColors.hardwareGunmetal : AppColors.textEngraved,
-                      letterSpacing: 0.4,
+                      color: index == 0 ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ),
 
-                // Move Later button
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: index < widget.photos.length - 1
-                      ? () {
-                          HapticFeedback.selectionClick();
-                          widget.onReorder(index, index + 2);
-                        }
-                      : null,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: isSmall ? 3 : 5, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: index < widget.photos.length - 1 ? AppColors.panelCreamDark : Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: isSmall ? 9 : 11,
-                      color: index < widget.photos.length - 1
-                          ? AppColors.textEngraved
-                          : AppColors.textMuted.withValues(alpha: 0.25),
+                  // Move Later nudge arrow
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: index < widget.photos.length - 1
+                        ? () {
+                            HapticFeedback.selectionClick();
+                            widget.onReorder(index, index + 2);
+                          }
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: isSmall ? 9 : 11,
+                        color: index < widget.photos.length - 1
+                            ? const Color(0xFF475569)
+                            : const Color(0xFFCBD5E1),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -893,56 +908,6 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
           fontWeight: FontWeight.w900,
           letterSpacing: 0.6,
           color: AppColors.amberJewel,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderingModeChip(String mode, String label, IconData icon) {
-    final isSel = widget.arrangementMode == mode;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => widget.onArrangementModeChanged(mode),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSel ? AppColors.brassGold : AppColors.metalDeepCavity,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: isSel ? const Color(0xFFBF8A00) : AppColors.chassisBevelDark,
-            width: isSel ? 1.4 : 1.0,
-          ),
-          boxShadow: isSel
-              ? [
-                  BoxShadow(
-                    color: AppColors.amberGlow.withValues(alpha: 0.6),
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 10.5,
-              color: isSel ? AppColors.hardwareGunmetal : AppColors.textMuted,
-            ),
-            const SizedBox(width: 3.5),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontSize: 8.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.4,
-                color: isSel ? AppColors.hardwareGunmetal : AppColors.textMuted,
-              ),
-            ),
-          ],
         ),
       ),
     );

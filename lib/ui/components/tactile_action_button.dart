@@ -95,8 +95,8 @@ class _TactileActionButtonState extends State<TactileActionButton> {
             )
           : AppColors.ctaButtonGradient;
       borderColor = const Color(0x18FFFFFF);
-      textColor = AppColors.textPrimary;
-      iconColor = AppColors.indicatorAccent;
+      textColor = AppColors.textPureWhite;
+      iconColor = Colors.white;
       shadows = _isPressed ? AppColors.contactSubtle : AppColors.contactHero;
     } else if (isDestructive) {
       gradient = const LinearGradient(
@@ -120,7 +120,7 @@ class _TactileActionButtonState extends State<TactileActionButton> {
       );
       borderColor = const Color(0x0DFFFFFF);
       textColor = AppColors.textSecondary;
-      iconColor = AppColors.indicatorAccent;
+      iconColor = Colors.white;
       shadows = AppColors.contactSubtle;
     }
 

@@ -3,7 +3,7 @@ import '../../services/subscription_manager.dart';
 import '../../theme/app_colors.dart';
 import 'retro_subscription_dialog.dart';
 
-/// Compact analog indicator badge showing Pro subscription status.
+/// Graphite Neo v3.0 tactile capsule badge showing Pro subscription status.
 class RetroProBadge extends StatelessWidget {
   final bool showLabel;
   final VoidCallback? onTap;
@@ -28,35 +28,35 @@ class RetroProBadge extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.metalDeepCavity,
+              color: AppColors.pianoLacquer,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isPro ? AppColors.vuGreen : AppColors.brassGold,
-                width: 1.2,
+                color: isPro ? AppColors.vuGreen : AppColors.indicatorAccent.withValues(alpha: 0.5),
+                width: 1.0,
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: (isPro ? AppColors.vuGreen : AppColors.amberJewel).withValues(alpha: 0.35),
-                  blurRadius: 6,
-                  offset: const Offset(0, 1),
+                  color: Color(0x44000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
                 ),
               ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Backlit LED jewel
+                // Backlit LED indicator
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 7,
+                  height: 7,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isPro ? AppColors.vuGreen : AppColors.amberJewel,
+                    color: isPro ? AppColors.vuGreen : AppColors.indicatorAccent,
                     boxShadow: [
                       BoxShadow(
-                        color: (isPro ? AppColors.vuGreen : AppColors.amberJewel).withValues(alpha: 0.8),
+                        color: (isPro ? AppColors.vuGreen : AppColors.indicatorAccent).withValues(alpha: 0.75),
                         blurRadius: 4,
-                        spreadRadius: 1,
+                        spreadRadius: 0.5,
                       ),
                     ],
                   ),
@@ -66,10 +66,11 @@ class RetroProBadge extends StatelessWidget {
                   Text(
                     isPro ? 'PRO ACTIVE' : 'GET PRO',
                     style: TextStyle(
+                      fontFamily: 'Montserrat',
                       fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.0,
-                      color: isPro ? AppColors.vuGreen : AppColors.brassGold,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.1,
+                      color: isPro ? AppColors.vuGreen : AppColors.textPrimary,
                     ),
                   ),
                 ],

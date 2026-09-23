@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_config.dart';
 import '../../services/subscription_manager.dart';
+import '../../theme/app_colors.dart';
+import '../screens/home_screen.dart';
 
 /// Configuration for paywall subscription tier cards.
 class _PaywallCardConfig {
@@ -26,8 +28,10 @@ class _PaywallCardConfig {
   });
 }
 
-/// Production-ready SnapBeat Pro Paywall dialog matching paywall_mockup_new_1789909194554.jpg.
-/// Fully compliant with App Store Guideline 3.1.2 and 100% pure ASCII.
+/// SnapBeat Pro Paywall dialog matching watermark_clean.png aesthetic:
+/// Ceramic White substrate sheet with floating Shiny Piano Black tier cards,
+/// Radiant Amber Gold badges, and authentic watermark squircle emblem.
+/// Zero purple, zero olive, fully unified with Master Console.
 class RetroSubscriptionDialog extends StatefulWidget {
   final String? reason;
   const RetroSubscriptionDialog({super.key, this.reason});
@@ -48,7 +52,7 @@ class RetroSubscriptionDialog extends StatefulWidget {
 
 class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   final SubscriptionManager _sm = SubscriptionManager.instance;
-  ProTier _selectedTier = ProTier.monthly; // Default to 'Best Value' tier as shown in mockup
+  ProTier _selectedTier = ProTier.monthly; // Default to 'Best Value' tier
 
   static const List<_PaywallCardConfig> _cards = [
     _PaywallCardConfig(
@@ -118,13 +122,22 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     }
     final locale = WidgetsBinding.instance.platformDispatcher.locale;
     if (locale.countryCode == 'IN') {
-      return card.tier.fallbackPriceInr;
+      return card.fallbackPrice;
     }
-    return card.tier.fallbackPriceUsd;
+    switch (card.tier) {
+      case ProTier.daily:
+        return '\$0.99';
+      case ProTier.weekly:
+        return '\$1.99';
+      case ProTier.monthly:
+        return '\$4.99';
+      case ProTier.annual:
+        return '\$29.99';
+    }
   }
 
   Future<void> _handleSubscribe() async {
-    HapticFeedback.mediumImpact();
+    HapticFeedback.heavyImpact();
     final product = _sm.products[_selectedTier.productId];
     if (product == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +158,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_sm.statusMessage!),
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: const Color(0xFFE11D48),
         ),
       );
     }
@@ -172,16 +185,18 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     final isPurchasing = _sm.isPurchasing;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0F0F13),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        decoration: const BoxDecoration(
+        color: AppColors.ceramicWhite,
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         border: Border(
-          top: BorderSide(color: Color(0x33FFFFFF), width: 1.2),
+          top: BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black87,
+            color: Color(0x30000000),
             offset: Offset(0, -8),
             blurRadius: 28,
           ),
@@ -205,7 +220,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 width: 38,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.22),
+                  color: const Color(0xFFCBD5E1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -225,11 +240,12 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                       height: 32,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: Colors.black.withValues(alpha: 0.06),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
                       child: const Icon(
                         Icons.close_rounded,
-                        color: Colors.white70,
+                        color: Color(0xFF334155),
                         size: 18,
                       ),
                     ),
@@ -238,29 +254,53 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Official 3D SnapBeat Studio Logo
-                    Image.asset(
-                      'assets/images/snapbeat_studio_logo.png',
-                      height: 52,
-                      fit: BoxFit.contain,
+                    // Authentic Squircle Emblem matching watermark_clean.png
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x30000000),
+                            offset: Offset(0, 4),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: HomeScreen.logoUiImage != null
+                            ? RawImage(
+                                image: HomeScreen.logoUiImage!,
+                                fit: BoxFit.contain,
+                              )
+                            : Image.asset(
+                                'assets/images/snapbeat_app_icon.png',
+                                fit: BoxFit.contain,
+                              ),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFB800),
-                        borderRadius: BorderRadius.circular(5),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1E212B), Color(0xFF0B0D11)],
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0x25FFFFFF), width: 1.0),
                         boxShadow: const [
-                          BoxShadow(color: Colors.black38, offset: Offset(0, 2), blurRadius: 4),
+                          BoxShadow(color: Color(0x20000000), offset: Offset(0, 2), blurRadius: 4),
                         ],
                       ),
                       child: const Text(
                         'STUDIO PRO',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF141518),
+                          color: AppColors.amberGold,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -271,8 +311,8 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFE2E8F0),
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
                         letterSpacing: 0.2,
                       ),
                     ),
@@ -282,18 +322,20 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Informative Notice Banner (e.g. Daily Free Limit Reached)
+            // Informative Notice Banner (if any)
             if (widget.reason != null && widget.reason!.trim().isNotEmpty) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2E2410),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1B1E26), Color(0xFF0F1116)],
+                  ),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFFFB800), width: 1.2),
+                  border: Border.all(color: AppColors.amberGold.withValues(alpha: 0.5), width: 1.0),
                   boxShadow: const [
                     BoxShadow(
-                      color: Colors.black26,
+                      color: Color(0x18000000),
                       offset: Offset(0, 2),
                       blurRadius: 4,
                     ),
@@ -301,14 +343,14 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_rounded, color: Color(0xFFFFB800), size: 20),
+                    const Icon(Icons.info_rounded, color: AppColors.amberGold, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         widget.reason!.trim(),
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
-                          color: Color(0xFFFFE082),
+                          color: Colors.white,
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           height: 1.35,
@@ -326,7 +368,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF141418),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1B1E26), Color(0xFF0F1116)],
+                  ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF10B981), width: 1.5),
                 ),
@@ -344,7 +388,8 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                         children: [
                           Text(
                             'ACTIVE: ${_sm.activeTier?.displayName.toUpperCase() ?? "PRO SUBSCRIBER"}',
-                            style: const TextStyle(fontFamily: 'Montserrat', 
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                               color: Color(0xFF10B981),
@@ -354,7 +399,8 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                           if (_sm.expiresAt != null)
                             Text(
                               'Renews / Expires: ${_sm.expiresAt!.toLocal().toString().split(".")[0]}',
-                              style: const TextStyle(fontFamily: 'Montserrat', 
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
                                 fontSize: 10,
                                 color: Color(0xFF94A3B8),
                               ),
@@ -368,7 +414,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
               const SizedBox(height: 16),
             ],
 
-            // 3 Subscription Cards
+            // 3 Floating Shiny Piano Black Tier Cards
             for (int i = 0; i < _cards.length; i++) ...[
               if (i > 0) const SizedBox(height: 12),
               _buildTierCard(_cards[i]),
@@ -381,17 +427,18 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 child: Text(
                   _sm.statusMessage!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontFamily: 'Montserrat', 
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFFFFB800),
+                    color: AppColors.amberGold,
                   ),
                 ),
               ),
               const SizedBox(height: 12),
             ],
 
-            // Primary Glowing CTA Subscribe Button
+            // Primary Shiny Piano Black CTA Subscribe Button
             _buildSubscribeButton(isPurchasing),
             const SizedBox(height: 16),
 
@@ -404,8 +451,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTierCard(_PaywallCardConfig card) {
     final isSelected = _selectedTier == card.tier;
@@ -421,26 +469,38 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1C1A14) : const Color(0xFF141418),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isSelected
+                ? const [Color(0xFF242835), Color(0xFF101217), Color(0xFF050608)]
+                : const [Color(0xFF1A1C24), Color(0xFF0D0E12), Color(0xFF040507)],
+            stops: const [0.0, 0.45, 1.0],
+          ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFFFFB800) : const Color(0xFF282832),
+            color: isSelected ? AppColors.amberGold : const Color(0x28FFFFFF),
             width: isSelected ? 1.8 : 1.0,
           ),
           boxShadow: isSelected
               ? [
+                  const BoxShadow(
+                    color: Color(0x28000000),
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
+                  ),
                   BoxShadow(
-                    color: const Color(0xFFFFB800).withValues(alpha: 0.3),
-                    blurRadius: 16,
+                    color: AppColors.amberGold.withValues(alpha: 0.25),
+                    blurRadius: 14,
                     spreadRadius: 1,
                     offset: const Offset(0, 2),
                   ),
                 ]
               : const [
                   BoxShadow(
-                    color: Color(0x22000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
+                    color: Color(0x18000000),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
                   ),
                 ],
         ),
@@ -452,14 +512,15 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
               children: [
                 Icon(
                   card.icon,
-                  color: const Color(0xFFFFB800),
+                  color: isSelected ? AppColors.amberGold : const Color(0xFF94A3B8),
                   size: 18,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     card.title,
-                    style: const TextStyle(fontFamily: 'Montserrat', 
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -471,17 +532,19 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFFFFB800)
-                          : const Color(0x26FFB800),
+                          ? AppColors.amberGold
+                          : const Color(0x25FFB300),
                       borderRadius: BorderRadius.circular(6),
-                      border: isSelected
-                          ? null
-                          : Border.all(color: const Color(0x66FFB800), width: 1.0),
+                      border: Border.all(
+                        color: isSelected ? AppColors.amberGold : const Color(0x60FFB300),
+                        width: 1.0,
+                      ),
                     ),
                     child: Text(
                       card.badge!,
-                      style: TextStyle(fontFamily: 'Montserrat', 
-                        color: isSelected ? Colors.black : const Color(0xFFFFB800),
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: isSelected ? const Color(0xFF0A0D11) : AppColors.amberGold,
                         fontSize: 10.5,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.3,
@@ -507,15 +570,16 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                             children: [
                               const Icon(
                                 Icons.check_rounded,
-                                color: Color(0xFFFFB800),
+                                color: AppColors.amberGold,
                                 size: 14,
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   feature,
-                                  style: const TextStyle(fontFamily: 'Montserrat', 
-                                    color: Color(0xFFD1D1D6),
+                                  style: const TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    color: Color(0xFFD1D5DB),
                                     fontSize: 11.0,
                                     letterSpacing: -0.2,
                                     fontWeight: FontWeight.w500,
@@ -538,16 +602,18 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                     children: [
                       TextSpan(
                         text: priceAmount,
-                        style: const TextStyle(fontFamily: 'Montserrat', 
-                          color: Color(0xFFFFB800),
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: AppColors.amberGold,
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       TextSpan(
                         text: card.period,
-                        style: const TextStyle(fontFamily: 'Montserrat', 
-                          color: Color(0xFF8E8E93),
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Color(0xFF94A3B8),
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -571,21 +637,23 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
           gradient: const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFCA28),
-              Color(0xFFFFA000),
-            ],
+            colors: [Color(0xFF262A36), Color(0xFF13151D), Color(0xFF08090D)],
           ),
-          boxShadow: [
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.amberGold.withValues(alpha: 0.6), width: 1.2),
+          boxShadow: const [
             BoxShadow(
-              color: const Color(0xFFFFA000).withValues(alpha: 0.45),
-              blurRadius: 20,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
+              color: Color(0x35000000),
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
+            BoxShadow(
+              color: Color(0x25FFB300),
+              blurRadius: 14,
+              offset: Offset(0, 0),
             ),
           ],
         ),
@@ -596,17 +664,35 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.amberGold),
                   ),
                 )
-              : const Text(
-                  'Subscribe',
-                  style: TextStyle(fontFamily: 'Montserrat', 
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                    letterSpacing: 0.5,
-                  ),
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.amberGold,
+                        boxShadow: [
+                          BoxShadow(color: Color(0x80FFB300), blurRadius: 6, spreadRadius: 1),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'UPGRADE TO PRO',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
         ),
       ),
@@ -626,10 +712,11 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           },
           child: const Text(
             'Terms of Service',
-            style: TextStyle(fontFamily: 'Montserrat', 
+            style: TextStyle(
+              fontFamily: 'Montserrat',
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF8E8E93),
+              color: Color(0xFF64748B),
             ),
           ),
         ),
@@ -639,10 +726,11 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           },
           child: const Text(
             'Privacy Policy',
-            style: TextStyle(fontFamily: 'Montserrat', 
+            style: TextStyle(
+              fontFamily: 'Montserrat',
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF8E8E93),
+              color: Color(0xFF64748B),
             ),
           ),
         ),
@@ -650,10 +738,11 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           onTap: isPurchasing ? null : _handleRestore,
           child: const Text(
             'Restore Purchase',
-            style: TextStyle(fontFamily: 'Montserrat', 
+            style: TextStyle(
+              fontFamily: 'Montserrat',
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF8E8E93),
+              color: Color(0xFF64748B),
             ),
           ),
         ),
@@ -675,9 +764,10 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
             ? 'Payment of $priceStr will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless canceled in App Store Account Settings at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the period.'
             : 'Payment of $priceStr will be billed through Google Play at confirmation of purchase. Subscription automatically renews unless canceled in Google Play Subscriptions before the end of the current period.',
         textAlign: TextAlign.center,
-        style: const TextStyle(fontFamily: 'Montserrat', 
+        style: const TextStyle(
+          fontFamily: 'Montserrat',
           fontSize: 9.5,
-          color: Color(0xFF64748B),
+          color: Color(0xFF94A3B8),
           height: 1.35,
         ),
       ),
