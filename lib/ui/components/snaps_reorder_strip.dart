@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
+import 'neomorphic_kit.dart';
 import 'snapbeat_pink_dot.dart';
 import 'retro_metal_panel.dart';
 
@@ -88,20 +89,29 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   SnapBeatPinkDot(size: 13, withGlow: isEnabled),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: isEnabled ? const Color(0xFF252A34) : const Color(0xFF13151B),
-                      borderRadius: BorderRadius.circular(4),
-                      border: isEnabled ? null : Border.all(color: AppColors.chassisBevelLight),
+                      color: const Color(0xFF111722),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0x18FFFFFF), width: 1.0),
+                      boxShadow: AppColors.darkHardwareShadow,
                     ),
-                    child: Text(
-                      '2. PHOTOS',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: isEnabled ? AppColors.hardwareGunmetal : AppColors.textMuted,
-                        letterSpacing: 1.2,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.photo_library_rounded, size: 12, color: Colors.white),
+                        SizedBox(width: 5),
+                        Text(
+                          '2. PHOTOS',
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -119,20 +129,21 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
               ),
               if (isEnabled)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: AppColors.panelInset,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.chassisBevelDark),
+                    color: const Color(0xFF111722),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0x18FFFFFF), width: 1.0),
+                    boxShadow: AppColors.darkHardwareShadow,
                   ),
                   child: Text(
                     photos.isNotEmpty ? 'CURATED' : 'WAITING',
                     style: const TextStyle(
                       fontFamily: 'Montserrat',
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.amberJewel,
-                      letterSpacing: 0.6,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.8,
                     ),
                   ),
                 )
@@ -170,19 +181,18 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       behavior: HitTestBehavior.opaque,
                       onTap: widget.onLoadSample,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        height: 58,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E222A),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.chassisBevelLight),
-                          boxShadow: const [
-                            BoxShadow(color: Colors.black26, offset: Offset(1, 2), blurRadius: 2),
-                          ],
+                          color: const Color(0xFFF6F7F8),
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: AppColors.softRaisedShadow,
+                          border: Border.all(color: const Color(0xB3FFFFFF), width: 1.0),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
-                            Icon(Icons.auto_awesome, size: 13, color: AppColors.brassGold),
+                            Icon(Icons.auto_awesome, size: 18, color: AppColors.textInkBlack),
                             SizedBox(width: 5),
                             Flexible(
                               child: Text(
@@ -191,7 +201,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontFamily: 'Montserrat',
-                                  fontSize: 9.5,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.6,
                                   color: AppColors.textEngraved,
@@ -216,32 +226,22 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                             widget.onAddPhotos();
                           },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      height: 58,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        gradient: photos.length >= maxPhotos ? null : AppColors.luxGoldGradient,
-                        color: photos.length >= maxPhotos ? AppColors.panelCreamDark : null,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: photos.length >= maxPhotos ? AppColors.chassisBevelLight : const Color(0xFFFFF6CC),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: photos.length >= maxPhotos
-                                ? Colors.black26
-                                : AppColors.brassGold.withValues(alpha: 0.35),
-                            offset: const Offset(0, 2),
-                            blurRadius: 6,
-                          ),
-                        ],
+                        gradient: photos.length >= maxPhotos ? null : AppColors.darkHardwareGradient,
+                        color: photos.length >= maxPhotos ? const Color(0xFFECEFF3) : null,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: photos.length >= maxPhotos ? null : AppColors.darkHardwareShadow,
+                        border: Border.all(color: const Color(0x12FFFFFF), width: 1.0),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.add_photo_alternate_rounded,
-                            size: 14,
-                            color: photos.length >= maxPhotos ? AppColors.textMuted : const Color(0xFF1E1A10),
+                            size: 20,
+                            color: photos.length >= maxPhotos ? AppColors.textMuted : Colors.white,
                           ),
                           const SizedBox(width: 6),
                           Flexible(
@@ -252,10 +252,10 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                 maxLines: 1,
                                 style: TextStyle(
                                   fontFamily: 'Montserrat',
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
                                   letterSpacing: 0.6,
-                                  color: photos.length >= maxPhotos ? AppColors.textMuted : const Color(0xFF1E1A10),
+                                  color: photos.length >= maxPhotos ? AppColors.textMuted : Colors.white,
                                 ),
                               ),
                             ),
@@ -277,11 +277,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.panelInset,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.chassisBevelDark),
-                ),
+                decoration: const BoxDecoration(color: Colors.transparent),
                 child: Column(
                   children: [
                     Row(
@@ -331,7 +327,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
                         gradient: AppColors.brassKnobGradient,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -342,7 +338,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                             'CHOOSE MUSIC IN STEP 1 TO UNLOCK',
                             style: TextStyle(
                               fontFamily: 'Montserrat',
-                              fontSize: 9.5,
+                              fontSize: 13,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.6,
                               color: AppColors.hardwareGunmetal,
@@ -363,7 +359,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.panelInset,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.chassisBevelDark),
                 ),
                 child: Column(
@@ -381,15 +377,11 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                 borderRadius: BorderRadius.circular(5),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.brassGold.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4)),
-                                  ),
+                                  decoration: NeumorphicKit.raisedPill(radius: 5),
                                   child: const Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.shuffle_rounded, size: 12, color: AppColors.brassGold),
+                                      Icon(Icons.shuffle_rounded, size: 12, color: AppColors.textInkBlack),
                                       SizedBox(width: 4),
                                       Text(
                                         'SHUFFLE',
@@ -397,7 +389,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                           fontFamily: 'Montserrat',
                                           fontSize: 9,
                                           fontWeight: FontWeight.w800,
-                                          color: AppColors.brassGold,
+                                          color: AppColors.textInkBlack,
                                           letterSpacing: 0.5,
                                         ),
                                       ),
@@ -422,9 +414,9 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                   trackHeight: 2.5,
                                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.5),
                                   overlayShape: const RoundSliderOverlayShape(overlayRadius: 9),
-                                  activeTrackColor: AppColors.brassGold,
+                                  activeTrackColor: Colors.white,
                                   inactiveTrackColor: AppColors.chassisBevelDark,
-                                  thumbColor: AppColors.brassGold,
+                                  thumbColor: Colors.white,
                                 ),
                                 child: Slider(
                                   value: _thumbnailScale,
@@ -437,7 +429,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                 ),
                               ),
                             ),
-                            const Icon(Icons.photo_size_select_large_rounded, size: 13, color: AppColors.brassGold),
+                            const Icon(Icons.photo_size_select_large_rounded, size: 13, color: AppColors.textSecondary),
                           ],
                         ),
                       ],
@@ -468,22 +460,18 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                   onTap: widget.onAutoShuffle,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.panelCreamDark,
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: AppColors.chassisBevelLight),
-                                    ),
+                                    decoration: NeumorphicKit.pianoBlackPill(radius: 6),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: const [
-                                        Icon(Icons.shuffle_rounded, size: 11, color: AppColors.brassGold),
+                                        Icon(Icons.shuffle_rounded, size: 11, color: Colors.white),
                                         SizedBox(width: 3),
                                         Text(
                                           'SHUFFLE',
                                           style: TextStyle(
                                             fontSize: 8.5,
                                             fontWeight: FontWeight.w900,
-                                            color: AppColors.brassGold,
+                                            color: Colors.white,
                                             letterSpacing: 0.4,
                                           ),
                                         ),
@@ -498,22 +486,18 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                   onTap: _effectiveClear,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.amberGold.withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: AppColors.amberGold.withValues(alpha: 0.5)),
-                                    ),
+                                    decoration: NeumorphicKit.pianoBlackPill(radius: 6),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: const [
-                                        Icon(Icons.restart_alt_rounded, size: 10, color: AppColors.amberGold),
+                                        Icon(Icons.restart_alt_rounded, size: 10, color: Colors.white),
                                         SizedBox(width: 3),
                                         Text(
                                           'CLEAR',
                                           style: TextStyle(
                                             fontSize: 8.5,
                                             fontWeight: FontWeight.w900,
-                                            color: AppColors.amberGold,
+                                            color: Colors.white,
                                             letterSpacing: 0.3,
                                           ),
                                         ),
@@ -541,7 +525,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   children: const [
                     SnapBeatPinkDot(size: 7, withGlow: true),
                     SizedBox(width: 6),
-                    Icon(Icons.swap_horiz_rounded, size: 13, color: AppColors.brassGold),
+                    Icon(Icons.swap_horiz_rounded, size: 13, color: AppColors.textSecondary),
                     SizedBox(width: 5),
                     Expanded(
                       child: Text(
@@ -615,11 +599,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
               )
             else
               Container(
-                decoration: BoxDecoration(
-                  color: AppColors.panelInset,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.chassisBevelDark),
-                ),
+                decoration: const BoxDecoration(color: Colors.transparent),
                 padding: const EdgeInsets.all(6),
                 child: SizedBox(
                   height: (560 * _thumbnailScale).clamp(500.0, 680.0),
@@ -627,8 +607,8 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                     controller: _gridScrollController,
                     thumbVisibility: true,
                     trackVisibility: true,
-                    thumbColor: AppColors.brassGold,
-                    trackColor: Colors.black12,
+                    thumbColor: const Color(0xFFCBD5E1),
+                    trackColor: Colors.transparent,
                     trackBorderColor: Colors.transparent,
                     radius: const Radius.circular(4),
                     thickness: 5,
@@ -662,7 +642,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                               data: index,
                               feedback: Material(
                                 elevation: 8,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(16),
                                 color: Colors.transparent,
                                 child: SizedBox(
                                   width: _isSmallThumbnails ? 100 : 140,
@@ -677,7 +657,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 120),
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(16),
                                   border: isHovered
                                       ? Border.all(color: AppColors.pinkAccent, width: 2.5)
                                       : null,
@@ -706,29 +686,23 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
       angle: angle,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFDFEFE),
-          borderRadius: BorderRadius.circular(6),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDragging ? 0.6 : 0.25),
-              offset: const Offset(2, 4),
-              blurRadius: isDragging ? 12 : 8,
-              spreadRadius: isDragging ? 2 : 0,
-            ),
-          ],
+          color: const Color(0xFFF2F4F6),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: isDragging
+              ? const [
+                  BoxShadow(color: Color(0x2E1E2837), offset: Offset(0, 18), blurRadius: 35, spreadRadius: 0),
+                  BoxShadow(color: Color(0xE6FFFFFF), offset: Offset(0, -4), blurRadius: 12, spreadRadius: 0),
+                ]
+              : AppColors.mediumRaisedShadow,
+          border: Border.all(color: const Color(0xB3FFFFFF), width: 1.0),
         ),
-        padding: EdgeInsets.fromLTRB(
-          isSmall ? 3 : 4,
-          isSmall ? 3 : 4,
-          isSmall ? 3 : 4,
-          isSmall ? 4 : 6,
-        ),
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
             // Glossy photo inset
             Expanded(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(16),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -778,20 +752,21 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                           widget.onDelete(p.id);
                         },
                         child: Container(
-                          padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
+                          width: isSmall ? 28 : 34,
+                          height: isSmall ? 28 : 34,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F1116),
+                            color: const Color(0xFF111722),
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0x50FFFFFF), width: 0.8),
+                            border: Border.all(color: const Color(0x25FFFFFF), width: 0.8),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color(0x60000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 1),
+                                color: Color(0x50000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: Icon(Icons.close_rounded, size: isSmall ? 10 : 12, color: Colors.white),
+                          child: Icon(Icons.close_rounded, size: isSmall ? 13 : 16, color: Colors.white),
                         ),
                       ),
                     ),
@@ -804,20 +779,21 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                           behavior: HitTestBehavior.opaque,
                           onTap: () => widget.onDuplicate!(p.id),
                           child: Container(
-                            padding: EdgeInsets.all(isSmall ? 2.5 : 3.5),
+                            width: isSmall ? 28 : 34,
+                            height: isSmall ? 28 : 34,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F1116),
+                              color: const Color(0xFF111722),
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0x50FFFFFF), width: 0.8),
+                              border: Border.all(color: const Color(0x25FFFFFF), width: 0.8),
                               boxShadow: const [
                                 BoxShadow(
-                                  color: Color(0x60000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 1),
+                                  color: Color(0x50000000),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
                                 ),
                               ],
                             ),
-                            child: Icon(Icons.copy_rounded, size: isSmall ? 9 : 11, color: Colors.white),
+                            child: Icon(Icons.copy_rounded, size: isSmall ? 12 : 15, color: Colors.white),
                           ),
                         ),
                       ),

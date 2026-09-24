@@ -46,6 +46,7 @@ class HomeScreen extends StatefulWidget {
   final bool fromShowcase;
 
   static ui.Image? logoUiImage;
+  static ui.Image? wordmarkUiImage;
 
   const HomeScreen({
     super.key,
@@ -1329,84 +1330,62 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             Column(
               children: [
-                // Top Master Console Header (Floating High-Gloss Shiny Piano Black Lacquer)
-                Container(
-                  margin: const EdgeInsets.fromLTRB(14, 8, 14, 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF07080A), Color(0xFF030405), Color(0xFF000000)],
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.specularRim, width: 0.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppColors.specularHighlight,
-                        offset: Offset(-2, -2),
-                        blurRadius: 6,
-                        spreadRadius: 0,
-                      ),
-                      BoxShadow(
-                        color: AppColors.ambientShadow,
-                        offset: Offset(3, 6),
-                        blurRadius: 14,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
+                // Top Header (Clean Transparent Wordmark on Ceramic Floor, per Spec §5)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Left: Standalone Authentic Squircle Emblem (48x48)
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x35000000),
-                              offset: Offset(0, 3),
-                              blurRadius: 8,
+                      // Left: Wordmark left-aligned with BEAT-SYNCED REELS subtitle
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (HomeScreen.wordmarkUiImage != null)
+                            RawImage(
+                              image: HomeScreen.wordmarkUiImage,
+                              height: 20,
+                              fit: BoxFit.contain,
+                            )
+                          else
+                            Image.asset(
+                              'assets/images/snapbeat_wordmark_black.png',
+                              height: 20,
+                              fit: BoxFit.contain,
                             ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: HomeScreen.logoUiImage != null
-                              ? RawImage(
-                                  image: HomeScreen.logoUiImage!,
-                                  fit: BoxFit.contain,
-                                )
-                              : Image.asset(
-                                  'assets/images/snapbeat_app_icon.png',
-                                  fit: BoxFit.contain,
-                                ),
-                        ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'BEAT-SYNCED REELS',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 7,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.7,
+                              color: AppColors.textInkTertiary,
+                            ),
+                          ),
+                        ],
                       ),
 
-                      // Right Action Group: Piano Black Buttons & Badges
+                      // Right Action Group: Pro Badge and Action Buttons
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const RetroProBadge(),
                           if (AppConfig.showTesterFeedback) ...[
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
                             Container(
-                              width: 30,
-                              height: 30,
+                              width: 38,
+                              height: 38,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0A0D11),
+                                color: const Color(0xFF111722),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0x25FFFFFF), width: 1),
-                                boxShadow: const [
-                                  BoxShadow(color: Color(0x25000000), offset: Offset(0, 2), blurRadius: 6),
-                                ],
+                                border: Border.all(color: const Color(0x18FFFFFF), width: 1),
+                                boxShadow: AppColors.darkHardwareShadow,
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.rate_review_outlined, color: Colors.white, size: 14),
+                                icon: const Icon(Icons.rate_review_outlined, color: Colors.white, size: 16),
                                 tooltip: 'Send Tester Feedback',
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
@@ -1414,20 +1393,18 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ],
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Container(
-                            width: 30,
-                            height: 30,
+                            width: 38,
+                            height: 38,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0A0D11),
+                              color: const Color(0xFF111722),
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0x25FFFFFF), width: 1),
-                              boxShadow: const [
-                                BoxShadow(color: Color(0x25000000), offset: Offset(0, 2), blurRadius: 6),
-                              ],
+                              border: Border.all(color: const Color(0x18FFFFFF), width: 1),
+                              boxShadow: AppColors.darkHardwareShadow,
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.shield_outlined, color: Colors.white, size: 14),
+                              icon: const Icon(Icons.shield_outlined, color: Colors.white, size: 16),
                               tooltip: 'Privacy Policy',
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -1480,41 +1457,7 @@ class HomeScreenState extends State<HomeScreen> {
                               _audioEnd = e;
                             }),
                           ),
-                          // Pro Studio Audio Master Rack (Zero Dead Space)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                            child: RetroMetalPanel(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  Column(
-                                    children: const [
-                                      Text('SAMPLE RATE', style: TextStyle(fontFamily: 'Montserrat', fontSize: 8.5, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
-                                      SizedBox(height: 2),
-                                      Text('48.0 kHz', style: TextStyle(fontFamily: 'Courier', fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
-                                    ],
-                                  ),
-                                  Container(height: 24, width: 1, color: AppColors.chassisBevelLight),
-                                  Column(
-                                    children: const [
-                                      Text('ONSET DETECT', style: TextStyle(fontFamily: 'Montserrat', fontSize: 8.5, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
-                                      SizedBox(height: 2),
-                                      Text('128 BEATS', style: TextStyle(fontFamily: 'Courier', fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.amberGold)),
-                                    ],
-                                  ),
-                                  Container(height: 24, width: 1, color: AppColors.chassisBevelLight),
-                                  Column(
-                                    children: const [
-                                      Text('SYNC CONFIDENCE', style: TextStyle(fontFamily: 'Montserrat', fontSize: 8.5, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
-                                      SizedBox(height: 2),
-                                      Text('99.4%', style: TextStyle(fontFamily: 'Courier', fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+
                         ],
 
                         // Music guidance prompt when no track is selected
@@ -1773,11 +1716,11 @@ class HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0x208A7CFF),
+                    color: const Color(0xFF07080A),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0x408A7CFF), width: 1.0),
+                    border: Border.all(color: const Color(0x30FFFFFF), width: 1.0),
                   ),
-                  child: const Icon(Icons.tune_rounded, color: Color(0xFF8A7CFF), size: 18),
+                  child: const Icon(Icons.tune_rounded, color: Colors.white, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -2876,7 +2819,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 Switch.adaptive(
                   value: _isTitleCardEnabled,
-                  activeThumbColor: AppColors.amberGold,
+                  activeThumbColor: Colors.white,
                   activeTrackColor: const Color(0xFF252936),
                   inactiveThumbColor: const Color(0xFF64748B),
                   inactiveTrackColor: const Color(0xFF12141A),
@@ -2905,7 +2848,7 @@ class HomeScreenState extends State<HomeScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: const Color(0x14FFFFFF)),
                       ),
-                      child: const Icon(Icons.flash_on_rounded, size: 24, color: AppColors.indicatorAccent),
+                      child: const Icon(Icons.flash_on_rounded, size: 24, color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 12),
                     const Text(

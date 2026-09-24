@@ -22,44 +22,29 @@ class MetalChassisScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.obsidianCanvas,
+      backgroundColor: AppColors.ceramicWhite,
       appBar: appBar,
       bottomNavigationBar: bottomNavigationBar,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Pure Obsidian Substrate Canvas (#020304)
+          // 1. Pure Ceramic Substrate Canvas
           Container(
-            color: AppColors.obsidianCanvas,
+            color: AppColors.ceramicWhite,
           ),
 
           // 2. Top-Left Studio Softbox Specular Illumination
           Positioned.fill(
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: RadialGradient(
-                  center: const Alignment(-0.6, -0.8),
+                  center: Alignment(-0.6, -0.8),
                   radius: 1.5,
                   colors: [
-                    Colors.white.withValues(alpha: 0.035),
+                    Color(0x30FFFFFF),
                     Colors.transparent,
                   ],
                 ),
-              ),
-            ),
-          ),
-
-          // 3. Subtle Branded Watermark Contour Backdrop
-          Positioned(
-            bottom: 120,
-            right: -40,
-            child: Opacity(
-              opacity: 0.05,
-              child: Image.asset(
-                'assets/images/watermark_clean.png',
-                width: 320,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
             ),
           ),

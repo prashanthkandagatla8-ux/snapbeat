@@ -93,7 +93,11 @@ extension ProTierExtension on ProTier {
       case ProTier.monthly:
         return 'POPULAR';
       case ProTier.annual:
-        return 'SAVE 57%';
+        // Derived from the surviving fallback table, both currencies agree:
+        // INR 499*12 = 5,988 -> 2,499 = 58.3% off
+        // USD 4.99*12 = 59.88 -> 24.99 = 58.3% off
+        // (50% came from a since-deleted $29.99; 57% was the older, near-correct value)
+        return 'SAVE 58%';
     }
   }
 }
@@ -170,6 +174,19 @@ class SubscriptionManager with ChangeNotifier {
   bool get isPurchasing => _isPurchasing;
   String? get statusMessage => _statusMessage;
   Map<String, ProductDetails> get products => _products;
+
+  /// Returns live StoreKit / Play Store price, falling back to canonical price table.
+  String formattedPrice(ProTier tier) {
+    final product = _products[tier.productId];
+    if (product != null && product.price.isNotEmpty) {
+      return product.price;
+    }
+    final locale = PlatformDispatcher.instance.locale;
+    if (locale.countryCode == 'IN') {
+      return tier.fallbackPriceInr;
+    }
+    return tier.fallbackPriceUsd;
+  }
 
   /// Effective Pro status (checks local active flag AND expiry timestamp).
   bool get isPro {

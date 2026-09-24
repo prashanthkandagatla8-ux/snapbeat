@@ -20,7 +20,7 @@ class RetroMetalPanel extends StatelessWidget {
     required this.child,
     this.margin,
     this.padding,
-    this.borderRadius = 20.0,
+    this.borderRadius = 26.0,
     this.showRedRivet = false,
     this.header,
   });
@@ -31,42 +31,14 @@ class RetroMetalPanel extends StatelessWidget {
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: const [
-          // Neumorphic dual-shadow: top-left specular highlight + bottom-right ambient shadow
-          BoxShadow(
-            color: AppColors.specularHighlight,
-            offset: Offset(-2, -2),
-            blurRadius: 6,
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: AppColors.ambientShadow,
-            offset: Offset(3, 6),
-            blurRadius: 14,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(borderRadius),
-          // 0.5px liquid gloss specular rim chamfer
-          border: Border.all(
-            color: AppColors.specularRim,
-            width: 0.5,
-          ),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF07080A), // 3D Extruded beveled liquid lacquer
-              Color(0xFF030405),
-              Color(0xFF000000),
-            ],
-            stops: [0.0, 0.4, 1.0],
-          ),
+        color: const Color(0xFFF2F4F6),
+        boxShadow: AppColors.mediumRaisedShadow,
+        border: Border.all(
+          color: const Color(0xB3FFFFFF),
+          width: 1.0,
         ),
-        child: ClipRRect(
+      ),
+      child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius - 1.0),
           child: Container(
             padding: padding ?? const EdgeInsets.all(16),
@@ -83,7 +55,6 @@ class RetroMetalPanel extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

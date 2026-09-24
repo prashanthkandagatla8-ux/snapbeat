@@ -34,13 +34,7 @@ class RetroProBadge extends StatelessWidget {
                 color: isPro ? AppColors.vuGreen : AppColors.indicatorAccent.withValues(alpha: 0.5),
                 width: 1.0,
               ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x44000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ],
+              boxShadow: AppColors.neumorphicBlackRaised,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

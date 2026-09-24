@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -7,7 +8,9 @@ import 'sample_reel_showcase_screen.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final bool autoNavigate;
+  static ui.Image? splashUiImage;
+  const SplashScreen({super.key, this.autoNavigate = true});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -29,7 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initAndPlayVideo() async {
     // Master safety timeout
-    _safetyTimer = Timer(const Duration(seconds: 11), _navigateToHome);
+    if (widget.autoNavigate) {
+      _safetyTimer = Timer(const Duration(seconds: 11), _navigateToHome);
+    }
 
     try {
       const splashAsset = 'assets/videos/splash_screen_ios.mp4';
@@ -48,7 +53,9 @@ class _SplashScreenState extends State<SplashScreen> {
       await controller.play();
     } catch (e) {
       debugPrint('Video splash error: $e');
-      _navigateToHome();
+      if (widget.autoNavigate) {
+        _navigateToHome();
+      }
     }
   }
 
@@ -124,10 +131,16 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                'assets/images/splash_screen_ios.jpg',
-                fit: BoxFit.cover,
-              ),
+              if (SplashScreen.splashUiImage != null)
+                RawImage(
+                  image: SplashScreen.splashUiImage,
+                  fit: BoxFit.cover,
+                )
+              else
+                Image.asset(
+                  'assets/images/splash_screen_ios.jpg',
+                  fit: BoxFit.cover,
+                ),
               if (_isReady && _controller != null && _controller!.value.isInitialized)
                 FittedBox(
                   fit: BoxFit.cover,

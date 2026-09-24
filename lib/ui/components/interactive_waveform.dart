@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import 'retro_metal_panel.dart';
 
 class InteractiveWaveform extends StatefulWidget {
@@ -98,7 +97,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                         fontFamily: 'Montserrat',
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.amberGold,
+                        color: Colors.white,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -122,7 +121,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                   fontFamily: 'Courier',
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.amberGold,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -182,7 +181,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: AppColors.amberGold,
+                        activeTrackColor: Colors.white,
                         inactiveTrackColor: const Color(0xFF1E212B),
                         thumbColor: Colors.white,
                         trackHeight: 3,
@@ -217,7 +216,7 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                     ),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: AppColors.amberGold,
+                        activeTrackColor: Colors.white,
                         inactiveTrackColor: const Color(0xFF1E212B),
                         thumbColor: Colors.white,
                         trackHeight: 3,

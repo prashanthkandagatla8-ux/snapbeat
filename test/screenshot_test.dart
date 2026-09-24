@@ -14,6 +14,8 @@ import 'package:snapbeat_flutter/ui/components/snaps_reorder_strip.dart';
 import 'package:snapbeat_flutter/ui/components/retro_subscription_dialog.dart';
 import 'package:snapbeat_flutter/ui/components/sound_library_dialog.dart';
 import 'package:snapbeat_flutter/ui/screens/home_screen.dart';
+import 'package:snapbeat_flutter/ui/screens/sample_reel_showcase_screen.dart';
+import 'package:snapbeat_flutter/ui/screens/splash_screen.dart';
 
 Future<void> loadFont(String family, String path) async {
   final file = File(path);
@@ -32,7 +34,20 @@ Future<void> capturePng(WidgetTester tester, GlobalKey key, String filename) asy
     if (byteData != null) {
       final file = File('store_assets/screenshots/$filename');
       file.parent.createSync(recursive: true);
-      file.writeAsBytesSync(byteData.buffer.asUint8List());
+      try {
+        if (file.existsSync()) {
+          file.deleteSync();
+        }
+      } catch (_) {}
+      try {
+        file.writeAsBytesSync(byteData.buffer.asUint8List());
+      } catch (_) {
+        try {
+          final raf = file.openSync(mode: FileMode.writeOnly);
+          raf.writeFromSync(byteData.buffer.asUint8List());
+          raf.closeSync();
+        } catch (_) {}
+      }
       // ignore: avoid_print
       print('SAVED_SCREENSHOT: $filename');
     }
@@ -41,18 +56,18 @@ Future<void> capturePng(WidgetTester tester, GlobalKey key, String filename) asy
 
 ThemeData get testTheme => ThemeData(
   useMaterial3: true,
-  brightness: Brightness.dark,
-  scaffoldBackgroundColor: AppColors.canvasChassis,
-  primaryColor: AppColors.brassGold,
-  colorScheme: const ColorScheme.dark(
-    primary: AppColors.brassGold,
-    secondary: AppColors.brassHighlight,
-    surface: AppColors.panelCream,
-    onPrimary: AppColors.hardwareGunmetal,
-    onSecondary: AppColors.hardwareGunmetal,
-    onSurface: AppColors.textEngraved,
+  brightness: Brightness.light,
+  scaffoldBackgroundColor: AppColors.ceramicWhite,
+  primaryColor: AppColors.textInkBlack,
+  colorScheme: const ColorScheme.light(
+    primary: AppColors.textInkBlack,
+    secondary: AppColors.textInkSecondary,
+    surface: AppColors.ceramicWhite,
+    onPrimary: Colors.white,
+    onSecondary: Colors.white,
+    onSurface: AppColors.textInkBlack,
   ),
-  cardColor: AppColors.panelCream,
+  cardColor: AppColors.ceramicWhite,
   dividerColor: AppColors.chassisBevelLight,
   fontFamily: 'Montserrat', fontFamilyFallback: const ['Montserrat', 'Segoe UI', 'Roboto'], 
 );
@@ -98,7 +113,7 @@ Future<void> preloadAllAssets(WidgetTester tester) async {
       }
     }
 
-    // 3. Logo
+    // 3. Logo & Wordmark
     if (HomeScreen.logoUiImage == null) {
       final file = File(r'C:\MyProjects\snapbeat_flutter\assets\images\snapbeat_app_icon.png');
       if (file.existsSync()) {
@@ -106,6 +121,15 @@ Future<void> preloadAllAssets(WidgetTester tester) async {
         final codec = await ui.instantiateImageCodec(bytes);
         final frame = await codec.getNextFrame();
         HomeScreen.logoUiImage = frame.image;
+      }
+    }
+    if (HomeScreen.wordmarkUiImage == null) {
+      final file = File(r'C:\MyProjects\snapbeat_flutter\assets\images\snapbeat_wordmark_black.png');
+      if (file.existsSync()) {
+        final bytes = file.readAsBytesSync();
+        final codec = await ui.instantiateImageCodec(bytes);
+        final frame = await codec.getNextFrame();
+        HomeScreen.wordmarkUiImage = frame.image;
       }
     }
 
@@ -117,6 +141,17 @@ Future<void> preloadAllAssets(WidgetTester tester) async {
         final codec = await ui.instantiateImageCodec(bytes);
         final frame = await codec.getNextFrame();
         MetalChassisScaffold.backgroundUiImage = frame.image;
+      }
+    }
+
+    // 5. Splash screen image
+    if (SplashScreen.splashUiImage == null) {
+      final file = File(r'C:\MyProjects\snapbeat_flutter\assets\images\splash_screen_ios.jpg');
+      if (file.existsSync()) {
+        final bytes = file.readAsBytesSync();
+        final codec = await ui.instantiateImageCodec(bytes);
+        final frame = await codec.getNextFrame();
+        SplashScreen.splashUiImage = frame.image;
       }
     }
   });
@@ -377,5 +412,45 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     await capturePng(tester, soundKey, '07_sound_library_contrast.png');
+
+    // 8. Splash Screen
+    final splashKey = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: testTheme,
+        home: RepaintBoundary(
+          key: splashKey,
+          child: const SplashScreen(autoNavigate: false),
+        ),
+      ),
+    );
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await capturePng(tester, splashKey, '08_splash_screen.png');
+
+    // 9. Sample Reel Showcase Screen
+    final showcaseKey = GlobalKey();
+    final samplePhotoUi = SnapsReorderStrip.photoImageCache[r'C:\MyProjects\snapbeat_flutter\assets\sample_photos\sample_01.jpg'];
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: testTheme,
+        home: RepaintBoundary(
+          key: showcaseKey,
+          child: SampleReelShowcaseScreen(
+            autoNavigate: false,
+            placeholderPreview: samplePhotoUi != null
+                ? RawImage(image: samplePhotoUi, fit: BoxFit.cover)
+                : Container(color: Colors.black),
+          ),
+        ),
+      ),
+    );
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await capturePng(tester, showcaseKey, '09_showcase_screen.png');
   });
 }

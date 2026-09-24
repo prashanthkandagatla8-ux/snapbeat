@@ -10,79 +10,165 @@ import 'package:flutter/material.dart';
 /// - watermark_clean.png
 /// - snapbeat_app_icon.png
 class AppColors {
+  // =========================================================================
+  // Official SnapBeat 2026 Neomorphic Design System (ChatGPT Spec)
+  // =========================================================================
+
+  // =========================================================================
+  // SNAPBEAT — GRAPHITE PIANO NEO (24 Sep 2026 Spec)
+  // =========================================================================
+
+  // Section 3.1: White Studio Material
+  static const Color canvasBg = Color(0xFFE9ECEF);
+  static const Color primaryWhite = Color(0xFFF2F4F6);
+  static const Color primarySurface = Color(0xFFF2F4F6);
+  static const Color secondarySurface = Color(0xFFF2F4F6);
+  static const Color softWhiteRaised = Color(0xFFF6F7F8);
+  static const Color porcelainHighlight = Color(0xFFFBFCFD);
+  static const Color recessedWhite = Color(0xFFE1E5E9);
+  static const Color insetSurface = Color(0xFFE1E5E9);
+  static const Color elevatedSurface = Color(0xFFF6F7F8);
+
+  // Section 3.2: Piano-Black Material
+  static const Color pianoBlackBase = Color(0xFF090B0F);
+  static const Color pianoBlackSoft = Color(0xFF0D1015);
+  static const Color pianoBlackMid = Color(0xFF12161D);
+  static const Color pianoBlackHighlight = Color(0xFF1B2028);
+  static const Color pianoBlackDeep = Color(0xFF06080B);
+  static const Color darkControl = Color(0xFF0D1015);
+  static const Color darkControlHover = Color(0xFF12161D);
+  static const Color darkControlPressed = Color(0xFF06080B);
+
+  // Section 3.3: Typography
+  static const Color primaryDarkText = Color(0xFF11151B);
+  static const Color primaryText = Color(0xFF11151B);
+  static const Color secondaryDarkText = Color(0xFF525A65);
+  static const Color secondaryText = Color(0xFF525A65);
+  static const Color mutedDarkText = Color(0xFF8B929B);
+  static const Color mutedText = Color(0xFF8B929B);
+  static const Color whiteText = Color(0xFFF7F8FA);
+  static const Color subtleWhiteText = Color(0xFFC9CDD3);
+  static const Color dividerColor = Color(0xFFDCE1E6);
+
+  // Section 3.4: Brand Micro-Accent (Single Gold Only)
+  static const Color microGold = Color(0xFFFFB000);
+  static const Color snapOrange = Color(0xFFFFB000);
+  static const Color snapCyan = Color(0xFFFFB000);
+  static const Color snapViolet = Color(0xFFFFB000);
+  static const Color snapPink = Color(0xFFFFB000);
+  static const Color snapGreen = Color(0xFFFFB000);
+
+  // Section 6 & 8: Calibrated Lighting & Material Shadows
+  static const List<BoxShadow> softRaisedShadow = [
+    BoxShadow(color: Color(0x1728303A), offset: Offset(0, 5), blurRadius: 14, spreadRadius: 0),
+    BoxShadow(color: Color(0xB3FFFFFF), offset: Offset(0, -2), blurRadius: 8, spreadRadius: 0),
+  ];
+
+  static const List<BoxShadow> mediumRaisedShadow = [
+    BoxShadow(color: Color(0x1C28303A), offset: Offset(0, 8), blurRadius: 20, spreadRadius: 0),
+    BoxShadow(color: Color(0xBFFFFFFF), offset: Offset(0, -3), blurRadius: 10, spreadRadius: 0),
+  ];
+
+  static const List<BoxShadow> deepFloatingShadow = [
+    BoxShadow(color: Color(0x2E05080C), offset: Offset(0, 8), blurRadius: 24, spreadRadius: 0),
+    BoxShadow(color: Color(0x12FFFFFF), offset: Offset(0, -1), blurRadius: 2, spreadRadius: 0),
+  ];
+
+  static const List<BoxShadow> darkHardwareShadow = [
+    BoxShadow(color: Color(0x3305080C), offset: Offset(0, 5), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Color(0x1F05080C), offset: Offset(0, 2), blurRadius: 4, spreadRadius: 0),
+  ];
+
+  static const LinearGradient darkHardwareGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF161A22),
+      Color(0xFF0D1015),
+      Color(0xFF090B0F),
+    ],
+  );
+
   // ─── 01. Canonical Duo-Tone & Neumorphic Substrate ───
 
   // Ceramic White Substrate (Stage Canvas & Base Floor)
-  static const Color ceramicWhite     = Color(0xFFF6F8FA); // Primary porcelain substrate
-  static const Color ceramicWhiteTop  = Color(0xFFFFFFFF); // Specular top catchlight
-  static const Color ceramicWhiteMid  = Color(0xFFEFF2F6); // Soft mid ceramic floor
-  static const Color ceramicWhiteRim  = Color(0xFFE2E8F0); // Substrate border rim
+  static const Color ceramicWhite        = Color(0xFFEEF2F7); // Primary porcelain substrate (spec §1)
+  static const Color ceramicWhiteTop     = Color(0xFFFFFFFF); // Specular top catchlight
+  static const Color ceramicWhiteMid     = Color(0xFFE7ECF2); // Recessed well floor
+  static const Color ceramicWhiteRim     = Color(0xFFE2E8F0); // 1px panel rim
+  static const Color ceramicShadow       = Color(0xFFA3B1C6); // Cool grey occlusion
+  static const Color ceramicShadowSoft   = Color(0x8CA3B1C6); // 55% cool grey occlusion
+  static const Color ceramicHighlight    = Color(0xF2FFFFFF); // 95% white catchlight
 
-  // Obsidian Canvas (#020304 near-pure black)
-  static const Color obsidianCanvas   = Color(0xFF020304);
-  static const Color obsidianDark     = Color(0xFF010203);
-  static const Color obsidianWell     = Color(0xFF030405);
+  // Piano Slab Lacquer Slices (for floating black objects on ceramic)
+  static const Color pianoSlabTop        = Color(0xFF262C36); // Top of lacquer gradient
+  static const Color pianoSlabMid        = Color(0xFF141922);
+  static const Color pianoSlabDeep       = Color(0xFF080A0E);
+  static const Color pianoSlabBase       = Color(0xFF030406);
+
+  // Obsidian Canvas
+  static const Color obsidianCanvas      = Color(0xFF020304);
+  static const Color obsidianDark        = Color(0xFF010203);
+  static const Color obsidianWell        = Color(0xFF030405);
 
   // Recessed Ceramic / Dark Wells
-  static const Color ceramicWell      = Color(0xFF030405);
-  static const Color ceramicWellDark  = Color(0xFF010203);
-  static const Color ceramicWellLight = Color(0xFF07080A);
+  static const Color ceramicWell         = Color(0xFF030405);
+  static const Color ceramicWellDark     = Color(0xFF010203);
+  static const Color ceramicWellLight    = Color(0xFF07080A);
 
   // ─── True Neumorphic Lighting & Surface Tokens ───
-  static const Color specularHighlight = Color(0x45FFFFFF); // top-left catchlight
-  static const Color ambientShadow     = Color(0x60000000); // bottom-right occlusion
-  static const Color neumorphicSurface = Color(0xFF07080A); // extruded button surface
-  static const Color neumorphicWell    = Color(0xFF030405); // recessed well
-  static const Color mutedSilver       = Color(0xFF64748B); // inactive text
-  static const Color specularRim       = Color(0x30FFFFFF); // crisp white rim for active buttons
+  static const Color specularHighlight   = Color(0x45FFFFFF); // top-left catchlight
+  static const Color ambientShadow       = Color(0x60000000); // bottom-right occlusion
+  static const Color neumorphicSurface   = Color(0xFF07080A); // extruded button surface
+  static const Color neumorphicWell      = Color(0xFF030405); // recessed well
+  static const Color mutedSilver         = Color(0xFF64748B); // inactive text
+  static const Color specularRim         = Color(0x30FFFFFF); // crisp white rim for active buttons
 
-  // Floating High-Gloss Shiny Piano Black Lacquer (True Obsidian)
-  static const Color pianoBlack       = Color(0xFF07080A); // Deep mirror jet lacquer
-  static const Color pianoBlackMid    = Color(0xFF030405); // Lacquer mid-body
-  static const Color pianoBlackDeep   = Color(0xFF000000); // Lacquer shadow bevel
-  static const Color pianoBlackTop    = Color(0xFF0A0D12); // Specular top chamfer
-  static const Color pianoBlackRim    = specularRim;        // 1px Liquid specular gloss highlight
-  static const Color pianoBlackGlow   = ambientShadow;      // Neumorphic ambient occlusion shadow
+  // Floating High-Gloss Shiny Piano Black Lacquer
+  static const Color pianoBlack          = Color(0xFF07080A); // Deep mirror jet lacquer
+  static const Color pianoBlackTop       = Color(0xFF0A0D12); // Specular top chamfer
+  static const Color pianoBlackRim       = specularRim;        // 1px Liquid specular gloss highlight
+  static const Color pianoBlackGlow      = ambientShadow;      // Neumorphic ambient occlusion shadow
 
   // ─── 02. Radiant Amber Gold Diodes & Accents (Zero Maroon) ───
-  static const Color amberGold        = Color(0xFFFFB300); // Radiant warm gold diode
-  static const Color amberGoldLight   = Color(0xFFFFC837); // Specular illuminated gold peak
-  static const Color amberGoldDark    = Color(0xFFD49200); // Beveled diode shadow
-  static const Color amberGoldGlow    = Color(0x40FFB300); // Saturated ambient halo
+  static const Color amberGold           = Color(0xFFFFB300); // Radiant warm gold diode
+  static const Color amberGoldLight      = Color(0xFFFFC837); // Specular illuminated gold peak
+  static const Color amberGoldDark       = Color(0xFFD49200); // Beveled diode shadow
+  static const Color amberGoldGlow       = Color(0x40FFB300); // Saturated ambient halo
 
   // Aliases for Ruby Diode -> Entirely replaced by Radiant Amber Gold
-  static const Color rubyDiode        = amberGold;
-  static const Color rubyDiodeLight   = amberGoldLight;
-  static const Color rubyDiodeDark    = amberGoldDark;
-  static const Color rubyDiodeGlow    = amberGoldGlow;
+  static const Color rubyDiode           = amberGold;
+  static const Color rubyDiodeLight      = amberGoldLight;
+  static const Color rubyDiodeDark       = amberGoldDark;
+  static const Color rubyDiodeGlow       = amberGoldGlow;
 
   // ─── 03. High-Contrast Studio Typography ───
-  static const Color textInkBlack     = Color(0xFF0A0D11); // Ink black for white substrate labels
-  static const Color textInkSecondary = Color(0x990A0D11); // 60% ink black
-  static const Color textInkTertiary  = Color(0x730A0D11); // 45% ink black
-  static const Color textInkDisabled  = Color(0x400A0D11); // 25% ink black
+  static const Color textInkBlack        = Color(0xFF0A0D11); // Ink black for white substrate labels
+  static const Color textInkSecondary    = Color(0x990A0D11); // 60% ink black
+  static const Color textInkTertiary     = Color(0x730A0D11); // 45% ink black
+  static const Color textInkDisabled     = Color(0x400A0D11); // 25% ink black
 
   // Crisp Pure White Typography for Floating Piano Black Consoles
-  static const Color textPureWhite    = Color(0xFFFFFFFF); // 100% Crisp white
-  static const Color textWhiteSecondary = Color(0xB3FFFFFF); // 70% Translucent white
-  static const Color textWhiteMuted   = Color(0x80FFFFFF); // 50% Muted white
+  static const Color textPureWhite       = Color(0xFFFFFFFF); // 100% Crisp white
+  static const Color textWhiteSecondary  = Color(0xB3FFFFFF); // 70% Translucent white
+  static const Color textWhiteMuted      = Color(0x80FFFFFF); // 50% Muted white
 
-  // ─── 04. Backward-Compatible Aliases ───
+  // ─── 04. Backward-Compatible Aliases (Ceramic Theme Flip per Spec §3) ───
 
-  // Substrate & Canvas Aliases
-  static const Color canvasChassis         = obsidianCanvas;
-  static const Color canvasSlateGrey       = obsidianCanvas;
-  static const Color canvasSlateGreyLight  = obsidianDark;
-  static const Color graphiteSubstrate     = obsidianCanvas;
-  static const Color graphiteLight         = obsidianWell;
-  static const Color graphiteMid           = obsidianCanvas;
-  static const Color graphiteDeep          = obsidianDark;
-  static const Color graphiteDarkest       = obsidianDark;
-  static const Color graphiteRecess        = neumorphicWell; // #030405 Dark cavity
-  static const Color graphiteRecessDeep    = pianoBlackDeep; // #000000
-  static const Color graphiteRecessLight   = neumorphicSurface; // #07080A
+  // Substrate & Canvas Aliases -> Ceramic White
+  static const Color canvasChassis         = ceramicWhite;
+  static const Color canvasSlateGrey       = ceramicWhite;
+  static const Color canvasSlateGreyLight  = ceramicWhiteMid;
+  static const Color graphiteSubstrate     = ceramicWhite;
+  static const Color graphiteLight         = ceramicWhiteTop;
+  static const Color graphiteMid           = ceramicWhite;
+  static const Color graphiteDeep          = ceramicWhiteMid;
+  static const Color graphiteDarkest       = ceramicShadow;
+  static const Color graphiteRecess        = ceramicWhiteMid;
+  static const Color graphiteRecessDeep    = ceramicShadow;
+  static const Color graphiteRecessLight   = ceramicWhiteTop;
 
-  // Piano Black Aliases
+  // Piano Black Aliases (Preserved for black objects on ceramic)
   static const Color pianoLacquer          = pianoBlack;
   static const Color pianoMid              = pianoBlackMid;
   static const Color pianoDeep             = pianoBlackDeep;
@@ -111,47 +197,47 @@ class AppColors {
   static const Color cyanGlow              = specularHighlight;  // Purged cyan -> top-left catchlight
   static const Color goldGlow              = amberGoldGlow;
 
-  // Panel & Inset Aliases -> Shiny Piano Black Consoles
-  static const Color panelCream            = pianoBlack;
-  static const Color panelCreamDark        = pianoBlackDeep;
-  static const Color panelInset            = Color(0xFF08090C); // Recessed cavity
-  static const Color metalBase             = pianoBlack;
-  static const Color metalHighlight        = pianoBlackTop;
-  static const Color metalShadow           = pianoBlackDeep;
-  static const Color metalDeepCavity       = pianoBlackDeep;
-  static const Color metalScrewHead        = Color(0xFF333846);
-  static const Color metalBezelHighlight   = pianoBlackTop;
-  static const Color metalBezelLight       = pianoBlackMid;
-  static const Color metalBezelMid         = pianoBlack;
-  static const Color metalBezelDark        = pianoBlackDeep;
-  static const Color metalBezelDeep        = pianoBlackDeep;
-  static const Color chassisBevelLight     = Color(0x28FFFFFF);
-  static const Color chassisBevelDark      = Color(0x18000000);
-  static const Color metalBrushedLight     = pianoBlackMid;
-  static const Color metalBrushedDark      = pianoBlackDeep;
+  // Panel & Inset Aliases -> Ceramic White / Mid per Spec §3
+  static const Color panelCream            = ceramicWhite;
+  static const Color panelCreamDark        = ceramicWhiteMid;
+  static const Color panelInset            = ceramicWhiteMid;
+  static const Color metalBase             = ceramicWhite;
+  static const Color metalHighlight        = ceramicWhiteTop;
+  static const Color metalShadow           = ceramicShadow;
+  static const Color metalDeepCavity       = ceramicShadow;
+  static const Color metalScrewHead        = Color(0xFF94A3B8);
+  static const Color metalBezelHighlight   = ceramicWhiteTop;
+  static const Color metalBezelLight       = ceramicWhiteMid;
+  static const Color metalBezelMid         = ceramicWhite;
+  static const Color metalBezelDark        = ceramicShadow;
+  static const Color metalBezelDeep        = ceramicShadow;
+  static const Color chassisBevelLight     = ceramicHighlight;
+  static const Color chassisBevelDark      = Color(0x40A3B1C6);
+  static const Color metalBrushedLight     = ceramicWhiteTop;
+  static const Color metalBrushedDark      = ceramicWhiteMid;
 
-  // Typography Aliases (Piano Black context)
-  static const Color textPrimary           = textPureWhite;
-  static const Color textSecondary         = textWhiteSecondary;
-  static const Color textTertiary          = textWhiteMuted;
-  static const Color textDisabled          = Color(0x40FFFFFF);
-  static const Color textEngraved          = textPureWhite;
-  static const Color textHardwareLabel     = textWhiteSecondary;
-  static const Color textMuted             = textWhiteMuted;
+  // Typography Aliases (Ceramic Theme Flip per Spec §3)
+  static const Color textPrimary           = textInkBlack;
+  static const Color textSecondary         = textInkSecondary;
+  static const Color textTertiary          = textInkTertiary;
+  static const Color textDisabled          = textInkDisabled;
+  static const Color textEngraved          = textInkBlack;
+  static const Color textHardwareLabel     = textInkSecondary;
+  static const Color textMuted             = textInkTertiary;
   static const Color textFoilGold          = amberGold;
-  static const Color hardwareGunmetal      = Color(0xFF0A0D11);
+  static const Color hardwareGunmetal      = textInkBlack;
   static const Color textWhite             = textPureWhite;
 
-  // Hardware Diodes & Meters
+  // Hardware Diodes & Meters (Purge Colour Drift per Spec §3)
   static const Color redSurface            = amberGold;
   static const Color redGloss              = amberGoldLight;
   static const Color redSocket             = amberGoldDark;
   static const Color redDeepRim            = Color(0xFF1A1202);
   static const Color pinkAccent            = amberGold;
   static const Color pinkGlow              = amberGoldGlow;
-  static const Color amberJewel            = Color(0xFFFFFFFF); // Luminous white waveform
+  static const Color amberJewel            = textInkBlack;
   static const Color amberGlow             = Color(0x30FFFFFF);
-  static const Color tubeWarmOrange        = Color(0xFFF1F5F9); // Clean silver
+  static const Color tubeWarmOrange        = textInkSecondary;
   static const Color vuGreen               = Color(0xFF00C853);
   static const Color vuAmber               = Color(0xFFFFB300);
   static const Color vuRed                 = amberGold;
@@ -161,37 +247,36 @@ class AppColors {
   static const Color grooveLight           = Color(0x25FFFFFF);
   static const Color seamDark              = Color(0x60000000);
   static const Color seamHighlight         = Color(0x20FFFFFF);
-  static const Color borderBrass           = specularRim; // Pure 1px specular white rim (ZERO colored outlines)
-  static const Color borderSubtle          = Color(0x18FFFFFF);
+  static const Color borderBrass           = ceramicWhiteRim;
+  static const Color borderSubtle          = Color(0x33A3B1C6);
 
   // ─── 05. Tactical Elevation & Neumorphic Material Shadows ───
-  static const List<BoxShadow> pianoBlackShadow = [
-    BoxShadow(
-      color: specularHighlight,
-      offset: Offset(-2, -2),
-      blurRadius: 6,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: ambientShadow,
-      offset: Offset(3, 6),
-      blurRadius: 14,
-      spreadRadius: 1,
-    ),
+
+  // TRUE NEUMORPHISM ELEVATIONS (Ref Theme)
+  static const List<BoxShadow> neumorphicRaisedPill = softRaisedShadow;
+  static const List<BoxShadow> neumorphicRaisedCard = mediumRaisedShadow;
+
+  static const List<BoxShadow> neumorphicUpwardBlack = [
+    BoxShadow(color: Color(0x70000000), offset: Offset(0, -5), blurRadius: 16, spreadRadius: 0),
+    BoxShadow(color: Color(0x18FFFFFF), offset: Offset(0, 1), blurRadius: 3, spreadRadius: 0),
   ];
 
-  static const List<BoxShadow> ceramicCardShadow = [
-    BoxShadow(
-      color: Color(0x14000000),
-      offset: Offset(0, 8),
-      blurRadius: 28,
-    ),
-    BoxShadow(
-      color: Color(0x08000000),
-      offset: Offset(0, 2),
-      blurRadius: 6,
-    ),
+  static const List<BoxShadow> neumorphicRaisedTile = [
+    BoxShadow(color: Color(0x55A3B1C6), offset: Offset(3, 4), blurRadius: 10, spreadRadius: 0),
+    BoxShadow(color: Color(0xE6FFFFFF), offset: Offset(-3, -3), blurRadius: 8, spreadRadius: 0),
   ];
+
+  static const List<BoxShadow> neumorphicBlackRaised = darkHardwareShadow;
+
+  // CERAMIC / PORCELAIN RAISED (24-Sep spec §6: soft, broad, vertical-only)
+  static const List<BoxShadow> ceramicRaise = softRaisedShadow;
+
+  // PIANO BLACK SLAB SHADOW (24-Sep spec §8: darkHardwareShadow)
+  static const List<BoxShadow> pianoSlabShadow = darkHardwareShadow;
+
+  static const List<BoxShadow> pianoBlackShadow = darkHardwareShadow;
+
+  static const List<BoxShadow> ceramicCardShadow = mediumRaisedShadow;
 
   static const List<BoxShadow> rubyDiodeGlowShadow = [
     BoxShadow(
@@ -201,8 +286,8 @@ class AppColors {
     ),
   ];
 
-  static const List<BoxShadow> contactSubtle = pianoBlackShadow;
-  static const List<BoxShadow> contactHero = pianoBlackShadow;
+  static const List<BoxShadow> contactSubtle = ceramicRaise;
+  static const List<BoxShadow> contactHero = pianoSlabShadow;
   static const List<BoxShadow> innerRecess = [
     BoxShadow(
       color: Color(0x60000000),
@@ -210,8 +295,8 @@ class AppColors {
       blurRadius: 4,
     ),
   ];
-  static const List<BoxShadow> luxCardShadow = pianoBlackShadow;
-  static const List<BoxShadow> metalPanelShadow = pianoBlackShadow;
+  static const List<BoxShadow> luxCardShadow = ceramicRaise;
+  static const List<BoxShadow> metalPanelShadow = ceramicRaise;
   static const List<BoxShadow> cardInsetShadows = innerRecess;
 
   static List<BoxShadow> luxGlowShadow(Color glowColor, {double blur = 10, double spread = 0}) => [
@@ -223,16 +308,16 @@ class AppColors {
     ),
   ];
 
-  // ─── 06. Luxury High-Gloss Piano Black Gradients ───
+  // ─── 06. Silky Piano Black Gradients (24-Sep Spec §3.2) ───
   static const LinearGradient pianoBlackGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF07080A), // Light end
-      Color(0xFF030405), // Mid
-      Color(0xFF000000), // Dark end
+      Color(0xFF161A22), // Soft piano highlight
+      Color(0xFF0D1015), // Silky mid
+      Color(0xFF090B0F), // Dense piano base
     ],
-    stops: [0.0, 0.45, 1.0],
+    stops: [0.0, 0.5, 1.0],
   );
 
   static const LinearGradient luxDarkCardGradient = pianoBlackGradient;

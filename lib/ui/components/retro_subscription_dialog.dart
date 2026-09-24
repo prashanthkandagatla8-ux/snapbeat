@@ -14,7 +14,6 @@ class _PaywallCardConfig {
   final String? badge;
   final IconData icon;
   final List<String> features;
-  final String fallbackPrice;
   final String period;
 
   const _PaywallCardConfig({
@@ -23,9 +22,10 @@ class _PaywallCardConfig {
     this.badge,
     required this.icon,
     required this.features,
-    required this.fallbackPrice,
     required this.period,
   });
+
+  String? get badgeText => tier == ProTier.annual ? tier.badgeText : badge;
 }
 
 /// SnapBeat Pro Paywall dialog matching watermark_clean.png aesthetic:
@@ -61,11 +61,11 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
       badge: null,
       icon: Icons.calendar_today_outlined,
       features: [
-        'Unlimited Exports',
-        'No Watermarks',
-        '100+ Pro Filters',
+        '1080p Master export',
+        'No watermark',
+        'Priority render queue',
+        'Unlimited exports',
       ],
-      fallbackPrice: '\u20B9169',
       period: ' / Week',
     ),
     _PaywallCardConfig(
@@ -74,24 +74,23 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
       badge: 'Best Value',
       icon: Icons.workspace_premium_rounded,
       features: [
-        'All Weekly Features',
-        'Premium Transitions',
-        'Gold Assets & Music',
+        '1080p Master export',
+        'No watermark',
+        'Priority render queue',
+        'Unlimited exports',
       ],
-      fallbackPrice: '\u20B9499',
       period: ' / Month',
     ),
     _PaywallCardConfig(
       tier: ProTier.annual,
       title: 'Annual VIP',
-      badge: 'Save 57%',
       icon: Icons.cloud_outlined,
       features: [
-        'Complete Creative Suite',
-        'Priority Support',
-        'Cloud Sync',
+        '1080p Master export',
+        'No watermark',
+        'Priority render queue',
+        'Unlimited exports',
       ],
-      fallbackPrice: '\u20B92,499',
       period: ' / Year',
     ),
   ];
@@ -116,24 +115,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   }
 
   String _getPriceAmount(_PaywallCardConfig card) {
-    final product = _sm.products[card.tier.productId];
-    if (product != null && product.price.isNotEmpty) {
-      return product.price;
-    }
-    final locale = WidgetsBinding.instance.platformDispatcher.locale;
-    if (locale.countryCode == 'IN') {
-      return card.fallbackPrice;
-    }
-    switch (card.tier) {
-      case ProTier.daily:
-        return '\$0.99';
-      case ProTier.weekly:
-        return '\$1.99';
-      case ProTier.monthly:
-        return '\$4.99';
-      case ProTier.annual:
-        return '\$29.99';
-    }
+    return _sm.formattedPrice(card.tier);
   }
 
   Future<void> _handleSubscribe() async {
@@ -527,7 +509,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                     ),
                   ),
                 ),
-                if (card.badge != null)
+                if (card.badgeText != null)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
@@ -541,7 +523,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                       ),
                     ),
                     child: Text(
-                      card.badge!,
+                      card.badgeText!,
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         color: isSelected ? const Color(0xFF0A0D11) : AppColors.amberGold,

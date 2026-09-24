@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
+import 'neomorphic_kit.dart';
 
 class MasterActionDeck extends StatelessWidget {
   final String currentMode; // 'music', 'photos', 'title', 'render', 'queue'
@@ -40,6 +41,10 @@ class MasterActionDeck extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -49,16 +54,11 @@ class MasterActionDeck extends StatelessWidget {
             Color(0xFF060709),
           ],
         ),
-        border: const Border(
-          top: BorderSide(color: Color(0x35FFFFFF), width: 1.0),
+        border: Border.all(
+          color: const Color(0x12FFFFFF),
+          width: 1.0,
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x70000000),
-            offset: Offset(0, -6),
-            blurRadius: 20,
-          ),
-        ],
+        boxShadow: AppColors.neumorphicUpwardBlack,
       ),
       child: SafeArea(
         top: false,
@@ -84,6 +84,7 @@ class MasterActionDeck extends StatelessWidget {
                   ),
                   boxShadow: const [
                     BoxShadow(color: Color(0x50000000), offset: Offset(0, 2), blurRadius: 6),
+                    BoxShadow(color: Color(0x10FFFFFF), offset: Offset(0, -1), blurRadius: 2),
                   ],
                 ),
                 child: Row(
@@ -138,12 +139,7 @@ class MasterActionDeck extends StatelessWidget {
                   Container(
                     height: 48,
                     padding: const EdgeInsets.all(3.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF090A0E),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0x25FFFFFF), width: 1.0),
-                      boxShadow: AppColors.innerRecess,
-                    ),
+                    decoration: NeumorphicKit.darkSunkenWell(radius: 10),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -151,7 +147,7 @@ class MasterActionDeck extends StatelessWidget {
                           label: 'AUTO',
                           icon: Icons.bolt_rounded,
                           isSelected: !isManualMode,
-                          activeColor: AppColors.amberGold,
+                          activeColor: Colors.white,
                           onTap: () {
                             HapticFeedback.selectionClick();
                             onToggleManualMode(false);
@@ -162,7 +158,7 @@ class MasterActionDeck extends StatelessWidget {
                           label: 'MANUAL',
                           icon: Icons.tune_rounded,
                           isSelected: isManualMode,
-                          activeColor: AppColors.amberGold,
+                          activeColor: Colors.white,
                           onTap: () {
                             HapticFeedback.selectionClick();
                             onToggleManualMode(true);
@@ -198,7 +194,6 @@ class MasterActionDeck extends StatelessWidget {
                             boxShadow: isActionEnabled
                                 ? const [
                                     BoxShadow(color: Color(0x50000000), offset: Offset(0, 4), blurRadius: 10),
-                                    BoxShadow(color: Color(0x20FFB300), offset: Offset(0, 0), blurRadius: 16),
                                   ]
                                 : null,
                           ),
@@ -246,7 +241,7 @@ class MasterActionDeck extends StatelessWidget {
                               Icon(
                                 Icons.arrow_forward_rounded,
                                 size: 15,
-                                color: isActionEnabled ? AppColors.amberGold : AppColors.textMuted,
+                                color: isActionEnabled ? const Color(0xFFF2F4F7) : AppColors.textMuted,
                               ),
                             ],
                           ),
@@ -349,18 +344,13 @@ class MasterActionDeck extends StatelessWidget {
             duration: const Duration(milliseconds: 160),
             padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(9),
-              gradient: isSelected
-                  ? const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF252936), Color(0xFF13151D)],
-                    )
-                  : null,
-              border: isSelected
-                  ? Border.all(color: const Color(0x35FFFFFF), width: 1.0)
-                  : null,
-              boxShadow: isSelected ? AppColors.contactSubtle : null,
+              borderRadius: BorderRadius.circular(10),
+              color: isSelected ? const Color(0xFFF2F4F6) : const Color(0xFF0D1015),
+              border: Border.all(
+                color: isSelected ? const Color(0xB3FFFFFF) : const Color(0x12FFFFFF),
+                width: 1.0,
+              ),
+              boxShadow: isSelected ? AppColors.softRaisedShadow : null,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -368,7 +358,7 @@ class MasterActionDeck extends StatelessWidget {
                 Icon(
                   icon,
                   size: 12,
-                  color: isSelected ? AppColors.amberGold : const Color(0x99FFFFFF),
+                  color: isSelected ? const Color(0xFF18202B) : const Color(0xFF9AA2AE),
                 ),
                 const SizedBox(width: 4),
                 Flexible(
@@ -381,7 +371,7 @@ class MasterActionDeck extends StatelessWidget {
                       fontSize: 8.5,
                       fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
                       letterSpacing: 0.4,
-                      color: isSelected ? Colors.white : const Color(0x99FFFFFF),
+                      color: isSelected ? const Color(0xFF18202B) : const Color(0xFF9AA2AE),
                     ),
                   ),
                 ),
@@ -390,7 +380,7 @@ class MasterActionDeck extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
-                      color: AppColors.amberGold,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(

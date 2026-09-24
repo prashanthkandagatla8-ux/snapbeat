@@ -132,6 +132,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                             decoration: BoxDecoration(
                               color: AppColors.pianoBlack,
                               borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0x30FFFFFF)),
                             ),
                             child: const Text(
                               'LIBRARY',
@@ -140,7 +141,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 1.0,
-                                color: AppColors.amberGold,
+                                color: Colors.white,
                               ),
                             ),
                           ),

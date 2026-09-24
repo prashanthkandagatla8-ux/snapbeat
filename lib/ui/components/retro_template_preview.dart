@@ -189,21 +189,21 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.brassGold.withValues(alpha: 0.15),
+                color: const Color(0xFF141720),
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4), width: 0.8),
+                border: Border.all(color: const Color(0x30FFFFFF), width: 0.8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(activeTemplate.icon, size: 10, color: AppColors.brassGold),
+                  Icon(activeTemplate.icon, size: 10, color: Colors.white),
                   const SizedBox(width: 4),
                   Text(
                     activeTemplate.name,
                     style: const TextStyle(
                       fontSize: 8.5,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.brassGold,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -262,8 +262,8 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
             border: Border.all(color: const Color(0x20FFFFFF), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.6),
-                offset: const Offset(2, 4),
+                color: Colors.black.withValues(alpha: 0.25),
+                offset: const Offset(0, 4),
                 blurRadius: 10,
               ),
             ],
@@ -328,7 +328,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                             child: Icon(
                               _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
                               size: 14,
-                              color: _isMuted ? AppColors.brassGold : Colors.greenAccent,
+                              color: _isMuted ? Colors.white70 : Colors.white,
                             ),
                           ),
                         ),
@@ -433,11 +433,11 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                                 decoration: BoxDecoration(
                                   color: Colors.black.withValues(alpha: 0.75),
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.brassGold, width: 1.5),
+                                  border: Border.all(color: Colors.white, width: 1.5),
                                 ),
                                 child: const Icon(
                                   Icons.play_arrow_rounded,
-                                  color: AppColors.brassGold,
+                                  color: Colors.white,
                                   size: 22,
                                 ),
                               ),
@@ -600,7 +600,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.auto_awesome_rounded, size: 16, color: AppColors.brassGold),
+                const Icon(Icons.auto_awesome_rounded, size: 16, color: Colors.white70),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -815,13 +815,13 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.brassGold.withValues(alpha: 0.15),
-                border: Border.all(color: AppColors.borderBrass, width: 1.5),
-                boxShadow: const [
-                  BoxShadow(color: AppColors.amberGlow, blurRadius: 10, spreadRadius: 2),
+                color: const Color(0xFF141720),
+                border: Border.all(color: const Color(0x30FFFFFF), width: 1.5),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10, spreadRadius: 2),
                 ],
               ),
-              child: const Icon(Icons.shuffle_rounded, size: 34, color: AppColors.brassGold),
+              child: const Icon(Icons.shuffle_rounded, size: 34, color: Colors.white),
             ),
             const SizedBox(height: 12),
             const Text(
@@ -838,9 +838,9 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: AppColors.panelInset,
+                color: const Color(0xFF141720),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.chassisBevelDark),
+                border: Border.all(color: const Color(0x30FFFFFF)),
               ),
               child: const Text(
                 "CYCLES ALL 14 MOTION STYLES TO THE BEAT",
@@ -848,7 +848,7 @@ class _RetroTemplatePreviewState extends State<RetroTemplatePreview> {
                   fontSize: 8,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.8,
-                  color: AppColors.brassGold,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -920,7 +920,7 @@ class _FullscreenTemplatePreviewDialogState
         decoration: BoxDecoration(
           color: const Color(0xFF0F1C20),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.brassGold, width: 2),
+          border: Border.all(color: const Color(0x30FFFFFF), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.8),
@@ -940,14 +940,14 @@ class _FullscreenTemplatePreviewDialogState
                 children: [
                   Row(
                     children: [
-                      Icon(widget.template.icon, size: 16, color: AppColors.brassGold),
+                      Icon(widget.template.icon, size: 16, color: Colors.white),
                       const SizedBox(width: 8),
                       Text(
                         widget.template.name.toUpperCase(),
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.brassGold,
+                          color: Colors.white,
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -1018,8 +1018,8 @@ class _FullscreenTemplatePreviewDialogState
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brassGold,
-                        foregroundColor: AppColors.hardwareGunmetal,
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF07080A),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),

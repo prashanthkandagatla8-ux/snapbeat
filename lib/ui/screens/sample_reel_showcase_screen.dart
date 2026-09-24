@@ -9,7 +9,14 @@ import '../components/tactile_action_button.dart';
 import 'home_screen.dart';
 
 class SampleReelShowcaseScreen extends StatefulWidget {
-  const SampleReelShowcaseScreen({super.key});
+  final bool autoNavigate;
+  final Widget? placeholderPreview;
+
+  const SampleReelShowcaseScreen({
+    super.key,
+    this.autoNavigate = true,
+    this.placeholderPreview,
+  });
 
   @override
   State<SampleReelShowcaseScreen> createState() => _SampleReelShowcaseScreenState();
@@ -27,9 +34,11 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
     super.initState();
     _loadSkipPreference();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    _safetyTimer = Timer(const Duration(seconds: 20), () {
-      _navigateToHome();
-    });
+    if (widget.autoNavigate) {
+      _safetyTimer = Timer(const Duration(seconds: 20), () {
+        _navigateToHome();
+      });
+    }
     _initVideo();
   }
 
@@ -59,7 +68,9 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
       await controller.play();
     } catch (e) {
       debugPrint('Showcase video error: $e');
-      _navigateToHome();
+      if (widget.autoNavigate) {
+        _navigateToHome();
+      }
     }
   }
 
@@ -156,7 +167,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                           fontFamily: 'Montserrat',
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.brassGold,
+                          color: AppColors.textPrimary,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -170,10 +181,11 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
                   child: Container(
+                    width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.black,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.borderBrass, width: 1.5),
+                      border: Border.all(color: const Color(0x30FFFFFF), width: 1.5),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.6),
@@ -198,13 +210,15 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                                 ),
                               ),
                             )
+                          else if (widget.placeholderPreview != null)
+                            Positioned.fill(child: widget.placeholderPreview!)
                           else
                             const Center(
-                              child: CircularProgressIndicator(color: AppColors.brassGold),
+                              child: CircularProgressIndicator(color: Colors.white),
                             ),
 
                           // Play / Pause Indicator
-                          if (!isPlaying && _isReady)
+                          if ((!isPlaying && _isReady) || widget.placeholderPreview != null)
                             GestureDetector(
                               onTap: _togglePlay,
                               child: Container(
@@ -213,9 +227,9 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.black.withValues(alpha: 0.65),
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.brassGold, width: 2),
+                                  border: Border.all(color: Colors.white, width: 2),
                                 ),
-                                child: const Icon(Icons.play_arrow_rounded, color: AppColors.brassGold, size: 36),
+                                child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
                               ),
                             ),
                         ],
@@ -247,7 +261,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                               ),
                               child: Row(
                                 children: const [
-                                  Icon(Icons.motion_photos_auto_rounded, size: 12, color: AppColors.brassGold),
+                                  Icon(Icons.motion_photos_auto_rounded, size: 12, color: AppColors.textSecondary),
                                   SizedBox(width: 5),
                                   Expanded(
                                     child: Text(
@@ -280,7 +294,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                               ),
                               child: Row(
                                 children: const [
-                                  Icon(Icons.music_note_rounded, size: 12, color: AppColors.amberJewel),
+                                  Icon(Icons.music_note_rounded, size: 12, color: AppColors.textSecondary),
                                   SizedBox(width: 5),
                                   Expanded(
                                     child: Text(
@@ -313,7 +327,7 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                             controller,
                             allowScrubbing: true,
                             colors: const VideoProgressColors(
-                              playedColor: AppColors.brassGold,
+                              playedColor: Colors.white,
                               bufferedColor: Colors.black26,
                               backgroundColor: Colors.black12,
                             ),
@@ -351,8 +365,8 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                                 height: 18,
                                 child: Checkbox(
                                   value: _skipDemoNextTime,
-                                  activeColor: AppColors.brassGold,
-                                  checkColor: const Color(0xFF1E1A10),
+                                  activeColor: const Color(0xFF07080A),
+                                  checkColor: Colors.white,
                                   side: const BorderSide(color: AppColors.chassisBevelLight, width: 1.2),
                                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   visualDensity: VisualDensity.compact,
