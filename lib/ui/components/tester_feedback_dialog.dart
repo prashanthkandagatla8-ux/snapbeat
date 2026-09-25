@@ -156,7 +156,7 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.groups_rounded, color: AppColors.amberJewel, size: 24),
+                          const Icon(Icons.groups_rounded, color: AppColors.primaryDarkText, size: 24),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Column(

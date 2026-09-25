@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     try {
-      const splashAsset = 'assets/videos/splash_screen_ios.mp4';
+      const splashAsset = 'assets/videos/Splash.mp4';
       final controller = VideoPlayerController.asset(splashAsset);
       _controller = controller;
       await controller.initialize();

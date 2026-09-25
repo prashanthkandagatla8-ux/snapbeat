@@ -274,7 +274,7 @@ class _WebAudioConsoleDeckState extends State<WebAudioConsoleDeck>
                   widget.isCustom
                       ? "Uploaded File"
                       : (widget.bpm != null && widget.bpm!.isNotEmpty)
-                          ? "${widget.bpm}${widget.genre != null && widget.genre!.isNotEmpty ? " * ${widget.genre}" : ""}"
+                          ? "${widget.bpm}${widget.genre != null && widget.genre!.isNotEmpty ? " · ${widget.genre}" : ""}"
                           : "Beat-Synchronized Audio",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
@@ -678,11 +678,11 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: isPreviewing
-                        ? AppColors.pinkAccent.withValues(alpha: 0.2)
+                        ? const Color(0xFFFFFFFF).withValues(alpha: 0.2)
                         : AppColors.metalHighlight.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isPreviewing ? AppColors.pinkAccent : AppColors.borderSubtle,
+                      color: isPreviewing ? const Color(0xFFFFFFFF) : AppColors.borderSubtle,
                     ),
                   ),
                   child: Row(
@@ -691,7 +691,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                       Icon(
                         isPreviewing ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
                         size: 14,
-                        color: isPreviewing ? AppColors.pinkAccent : AppColors.textEngraved,
+                        color: isPreviewing ? const Color(0xFFFFFFFF) : AppColors.textEngraved,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -699,7 +699,7 @@ class _CuratedSoundtrackSectionState extends State<CuratedSoundtrackSection> {
                         style: TextStyle(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w800,
-                          color: isPreviewing ? AppColors.pinkAccent : AppColors.textSecondary,
+                          color: isPreviewing ? const Color(0xFFFFFFFF) : AppColors.textSecondary,
                         ),
                       ),
                     ],

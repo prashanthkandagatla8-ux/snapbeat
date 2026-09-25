@@ -11,7 +11,7 @@ class AppTheme {
       primaryColor: AppColors.pianoBlack,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.pianoBlack,
-        secondary: AppColors.amberGold,
+        secondary: const Color(0xFFFFFFFF),
         surface: AppColors.pianoBlack,
         onPrimary: AppColors.textPureWhite,
         onSecondary: AppColors.textPureWhite,

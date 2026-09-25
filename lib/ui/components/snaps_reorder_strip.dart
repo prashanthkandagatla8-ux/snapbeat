@@ -122,7 +122,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                       fontSize: 10.5,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
-                      color: isEnabled ? AppColors.textEngraved : AppColors.amberJewel,
+                      color: isEnabled ? AppColors.textEngraved : const Color(0xFFFFFFFF),
                     ),
                   ),
                 ],
@@ -157,11 +157,11 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.lock_rounded, size: 11, color: AppColors.amberJewel),
+                      Icon(Icons.lock_rounded, size: 11, color: AppColors.primaryDarkText),
                       SizedBox(width: 4),
                       Text(
                         'STEP 2',
-                        style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppColors.amberJewel),
+                        style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppColors.primaryDarkText),
                       ),
                     ],
                   ),
@@ -304,7 +304,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                   fontSize: 11,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.8,
-                                  color: AppColors.amberJewel,
+                                  color: AppColors.primaryDarkText,
                                 ),
                               ),
                               SizedBox(height: 4),
@@ -659,7 +659,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   border: isHovered
-                                      ? Border.all(color: AppColors.pinkAccent, width: 2.5)
+                                      ? Border.all(color: AppColors.primaryDarkText, width: 2.5)
                                       : null,
                                 ),
                                 child: _buildGridPhotoCard(p, index),
@@ -883,7 +883,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
           fontSize: 7.5,
           fontWeight: FontWeight.w900,
           letterSpacing: 0.6,
-          color: AppColors.amberJewel,
+          color: AppColors.primaryDarkText,
         ),
       ),
     );

@@ -127,7 +127,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1.0,
-                                color: hasTrack ? AppColors.amberJewel : AppColors.textMuted,
+                                color: hasTrack ? const Color(0xFFFFFFFF) : AppColors.textMuted,
                               ),
                             ),
                           ),
@@ -148,7 +148,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                           fontFamily: 'Courier',
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.amberJewel,
+                          color: const Color(0xFFFFFFFF),
                           letterSpacing: 2.0,
                         ),
                       ),
@@ -220,7 +220,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                           boxShadow: [
                             BoxShadow(
                               color: widget.isPlaying
-                                  ? AppColors.amberJewel.withValues(alpha: 0.5)
+                                  ? const Color(0xFFFFFFFF).withValues(alpha: 0.5)
                                   : Colors.black.withValues(alpha: 0.35),
                               offset: const Offset(1, 2),
                               blurRadius: widget.isPlaying ? 10 : 5,

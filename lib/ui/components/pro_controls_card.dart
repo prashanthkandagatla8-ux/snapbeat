@@ -169,10 +169,10 @@ class ProControlsCard extends StatelessWidget {
                         (isPro ?? false)
                             ? (selectedQuality == '1080p' ? '1080p Master' : '720p HD')
                             : '360p Standard (Free)',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
-                          color: (isPro ?? false) ? const Color(0xFFFFFFFF) : const Color(0xFF94A3B8),
+                          color: Color(0xFFFFFFFF),
                         ),
                       ),
                     ],
@@ -216,7 +216,7 @@ class ProControlsCard extends StatelessWidget {
               _buildQualityRocker(
                 context: context,
                 label: '720p HD',
-                sublabel: 'PRO 🔒',
+                sublabel: 'PRO ',
                 value: '720p',
                 isProRequired: true,
               ),
@@ -224,7 +224,7 @@ class ProControlsCard extends StatelessWidget {
               _buildQualityRocker(
                 context: context,
                 label: '1080p Master',
-                sublabel: 'PRO 🔒',
+                sublabel: 'PRO ',
                 value: '1080p',
                 isProRequired: true,
               ),
@@ -419,7 +419,7 @@ class ProControlsCard extends StatelessWidget {
                       const SizedBox(width: 6),
                       _buildSizeChip('medium', 'M  Medium', titleFontSize == 'medium', onSelectTitleFontSize),
                       const SizedBox(width: 6),
-                      _buildSizeChip('large', 'L  Large ★', titleFontSize == 'large' || titleFontSize.isEmpty, onSelectTitleFontSize),
+                      _buildSizeChip('large', 'L  Large ', titleFontSize == 'large' || titleFontSize.isEmpty, onSelectTitleFontSize),
                       const SizedBox(width: 6),
                       _buildSizeChip('xlarge', 'XL  Headline', titleFontSize == 'xlarge' || titleFontSize == 'xl', onSelectTitleFontSize),
                     ],
@@ -433,11 +433,11 @@ class ProControlsCard extends StatelessWidget {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      _buildChip('classic', 'Retro Gold 👑', titleStyle == 'classic', onSelectTitleStyle),
-                      _buildChip('neon', 'Neon Glow ⚡', titleStyle == 'neon', onSelectTitleStyle),
-                      _buildChip('3d_retro', '3D Sunset 🌇', titleStyle == '3d_retro', onSelectTitleStyle),
-                      _buildChip('cinematic', 'Cinematic 🎬', titleStyle == 'cinematic', onSelectTitleStyle),
-                      _buildChip('badge', 'Badge Pill 🏷️', titleStyle == 'badge', onSelectTitleStyle),
+                      _buildChip('classic', 'Retro Gold ', titleStyle == 'classic', onSelectTitleStyle),
+                      _buildChip('neon', 'Neon Glow ', titleStyle == 'neon', onSelectTitleStyle),
+                      _buildChip('3d_retro', '3D Sunset ', titleStyle == '3d_retro', onSelectTitleStyle),
+                      _buildChip('cinematic', 'Cinematic ', titleStyle == 'cinematic', onSelectTitleStyle),
+                      _buildChip('badge', 'Badge Pill ', titleStyle == 'badge', onSelectTitleStyle),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -450,9 +450,9 @@ class ProControlsCard extends StatelessWidget {
                     runSpacing: 6,
                     children: [
                       _buildChip('none', 'No Frame', titleFrame == 'none', onSelectTitleFrame),
-                      _buildChip('viewfinder', 'Viewfinder 🎯', titleFrame == 'viewfinder', onSelectTitleFrame),
-                      _buildChip('film_bars', 'Film Bars 🎞️', titleFrame == 'film_bars', onSelectTitleFrame),
-                      _buildChip('box', 'Clean Box 🔲', titleFrame == 'box', onSelectTitleFrame),
+                      _buildChip('viewfinder', 'Viewfinder ', titleFrame == 'viewfinder', onSelectTitleFrame),
+                      _buildChip('film_bars', 'Film Bars ', titleFrame == 'film_bars', onSelectTitleFrame),
+                      _buildChip('box', 'Clean Box ', titleFrame == 'box', onSelectTitleFrame),
                       _buildChip('double_line', 'Double Line ═', titleFrame == 'double_line', onSelectTitleFrame),
                     ],
                   ),
@@ -579,7 +579,7 @@ class ProControlsCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             _buildSmallRocker(
                               'with_audio',
-                              'With Music 🎵',
+                              'With Music ',
                               titleAudio == 'with_audio',
                               onSelectTitleAudio,
                             ),
@@ -1305,67 +1305,74 @@ class ProControlsCard extends StatelessWidget {
           onSelectQuality(value);
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: isSelected ? const EdgeInsets.all(1.5) : EdgeInsets.zero,
           decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF07080A)
-                : const Color(0xFF030405),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: isSelected ? const Color(0x30FFFFFF) : const Color(0x10FFFFFF),
-              width: 1.0,
-            ),
+            borderRadius: BorderRadius.circular(7.5),
+            gradient: isSelected ? AppColors.iridescentGradient : null,
             boxShadow: isSelected
                 ? [
+                    BoxShadow(
+                      color: const Color(0xFFB026FF).withValues(alpha: 0.25),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.6),
                       blurRadius: 6,
                       offset: const Offset(0, 3),
                     ),
-                    BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      blurRadius: 1,
-                      offset: const Offset(0, -1),
-                    ),
                   ]
                 : null,
           ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: isSelected
-                          ? Colors.white
-                          : (isLocked ? const Color(0xFF475569) : const Color(0xFF64748B)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFF07080A)
+                  : const Color(0xFF030405),
+              borderRadius: BorderRadius.circular(6),
+              border: isSelected ? null : Border.all(
+                color: const Color(0x10FFFFFF),
+                width: 1.0,
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: isSelected
+                            ? Colors.white
+                            : (isLocked ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
+                      ),
                     ),
-                  ),
-                  if (isLocked) ...[
-                    const SizedBox(width: 3),
-                    const Icon(Icons.lock_rounded, size: 10, color: AppColors.amberJewel),
+                    if (isLocked) ...[
+                      const SizedBox(width: 3),
+                      const Icon(Icons.lock_rounded, size: 10, color: Colors.white70),
+                    ],
                   ],
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                isLocked ? 'PRO ONLY' : sublabel,
-                style: TextStyle(
-                  fontSize: 7.5,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.4,
-                  color: isSelected
-                      ? const Color(0xB3FFFFFF)
-                      : (isLocked ? AppColors.amberJewel : const Color(0xFF475569)),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  isLocked ? 'PRO ONLY' : sublabel,
+                  style: TextStyle(
+                    fontSize: 7.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.4,
+                    color: isSelected
+                        ? const Color(0xB3FFFFFF)
+                        : (isLocked ? Colors.white54 : const Color(0xFF94A3B8)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1412,9 +1419,9 @@ class _BeatMotionEffectsSection extends StatelessWidget {
                 height: 8,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.pinkAccent,
+                  color: const Color(0xFFFFFFFF),
                   boxShadow: [
-                    BoxShadow(color: AppColors.pinkGlow, blurRadius: 5, spreadRadius: 1),
+                    BoxShadow(color: const Color(0x30FFFFFF), blurRadius: 5, spreadRadius: 1),
                   ],
                 ),
               ),
@@ -1553,4 +1560,5 @@ class _BeatMotionEffectsSection extends StatelessWidget {
       ],
     );
   }
-}
+}
+

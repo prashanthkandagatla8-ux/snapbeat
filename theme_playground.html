@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapBeat UI Theme Playground</title>
+    <style>
+        /* 
+           =========================================================
+           BASE THEME VARIABLES
+           These are the core 3 colors: Piano Black, White, and Iridescent.
+           Meta AI can easily tweak these to generate new themes!
+           =========================================================
+        */
+        :root {
+            /* Backgrounds */
+            --bg-canvas: #0a0b0f;
+            --bg-panel: #111216;
+            --bg-deck: linear-gradient(180deg, #1a1d25 0%, #030406 100%);
+            
+            /* Text & Typography */
+            --text-primary: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            
+            /* Iridescent Gradient (Cyan -> Purple -> Pink) */
+            --accent-gradient: linear-gradient(135deg, #00E5FF 0%, #B026FF 50%, #FF007F 100%);
+            
+            /* Lighting & Physics (Neumorphic cues) */
+            --catchlight-top: rgba(255, 255, 255, 0.15);
+            --shadow-ambient: 0 10px 30px rgba(0, 0, 0, 0.8);
+            --shadow-inset: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+            
+            --radius-panel: 24px;
+            --radius-pill: 99px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Mobile Device Frame */
+        .device {
+            width: 390px;
+            height: 844px;
+            background-color: var(--bg-canvas);
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 0 10px #222, 0 20px 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            padding: 50px 24px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-title {
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .pro-badge {
+            background: var(--bg-panel);
+            padding: 2px;
+            border-radius: 8px;
+            /* Glowing Iridescent Outline */
+            background-image: var(--accent-gradient);
+        }
+        
+        .pro-badge-inner {
+            background-color: var(--bg-canvas);
+            padding: 6px 10px;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Stage Content */
+        .stage {
+            flex: 1;
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background-color: var(--bg-panel);
+            border-radius: var(--radius-panel);
+            padding: 20px;
+            box-shadow: var(--shadow-ambient);
+            border-top: 1px solid var(--catchlight-top);
+        }
+
+        .panel-title {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+        }
+
+        /* Quality Chips */
+        .chip-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chip {
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-inset);
+        }
+
+        .chip.active {
+            background-color: var(--bg-panel);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-top: 1px solid var(--catchlight-top);
+            position: relative;
+        }
+
+        /* Glowing Border for Active Chip */
+        .chip.active::before {
+            content: '';
+            position: absolute;
+            inset: -1.5px;
+            border-radius: 13.5px;
+            background: var(--accent-gradient);
+            z-index: -1;
+        }
+
+        .chip-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .chip-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* Floating Bottom Action Deck */
+        .bottom-deck {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-deck);
+            padding: 24px 24px 40px;
+            border-radius: 32px 32px 0 0;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
+            border-top: 1px solid var(--catchlight-top);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Auto/Manual Toggle */
+        .toggle-track {
+            background-color: rgba(0,0,0,0.5);
+            border-radius: var(--radius-pill);
+            padding: 4px;
+            display: flex;
+            position: relative;
+            box-shadow: var(--shadow-inset);
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 1;
+        }
+
+        .toggle-option.active {
+            color: var(--text-primary);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
+            background-color: var(--bg-panel);
+            border-radius: var(--radius-pill);
+            border-top: 1px solid var(--catchlight-top);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Render Button */
+        .render-btn {
+            background-color: var(--bg-panel);
+            border: none;
+            border-radius: var(--radius-pill);
+            padding: 20px;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+            /* Glowing Iridescent Outline */
+            background-clip: padding-box;
+            border: 2px solid transparent;
+        }
+
+        .render-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: calc(var(--radius-pill) + 2px);
+            background: var(--accent-gradient);
+            z-index: -1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="device">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">SNAPBEAT</div>
+            <div class="pro-badge">
+                <div class="pro-badge-inner">PRO ACTIVE</div>
+            </div>
+        </div>
+
+        <!-- Scrollable Stage -->
+        <div class="stage">
+            <div class="panel">
+                <div class="panel-title">Render Quality</div>
+                <div class="chip-grid">
+                    <div class="chip active">
+                        <div>
+                            <div class="chip-title">1080p Master</div>
+                            <div class="chip-subtitle">Serverless Cloud Run</div>
+                        </div>
+                    </div>
+                    <div class="chip">
+                        <div>
+                            <div class="chip-title" style="color: var(--text-secondary)">720p HD</div>
+                            <div class="chip-subtitle">VPS Cult Engine</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Realistic Piano Black Bottom Deck -->
+        <div class="bottom-deck">
+            <div class="toggle-track">
+                <div class="toggle-thumb"></div>
+                <div class="toggle-option">AUTO</div>
+                <div class="toggle-option active">MANUAL</div>
+            </div>
+            
+            <div class="render-btn" style="text-align: center;">
+                START RENDER
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

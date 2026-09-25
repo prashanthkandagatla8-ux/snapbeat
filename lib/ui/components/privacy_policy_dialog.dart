@@ -77,7 +77,7 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.borderBrass, width: 1),
                     ),
-                    child: Text(widget.isEula ? '📜' : '🛡️', style: const TextStyle(fontSize: 18)),
+                    child: Text(widget.isEula ? '' : '', style: const TextStyle(fontSize: 18)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -162,26 +162,26 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                             launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
                           },
                           child: _buildSectionItem(
-                            icon: '🍎',
+                            icon: '',
                             title: 'Apple Standard Terms of Use (EULA)',
                             description:
                                 'By downloading or using SnapBeat, you agree to Apple\'s Standard Licensed Application End User License Agreement:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/ (Tap to open)',
                           ),
                         ),
                         _buildSectionItem(
-                          icon: '💳',
+                          icon: '',
                           title: 'Subscription & Auto-Renewal',
                           description:
                               'Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current billing period. Your account will be charged for renewal within 24 hours prior to the end of the period. Manage or cancel subscriptions in App Store account settings.',
                         ),
                         _buildSectionItem(
-                          icon: '📸',
+                          icon: '',
                           title: 'User Content Ownership',
                           description:
                               'You retain full copyright and ownership of all photos, music, and assembled video reels you select or create with SnapBeat.',
                         ),
                         _buildSectionItem(
-                          icon: '🛡️',
+                          icon: '',
                           title: 'Refunds & In-App Purchases',
                           description:
                               'All subscriptions and purchases are processed directly by Apple StoreKit. Refund requests are subject to Apple Media Services Terms and Conditions.',
@@ -216,42 +216,42 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                             const SizedBox(height: 14),
 
                             _buildSectionItem(
-                              icon: '⚡',
+                              icon: '',
                               title: 'Ephemeral Media Processing',
                               description:
                                   'User-selected photos and audio tracks are transmitted over encrypted HTTPS/TLS exclusively to the cloud rendering engine to detect musical beats and assemble your video reel.',
                             ),
 
                             _buildSectionItem(
-                              icon: '🗑️',
+                              icon: '',
                               title: 'Instant File Deletion',
                               description:
                                   'Input files are processed in volatile temporary storage and purged permanently immediately upon render completion. No user images or songs are ever archived on servers.',
                             ),
 
                             _buildSectionItem(
-                              icon: '🎬',
+                              icon: '',
                               title: 'Advertising & Consent',
                               description:
                                   'Free users see a full-screen ad before a reel plays. Subscribers see no ads at all. Ads come from Google AdMob, which may use a device advertising identifier to serve them. Consent is handled through Google\'s UMP form where local law requires it. As always, there is no sale of personal media, no cross-app tracking for profiling, and no AI/ML training on user photos or music.',
                             ),
 
                             _buildSectionItem(
-                              icon: '🛡️',
+                              icon: '',
                               title: 'No AI Training & Zero Data Sales',
                               description:
                                   'Your personal media is never sold, rented, or shared with third parties. Your photos and music are strictly prohibited from being used to train AI or machine learning models.',
                             ),
 
                             _buildSectionItem(
-                              icon: '📱',
+                              icon: '',
                               title: 'Minimal Scoped Permissions',
                               description:
                                   'System photo picker and audio file access are requested solely when you select media for your reel. We cannot access your full library or unselected private files.',
                             ),
 
                             _buildSectionItem(
-                              icon: '⚖️',
+                              icon: '',
                               title: 'COPPA & GDPR Compliance',
                               description:
                                   'Because no personal identifiers or media are permanently retained, SnapBeat complies with COPPA and GDPR regulations for user privacy.',
@@ -400,3 +400,4 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
     );
   }
 }
+

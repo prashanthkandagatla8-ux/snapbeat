@@ -49,16 +49,29 @@ class MasterActionDeck extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1E212B),
-            Color(0xFF0E1015),
-            Color(0xFF060709),
+            Color(0xFF1A1D25),
+            Color(0xFF0A0C11),
+            Color(0xFF030406),
           ],
         ),
-        border: Border.all(
-          color: const Color(0x12FFFFFF),
-          width: 1.0,
+        border: const Border(
+          top: BorderSide(
+            color: Color(0x40FFFFFF),
+            width: 1.0,
+          ),
         ),
-        boxShadow: AppColors.neumorphicUpwardBlack,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+          const BoxShadow(
+            color: Color(0x10FFFFFF),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -179,71 +192,83 @@ class MasterActionDeck extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           height: 48,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          padding: const EdgeInsets.all(1.5),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFF262832), Color(0xFF14151B), Color(0xFF0A0B0E)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isActionEnabled ? const Color(0x35FFFFFF) : const Color(0x14FFFFFF),
-                              width: 1.0,
-                            ),
+                            borderRadius: BorderRadius.circular(13.5),
+                            gradient: isActionEnabled ? AppColors.iridescentGradient : null,
                             boxShadow: isActionEnabled
                                 ? const [
+                                    BoxShadow(
+                                      color: Color(0x60B026FF),
+                                      blurRadius: 10,
+                                      spreadRadius: 1,
+                                    ),
                                     BoxShadow(color: Color(0x50000000), offset: Offset(0, 4), blurRadius: 10),
                                   ]
                                 : null,
                           ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                actionIcon,
-                                size: 18,
-                                color: isActionEnabled ? const Color(0xFFF2F4F7) : AppColors.textMuted,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFF262832), Color(0xFF14151B), Color(0xFF0A0B0E)],
                               ),
-                              const SizedBox(width: 9),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        actionButtonText,
-                                        style: TextStyle(
-                                          fontFamily: 'Montserrat',
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 0.8,
-                                          color: isActionEnabled ? const Color(0xFFF2F4F7) : AppColors.textMuted,
-                                        ),
-                                      ),
-                                    ),
-                                    if (actionButtonSubtitle.isNotEmpty)
-                                      Text(
-                                        actionButtonSubtitle,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFFA6ABB8),
-                                        ),
-                                      ),
-                                  ],
+                              borderRadius: BorderRadius.circular(12),
+                              border: isActionEnabled ? null : Border.all(
+                                color: const Color(0x14FFFFFF),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  actionIcon,
+                                  size: 18,
+                                  color: isActionEnabled ? const Color(0xFFFFFFFF) : AppColors.textMuted,
                                 ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                size: 15,
-                                color: isActionEnabled ? const Color(0xFFF2F4F7) : AppColors.textMuted,
-                              ),
-                            ],
+                                const SizedBox(width: 9),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          actionButtonText,
+                                          style: TextStyle(
+                                            fontFamily: 'Montserrat',
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.8,
+                                            color: isActionEnabled ? const Color(0xFFFFFFFF) : AppColors.textMuted,
+                                          ),
+                                        ),
+                                      ),
+                                      if (actionButtonSubtitle.isNotEmpty)
+                                        Text(
+                                          actionButtonSubtitle,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFFA6ABB8),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 15,
+                                  color: isActionEnabled ? const Color(0xFFFFFFFF) : AppColors.textMuted,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -270,13 +295,10 @@ class MasterActionDeck extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        padding: isSelected ? const EdgeInsets.all(1.5) : EdgeInsets.zero,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF07080A) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: isSelected
-              ? Border.all(color: const Color(0x30FFFFFF), width: 1.0)
-              : null,
+          borderRadius: BorderRadius.circular(9.5),
+          gradient: isSelected ? AppColors.iridescentGradient : null,
           boxShadow: isSelected
               ? const [
                   BoxShadow(
@@ -284,14 +306,15 @@ class MasterActionDeck extends StatelessWidget {
                     blurRadius: 6,
                     offset: Offset(0, 2),
                   ),
-                  BoxShadow(
-                    color: Color(0x25FFFFFF),
-                    blurRadius: 1,
-                    offset: Offset(0, -0.5),
-                  ),
                 ]
               : null,
         ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF07080A) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -314,8 +337,9 @@ class MasterActionDeck extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTab({
     required String mode,

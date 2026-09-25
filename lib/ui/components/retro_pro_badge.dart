@@ -26,18 +26,21 @@ class RetroProBadge extends StatelessWidget {
         return GestureDetector(
           onTap: onTap ?? () => RetroSubscriptionDialog.show(context),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.all(1.5),
             decoration: BoxDecoration(
-              color: AppColors.pianoLacquer,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isPro ? AppColors.vuGreen : AppColors.indicatorAccent.withValues(alpha: 0.5),
-                width: 1.0,
-              ),
+              gradient: isPro ? AppColors.iridescentGradient : null,
+              color: isPro ? null : AppColors.indicatorAccent.withValues(alpha: 0.5),
               boxShadow: AppColors.neumorphicBlackRaised,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.pianoLacquer,
+                borderRadius: BorderRadius.circular(14.5),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
               children: [
                 // Backlit LED indicator
                 Container(
@@ -45,12 +48,12 @@ class RetroProBadge extends StatelessWidget {
                   height: 7,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isPro ? AppColors.vuGreen : AppColors.indicatorAccent,
+                    color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: (isPro ? AppColors.vuGreen : AppColors.indicatorAccent).withValues(alpha: 0.75),
-                        blurRadius: 4,
-                        spreadRadius: 0.5,
+                        color: Colors.white.withValues(alpha: isPro ? 0.8 : 0.2),
+                        blurRadius: isPro ? 6 : 2,
+                        spreadRadius: 1,
                       ),
                     ],
                   ),
@@ -59,19 +62,20 @@ class RetroProBadge extends StatelessWidget {
                   const SizedBox(width: 6),
                   Text(
                     isPro ? 'PRO ACTIVE' : 'GET PRO',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.1,
-                      color: isPro ? AppColors.vuGreen : AppColors.textPrimary,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ],
             ),
           ),
-        );
+        ),
+      );
       },
     );
   }

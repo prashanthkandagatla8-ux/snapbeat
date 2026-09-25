@@ -204,10 +204,10 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _isInitialized && _controller != null && _controller!.value.isPlaying
-                          ? AppColors.amberJewel
+                          ? const Color(0xFFFFFFFF)
                           : AppColors.textMuted,
                       boxShadow: _isInitialized && _controller != null && _controller!.value.isPlaying
-                          ? const [BoxShadow(color: AppColors.amberJewel, blurRadius: 6, spreadRadius: 1)]
+                          ? const [BoxShadow(color: AppColors.primaryDarkText, blurRadius: 6, spreadRadius: 1)]
                           : null,
                     ),
                   ),
@@ -345,7 +345,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                   _controller!,
                   allowScrubbing: true,
                   colors: const VideoProgressColors(
-                    playedColor: AppColors.amberJewel,
+                    playedColor: const Color(0xFFFFFFFF),
                     bufferedColor: Colors.white24,
                     backgroundColor: AppColors.panelInset,
                   ),
@@ -401,7 +401,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                                   fontFamily: 'Courier',
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.amberJewel,
+                                  color: AppColors.primaryDarkText,
                                   letterSpacing: 1.0,
                                 ),
                               ),
@@ -444,12 +444,12 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                         decoration: BoxDecoration(
                           color: _saveStatus.startsWith('✓')
                               ? AppColors.vuGreen.withValues(alpha: 0.15)
-                              : AppColors.amberJewel.withValues(alpha: 0.15),
+                              : const Color(0xFFFFFFFF).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: _saveStatus.startsWith('✓')
                                 ? AppColors.vuGreen
-                                : AppColors.amberJewel,
+                                : const Color(0xFFFFFFFF),
                             width: 1,
                           ),
                         ),
@@ -516,7 +516,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.schedule_rounded, size: 12, color: AppColors.amberJewel),
+                          Icon(Icons.schedule_rounded, size: 12, color: AppColors.primaryDarkText),
                           SizedBox(width: 6),
                           Flexible(
                             child: Text(

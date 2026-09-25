@@ -66,7 +66,7 @@ class HomeScreenState extends State<HomeScreen> {
   // Unified Workflow State
   bool _isManualRenderMode = false;
   bool _isTitleCardEnabled = true;
-  final TextEditingController _subtitleTextController = TextEditingController(text: "Shot on iPhone • 2026");
+  final TextEditingController _subtitleTextController = TextEditingController(text: "Shot on iPhone â€¢ 2026");
 
   final qm = QueueManager.instance;
   final api = ApiService.instance;
@@ -186,7 +186,7 @@ class HomeScreenState extends State<HomeScreen> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFFFFD54F),
+        backgroundColor: const Color(0xFFFFFFFF),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 95),
         duration: const Duration(milliseconds: 1400),
@@ -434,7 +434,7 @@ class HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFFE082), Color(0xFFFFC72C)],
+                      colors: [Color(0xFFF2F4F6), Color(0xFFE1E5E9)],
                     ),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: const Color(0xFFBF8A00), width: 1.2),
@@ -448,7 +448,7 @@ class HomeScreenState extends State<HomeScreen> {
                       Icon(Icons.explore_rounded, size: 16, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
-                        'EXPLORE STUDIO ❯',
+                        'EXPLORE STUDIO â¯',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 11,
@@ -500,7 +500,7 @@ class HomeScreenState extends State<HomeScreen> {
                       fontFamily: 'Montserrat',
                       fontSize: 8,
                       fontWeight: FontWeight.w900,
-                      color: AppColors.amberJewel,
+                      color: AppColors.primaryDarkText,
                       letterSpacing: 0.8,
                     ),
                   ),
@@ -696,7 +696,7 @@ class HomeScreenState extends State<HomeScreen> {
         if (!mounted) return;
         setState(() {
           _selectedMusic = videoFile;
-          _selectedMusicTitle = '🎬 Video Audio: $fileName';
+          _selectedMusicTitle = 'ðŸŽ¬ Video Audio: $fileName';
           _audioDuration = dur;
           _audioStart = 0.0;
           _audioEnd = dur;
@@ -953,7 +953,7 @@ class HomeScreenState extends State<HomeScreen> {
               qm.deleteJob(job.id);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text("✓ Deleted \"${job.displayName}\""),
+                  content: Text("âœ“ Deleted \"${job.displayName}\""),
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -1082,7 +1082,7 @@ class HomeScreenState extends State<HomeScreen> {
         }
         return;
       }
-      await prefs.setInt('free_render_count', count + 1);
+      
     }
 
     String tId;
@@ -1286,8 +1286,15 @@ class HomeScreenState extends State<HomeScreen> {
         videoPath: videoPath,
         progress: 1.0,
       );
+      
+      if (!sm.isPro) {
+        final prefs = await SharedPreferences.getInstance();
+        int count = prefs.getInt('free_render_count') ?? 0;
+        await prefs.setInt('free_render_count', count + 1);
+      }
 
-      _showNotice('🎉 Reel ready! Tap Play to preview and save to Photos.');
+
+      _showNotice('ðŸŽ‰ Reel ready! Tap Play to preview and save to Photos.');
 
 
     } catch (e) {
@@ -1330,7 +1337,7 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             Column(
               children: [
-                // Top Header (Clean Transparent Wordmark on Ceramic Floor, per Spec §5)
+                // Top Header (Clean Transparent Wordmark on Ceramic Floor, per Spec Â§5)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                   child: Row(
@@ -1421,7 +1428,7 @@ class HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: ListView(
                     controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 80),
+                    padding: const EdgeInsets.only(bottom: 140),
                     children: [
                       if (_currentTab == "music") ...[
                         // STAGE 1: MUSIC FIRST - Web Audio Console Deck
@@ -1607,11 +1614,11 @@ class HomeScreenState extends State<HomeScreen> {
                   activeJobsCount: qm.activeJobs.length,
                   onDisabledTabTap: (tab) {
                     if (tab == 'photos') {
-                      _showNotice("🎵 Select a music track first to unlock photos!");
+                      _showNotice("ðŸŽµ Select a music track first to unlock photos!");
                     } else if (tab == 'title') {
-                      _showNotice("📸 Add at least 2 photos first to set the title!");
+                      _showNotice("ðŸ“¸ Add at least 2 photos first to set the title!");
                     } else if (tab == 'render') {
-                      _showNotice("⚙️ Switch to MANUAL mode to access Render Options!");
+                      _showNotice("âš™ï¸ Switch to MANUAL mode to access Render Options!");
                     }
                   },
                 ),
@@ -1805,7 +1812,7 @@ class HomeScreenState extends State<HomeScreen> {
         ? (_audioEnd - _audioStart).toInt()
         : _audioDuration.toInt();
     final isMix = (_renderMode == "auto") || (_renderMode == "manual" && _selectedTemplate == "mix");
-    final styleName = isMix ? "DYNAMIC MIX 🔀" : _selectedTemplate.toUpperCase();
+    final styleName = isMix ? "DYNAMIC MIX ðŸ”€" : _selectedTemplate.toUpperCase();
 
     return RetroMetalPanel(
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -1893,7 +1900,7 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               _buildSummaryPill(
                 Icons.video_settings_rounded,
-                "$_selectedAspectRatio • ${sm.isPro ? _selectedQuality : '360p (Free)'}",
+                "$_selectedAspectRatio â€¢ ${sm.isPro ? _selectedQuality : '360p (Free)'}",
                 subtitle: "OUTPUT",
               ),
               const SizedBox(width: 6),
@@ -1926,13 +1933,13 @@ class HomeScreenState extends State<HomeScreen> {
         color: highlight ? const Color(0xFF2E2614) : AppColors.panelInset,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: highlight ? AppColors.amberGlow : AppColors.chassisBevelDark.withValues(alpha: 0.5),
+          color: highlight ? const Color(0x30FFFFFF) : AppColors.chassisBevelDark.withValues(alpha: 0.5),
           width: highlight ? 1.2 : 0.8,
         ),
         boxShadow: highlight
             ? [
                 BoxShadow(
-                  color: AppColors.amberGlow.withValues(alpha: 0.25),
+                  color: const Color(0x30FFFFFF).withValues(alpha: 0.25),
                   blurRadius: 4,
                   spreadRadius: 0.5,
                 ),
@@ -1941,7 +1948,7 @@ class HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 12, color: highlight ? const Color(0xFFFFD54F) : AppColors.brassGold),
+          Icon(icon, size: 12, color: highlight ? const Color(0xFFFFFFFF) : AppColors.brassGold),
           const SizedBox(width: 5),
           Expanded(
             child: Column(
@@ -1956,7 +1963,7 @@ class HomeScreenState extends State<HomeScreen> {
                       fontSize: 6.5,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
-                      color: highlight ? AppColors.amberJewel : AppColors.textMuted,
+                      color: highlight ? const Color(0xFFFFFFFF) : AppColors.textMuted,
                     ),
                   ),
                 ],
@@ -1967,7 +1974,7 @@ class HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
-                    color: highlight ? const Color(0xFFFFE082) : AppColors.textEngraved,
+                    color: highlight ? const Color(0xFFF2F4F6) : AppColors.textEngraved,
                   ),
                 ),
               ],
@@ -1981,7 +1988,7 @@ class HomeScreenState extends State<HomeScreen> {
                 color: AppColors.brassGold,
                 borderRadius: BorderRadius.circular(3),
                 boxShadow: const [
-                  BoxShadow(color: AppColors.amberGlow, blurRadius: 2),
+                  BoxShadow(color: const Color(0x30FFFFFF), blurRadius: 2),
                 ],
               ),
               child: Row(
@@ -2226,7 +2233,7 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 const Padding(
                   padding: EdgeInsets.only(top: 1.5),
-                  child: Icon(Icons.info_outline_rounded, size: 13, color: AppColors.amberJewel),
+                  child: Icon(Icons.info_outline_rounded, size: 13, color: AppColors.primaryDarkText),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -2241,7 +2248,7 @@ class HomeScreenState extends State<HomeScreen> {
                       children: [
                         TextSpan(
                           text: "Queue Notice: ",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.amberJewel),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDarkText),
                         ),
                         TextSpan(
                           text: "Free renders process sequentially (1-at-a-time) in a shared queue. Upgrade to Pro for instant priority renders.",
@@ -2310,7 +2317,7 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.rate_review_rounded, size: 14, color: AppColors.amberJewel),
+                    Icon(Icons.rate_review_rounded, size: 14, color: AppColors.primaryDarkText),
                     SizedBox(width: 8),
                     Text(
                       "TESTER FEEDBACK & BUG REPORT",
@@ -2358,14 +2365,14 @@ class HomeScreenState extends State<HomeScreen> {
         color: AppColors.panelCream,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isFocused ? const Color(0xFFFF3366) : AppColors.brassGold,
+          color: isFocused ? const Color(0xFFFFFFFF) : AppColors.brassGold,
           width: isFocused ? 2.2 : 1.8,
         ),
         boxShadow: [
           BoxShadow(
             color: isFocused
-                ? const Color(0xFFFF3366).withValues(alpha: 0.35)
-                : AppColors.amberGlow.withValues(alpha: 0.4),
+                ? const Color(0xFFFFFFFF).withValues(alpha: 0.35)
+                : const Color(0x30FFFFFF).withValues(alpha: 0.4),
             offset: const Offset(0, 3),
             blurRadius: isFocused ? 12 : 8,
           ),
@@ -2388,16 +2395,16 @@ class HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.hourglass_top_rounded, size: 10, color: AppColors.amberJewel),
+                      const Icon(Icons.hourglass_top_rounded, size: 10, color: AppColors.primaryDarkText),
                       const SizedBox(width: 4),
                       Text(
-                        "IN QUEUE • POSITION #${job.queuePosition > 0 ? job.queuePosition : 1}",
+                        "IN QUEUE â€¢ POSITION #${job.queuePosition > 0 ? job.queuePosition : 1}",
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 8.5,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.8,
-                          color: AppColors.amberJewel,
+                          color: AppColors.primaryDarkText,
                         ),
                       ),
                     ],
@@ -2430,7 +2437,7 @@ class HomeScreenState extends State<HomeScreen> {
                     fontSize: 9,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.2,
-                    color: Color(0xFFFF3366),
+                    color: AppColors.primaryDarkText,
                   ),
                 ),
               ],
@@ -2471,9 +2478,9 @@ class HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isFocused ? const Color(0xFFFF3366).withValues(alpha: 0.2) : AppColors.amberJewel.withValues(alpha: 0.2),
+                      color: isFocused ? const Color(0xFFFFFFFF).withValues(alpha: 0.2) : const Color(0xFFFFFFFF).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel, width: 1),
+                      border: Border.all(color: isFocused ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF), width: 1),
                     ),
                     child: Text(
                       job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED"
@@ -2483,7 +2490,7 @@ class HomeScreenState extends State<HomeScreen> {
                         fontFamily: 'Montserrat',
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel,
+                        color: isFocused ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF),
                       ),
                     ),
                   ),
@@ -2526,7 +2533,7 @@ class HomeScreenState extends State<HomeScreen> {
             child: LinearProgressIndicator(
               value: (job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED") ? null : job.progress.clamp(0.05, 1.0),
               backgroundColor: AppColors.panelInset,
-              color: isFocused ? const Color(0xFFFF3366) : AppColors.amberJewel,
+              color: isFocused ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF),
               minHeight: 6,
             ),
           ),
@@ -2537,10 +2544,10 @@ class HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Text(
                   job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED"
-                      ? "Queue Position #${job.queuePosition > 0 ? job.queuePosition : 1} • Waiting for active render..."
+                      ? "Queue Position #${job.queuePosition > 0 ? job.queuePosition : 1} â€¢ Waiting for active render..."
                       : (job.stage != null && job.stage!.isNotEmpty
-                          ? "Quality: ${job.quality} • ${job.stage}"
-                          : "Quality: ${job.quality} • Syncing frames & beats..."),
+                          ? "Quality: ${job.quality} â€¢ ${job.stage}"
+                          : "Quality: ${job.quality} â€¢ Syncing frames & beats..."),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
@@ -2618,7 +2625,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Resolution: ${job.quality.toUpperCase()}  •  ${DateFormat('MMM d, yyyy  •  hh:mm a').format(job.createdAt)}",
+                      "Resolution: ${job.quality.toUpperCase()}  â€¢  ${DateFormat('MMM d, yyyy  â€¢  hh:mm a').format(job.createdAt)}",
                       style: const TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 11.5,
@@ -2770,7 +2777,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget _buildTitleStageView() {
     return SingleChildScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(14, 4, 14, 16),
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 140),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -2806,7 +2813,7 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          _isTitleCardEnabled ? 'Enabled • Animated intro sequence' : 'Bypassed • Starts on first photo',
+                          _isTitleCardEnabled ? 'Enabled â€¢ Animated intro sequence' : 'Bypassed â€¢ Starts on first photo',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w500,
@@ -3041,7 +3048,7 @@ class HomeScreenState extends State<HomeScreen> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFF090B0F),
-                      hintText: "e.g. Shot on iPhone • 2026",
+                      hintText: "e.g. Shot on iPhone â€¢ 2026",
                       hintStyle: const TextStyle(color: Color(0x80FFFFFF), fontSize: 11),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       border: OutlineInputBorder(
@@ -3070,28 +3077,28 @@ class HomeScreenState extends State<HomeScreen> {
   String _getActionButtonText() {
     switch (_currentTab) {
       case 'music':
-        return _selectedMusic != null ? 'NEXT: CURATE PHOTOS →' : 'SELECT A MUSIC TRACK';
+        return _selectedMusic != null ? 'NEXT: CURATE PHOTOS â†’' : 'SELECT A MUSIC TRACK';
       case 'photos':
-        return _photos.length >= 2 ? 'NEXT: SET TITLE CARD →' : 'SELECT 2+ PHOTOS (${_photos.length}/2)';
+        return _photos.length >= 2 ? 'NEXT: SET TITLE CARD â†’' : 'SELECT 2+ PHOTOS (${_photos.length}/2)';
       case 'title':
-        return _isManualRenderMode ? 'NEXT: RENDER OPTIONS →' : 'RENDER REEL ⚡';
+        return _isManualRenderMode ? 'NEXT: RENDER OPTIONS â†’' : 'RENDER REEL âš¡';
       case 'render':
-        return 'START RENDER ⚡';
+        return 'START RENDER âš¡';
       case 'queue':
         return '+ CREATE NEW REEL';
       default:
-        return 'CONTINUE →';
+        return 'CONTINUE â†’';
     }
   }
 
   String _getActionButtonSubtitle() {
     switch (_currentTab) {
       case 'music':
-        return _selectedMusic != null ? '${_selectedMusicTitle.isNotEmpty ? _selectedMusicTitle : "Track ready"} • Trim audio' : 'Pick track from library';
+        return _selectedMusic != null ? '${_selectedMusicTitle.isNotEmpty ? _selectedMusicTitle : "Track ready"} â€¢ Trim audio' : 'Pick track from library';
       case 'photos':
-        return _photos.length >= 2 ? '${_photos.length} photos ready • Drag to arrange' : 'Tap Add Photos or Sample Photos';
+        return _photos.length >= 2 ? '${_photos.length} photos ready â€¢ Drag to arrange' : 'Tap Add Photos or Sample Photos';
       case 'title':
-        return _isManualRenderMode ? 'Configure template & quality' : 'Direct beat-synced export • 1080p Master';
+        return _isManualRenderMode ? 'Configure template & quality' : 'Direct beat-synced export â€¢ 1080p Master';
       case 'render':
         return 'Render with custom parameters';
       case 'queue':

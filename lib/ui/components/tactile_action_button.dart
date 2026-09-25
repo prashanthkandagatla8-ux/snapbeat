@@ -166,37 +166,53 @@ class _TactileActionButtonState extends State<TactileActionButton> {
             child: Container(
               height: widget.height,
               width: widget.width,
+              padding: isPrimary ? const EdgeInsets.all(1.5) : EdgeInsets.zero,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(buttonRadius),
-                gradient: gradient,
-                border: Border.all(color: borderColor, width: 1.0),
-                boxShadow: enabled ? shadows : const [],
+                borderRadius: BorderRadius.circular(buttonRadius + (isPrimary ? 1.5 : 0)),
+                gradient: isPrimary ? AppColors.iridescentGradient : null,
+                boxShadow: enabled && isPrimary
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFFB026FF).withValues(alpha: 0.25),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                        ...shadows,
+                      ]
+                    : (enabled ? shadows : const []),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (widget.icon != null) ...[
-                      Icon(widget.icon, size: 16, color: iconColor),
-                      const SizedBox(width: 8),
-                    ],
-                    Flexible(
-                      child: Text(
-                        widget.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.6,
-                          color: textColor,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(buttonRadius),
+                  gradient: gradient,
+                  border: isPrimary ? null : Border.all(color: borderColor, width: 1.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.icon != null) ...[
+                        Icon(widget.icon, size: 16, color: iconColor),
+                        const SizedBox(width: 8),
+                      ],
+                      Flexible(
+                        child: Text(
+                          widget.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                            color: textColor,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

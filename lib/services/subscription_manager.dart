@@ -48,7 +48,8 @@ extension ProTierExtension on ProTier {
       case ProTier.daily:
         return '₹99';
       case ProTier.weekly:
-        return '₹169';
+        // Verified against App Store Connect 2026-09-25: India (INR) = ₹199.00
+        return '₹199';
       case ProTier.monthly:
         return '₹499';
       case ProTier.annual:
@@ -481,6 +482,19 @@ class SubscriptionManager with ChangeNotifier {
   }
 
   /// Restores entitlement from persistent storage and verifies tamper-proof hash.
+  
+  /// Self-heals when entitlement token is rejected by backend (Task 3b Rule 2).
+  Future<bool> selfHealEntitlement() async {
+    try {
+      debugPrint('[SubscriptionManager] Self-healing rejected entitlement token...');
+      await restorePurchases();
+      return _signedEntitlementToken != null && _signedEntitlementToken!.isNotEmpty;
+    } catch (e) {
+      debugPrint('[SubscriptionManager] Self-heal failed: $e');
+      return false;
+    }
+  }
+
   Future<void> _loadCachedEntitlements() async {
     final prefs = await SharedPreferences.getInstance();
     final savedIsPro = prefs.getBool(_keyIsPro) ?? false;

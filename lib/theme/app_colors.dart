@@ -131,9 +131,9 @@ class AppColors {
   static const Color pianoBlackGlow      = ambientShadow;      // Neumorphic ambient occlusion shadow
 
   // ─── 02. Radiant Amber Gold Diodes & Accents (Zero Maroon) ───
-  static const Color amberGold           = Color(0xFFFFB300); // Radiant warm gold diode
+  static const Color amberGold           = Color(0xFFFFFFFF); // Radiant warm gold diode
   static const Color amberGoldLight      = Color(0xFFFFC837); // Specular illuminated gold peak
-  static const Color amberGoldDark       = Color(0xFFD49200); // Beveled diode shadow
+  static const Color amberGoldDark       = Color(0xFFAAAAAA); // Beveled diode shadow
   static const Color amberGoldGlow       = Color(0x40FFB300); // Saturated ambient halo
 
   // Aliases for Ruby Diode -> Entirely replaced by Radiant Amber Gold
@@ -233,13 +233,19 @@ class AppColors {
   static const Color redGloss              = amberGoldLight;
   static const Color redSocket             = amberGoldDark;
   static const Color redDeepRim            = Color(0xFF1A1202);
-  static const Color pinkAccent            = amberGold;
-  static const Color pinkGlow              = amberGoldGlow;
+  static const Color pinkAccent            = Color(0xFFFFFFFF);
+  static const Color pinkGlow              = Color(0x60FF3366);
+
+  static const LinearGradient iridescentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00E5FF), Color(0xFFB026FF), Color(0xFFFF007F)],
+  );
   static const Color amberJewel            = textInkBlack;
   static const Color amberGlow             = Color(0x30FFFFFF);
   static const Color tubeWarmOrange        = textInkSecondary;
   static const Color vuGreen               = Color(0xFF00C853);
-  static const Color vuAmber               = Color(0xFFFFB300);
+  static const Color vuAmber               = Color(0xFFFFFFFF);
   static const Color vuRed                 = amberGold;
 
   // Groove, Border & Bevel Aliases

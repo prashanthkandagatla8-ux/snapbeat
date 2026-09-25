@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -8,7 +9,23 @@ import '../config/app_config.dart';
 
 class ApiService {
   static final ApiService instance = ApiService._internal();
-  ApiService._internal();
+  ApiService._internal() {
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        options.headers["X-SnapBeat-Build"] = AppConfig.buildNumber;
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          String? installId = prefs.getString("snapbeat_install_id");
+          if (installId == null || installId.isEmpty) {
+            installId = "sb_${DateTime.now().millisecondsSinceEpoch}";
+            await prefs.setString("snapbeat_install_id", installId);
+          }
+          options.headers["X-SnapBeat-Install-Id"] = installId;
+        } catch (_) {}
+        handler.next(options);
+      },
+    ));
+  }
 
   final Dio _dio = Dio(
     BaseOptions(
@@ -95,8 +112,12 @@ class ApiService {
       formData.fields.add(const MapEntry("preview", "true"));
     }
     formData.fields.add(MapEntry("drop_it", dropIt ? "true" : "false"));
+    final double durationSec = (audioEnd != null && audioEnd > 0 && audioStart != null && audioEnd > audioStart)
+        ? (audioEnd - audioStart).toDouble()
+        : 60.0;
+    formData.fields.add(MapEntry("output_seconds", durationSec.toStringAsFixed(1)));
     formData.fields.add(MapEntry("enable_burst", enableBurst ? "true" : "false"));
-    formData.fields.add(const MapEntry("burst_effect", "slice_h"));
+    formData.fields.add(const MapEntry("burst_effect", "auto"));
     formData.fields.add(const MapEntry("burst_min_run_length", "3"));
     formData.fields.add(MapEntry("enable_teaser", enableTeaser ? "true" : "false"));
 
