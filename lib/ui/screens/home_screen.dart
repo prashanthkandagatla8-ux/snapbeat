@@ -402,24 +402,24 @@ class HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                     _buildWelcomeStepRow(
-                      icon: Icons.photo_library_rounded,
+                      icon: Icons.library_music_rounded,
                       step: 'STEP 1',
-                      title: 'Pick Your Photos',
-                      desc: 'Select photos from your gallery or try with Sample Photos.',
+                      title: 'Pick Soundtrack',
+                      desc: 'Select from built-in beat library or import your own track.',
                     ),
                     const Divider(color: AppColors.chassisBevelDark, height: 16),
                     _buildWelcomeStepRow(
-                      icon: Icons.music_note_rounded,
+                      icon: Icons.photo_library_rounded,
                       step: 'STEP 2',
-                      title: 'Choose Music',
-                      desc: 'Pick your own MP3 or choose from the sound library.',
+                      title: 'Curate Photos',
+                      desc: 'Add 2 or more photos from gallery or try sample photos.',
                     ),
                     const Divider(color: AppColors.chassisBevelDark, height: 16),
                     _buildWelcomeStepRow(
-                      icon: Icons.motion_photos_auto_rounded,
+                      icon: Icons.bolt_rounded,
                       step: 'STEP 3',
-                      title: 'Render Pendulum Reel',
-                      desc: 'Pre-selected for you! Tap Render to sync your photos to the beat.',
+                      title: 'Export Beat Reel',
+                      desc: 'Instant beat-synced 1080p Master render with motion physics.',
                     ),
                   ],
                 ),

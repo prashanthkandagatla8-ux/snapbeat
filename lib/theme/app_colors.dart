@@ -55,7 +55,7 @@ class AppColors {
   static const Color snapOrange = Color(0xFFFFB000);
   static const Color snapCyan = Color(0xFFFFB000);
   static const Color snapViolet = Color(0xFFFFB000);
-  static const Color snapPink = Color(0xFFFFB000);
+  static const Color snapPink = Color(0xFFFF3366);
   static const Color snapGreen = Color(0xFFFFB000);
 
   // Section 6 & 8: Calibrated Lighting & Material Shadows
@@ -233,7 +233,7 @@ class AppColors {
   static const Color redGloss              = amberGoldLight;
   static const Color redSocket             = amberGoldDark;
   static const Color redDeepRim            = Color(0xFF1A1202);
-  static const Color pinkAccent            = Color(0xFFFFFFFF);
+  static const Color pinkAccent            = Color(0xFFFF3366);
   static const Color pinkGlow              = Color(0x60FF3366);
 
   static const LinearGradient iridescentGradient = LinearGradient(

@@ -325,7 +325,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_rounded, color: AppColors.primaryDarkText, size: 20),
+                    const Icon(Icons.info_rounded, color: Color(0xFF38BDF8), size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -461,8 +461,8 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFFFFFFFF) : const Color(0x28FFFFFF),
-            width: isSelected ? 1.8 : 1.0,
+            color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFF334155),
+            width: isSelected ? 2.0 : 1.2,
           ),
           boxShadow: isSelected
               ? [
@@ -552,7 +552,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                             children: [
                               const Icon(
                                 Icons.check_rounded,
-                                color: AppColors.primaryDarkText,
+                                color: Color(0xFF10B981),
                                 size: 14,
                               ),
                               const SizedBox(width: 6),
@@ -586,7 +586,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                         text: priceAmount,
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
-                          color: AppColors.primaryDarkText,
+                          color: Colors.white,
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
                         ),
@@ -625,7 +625,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
             colors: [Color(0xFF262A36), Color(0xFF13151D), Color(0xFF08090D)],
           ),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.primaryDarkText.withValues(alpha: 0.6), width: 1.2),
+          border: Border.all(color: const Color(0xFF8B5CF6), width: 1.5),
           boxShadow: const [
             BoxShadow(
               color: Color(0x35000000),
@@ -646,7 +646,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFFFFFFF)),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFFFFFF)),
                   ),
                 )
               : Row(

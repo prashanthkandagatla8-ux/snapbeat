@@ -157,8 +157,8 @@ class ProControlsCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: (isPro ?? false)
-                              ? const Color(0xFFFFFFFF)
-                              : Colors.grey.withValues(alpha: 0.3),
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFF94A3B8),
                           boxShadow: (isPro ?? false)
                               ? const [BoxShadow(color: Color(0x30FFFFFF), blurRadius: 4, spreadRadius: 1)]
                               : [],
@@ -172,7 +172,7 @@ class ProControlsCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFFFFFFFF),
+                          color: AppColors.primaryDarkText,
                         ),
                       ),
                     ],
@@ -382,10 +382,10 @@ class ProControlsCard extends StatelessWidget {
                   SliderTheme(
                     data: SliderThemeData(
                       trackHeight: 3.5,
-                      activeTrackColor: Colors.white,
+                      activeTrackColor: AppColors.primaryDarkText,
                       inactiveTrackColor: AppColors.chassisBevelDark,
-                      thumbColor: Colors.white,
-                      overlayColor: Colors.white.withValues(alpha: 0.1),
+                      thumbColor: AppColors.primaryDarkText,
+                      overlayColor: AppColors.primaryDarkText.withValues(alpha: 0.1),
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
                       overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
                     ),

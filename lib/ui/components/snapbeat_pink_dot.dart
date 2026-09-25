@@ -16,12 +16,12 @@ class SnapBeatPinkDot extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFFF3366),
         shape: BoxShape.circle,
         boxShadow: withGlow
             ? [
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: const Color(0xFFFF3366).withValues(alpha: 0.6),
                   blurRadius: 6,
                   spreadRadius: 1,
                 ),
