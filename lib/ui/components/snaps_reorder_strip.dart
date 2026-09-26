@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -125,24 +126,89 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 ],
               ),
               if (isEnabled)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF111722),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0x18FFFFFF), width: 1.0),
-                    boxShadow: AppColors.darkHardwareShadow,
-                  ),
-                  child: Text(
-                    photos.isNotEmpty ? 'CURATED' : 'WAITING',
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.8,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (photos.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.only(left: 4, right: 10, top: 4, bottom: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.panelInset,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.chassisBevelLight, width: 1.0),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.canvasBg,
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/images/snapbeat_camera_mascot.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                const Text(
+                                  'SYNCHRONIZED',
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primaryDarkText,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: -2,
+                                  right: -8,
+                                  child: Container(
+                                    width: 4,
+                                    height: 4,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.greenAccent,
+                                      boxShadow: [BoxShadow(color: Colors.greenAccent, blurRadius: 4)],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF111722),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0x18FFFFFF), width: 1.0),
+                        boxShadow: AppColors.darkHardwareShadow,
+                      ),
+                      child: Text(
+                        photos.isNotEmpty ? 'CURATED' : 'WAITING',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 )
               else
                 Container(
@@ -545,53 +611,114 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
 
             // 4. Large Grid Photo Container with Vertical Scrolling & Visible Scrollbar
             if (photos.isEmpty)
-              GestureDetector(
-                onTap: widget.onAddPhotos,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.panelInset,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.chassisBevelDark),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.graphiteRecess,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0x1AFFFFFF)),
-                        ),
-                        child: const Icon(Icons.add_photo_alternate_outlined, size: 24, color: AppColors.indicatorAccent),
+              Container(
+                width: double.infinity,
+                height: math.max(400.0, MediaQuery.sizeOf(context).height - 240),
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.panelInset,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.chassisBevelDark),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/snapbeat_camera_mascot.png',
+                      height: 130,
+                      fit: BoxFit.contain,
+                    ),
+                    Container(
+                      width: 80,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Color(0x20352A20),
+                        borderRadius: BorderRadius.all(Radius.elliptical(80, 10)),
                       ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Add Photos to Get Started',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
-                          color: AppColors.textEngraved,
-                        ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.canvasBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: AppColors.softRaisedShadow,
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Capacity: up to $maxPhotos photos for current track duration.\nTap ADD PHOTOS (+) or SAMPLE PHOTOS above to load photos.',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textMuted,
-                          height: 1.3,
-                        ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'SNAPBEAT CAM · READY TO ROLL!',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                              color: AppColors.textEngraved,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Select 3 to 12 photos and I'll sync them seamlessly to your music.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (widget.onLoadSample != null) ...[
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: widget.onLoadSample,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                    decoration: NeumorphicKit.raisedPill(radius: 20),
+                                    child: const Text(
+                                      'LOAD SAMPLES',
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textInkBlack,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: widget.onAddPhotos,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.darkHardwareGradient,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: AppColors.darkHardwareShadow,
+                                  ),
+                                  child: const Text(
+                                    'ADD PHOTOS (+)',
+                                    style: TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               )
             else
@@ -599,7 +726,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 decoration: const BoxDecoration(color: Colors.transparent),
                 padding: const EdgeInsets.all(6),
                 child: SizedBox(
-                  height: (560 * _thumbnailScale).clamp(420.0, 680.0),
+                  height: math.max(400.0, MediaQuery.sizeOf(context).height - 240),
                   child: RawScrollbar(
                     controller: _gridScrollController,
                     thumbVisibility: true,
@@ -612,10 +739,10 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                     child: GridView.builder(
                       controller: _gridScrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.only(right: 6, bottom: 24),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: _isSmallThumbnails ? 3 : 2,
-                        childAspectRatio: _isSmallThumbnails ? 0.72 : 0.75,
+                        childAspectRatio: _isSmallThumbnails ? 0.72 : 0.76,
                         crossAxisSpacing: _isSmallThumbnails ? 6 : 8,
                         mainAxisSpacing: _isSmallThumbnails ? 6 : 8,
                       ),

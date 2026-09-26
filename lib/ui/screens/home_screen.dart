@@ -65,7 +65,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   // Unified Workflow State
   bool _isManualRenderMode = false;
-  bool _isTitleCardEnabled = true;
+  bool _isTitleCardEnabled = false; // OFF by default; user must explicitly enable to add title
   String _titleAudioTiming = 'with_music'; // 'with_music' (Overlay on Audio Intro) vs 'outside_track' (Audio Starts After Title)
   String _titleBgSurface = 'video_overlay'; // 'video_overlay' (Over Photo/Video) vs 'studio_bg' (Solid Studio Background)
   String _titleAnimationStyle = 'fade'; // 'fade', 'kinetic_zoom', 'glitch', 'typewriter', 'slide'
@@ -105,7 +105,10 @@ class HomeScreenState extends State<HomeScreen> {
     double? titleDurationSec,
   }) {
     if (isManualMode != null) _isManualRenderMode = isManualMode;
-    if (isTitleCardEnabled != null) _isTitleCardEnabled = isTitleCardEnabled;
+    if (isTitleCardEnabled != null) {
+      _isTitleCardEnabled = isTitleCardEnabled;
+      _enableTitle = isTitleCardEnabled;
+    }
     if (titleAudioTiming != null) _titleAudioTiming = titleAudioTiming;
     if (titleBgSurface != null) _titleBgSurface = titleBgSurface;
     if (titleAnimationStyle != null) _titleAnimationStyle = titleAnimationStyle;
@@ -1669,6 +1672,10 @@ class HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ],
+
+                        const SizedBox(height: 24),
+                        _buildSampleTracksSection(),
+
                       ] else if (_currentTab == "photos") ...[
                         // STAGE 2: PHOTOS (Curate & Arrange)
                         SnapsReorderStrip(
@@ -3544,6 +3551,168 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Sample Tracks Section
+  Widget _buildSampleTracksSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.music_note_rounded, color: AppColors.primaryDarkText, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "BUILT-IN SAMPLE TRACKS",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primaryDarkText,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.vuGreen.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppColors.vuGreen.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      '${SoundTrack.builtInLibrary.length} TRACKS AVAILABLE',
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 8,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.vuGreen,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "Tap any track to instantly load and audition on the turntable deck.",
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: SoundTrack.builtInLibrary.length,
+          itemBuilder: (context, index) {
+            final track = SoundTrack.builtInLibrary[index];
+            final isSelected = _selectedMusicTitle.toLowerCase() == track.title.toLowerCase();
+            final isPlaying = isSelected && _isPlayingAudio;
+            
+            return GestureDetector(
+              onTap: () => _onSelectBuiltInTrack(track),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: isSelected 
+                      ? Border.all(color: AppColors.vuGreen, width: 2)
+                      : Border.all(color: AppColors.chipBorder, width: 1),
+                  boxShadow: AppColors.tactile3DBevel,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected ? AppColors.vuGreen.withValues(alpha: 0.1) : AppColors.secondarySurface,
+                        border: Border.all(
+                          color: isSelected ? AppColors.vuGreen : AppColors.ceramicWhiteRim,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: isPlaying
+                          ? const Icon(Icons.graphic_eq_rounded, color: AppColors.pinkAccent, size: 24)
+                          : Icon(
+                              Icons.play_arrow_rounded,
+                              color: isSelected ? AppColors.vuGreen : AppColors.primaryDarkText,
+                              size: 24,
+                            ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            track.title,
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primaryDarkText,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${track.genre} · ${track.bpm}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isSelected)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.iridescentGradient,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'LOADED',
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    else
+                      Text(
+                        '${(track.durationSeconds / 60).floor()}:${(track.durationSeconds % 60).floor().toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   // OPTION 3: DYNAMIC ADAPTIVE HERO STAGE
   Widget _buildAdaptiveHeroStage(bool hasAssets) {
     // Check if there is a completed rendered reel available from queue
@@ -4561,7 +4730,10 @@ class HomeScreenState extends State<HomeScreen> {
                   inactiveThumbColor: const Color(0xFF64748B),
                   inactiveTrackColor: const Color(0xFF12141A),
                   onChanged: (val) {
-                    setState(() => _isTitleCardEnabled = val);
+                    setState(() {
+                      _isTitleCardEnabled = val;
+                      _enableTitle = val;
+                    });
                   },
                 ),
               ],
@@ -5128,17 +5300,15 @@ class HomeScreenState extends State<HomeScreen> {
     switch (_currentTab) {
       case 'home':
       case 'music':
-        if (_selectedMusic == null) {
-          return 'SELECT SOUNDTRACK';
-        } else if (_photos.length < 2) {
+        if (_photos.length < 2) {
           return 'SELECT PHOTOS (${_photos.length}/2)';
         } else {
-          return 'CREATE THE REEL';
+          return 'RENDER REEL';
         }
       case 'audio_deck':
         return _selectedMusic != null ? 'APPLY SOUNDTRACK' : 'SELECT A TRACK';
       case 'photos':
-        return _photos.length >= 2 ? 'DONE: SAVE PHOTOS' : 'SELECT 2+ PHOTOS (${_photos.length}/2)';
+        return _photos.length >= 2 ? 'RENDER REEL' : 'SELECT 2+ PHOTOS (${_photos.length}/2)';
       case 'title':
         return 'SAVE TITLE & RETURN';
       case 'render':
@@ -5154,17 +5324,17 @@ class HomeScreenState extends State<HomeScreen> {
     switch (_currentTab) {
       case 'home':
       case 'music':
-        if (_selectedMusic == null) {
-          return 'Step 1 · Pick beat-synced soundtrack';
-        } else if (_photos.length < 2) {
-          return 'Step 2 · Curate 2+ photos for beat matching';
+        if (_photos.length < 2) {
+          return 'Step 1 · Pick 2+ photos for beat matching';
         } else {
           return 'Generate beat-synced 1080p photo reel';
         }
       case 'audio_deck':
         return 'Set selected audio as reel soundtrack';
       case 'photos':
-        return '${_photos.length} photos ready for reel';
+        return _photos.length >= 2
+            ? 'Soundtrack ready · Tap to generate beat-synced reel'
+            : '${_photos.length} photos selected (need 2+)';
       case 'title':
         return 'Intro title card customized';
       case 'render':
@@ -5180,9 +5350,7 @@ class HomeScreenState extends State<HomeScreen> {
     switch (_currentTab) {
       case 'home':
       case 'music':
-        if (_selectedMusic == null) {
-          return Icons.music_note_rounded;
-        } else if (_photos.length < 2) {
+        if (_photos.length < 2) {
           return Icons.photo_library_outlined;
         } else {
           return Icons.bolt_rounded;
@@ -5190,7 +5358,7 @@ class HomeScreenState extends State<HomeScreen> {
       case 'audio_deck':
         return Icons.music_note_rounded;
       case 'photos':
-        return Icons.check_circle_outline_rounded;
+        return _photos.length >= 2 ? Icons.bolt_rounded : Icons.photo_library_outlined;
       case 'title':
         return Icons.title_rounded;
       case 'render':
@@ -5247,7 +5415,12 @@ class HomeScreenState extends State<HomeScreen> {
         break;
       case 'photos':
         if (_photos.length >= 2) {
-          setState(() => _currentTab = 'home');
+          if (_isManualRenderMode) {
+            _executeRender(isInstant: _renderSpeed == 'instant');
+          } else {
+            _startDirectAutoRender();
+          }
+          setState(() => _currentTab = 'queue');
         }
         break;
       case 'title':
