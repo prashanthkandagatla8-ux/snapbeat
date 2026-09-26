@@ -214,26 +214,21 @@ class SubscriptionManager with ChangeNotifier {
   };
 
   /// Product IDs enabled for store queries on current platform.
-  /// Queries BOTH modern and legacy IDs so whichever is registered in App Store Connect / Play Console resolves!
-  static Set<String> get activeProductIds => Platform.isIOS
-      ? {
-          idWeekly, idMonthly, idAnnual,
-          legacyIdWeekly, legacyIdMonthly, legacyIdAnnual,
-          idTopUp10, idTopUp50,
-          legacyIdTopUp10, legacyIdTopUp50,
-        }
-      : {
-          idDaily, idWeekly, idMonthly, idAnnual,
-          legacyIdDaily, legacyIdWeekly, legacyIdMonthly, legacyIdAnnual,
-          idTopUp10, idTopUp50,
-          legacyIdTopUp10, legacyIdTopUp50,
-        };
+  /// Unified across iOS and Android: Weekly, Monthly, Annual, and Top-Up packs.
+  static Set<String> get activeProductIds => {
+        idWeekly, idMonthly, idAnnual,
+        legacyIdWeekly, legacyIdMonthly, legacyIdAnnual,
+        idTopUp10, idTopUp50,
+        legacyIdTopUp10, legacyIdTopUp50,
+      };
 
   /// Available subscription tiers for current platform.
-  /// On iOS, Daily is excluded to comply with Apple App Store review rules.
-  static List<ProTier> get availableTiers => Platform.isIOS
-      ? [ProTier.annual, ProTier.monthly, ProTier.weekly]
-      : [ProTier.annual, ProTier.monthly, ProTier.weekly, ProTier.daily];
+  /// Strictly unified across iOS and Android: Annual VIP, Monthly VIP, and Weekly Pass.
+  static List<ProTier> get availableTiers => [
+        ProTier.annual,
+        ProTier.monthly,
+        ProTier.weekly,
+      ];
 
   // Preference Storage Keys
   static const String _keyIsPro = 'snapbeat_iap_is_pro_active';

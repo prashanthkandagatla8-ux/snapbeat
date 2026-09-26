@@ -682,17 +682,13 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
     return Transform.rotate(
       angle: angle,
       child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF2F4F6),
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: isDragging
-              ? const [
+        decoration: isDragging
+            ? AppColors.tactileWhiteCardDecoration.copyWith(
+                boxShadow: const [
                   BoxShadow(color: Color(0x2E1E2837), offset: Offset(0, 18), blurRadius: 35, spreadRadius: 0),
                   BoxShadow(color: Color(0xE6FFFFFF), offset: Offset(0, -4), blurRadius: 12, spreadRadius: 0),
-                ]
-              : AppColors.mediumRaisedShadow,
-          border: Border.all(color: const Color(0xB3FFFFFF), width: 1.0),
-        ),
+                ])
+            : AppColors.tactileWhiteCardDecoration,
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [

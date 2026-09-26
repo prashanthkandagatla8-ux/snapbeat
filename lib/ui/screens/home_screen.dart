@@ -1786,14 +1786,7 @@ class HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.panelCream,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.chassisBevelDark),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, offset: Offset(0, 2), blurRadius: 4),
-        ],
-      ),
+      decoration: AppColors.tactileWhiteCardDecoration,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -2177,11 +2170,7 @@ class HomeScreenState extends State<HomeScreen> {
       return Container(
         margin: const EdgeInsets.all(24),
         padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: AppColors.panelCream,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.chassisBevelDark),
-        ),
+        decoration: AppColors.tactileWhiteCardDecoration,
         child: Column(
           children: [
             const Icon(Icons.movie_creation_outlined, size: 48, color: AppColors.textMuted),
@@ -2551,7 +2540,7 @@ class HomeScreenState extends State<HomeScreen> {
                     const SizedBox(
                       width: 14,
                       height: 14,
-                      child: CircularProgressIndicator(color: AppColors.primaryDarkText, strokeWidth: 2),
+                      child: CircularProgressIndicator(color: Color(0xFF00E5FF), strokeWidth: 2),
                     ),
                     const SizedBox(width: 8),
                     Flexible(
@@ -2628,11 +2617,44 @@ class HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: (job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED") ? null : job.progress.clamp(0.05, 1.0),
-              backgroundColor: AppColors.panelInset,
-              color: isFocused ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF),
-              minHeight: 6,
+            child: Container(
+              height: 6,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFF090B0F),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0x25FFFFFF), width: 0.8),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isIndeterminate = job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED";
+                  if (isIndeterminate) {
+                    return const LinearProgressIndicator(
+                      backgroundColor: Color(0xFF090B0F),
+                      color: Color(0xFF00E5FF),
+                      minHeight: 6,
+                    );
+                  }
+                  final fillWidth = constraints.maxWidth * job.progress.clamp(0.04, 1.0);
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      width: fillWidth,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.iridescentGradient,
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00E5FF).withValues(alpha: 0.6),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -2807,11 +2829,7 @@ class HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.panelCream,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.vuRed.withValues(alpha: 0.5)),
-      ),
+      decoration: AppColors.tactileWhiteCardDecoration,
       child: Row(
         children: [
           const Icon(Icons.error_outline_rounded, color: AppColors.vuRed, size: 22),

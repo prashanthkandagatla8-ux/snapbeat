@@ -18,18 +18,18 @@ class AppColors {
   // SNAPBEAT — GRAPHITE PIANO NEO (24 Sep 2026 Spec)
   // =========================================================================
 
-  // Section 3.1: White Studio Material (#E9ECEF / #F2F4F6 Crisp Ceramic)
-  static const Color canvasBg = Color(0xFFE9ECEF); // Main background: Crisp Ceramic White
-  static const Color primaryWhite = Color(0xFFF2F4F6);
-  static const Color primarySurface = Color(0xFFF2F4F6); // Card / inner sections (2% darker)
-  static const Color secondarySurface = Color(0xFFF2F4F6);
-  static const Color softWhiteRaised = Color(0xFFE9ECEF);
-  static const Color porcelainHighlight = Color(0xFFFBFCFD);
-  static const Color recessedWhite = Color(0xFFF2F4F6);
-  static const Color insetSurface = Color(0xFFF2F4F6);
-  static const Color elevatedSurface = Color(0xFFF2F4F6);
-  static const Color chipSurface = Color(0xFFE1E5E9); // Chip pills (#DDD8CF)
-  static const Color chipBorder = Color(0xFFDCE1E6); // 1px border (#CFC8BA)
+  // Section 3.1: White Studio Material (Warm Architectural Ceramic Beige Substrate #EDE8DF)
+  static const Color canvasBg = Color(0xFFEDE8DF); // Warm architectural ceramic beige floor
+  static const Color primaryWhite = Color(0xFFFFFFFF); // Pure pristine ceramic white panel surface
+  static const Color primarySurface = Color(0xFFFFFFFF); // Card / inner sections
+  static const Color secondarySurface = Color(0xFFFFFFFF);
+  static const Color softWhiteRaised = Color(0xFFF5F3EE);
+  static const Color porcelainHighlight = Color(0xFFFFFFFF);
+  static const Color recessedWhite = Color(0xFFF5F2EC);
+  static const Color insetSurface = Color(0xFFEDE8DF);
+  static const Color elevatedSurface = Color(0xFFFFFFFF);
+  static const Color chipSurface = Color(0xFFE2DDD4); // Chip pills (#E2DDD4)
+  static const Color chipBorder = Color(0xFFD8D2C7); // 1px border
   static const Color chipSelected = Color(0xFF000000); // Selected chip
   static const Color chipCheck = Color(0xFF10B981); // Green check
 
@@ -95,14 +95,14 @@ class AppColors {
 
   // ─── 01. Canonical Duo-Tone & Neumorphic Substrate ───
 
-  // Ceramic White Substrate (Stage Canvas & Base Floor) -> Crisp Ceramic White
-  static const Color ceramicWhite        = Color(0xFFEEF2F7); // Primary substrate (#EDE9E3)
+  // Ceramic White Substrate (Stage Canvas & Base Floor) -> Warm Architectural Ceramic Beige
+  static const Color ceramicWhite        = Color(0xFFEDE8DF); // Warm architectural beige substrate
   static const Color ceramicWhiteTop     = Color(0xFFFFFFFF); // Specular top catchlight
-  static const Color ceramicWhiteMid     = Color(0xFFE7ECF2); // Card / inner sections (#E5E1D8)
-  static const Color ceramicWhiteRim     = Color(0xFFE2E8F0); // 1px panel rim (#CFC8BA)
-  static const Color ceramicShadow       = Color(0xFFA3B1C6); // Warm studio occlusion
-  static const Color ceramicShadowSoft   = Color(0x8CCFC8BA); // 55% occlusion
-  static const Color ceramicHighlight    = Color(0xF2FFFFFF); // Specular catchlight
+  static const Color ceramicWhiteMid     = Color(0xFFF7F5F0); // Card / inner sections
+  static const Color ceramicWhiteRim     = Color(0xFFE2DDD4); // 1px panel rim
+  static const Color ceramicShadow       = Color(0x1F4A4235); // Warm studio occlusion
+  static const Color ceramicShadowSoft   = Color(0x144A4235); // Soft occlusion
+  static const Color ceramicHighlight    = Color(0xFFFFFFFF); // Specular catchlight
 
   // Piano Slab Lacquer Slices (for floating black objects on ceramic)
   static const Color pianoSlabTop        = Color(0xFF262C36); // Top of lacquer gradient
@@ -324,25 +324,32 @@ class AppColors {
 
   // ─── Real 3D Tactile Specular Bevels ───
   static final List<BoxShadow> tactile3DBevel = [
-    // Ambient soft drop shadow
+    // Ambient soft drop shadow calibrated for warm ceramic beige substrate
     BoxShadow(
-      color: const Color(0xFF000000).withValues(alpha: 0.08),
+      color: const Color(0xFF383025).withValues(alpha: 0.10),
       blurRadius: 16,
       offset: const Offset(0, 8),
     ),
     // Contact drop shadow
     BoxShadow(
-      color: const Color(0xFF000000).withValues(alpha: 0.05),
+      color: const Color(0xFF383025).withValues(alpha: 0.06),
       blurRadius: 5,
       offset: const Offset(0, 2),
     ),
     // Specular top highlight catchlight lip
     const BoxShadow(
-      color: Color(0x35FFFFFF),
+      color: Color(0x60FFFFFF),
       blurRadius: 1,
       offset: Offset(0, -1),
     ),
   ];
+
+  static final BoxDecoration tactileWhiteCardDecoration = BoxDecoration(
+    color: primaryWhite,
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: ceramicWhiteRim, width: 1.0),
+    boxShadow: tactile3DBevel,
+  );
 
   static final List<BoxShadow> darkTactile3DBevel = [
     // Dense piano ambient shadow
@@ -364,6 +371,13 @@ class AppColors {
       offset: Offset(0, -1),
     ),
   ];
+
+  static final BoxDecoration tactileDarkCardDecoration = BoxDecoration(
+    color: pianoBlack,
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: pianoBlackRim, width: 1.0),
+    boxShadow: darkTactile3DBevel,
+  );
 
   // ─── 06. Silky Piano Black Gradients (24-Sep Spec §3.2) ───
   static const LinearGradient pianoBlackGradient = LinearGradient(

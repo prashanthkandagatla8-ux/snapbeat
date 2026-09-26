@@ -29,14 +29,8 @@ class RetroMetalPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
+      decoration: AppColors.tactileWhiteCardDecoration.copyWith(
         borderRadius: BorderRadius.circular(borderRadius),
-        color: const Color(0xFFF2F4F6),
-        boxShadow: AppColors.mediumRaisedShadow,
-        border: Border.all(
-          color: const Color(0xB3FFFFFF),
-          width: 1.0,
-        ),
       ),
       child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius - 1.0),
