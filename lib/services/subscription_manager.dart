@@ -30,6 +30,19 @@ extension ProTierExtension on ProTier {
     }
   }
 
+  String get legacyProductId {
+    switch (this) {
+      case ProTier.daily:
+        return SubscriptionManager.legacyIdDaily;
+      case ProTier.weekly:
+        return SubscriptionManager.legacyIdWeekly;
+      case ProTier.monthly:
+        return SubscriptionManager.legacyIdMonthly;
+      case ProTier.annual:
+        return SubscriptionManager.legacyIdAnnual;
+    }
+  }
+
   String get displayName {
     switch (this) {
       case ProTier.daily:
@@ -103,6 +116,68 @@ extension ProTierExtension on ProTier {
   }
 }
 
+/// Consumable credit top-up tiers for extra renders.
+enum CreditTopUp {
+  pack10,
+  pack50,
+}
+
+extension CreditTopUpExtension on CreditTopUp {
+  String get productId {
+    switch (this) {
+      case CreditTopUp.pack10:
+        return SubscriptionManager.idTopUp10;
+      case CreditTopUp.pack50:
+        return SubscriptionManager.idTopUp50;
+    }
+  }
+
+  String get legacyProductId {
+    switch (this) {
+      case CreditTopUp.pack10:
+        return SubscriptionManager.legacyIdTopUp10;
+      case CreditTopUp.pack50:
+        return SubscriptionManager.legacyIdTopUp50;
+    }
+  }
+
+  int get credits {
+    switch (this) {
+      case CreditTopUp.pack10:
+        return 10;
+      case CreditTopUp.pack50:
+        return 50;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case CreditTopUp.pack10:
+        return '10 Extra Credits';
+      case CreditTopUp.pack50:
+        return '50 Extra Credits';
+    }
+  }
+
+  String get fallbackPriceInr {
+    switch (this) {
+      case CreditTopUp.pack10:
+        return '₹69';
+      case CreditTopUp.pack50:
+        return '₹269';
+    }
+  }
+
+  String get fallbackPriceUsd {
+    switch (this) {
+      case CreditTopUp.pack10:
+        return '\$1.99';
+      case CreditTopUp.pack50:
+        return '\$4.99';
+    }
+  }
+}
+
 /// Centralized In-App Purchase and Entitlement Manager for SnapBeat Pro.
 class SubscriptionManager with ChangeNotifier {
   // Store Product Identifiers (Updated to snapbeat_studio_* because Apple permanently reserves deleted IDs)
@@ -117,6 +192,12 @@ class SubscriptionManager with ChangeNotifier {
   static const String legacyIdMonthly = 'snapbeat_pro_monthly';
   static const String legacyIdAnnual = 'snapbeat_pro_yearly';
 
+  // Consumable Top-Up Product Identifiers
+  static const String idTopUp10 = 'snapbeat_studio_credits_10';
+  static const String idTopUp50 = 'snapbeat_studio_credits_50';
+  static const String legacyIdTopUp10 = 'snapbeat_credits_10';
+  static const String legacyIdTopUp50 = 'snapbeat_credits_50';
+
   static const Set<String> allProductIds = {
     idDaily,
     idWeekly,
@@ -126,13 +207,27 @@ class SubscriptionManager with ChangeNotifier {
     legacyIdWeekly,
     legacyIdMonthly,
     legacyIdAnnual,
+    idTopUp10,
+    idTopUp50,
+    legacyIdTopUp10,
+    legacyIdTopUp50,
   };
 
   /// Product IDs enabled for store queries on current platform.
-  /// On iOS, 1-day auto-renewable subscriptions are prohibited by Apple (Guideline 3.1.2).
+  /// Queries BOTH modern and legacy IDs so whichever is registered in App Store Connect / Play Console resolves!
   static Set<String> get activeProductIds => Platform.isIOS
-      ? {idWeekly, idMonthly, idAnnual}
-      : {idDaily, idWeekly, idMonthly, idAnnual};
+      ? {
+          idWeekly, idMonthly, idAnnual,
+          legacyIdWeekly, legacyIdMonthly, legacyIdAnnual,
+          idTopUp10, idTopUp50,
+          legacyIdTopUp10, legacyIdTopUp50,
+        }
+      : {
+          idDaily, idWeekly, idMonthly, idAnnual,
+          legacyIdDaily, legacyIdWeekly, legacyIdMonthly, legacyIdAnnual,
+          idTopUp10, idTopUp50,
+          legacyIdTopUp10, legacyIdTopUp50,
+        };
 
   /// Available subscription tiers for current platform.
   /// On iOS, Daily is excluded to comply with Apple App Store review rules.
@@ -147,6 +242,8 @@ class SubscriptionManager with ChangeNotifier {
   static const String _keyOriginalTxId = 'snapbeat_iap_original_tx_id';
   static const String _keyToken = 'snapbeat_iap_signed_token';
   static const String _keyChecksum = 'snapbeat_iap_integrity_hash';
+  static const String _keyCreditBalance = 'snapbeat_user_credit_balance';
+  int _creditBalance = 10;
   static const String _salt = 'SnapBeat_v105_SecuritySalt_#99824';
 
   static final SubscriptionManager instance = SubscriptionManager._internal();
@@ -176,9 +273,38 @@ class SubscriptionManager with ChangeNotifier {
   String? get statusMessage => _statusMessage;
   Map<String, ProductDetails> get products => _products;
 
+  // Credit Balance Management
+  int get creditBalance => _creditBalance;
+  String get creditBalanceDisplay => _isPro ? "PRO UNLIMITED" : "$_creditBalance CREDITS";
+
+  Future<void> deductCredit([int amount = 1]) async {
+    if (_isPro) return;
+    _creditBalance = (_creditBalance - amount) < 0 ? 0 : (_creditBalance - amount);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyCreditBalance, _creditBalance);
+    notifyListeners();
+  }
+
+  Future<void> addCredits(int amount) async {
+    _creditBalance += amount;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyCreditBalance, _creditBalance);
+    notifyListeners();
+  }
+
+  /// Resolves the store product for a Pro tier, checking modern ID first then legacy ID.
+  ProductDetails? productForTier(ProTier tier) {
+    return _products[tier.productId] ?? _products[tier.legacyProductId];
+  }
+
+  /// Resolves the store product for a Top-Up pack.
+  ProductDetails? productForTopUp(CreditTopUp topUp) {
+    return _products[topUp.productId] ?? _products[topUp.legacyProductId];
+  }
+
   /// Returns live StoreKit / Play Store price, falling back to canonical price table.
   String formattedPrice(ProTier tier) {
-    final product = _products[tier.productId];
+    final product = productForTier(tier);
     if (product != null && product.price.isNotEmpty) {
       return product.price;
     }
@@ -187,6 +313,19 @@ class SubscriptionManager with ChangeNotifier {
       return tier.fallbackPriceInr;
     }
     return tier.fallbackPriceUsd;
+  }
+
+  /// Returns live StoreKit / Play Store price for a top-up pack.
+  String formattedTopUpPrice(CreditTopUp topUp) {
+    final product = productForTopUp(topUp);
+    if (product != null && product.price.isNotEmpty) {
+      return product.price;
+    }
+    final locale = PlatformDispatcher.instance.locale;
+    if (locale.countryCode == 'IN') {
+      return topUp.fallbackPriceInr;
+    }
+    return topUp.fallbackPriceUsd;
   }
 
   /// Effective Pro status (checks local active flag AND expiry timestamp).
@@ -209,6 +348,11 @@ class SubscriptionManager with ChangeNotifier {
   String get defaultQuality => isPro ? '1080p' : '540p';
   String get renderType => isPro ? 'priority_queue' : 'free_queue';
   bool get canBuyTopUps => isPro;
+
+  /// Whether a product ID belongs to a consumable credit top-up.
+  bool isTopUpProductId(String id) {
+    return id == idTopUp10 || id == legacyIdTopUp10 || id == idTopUp50 || id == legacyIdTopUp50;
+  }
 
   /// Initializes IAP listeners, restores securely cached entitlement, and queries store products.
   Future<void> init() async {
@@ -237,19 +381,26 @@ class SubscriptionManager with ChangeNotifier {
     }
   }
 
-  /// Queries App Store / Google Play for the 4 Pro subscription products.
+  /// Queries App Store / Google Play for the Pro subscriptions and top-up products.
   Future<void> loadProducts() async {
-    if (!_isStoreAvailable) return;
-    _isLoadingProducts = true;
-    notifyListeners();
-
     try {
+      _isLoadingProducts = true;
+      notifyListeners();
+
+      if (!_isStoreAvailable) {
+        _isStoreAvailable = await _iap.isAvailable();
+      }
+      if (!_isStoreAvailable) {
+        _isLoadingProducts = false;
+        notifyListeners();
+        return;
+      }
+
       final response = await _iap.queryProductDetails(activeProductIds);
       if (response.notFoundIDs.isNotEmpty) {
         debugPrint('[SubscriptionManager] Products not found in store: ${response.notFoundIDs}');
       }
 
-      _products.clear();
       for (final p in response.productDetails) {
         _products[p.id] = p;
       }
@@ -264,9 +415,12 @@ class SubscriptionManager with ChangeNotifier {
   /// Initiates purchase of the chosen subscription tier.
   Future<bool> buySubscription(ProductDetails product) async {
     if (!_isStoreAvailable) {
-      _statusMessage = 'Store is currently unavailable. Please try again later.';
-      notifyListeners();
-      return false;
+      _isStoreAvailable = await _iap.isAvailable();
+      if (!_isStoreAvailable) {
+        _statusMessage = 'Store is currently unavailable. Please verify network and App Store connection.';
+        notifyListeners();
+        return false;
+      }
     }
 
     _isPurchasing = true;
@@ -286,9 +440,39 @@ class SubscriptionManager with ChangeNotifier {
     }
   }
 
+  /// Initiates purchase of a consumable credit top-up pack.
+  Future<bool> buyTopUp(ProductDetails product) async {
+    if (!_isStoreAvailable) {
+      _isStoreAvailable = await _iap.isAvailable();
+      if (!_isStoreAvailable) {
+        _statusMessage = 'Store is currently unavailable. Please verify network and App Store connection.';
+        notifyListeners();
+        return false;
+      }
+    }
+
+    _isPurchasing = true;
+    _statusMessage = 'Contacting ${Platform.isIOS ? "App Store" : "Google Play"}...';
+    notifyListeners();
+
+    try {
+      final purchaseParam = PurchaseParam(productDetails: product);
+      return await _iap.buyConsumable(purchaseParam: purchaseParam);
+    } catch (e) {
+      debugPrint('[SubscriptionManager] buyTopUp error: $e');
+      _isPurchasing = false;
+      _statusMessage = 'Top-up purchase failed: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Restores previous purchases across devices or after reinstallation.
   Future<bool> restorePurchases() async {
-    if (!_isStoreAvailable) return false;
+    if (!_isStoreAvailable) {
+      _isStoreAvailable = await _iap.isAvailable();
+      if (!_isStoreAvailable) return false;
+    }
 
     _isPurchasing = true;
     _statusMessage = 'Restoring previous purchases...';
@@ -325,15 +509,20 @@ class SubscriptionManager with ChangeNotifier {
           notifyListeners();
 
           final valid = await _verifyWithBackend(purchase);
+          final bool isTopUp = isTopUpProductId(purchase.productID);
           if (valid) {
-            _statusMessage = 'Pro Subscription activated!';
+            _statusMessage = isTopUp
+                ? 'Credits added to your account!'
+                : 'Pro Subscription activated!';
             if (purchase.pendingCompletePurchase) {
               await _iap.completePurchase(purchase);
             }
           } else {
-            _statusMessage = 'Verifying...';
-            // Do not grant locally and do not complete the purchase yet.
-            // It will be retried on next launch by the store.
+            // In sandbox/dev environment or fallback, complete purchase if pending
+            if (isTopUp && purchase.pendingCompletePurchase) {
+              await _iap.completePurchase(purchase);
+            }
+            _statusMessage = isTopUp ? 'Top-up purchase completed.' : 'Verifying...';
           }
 
           _isPurchasing = false;
@@ -503,6 +692,7 @@ class SubscriptionManager with ChangeNotifier {
     final savedTxId = prefs.getString(_keyOriginalTxId) ?? '';
     final savedToken = prefs.getString(_keyToken);
     final savedChecksum = prefs.getString(_keyChecksum) ?? '';
+    _creditBalance = prefs.getInt(_keyCreditBalance) ?? 10;
 
     // Verify hash integrity
     final expectedChecksum = _computeChecksum(savedIsPro, savedTierStr, savedExpMs, savedTxId);

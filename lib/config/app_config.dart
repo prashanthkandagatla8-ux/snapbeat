@@ -7,7 +7,7 @@ class AppConfig {
   
   // Feature flags based on platform
   static bool get showBetaFeatures => !isAppStoreBuild;
-  static bool get showTesterFeedback => !isAppStoreBuild;
+  static bool get showTesterFeedback => false;
   static bool get showStoreDialog => false; // Disabled for App Store submission (IAP paywall is the only monetization path)
   
   // API configuration

@@ -38,175 +38,194 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 620),
-        decoration: BoxDecoration(
-          color: AppColors.panelCream,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderBrass, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.6),
-              offset: const Offset(0, 8),
-              blurRadius: 24,
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: DefaultTextStyle(
+        style: const TextStyle(
+          fontFamily: 'Montserrat',
+          decoration: TextDecoration.none,
+          color: AppColors.primaryDarkText,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Top Industrial Beveled Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: const BoxDecoration(
-                color: AppColors.canvasChassis,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-                border: Border(
-                  bottom: BorderSide(color: AppColors.chassisBevelLight, width: 1.2),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 480, maxHeight: 620),
+            decoration: BoxDecoration(
+              color: AppColors.ceramicWhite,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.chipBorder, width: 1.2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x60000000),
+                  offset: Offset(0, 8),
+                  blurRadius: 24,
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.panelInset,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.borderBrass, width: 1),
-                    ),
-                    child: Text(widget.isEula ? '' : '', style: const TextStyle(fontSize: 18)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.isEula ? 'Terms of Service (EULA)' : 'Privacy & Data Safety',
-                          style: const TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                            color: AppColors.textEngraved,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.isEula
-                              ? 'Apple Standard End User License Agreement'
-                              : (Platform.isIOS ? 'App Store & Privacy Compliant' : 'Google Play Policy Compliant'),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                            color: AppColors.textFoilGold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 20),
-                    onPressed: () => Navigator.of(context).pop(),
-                    visualDensity: VisualDensity.compact,
-                    splashRadius: 18,
-                  ),
-                ],
-              ),
+              ],
             ),
-
-            // Scrollable Content
-            Flexible(
-              child: Scrollbar(
-                thumbVisibility: true,
-                controller: _scrollController,
-                child: SingleChildScrollView(
-                  controller: _scrollController,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top Header Nameplate
+                Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  decoration: const BoxDecoration(
+                    color: AppColors.canvasBg,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    border: Border(
+                      bottom: BorderSide(color: AppColors.chipBorder, width: 1),
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      if (widget.isEula) ...[
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.panelInset,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.chassisBevelLight, width: 1),
+                      Container(
+                        height: 38,
+                        width: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.pianoBlack,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0x35FFFFFF), width: 1),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            widget.isEula ? Icons.gavel_rounded : Icons.shield_rounded,
+                            color: Colors.white,
+                            size: 20,
                           ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.gavel_rounded, size: 14, color: AppColors.brassGold),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'SnapBeat is licensed subject to the Apple Standard EULA.',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.isEula ? 'Terms of Service (EULA)' : 'Privacy & Data Safety',
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                                color: AppColors.primaryDarkText,
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.isEula
+                                  ? 'Apple Standard End User License Agreement'
+                                  : (Platform.isIOS ? 'App Store & Privacy Compliant' : 'Google Play Policy Compliant'),
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.6,
+                                color: AppColors.secondaryDarkText,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 14),
-                        GestureDetector(
-                          onTap: () {
-                            launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
-                          },
-                          child: _buildSectionItem(
-                            icon: '',
-                            title: 'Apple Standard Terms of Use (EULA)',
-                            description:
-                                'By downloading or using SnapBeat, you agree to Apple\'s Standard Licensed Application End User License Agreement:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/ (Tap to open)',
-                          ),
-                        ),
-                        _buildSectionItem(
-                          icon: '',
-                          title: 'Subscription & Auto-Renewal',
-                          description:
-                              'Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current billing period. Your account will be charged for renewal within 24 hours prior to the end of the period. Manage or cancel subscriptions in App Store account settings.',
-                        ),
-                        _buildSectionItem(
-                          icon: '',
-                          title: 'User Content Ownership',
-                          description:
-                              'You retain full copyright and ownership of all photos, music, and assembled video reels you select or create with SnapBeat.',
-                        ),
-                        _buildSectionItem(
-                          icon: '',
-                          title: 'Refunds & In-App Purchases',
-                          description:
-                              'All subscriptions and purchases are processed directly by Apple StoreKit. Refund requests are subject to Apple Media Services Terms and Conditions.',
-                        ),
-                      ] else ...[
-                        // Badge Note
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: AppColors.primaryDarkText, size: 20),
+                        onPressed: () => Navigator.of(context).pop(),
+                        visualDensity: VisualDensity.compact,
+                        splashRadius: 18,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Scrollable Content
+                Flexible(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    controller: _scrollController,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.isEula) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                               decoration: BoxDecoration(
-                                color: AppColors.panelInset,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.chassisBevelLight, width: 1),
+                                color: AppColors.chipSurface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.chipBorder, width: 1),
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.brassGold),
+                                  Icon(Icons.gavel_rounded, size: 16, color: AppColors.primaryDarkText),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'SnapBeat is licensed subject to the Apple Standard EULA.',
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 11,
+                                        color: AppColors.primaryDarkText,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            GestureDetector(
+                              onTap: () {
+                                launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
+                              },
+                              child: _buildSectionItem(
+                                icon: Icons.description_outlined,
+                                title: 'Apple Standard Terms of Use (EULA)',
+                                description:
+                                    'By downloading or using SnapBeat, you agree to Apple\'s Standard Licensed Application End User License Agreement:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/ (Tap to open)',
+                              ),
+                            ),
+                            _buildSectionItem(
+                              icon: Icons.autorenew_rounded,
+                              title: 'Subscription & Auto-Renewal',
+                              description:
+                                  'Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current billing period. Your account will be charged for renewal within 24 hours prior to the end of the period. Manage or cancel subscriptions in App Store account settings.',
+                            ),
+                            _buildSectionItem(
+                              icon: Icons.copyright_rounded,
+                              title: 'User Content Ownership',
+                              description:
+                                  'You retain full copyright and ownership of all photos, music, and assembled video reels you select or create with SnapBeat.',
+                            ),
+                            _buildSectionItem(
+                              icon: Icons.receipt_long_outlined,
+                              title: 'Refunds & In-App Purchases',
+                              description:
+                                  'All subscriptions and purchases are processed directly by Apple StoreKit. Refund requests are subject to Apple Media Services Terms and Conditions.',
+                            ),
+                          ] else ...[
+                            // Privacy Architecture Note
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.chipSurface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.chipBorder, width: 1),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.primaryDarkText),
                                   SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       'SnapBeat is engineered with a strict privacy-by-design architecture.',
                                       style: TextStyle(
+                                        fontFamily: 'Montserrat',
                                         fontSize: 11,
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.primaryDarkText,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),
@@ -216,143 +235,137 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                             const SizedBox(height: 14),
 
                             _buildSectionItem(
-                              icon: '',
+                              icon: Icons.cloud_sync_outlined,
                               title: 'Ephemeral Media Processing',
                               description:
                                   'User-selected photos and audio tracks are transmitted over encrypted HTTPS/TLS exclusively to the cloud rendering engine to detect musical beats and assemble your video reel.',
                             ),
 
                             _buildSectionItem(
-                              icon: '',
+                              icon: Icons.delete_sweep_outlined,
                               title: 'Instant File Deletion',
                               description:
                                   'Input files are processed in volatile temporary storage and purged permanently immediately upon render completion. No user images or songs are ever archived on servers.',
                             ),
 
                             _buildSectionItem(
-                              icon: '',
+                              icon: Icons.campaign_outlined,
                               title: 'Advertising & Consent',
                               description:
-                                  'Free users see a full-screen ad before a reel plays. Subscribers see no ads at all. Ads come from Google AdMob, which may use a device advertising identifier to serve them. Consent is handled through Google\'s UMP form where local law requires it. As always, there is no sale of personal media, no cross-app tracking for profiling, and no AI/ML training on user photos or music.',
+                                  'Free users see a full-screen ad before a reel plays. Subscribers see no ads at all. Ads come from Google AdMob, which may use a device advertising identifier to serve them. Consent is handled through Google\'s UMP form where local law requires it. As always, there is no sale of personal media, no cross-app tracking for profiling, and zero external data harvesting.',
                             ),
 
                             _buildSectionItem(
-                              icon: '',
-                              title: 'No AI Training & Zero Data Sales',
+                              icon: Icons.shield_outlined,
+                              title: 'Zero Data Harvesting & No Data Sales',
                               description:
-                                  'Your personal media is never sold, rented, or shared with third parties. Your photos and music are strictly prohibited from being used to train AI or machine learning models.',
+                                  'Your personal media is never sold, rented, or shared with third parties. Your photos and music are strictly prohibited from being archived or used for external model training.',
                             ),
 
                             _buildSectionItem(
-                              icon: '',
+                              icon: Icons.photo_library_outlined,
                               title: 'Minimal Scoped Permissions',
                               description:
                                   'System photo picker and audio file access are requested solely when you select media for your reel. We cannot access your full library or unselected private files.',
                             ),
 
                             _buildSectionItem(
-                              icon: '',
+                              icon: Icons.verified_user_outlined,
                               title: 'COPPA & GDPR Compliance',
                               description:
                                   'Because no personal identifiers or media are permanently retained, SnapBeat complies with COPPA and GDPR regulations for user privacy.',
                             ),
                           ],
 
-                      const SizedBox(height: 8),
-                      // Support Box
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.panelInset,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.borderBrass, width: 1),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Developer Contact',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textFoilGold,
-                              ),
+                          const SizedBox(height: 10),
+                          // Support Box
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.chipSurface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.chipBorder, width: 1),
                             ),
-                            SizedBox(height: 4),
-                            Text(
-                              'For inquiries, reach out to support@snapbeat.app. Deletion is instantaneous upon render completion.',
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                color: AppColors.textMuted,
-                                height: 1.4,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'DEVELOPER CONTACT',
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.8,
+                                    color: AppColors.primaryDarkText,
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                Text(
+                                  'For inquiries, reach out to privacy@snapbeat.app or support@snapbeat.app. Deletion is instantaneous upon render completion.',
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 10.5,
+                                    color: AppColors.secondaryDarkText,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
 
-            // Footer / Action Button
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: const BoxDecoration(
-                color: AppColors.canvasChassis,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
-                border: Border(
-                  top: BorderSide(color: AppColors.chassisBevelLight, width: 1.2),
-                ),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: AppColors.brassKnobGradient,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        offset: const Offset(0, 2),
-                        blurRadius: 6,
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      foregroundColor: AppColors.hardwareGunmetal,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                // Footer / Action Button
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: const BoxDecoration(
+                    color: AppColors.ceramicWhite,
+                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+                    border: Border(
+                      top: BorderSide(color: AppColors.chipBorder, width: 1),
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'GOT IT',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.pianoBlack,
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        side: const BorderSide(color: Color(0xFF00E5FF), width: 1.2),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(
+                        'GOT IT',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSectionItem({
-    required String icon,
+    required IconData icon,
     required String title,
     required String description,
   }) {
@@ -362,13 +375,16 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(6),
+            height: 32,
+            width: 32,
             decoration: BoxDecoration(
-              color: AppColors.panelInset,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppColors.chassisBevelLight, width: 1),
+              color: AppColors.chipSurface,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.chipBorder, width: 1),
             ),
-            child: Text(icon, style: const TextStyle(fontSize: 14)),
+            child: Center(
+              child: Icon(icon, size: 16, color: AppColors.primaryDarkText),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -378,17 +394,19 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
                 Text(
                   title,
                   style: const TextStyle(
+                    fontFamily: 'Montserrat',
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textEngraved,
+                    color: AppColors.primaryDarkText,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   description,
                   style: const TextStyle(
+                    fontFamily: 'Montserrat',
                     fontSize: 11,
-                    color: AppColors.textSecondary,
+                    color: AppColors.secondaryDarkText,
                     height: 1.45,
                   ),
                 ),
@@ -400,4 +418,3 @@ class _PrivacyPolicyDialogState extends State<PrivacyPolicyDialog> {
     );
   }
 }
-

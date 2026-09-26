@@ -207,7 +207,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? AppColors.indicatorAccent : const Color(0xFFE2E8F0),
+                      color: isSelected ? AppColors.pianoBlack : const Color(0xFFE2E8F0),
                       width: isSelected ? 1.8 : 1.0,
                     ),
                     boxShadow: [
@@ -236,7 +236,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                                 color: AppColors.pianoBlack,
                                 border: Border.all(
                                   color: isCurrentPreview
-                                      ? AppColors.indicatorAccent
+                                      ? const Color(0xFFFFFFFF)
                                       : const Color(0x35FFFFFF),
                                   width: 1.5,
                                 ),
@@ -250,7 +250,7 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                               ),
                               child: Icon(
                                 isCurrentPreview ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                color: isCurrentPreview ? AppColors.indicatorAccent : Colors.white,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ),
@@ -328,13 +328,12 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.indicatorAccent
-                                    : AppColors.pianoBlack,
+                                gradient: isSelected ? AppColors.iridescentGradient : null,
+                                color: isSelected ? null : AppColors.pianoBlack,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
                                   color: isSelected
-                                      ? AppColors.indicatorAccent
+                                      ? Colors.transparent
                                       : const Color(0x35FFFFFF),
                                   width: 1.2,
                                 ),
@@ -349,16 +348,22 @@ class _SoundLibraryDialogState extends State<SoundLibraryDialog> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  if (isSelected) ...[
+                                    const Icon(
+                                      Icons.check_rounded,
+                                      size: 13,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 3),
+                                  ],
                                   Text(
-                                    isSelected ? '✓ SELECTED' : 'SELECT',
-                                    style: TextStyle(
+                                    isSelected ? 'SELECTED' : 'SELECT',
+                                    style: const TextStyle(
                                       fontFamily: 'Montserrat',
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 0.8,
-                                      color: isSelected
-                                          ? const Color(0xFF0C0E13)
-                                          : Colors.white,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],

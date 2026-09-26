@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 
 class SnapBeatPinkDot extends StatelessWidget {
   final double size;
@@ -16,12 +17,12 @@ class SnapBeatPinkDot extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: const Color(0xFFFF3366),
+        gradient: AppColors.iridescentGradient,
         shape: BoxShape.circle,
         boxShadow: withGlow
             ? [
                 BoxShadow(
-                  color: const Color(0xFFFF3366).withValues(alpha: 0.6),
+                  color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
                   blurRadius: 6,
                   spreadRadius: 1,
                 ),

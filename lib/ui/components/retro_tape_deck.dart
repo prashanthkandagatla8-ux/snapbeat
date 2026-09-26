@@ -148,7 +148,7 @@ class _RetroTapeDeckState extends State<RetroTapeDeck> with SingleTickerProvider
                           fontFamily: 'Courier',
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFFFFFFFF),
+                          color: Color(0xFFFFFFFF),
                           letterSpacing: 2.0,
                         ),
                       ),

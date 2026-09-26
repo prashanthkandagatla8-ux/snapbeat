@@ -30,7 +30,7 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
   }
 
   void _copyEmail() {
-    Clipboard.setData(const ClipboardData(text: "snapbeat-testers@googlegroups.com"));
+    Clipboard.setData(const ClipboardData(text: "feedback@snapbeat.app"));
     setState(() => _copied = true);
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) setState(() => _copied = false);
@@ -49,7 +49,7 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
       return;
     }
 
-    final shareText = "SnapBeat Beta Feedback:\n\n$text\n\nSent to: snapbeat-testers@googlegroups.com";
+    final shareText = "SnapBeat Beta Feedback:\n\n$text\n\nSent to: feedback@snapbeat.app";
     SharePlus.instance.share(
       ShareParams(
         text: shareText,
@@ -69,7 +69,7 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
         decoration: BoxDecoration(
           color: AppColors.panelCream,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderBrass, width: 1.5),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.6),
@@ -97,11 +97,11 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.brassGold,
+                      color: AppColors.pianoBlack,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.brassDark),
+                      border: Border.all(color: const Color(0x30FFFFFF)),
                     ),
-                    child: const Icon(Icons.rate_review_rounded, color: AppColors.textEngraved, size: 18),
+                    child: const Icon(Icons.rate_review_rounded, color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -206,7 +206,7 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.borderBrass),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
                       ),
                       child: TextField(
                         controller: _feedbackController,
@@ -236,12 +236,12 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
                       height: 44,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.brassGold,
-                          foregroundColor: AppColors.textEngraved,
+                          backgroundColor: AppColors.pianoBlack,
+                          foregroundColor: Colors.white,
                           elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: const BorderSide(color: AppColors.brassDark, width: 1.2),
+                            side: const BorderSide(color: Color(0x30FFFFFF), width: 1.0),
                           ),
                         ),
                         icon: const Icon(Icons.send_rounded, size: 16),
@@ -280,7 +280,7 @@ class _TesterFeedbackDialogState extends State<TesterFeedbackDialog> {
                               ),
                               SizedBox(height: 2),
                               Text(
-                                "snapbeat-testers@googlegroups.com",
+                                "feedback@snapbeat.app",
                                 style: TextStyle(
                                   fontFamily: 'Montserrat',
                                   fontSize: 10,

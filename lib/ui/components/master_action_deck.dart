@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
-import 'neomorphic_kit.dart';
 
 class MasterActionDeck extends StatelessWidget {
-  final String currentMode; // 'music', 'photos', 'title', 'render', 'queue'
+  final String currentMode; // 'home', 'music', 'photos', 'title', 'render', 'queue'
   final Function(String mode) onSelectMode;
   final bool isPhotosEnabled;
   final bool isTitleEnabled;
@@ -18,6 +17,14 @@ class MasterActionDeck extends StatelessWidget {
   final VoidCallback onActionPressed;
   final int activeJobsCount;
   final Function(String mode)? onDisabledTabTap;
+
+  // New features matching reference layout
+  final String renderSpeed; // 'instant' vs 'queued'
+  final Function(String speed)? onToggleRenderSpeed;
+  final String creditBalanceDisplay;
+  final VoidCallback? onTapCredits;
+  final String? stageTag;
+  final VoidCallback? onBackToHome;
 
   const MasterActionDeck({
     super.key,
@@ -35,36 +42,44 @@ class MasterActionDeck extends StatelessWidget {
     required this.onActionPressed,
     this.activeJobsCount = 0,
     this.onDisabledTabTap,
+    this.renderSpeed = 'instant',
+    this.onToggleRenderSpeed,
+    this.creditBalanceDisplay = '10 CREDITS',
+    this.onTapCredits,
+    this.stageTag,
+    this.onBackToHome,
   });
+
+  bool get isSubStage => currentMode == 'photos' || currentMode == 'audio_deck' || currentMode == 'title' || currentMode == 'render' || currentMode == 'queue';
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
         ),
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1A1D25),
-            Color(0xFF0A0C11),
+            Color(0xFF161820),
+            Color(0xFF090B0F),
             Color(0xFF030406),
           ],
         ),
         border: const Border(
           top: BorderSide(
-            color: Color(0x40FFFFFF),
+            color: Color(0x35FFFFFF),
             width: 1.0,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+            color: Colors.black.withValues(alpha: 0.65),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
           const BoxShadow(
             color: Color(0x10FFFFFF),
@@ -76,206 +91,20 @@ class MasterActionDeck extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 1. TOP STEPPER TABS ROW
-              Container(
-                height: 42,
-                padding: const EdgeInsets.all(3.5),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF181A22), Color(0xFF0C0D11)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0x25FFFFFF),
-                    width: 1.0,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(color: Color(0x50000000), offset: Offset(0, 2), blurRadius: 6),
-                    BoxShadow(color: Color(0x10FFFFFF), offset: Offset(0, -1), blurRadius: 2),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    _buildTab(
-                      mode: 'music',
-                      label: '1. MUSIC',
-                      icon: Icons.library_music_rounded,
-                      isEnabled: true,
-                    ),
-                    const SizedBox(width: 3),
-                    _buildTab(
-                      mode: 'photos',
-                      label: '2. PHOTOS',
-                      icon: Icons.photo_library_rounded,
-                      isEnabled: isPhotosEnabled,
-                    ),
-                    const SizedBox(width: 3),
-                    _buildTab(
-                      mode: 'title',
-                      label: '3. TITLE',
-                      icon: Icons.title_rounded,
-                      isEnabled: isTitleEnabled,
-                    ),
-                    if (isManualMode) ...[
-                      const SizedBox(width: 3),
-                      _buildTab(
-                        mode: 'render',
-                        label: '4. RENDER',
-                        icon: Icons.movie_creation_rounded,
-                        isEnabled: isRenderEnabled,
-                      ),
-                    ],
-                    const SizedBox(width: 3),
-                    _buildTab(
-                      mode: 'queue',
-                      label: 'VAULT',
-                      icon: Icons.video_collection_rounded,
-                      isEnabled: true,
-                      badgeCount: activeJobsCount,
-                    ),
-                  ],
-                ),
-              ),
+              // 1. TOP UTILITY TIER
+              if (!isSubStage)
+                _buildHomeUtilityRow(context)
+              else
+                _buildSubStageUtilityRow(context),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
-              // 2. LOWER ACTION BAR: [ AUTO | MANUAL ] + SHINING PIANO BLACK CTA
-              Row(
-                children: [
-                  // Mode Selector Pill [ AUTO ⚡ | MANUAL ⚙️ ]
-                  Container(
-                    height: 48,
-                    padding: const EdgeInsets.all(3.0),
-                    decoration: NeumorphicKit.darkSunkenWell(radius: 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildModeChip(
-                          label: 'AUTO',
-                          icon: Icons.bolt_rounded,
-                          isSelected: !isManualMode,
-                          activeColor: Colors.white,
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            onToggleManualMode(false);
-                          },
-                        ),
-                        const SizedBox(width: 2),
-                        _buildModeChip(
-                          label: 'MANUAL',
-                          icon: Icons.tune_rounded,
-                          isSelected: isManualMode,
-                          activeColor: Colors.white,
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            onToggleManualMode(true);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Shining Piano Black CTA Button
-                  Expanded(
-                    child: Opacity(
-                      opacity: isActionEnabled ? 1.0 : 0.45,
-                      child: InkWell(
-                        onTap: isActionEnabled ? onActionPressed : null,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          height: 48,
-                          padding: const EdgeInsets.all(1.5),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(13.5),
-                            gradient: isActionEnabled ? AppColors.iridescentGradient : null,
-                            boxShadow: isActionEnabled
-                                ? const [
-                                    BoxShadow(
-                                      color: Color(0x60B026FF),
-                                      blurRadius: 10,
-                                      spreadRadius: 1,
-                                    ),
-                                    BoxShadow(color: Color(0x50000000), offset: Offset(0, 4), blurRadius: 10),
-                                  ]
-                                : null,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Color(0xFF262832), Color(0xFF14151B), Color(0xFF0A0B0E)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: isActionEnabled ? null : Border.all(
-                                color: const Color(0x14FFFFFF),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  actionIcon,
-                                  size: 18,
-                                  color: isActionEnabled ? const Color(0xFFFFFFFF) : AppColors.textMuted,
-                                ),
-                                const SizedBox(width: 9),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          actionButtonText,
-                                          style: TextStyle(
-                                            fontFamily: 'Montserrat',
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w900,
-                                            letterSpacing: 0.8,
-                                            color: isActionEnabled ? const Color(0xFFFFFFFF) : AppColors.textMuted,
-                                          ),
-                                        ),
-                                      ),
-                                      if (actionButtonSubtitle.isNotEmpty)
-                                        Text(
-                                          actionButtonSubtitle,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFFA6ABB8),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 15,
-                                  color: isActionEnabled ? const Color(0xFFFFFFFF) : AppColors.textMuted,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              // 2. MASTER FULL-WIDTH PIANO BLACK CTA BUTTON
+              _buildMasterCtaButton(context),
             ],
           ),
         ),
@@ -283,141 +112,416 @@ class MasterActionDeck extends StatelessWidget {
     );
   }
 
-  Widget _buildModeChip({
-    required String label,
-    required IconData icon,
-    required bool isSelected,
-    required Color activeColor,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        padding: isSelected ? const EdgeInsets.all(1.5) : EdgeInsets.zero,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(9.5),
-          gradient: isSelected ? AppColors.iridescentGradient : null,
-          boxShadow: isSelected
-              ? const [
-                  BoxShadow(
-                    color: Color(0x60000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF07080A) : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 12,
-              color: isSelected ? Colors.white : const Color(0xFF64748B),
-            ),
-            const SizedBox(width: 4.0),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontSize: 8.5,
-                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                letterSpacing: 0.6,
-                color: isSelected ? Colors.white : const Color(0xFF64748B),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
+  // Home Utility Row: [ VAULT ] | [ CREDITS BALANCE ] | [ Queue | Insta Render ]
+  Widget _buildHomeUtilityRow(BuildContext context) {
+    final bool isInstant = renderSpeed == 'instant';
 
-  Widget _buildTab({
-    required String mode,
-    required String label,
-    required IconData icon,
-    required bool isEnabled,
-    int badgeCount = 0,
-  }) {
-    final isSelected = currentMode == mode;
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          if (!isEnabled) {
-            HapticFeedback.heavyImpact();
-            if (onDisabledTabTap != null) onDisabledTabTap!(mode);
-          } else {
+    return Row(
+      children: [
+        // Left: Vault Button
+        InkWell(
+          onTap: () {
             HapticFeedback.selectionClick();
-            onSelectMode(mode);
-          }
-        },
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 150),
-          opacity: isEnabled ? 1.0 : 0.4,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            onSelectMode('queue');
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
+              color: const Color(0xFF1E232E),
               borderRadius: BorderRadius.circular(10),
-              color: isSelected ? const Color(0xFFF2F4F6) : const Color(0xFF0D1015),
-              border: Border.all(
-                color: isSelected ? const Color(0xB3FFFFFF) : const Color(0x12FFFFFF),
-                width: 1.0,
-              ),
-              boxShadow: isSelected ? AppColors.softRaisedShadow : null,
+              border: Border.all(color: const Color(0x35FFFFFF), width: 0.8),
+              boxShadow: const [
+                BoxShadow(color: Color(0x40000000), offset: Offset(0, 2), blurRadius: 4),
+              ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  icon,
-                  size: 12,
-                  color: isSelected ? const Color(0xFF18202B) : const Color(0xFF9AA2AE),
-                ),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 8.5,
-                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                      letterSpacing: 0.4,
-                      color: isSelected ? const Color(0xFF18202B) : const Color(0xFF9AA2AE),
-                    ),
+                const Icon(Icons.video_library_rounded, size: 14, color: Colors.white70),
+                const SizedBox(width: 6),
+                const Text(
+                  'VAULT',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: Colors.white,
                   ),
                 ),
-                if (badgeCount > 0) ...[
-                  const SizedBox(width: 3),
+                if (activeJobsCount > 0) ...[
+                  const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '$badgeCount',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF0A0D11),
-                      ),
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF00E5FF),
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ],
+              ],
+            ),
+          ),
+        ),
+
+        const Spacer(),
+
+        // Center: Credit Balance Badge (Auto = 0 Credits Free)
+        InkWell(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            if (onTapCredits != null) {
+              onTapCredits!();
+            }
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF12151D),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isManualMode ? const Color(0x35FFFFFF) : const Color(0x18FFFFFF),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isManualMode ? Icons.token_rounded : Icons.bolt_rounded,
+                  size: 13,
+                  color: isManualMode ? const Color(0xFFFFD54F) : const Color(0xFF00E5FF),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  isManualMode ? creditBalanceDisplay : '0 CREDITS (FREE AUTO)',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    color: isManualMode ? const Color(0xFFECEFF1) : const Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const Spacer(),
+
+        // Right: Render Engine Switcher [ Queue | ⚡ Insta Render ]
+        Container(
+          height: 36,
+          padding: const EdgeInsets.all(2.5),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0E1117),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0x25FFFFFF), width: 0.8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Queue Option
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  if (onToggleRenderSpeed != null) onToggleRenderSpeed!('queued');
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: !isInstant ? const Color(0xFF262C38) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Text(
+                    'Queue',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: !isInstant ? FontWeight.w800 : FontWeight.w500,
+                      color: !isInstant ? Colors.white : Colors.white54,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Insta Render Option
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  if (onToggleRenderSpeed != null) onToggleRenderSpeed!('instant');
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: isInstant ? AppColors.iridescentGradient : null,
+                    color: isInstant ? null : Colors.transparent,
+                    borderRadius: BorderRadius.circular(7),
+                    boxShadow: isInstant
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF00E5FF).withValues(alpha: 0.4),
+                              blurRadius: 6,
+                              spreadRadius: 0.5,
+                            )
+                          ]
+                        : null,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.bolt_rounded,
+                        size: 12,
+                        color: isInstant ? Colors.white : Colors.white54,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        'Insta Render',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: isInstant ? FontWeight.w800 : FontWeight.w500,
+                          color: isInstant ? Colors.white : Colors.white54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Sub-Stage Utility Row: [ < STUDIO ] | [ STAGE BADGE ] | [ CREDITS ]
+  Widget _buildSubStageUtilityRow(BuildContext context) {
+    String currentLabel = 'STUDIO';
+    IconData stageIcon = Icons.dashboard_customize_rounded;
+
+    if (currentMode == 'photos') {
+      currentLabel = stageTag ?? 'PHOTOS STAGE';
+      stageIcon = Icons.photo_library_rounded;
+    } else if (currentMode == 'audio_deck' || currentMode == 'music') {
+      currentLabel = stageTag ?? 'SOUNDTRACK';
+      stageIcon = Icons.music_note_rounded;
+    } else if (currentMode == 'title') {
+      currentLabel = stageTag ?? 'TITLE INTRO';
+      stageIcon = Icons.title_rounded;
+    } else if (currentMode == 'queue') {
+      currentLabel = 'REELS VAULT';
+      stageIcon = Icons.video_collection_rounded;
+    }
+
+    return Row(
+      children: [
+        // Return to Studio Button
+        InkWell(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            if (onBackToHome != null) {
+              onBackToHome!();
+            } else {
+              onSelectMode('home');
+            }
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E232E),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0x35FFFFFF), width: 0.8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.arrow_back_ios_new_rounded, size: 11, color: Colors.white),
+                SizedBox(width: 6),
+                Text(
+                  'STUDIO',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const Spacer(),
+
+        // Current Stage Pill
+        Container(
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF12151D),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0x25FFFFFF), width: 0.8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(stageIcon, size: 13, color: const Color(0xFF00E5FF)),
+              const SizedBox(width: 6),
+              Text(
+                currentLabel.toUpperCase(),
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const Spacer(),
+
+        // Credits Pill (Disabled / Free for Auto)
+        InkWell(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            if (onTapCredits != null) onTapCredits!();
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF12151D),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isManualMode ? const Color(0x35FFFFFF) : const Color(0x18FFFFFF),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isManualMode ? Icons.token_rounded : Icons.bolt_rounded,
+                  size: 12,
+                  color: isManualMode ? const Color(0xFFFFD54F) : const Color(0xFF00E5FF),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  isManualMode ? creditBalanceDisplay : '0 CREDITS (FREE AUTO)',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: isManualMode ? const Color(0xFFECEFF1) : const Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Master Full-Width Piano Black CTA Button with Iridescent Border
+  Widget _buildMasterCtaButton(BuildContext context) {
+    return Opacity(
+      opacity: 1.0,
+      child: InkWell(
+        onTap: isActionEnabled ? onActionPressed : null,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          height: 52,
+          padding: const EdgeInsets.all(1.5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            gradient: isActionEnabled ? AppColors.iridescentGradient : null,
+            boxShadow: isActionEnabled
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 2),
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFFFF007F).withValues(alpha: 0.2),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 2),
+                    ),
+                    const BoxShadow(color: Color(0x60000000), offset: Offset(0, 4), blurRadius: 10),
+                  ]
+                : null,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF1E212B), Color(0xFF0E1015), Color(0xFF050608)],
+              ),
+              borderRadius: BorderRadius.circular(12.5),
+              border: isActionEnabled
+                  ? null
+                  : Border.all(
+                      color: const Color(0x35FFFFFF),
+                      width: 1.0,
+                    ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Left Icon
+                Icon(
+                  actionIcon,
+                  size: 18,
+                  color: isActionEnabled ? const Color(0xFF00E5FF) : const Color(0xFF6B7280),
+                ),
+
+                // Center Label
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isActionEnabled) ...[
+                      const Icon(Icons.auto_awesome, size: 14, color: Colors.white70),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      actionButtonText,
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        color: isActionEnabled ? Colors.white : const Color(0xFF9CA3AF),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Right Arrow
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 18,
+                  color: isActionEnabled ? Colors.white : const Color(0xFF6B7280),
+                ),
               ],
             ),
           ),

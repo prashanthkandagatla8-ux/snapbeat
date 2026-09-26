@@ -102,31 +102,50 @@ BoxDecoration(
 
 ---
 
-## 5. Master Action Deck & Switches Specification
+## 5. Master Action Deck & Mode Architecture
+
+### 5.1 The AUTO vs MANUAL Paradigm (Core Monetization Gating)
+- **Primary Business Model Pivot**: The fundamental paywall boundary is now **MODE-BASED (AUTO vs MANUAL)** rather than resolution-based.
+- **AUTO MODE (Universal / Free & Pro)**:
+  - Streamlined 3-step creation flow: Music $\to$ Photos $\to$ Title Card $\to$ Instant Render.
+  - Automated intelligent beat-synced mixing and transitions.
+  - Clean, distraction-free 9:16 typography preview and title inputs.
+  - Quality selection is **UNLOCKED** — free users can export in standard, 720p HD, or 1080p Master without being artificially locked to 360p.
+- **MANUAL MODE (PRO EXCLUSIVE 🔒)**:
+  - Dedicated creative suite unlocked exclusively for Pro subscribers.
+  - Grants access to:
+    - **Step 4: RENDER Deck**: Fine-grained template catalog selector (14 beat styles), Beat Motion effects (Burst, Teaser, Drop It), custom aspect ratios (9:16, 1:1, 16:9).
+    - **Advanced Title Suite**: Font family selection (11 luxury typefaces via Google Fonts), Font Size controls (S/M/L/XL), Title Styles (Editorial, Neon, 3D Retro, Cinematic, Badge), Frame Borders, Duration Sliders (1–6s), Audio Timing, and Custom Canvas Color Swatches.
+  - Attempting to activate MANUAL mode as a free user triggers `RetroSubscriptionDialog` / `AccountPlanDialog`.
+  - The `MANUAL` toggle chip in `MasterActionDeck` features an iridescent `PRO` indicator badge.
+
+### 5.2 Master Action Deck Hardware Specs
 - **AUTO / MANUAL Switch**:
   - Track: Shiny Piano Black lacquer cavity.
   - Selected Option: Pure crisp white `#FFFFFF` text on elevated lacquer pill with subtle catchlight.
-  - Unselected Option: Translucent white `#B3FFFFFF` text. Both labels must always be 100% legible under all lighting conditions.
-- **Adaptive Switches**: Pure white or radiant amber gold thumb on piano black track. Zero maroon.
+  - Unselected Option: Translucent white `#B3FFFFFF` text. Both labels must always be 100% legible.
+  - `MANUAL` chip includes a high-gloss `PRO` badge when user is not subscribed.
+- **Adaptive Switches**: Pure white thumb on piano black track. Zero maroon.
 
 ---
 
-## 6. Subscription & Paywall (`retro_subscription_dialog.dart`)
+## 6. Subscription & Paywall (`retro_subscription_dialog.dart` & `account_plan_dialog.dart`)
 - **Visual Harmony**: Must match the rest of the application.
   - Substrate: Clean Ceramic White background (`#F4F6F9`).
   - Tier Cards: Floating Shiny Piano Black extruded slabs with 1px catchlight rims.
-  - Badges: Radiant Amber Gold `#FFB300`.
-  - Icon: Official 3D watermark emblem.
-  - Zero purple (`#8A7CFF`) or olive tones.
+  - Badges: Radiant Pure White / Iridescent gradient accents.
+  - Account & Plan Management: Instant visibility into current plan, remaining credits, renewal/expiry date, and showcase tour replay.
 
 ---
 
-## 7. Quality Tiers & Export Pipelines
-| Tier | Destination | Engine | Watermark | Entitlement |
-| :--- | :--- | :--- | :--- | :--- |
-| **1080p Master** | Cloud Run Serverless | Serverless GPU/CPU | No Watermark | Pro / Monthly Subscription |
-| **720p HD** | VPS Cult Engine | e2-standard-4 VPS | No Watermark | Pro / Monthly Subscription |
-| **360p Fast** | VPS Cult Engine | e2-standard-4 VPS | Watermarked | Free Tier |
+## 7. Quality Policy & Export Pipelines (Quality Lock Dropped)
+- **Quality Lock Dropped**: Users are no longer forcibly locked to 360p. All quality options (360p Standard, 720p HD, 1080p Master) are selectable in both Auto and Manual modes.
+- **Export Pipelines**:
+  | Tier | Resolution | Target Engine | Watermark Policy | Mode Availability |
+  | :--- | :--- | :--- | :--- | :--- |
+  | **1080p Master** | 1080 × 1920 | Cloud Run Serverless | No Watermark (Pro) / Watermarked (Free) | Auto & Manual (Pro) |
+  | **720p HD** | 720 × 1280 | VPS Cult Engine | No Watermark (Pro) / Watermarked (Free) | Auto & Manual (Pro) |
+  | **360p Standard** | 360 × 640 | VPS Cult Engine | Watermarked (Free) | Auto & Manual (Pro) |
 
 ---
 

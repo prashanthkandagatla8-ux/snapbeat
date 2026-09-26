@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../theme/app_colors.dart';
 import 'neomorphic_kit.dart';
-import 'snapbeat_pink_dot.dart';
 import 'retro_metal_panel.dart';
 
 class SnapsReorderStrip extends StatefulWidget {
@@ -13,7 +12,6 @@ class SnapsReorderStrip extends StatefulWidget {
   final VoidCallback onAddPhotos;
   final Function(int oldIndex, int newIndex) onReorder;
   final Function(String id) onDelete;
-  final Function(String id)? onDuplicate;
   final String arrangementMode;
   final Function(String mode) onArrangementModeChanged;
   final VoidCallback? onLoadSample;
@@ -39,7 +37,6 @@ class SnapsReorderStrip extends StatefulWidget {
     required this.onAddPhotos,
     required this.onReorder,
     required this.onDelete,
-    this.onDuplicate,
     required this.arrangementMode,
     required this.onArrangementModeChanged,
     this.onLoadSample,
@@ -57,8 +54,8 @@ class SnapsReorderStrip extends StatefulWidget {
 
 class _SnapsReorderStripState extends State<SnapsReorderStrip> {
   final ScrollController _gridScrollController = ScrollController();
-  bool _isSmallThumbnails = false;
-  double _thumbnailScale = 1.0;
+  bool _isSmallThumbnails = true;
+  double _thumbnailScale = 0.75;
 
   VoidCallback? get _effectiveClear => widget.onClearAll ?? widget.onResetPhotos;
 
@@ -86,7 +83,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
             children: [
               Row(
                 children: [
-                  SnapBeatPinkDot(size: 13, withGlow: isEnabled),
+                  Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.iridescentGradient)),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -522,8 +519,8 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                   border: Border.all(color: AppColors.chassisBevelDark.withValues(alpha: 0.7)),
                 ),
                 child: Row(
-                  children: const [
-                    SnapBeatPinkDot(size: 7, withGlow: true),
+                  children: [
+                    Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.iridescentGradient)),
                     SizedBox(width: 6),
                     Icon(Icons.swap_horiz_rounded, size: 13, color: AppColors.textSecondary),
                     SizedBox(width: 5),
@@ -602,7 +599,7 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                 decoration: const BoxDecoration(color: Colors.transparent),
                 padding: const EdgeInsets.all(6),
                 child: SizedBox(
-                  height: (560 * _thumbnailScale).clamp(500.0, 680.0),
+                  height: (560 * _thumbnailScale).clamp(420.0, 680.0),
                   child: RawScrollbar(
                     controller: _gridScrollController,
                     thumbVisibility: true,
@@ -770,33 +767,6 @@ class _SnapsReorderStripState extends State<SnapsReorderStrip> {
                         ),
                       ),
                     ),
-                    // Tactile Duplicate Pin Button (top-left)
-                    if (widget.onDuplicate != null)
-                      Positioned(
-                        top: isSmall ? 2 : 4,
-                        left: isSmall ? 2 : 4,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => widget.onDuplicate!(p.id),
-                          child: Container(
-                            width: isSmall ? 28 : 34,
-                            height: isSmall ? 28 : 34,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF111722),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0x25FFFFFF), width: 0.8),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x50000000),
-                                  blurRadius: 6,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Icon(Icons.copy_rounded, size: isSmall ? 12 : 15, color: Colors.white),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),

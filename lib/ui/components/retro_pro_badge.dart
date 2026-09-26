@@ -48,11 +48,11 @@ class RetroProBadge extends StatelessWidget {
                   height: 7,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
+                    color: const Color(0xFF00E5FF),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.white.withValues(alpha: isPro ? 0.8 : 0.2),
-                        blurRadius: isPro ? 6 : 2,
+                        color: const Color(0xFF00E5FF).withValues(alpha: isPro ? 0.9 : 0.6),
+                        blurRadius: isPro ? 8 : 4,
                         spreadRadius: 1,
                       ),
                     ],

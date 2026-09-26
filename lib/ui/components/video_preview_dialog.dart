@@ -199,15 +199,13 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
               child: Row(
                 children: [
                   Container(
-                    width: 12,
-                    height: 12,
+                    width: 10,
+                    height: 10,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _isInitialized && _controller != null && _controller!.value.isPlaying
-                          ? const Color(0xFFFFFFFF)
-                          : AppColors.textMuted,
+                      gradient: AppColors.iridescentGradient,
                       boxShadow: _isInitialized && _controller != null && _controller!.value.isPlaying
-                          ? const [BoxShadow(color: AppColors.primaryDarkText, blurRadius: 6, spreadRadius: 1)]
+                          ? const [BoxShadow(color: Color(0x6000E5FF), blurRadius: 8, spreadRadius: 2)]
                           : null,
                     ),
                   ),
@@ -345,7 +343,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                   _controller!,
                   allowScrubbing: true,
                   colors: const VideoProgressColors(
-                    playedColor: const Color(0xFFFFFFFF),
+                    playedColor: Color(0xFFFFFFFF),
                     bufferedColor: Colors.white24,
                     backgroundColor: AppColors.panelInset,
                   ),

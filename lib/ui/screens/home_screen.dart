@@ -12,6 +12,7 @@ import 'package:video_player/video_player.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:google_fonts/google_fonts.dart';
 import '../../config/app_config.dart';
 import '../../models/models.dart';
 import '../../models/sound_track.dart';
@@ -30,12 +31,11 @@ import '../components/master_action_deck.dart';
 import '../components/video_preview_dialog.dart';
 import '../components/sound_library_dialog.dart';
 import '../components/privacy_policy_dialog.dart';
-import '../components/tester_feedback_dialog.dart';
 import '../components/metal_chassis_scaffold.dart';
-import '../components/snapbeat_pink_dot.dart';
 import '../components/retro_subscription_dialog.dart';
 import '../components/retro_metal_panel.dart';
 import '../components/tactile_action_button.dart';
+import '../components/account_plan_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final String initialTab;
@@ -50,7 +50,7 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     super.key,
-    this.initialTab = "music",
+    this.initialTab = "home",
     this.initialRenderMode = "auto",
     this.initialMusic,
     this.initialMusicTitle,
@@ -66,7 +66,12 @@ class HomeScreenState extends State<HomeScreen> {
   // Unified Workflow State
   bool _isManualRenderMode = false;
   bool _isTitleCardEnabled = true;
-  final TextEditingController _subtitleTextController = TextEditingController(text: "Shot on iPhone â€¢ 2026");
+  String _titleAudioTiming = 'with_music'; // 'with_music' (Overlay on Audio Intro) vs 'outside_track' (Audio Starts After Title)
+  String _titleBgSurface = 'video_overlay'; // 'video_overlay' (Over Photo/Video) vs 'studio_bg' (Solid Studio Background)
+  String _titleAnimationStyle = 'fade'; // 'fade', 'kinetic_zoom', 'glitch', 'typewriter', 'slide'
+  double _titleDurationSec = 2.5; // 1.0 to 5.0 seconds
+
+  final TextEditingController _subtitleTextController = TextEditingController(text: "Moments in Motion · 2026");
 
   final qm = QueueManager.instance;
   final api = ApiService.instance;
@@ -78,7 +83,7 @@ class HomeScreenState extends State<HomeScreen> {
   StreamSubscription? _playerPositionSubscription;
   bool _isSubmittingRender = false;
 
-  String _currentTab = "music"; // "music", "photos", "render", "queue"
+  String _currentTab = "home"; // "home", "photos", "audio_deck", "title", "render", "queue"
   String _renderMode = "auto"; // "auto", "pro"
   File? _selectedMusic;
   String _selectedMusicTitle = "";
@@ -94,9 +99,17 @@ class HomeScreenState extends State<HomeScreen> {
     String? selectedQuality,
     bool? isManualMode,
     bool? isTitleCardEnabled,
+    String? titleAudioTiming,
+    String? titleBgSurface,
+    String? titleAnimationStyle,
+    double? titleDurationSec,
   }) {
     if (isManualMode != null) _isManualRenderMode = isManualMode;
     if (isTitleCardEnabled != null) _isTitleCardEnabled = isTitleCardEnabled;
+    if (titleAudioTiming != null) _titleAudioTiming = titleAudioTiming;
+    if (titleBgSurface != null) _titleBgSurface = titleBgSurface;
+    if (titleAnimationStyle != null) _titleAnimationStyle = titleAnimationStyle;
+    if (titleDurationSec != null) _titleDurationSec = titleDurationSec;
     setState(() {
       if (currentTab != null) {
         if (_isPlayingAudio && currentTab != 'music') {
@@ -120,7 +133,8 @@ class HomeScreenState extends State<HomeScreen> {
   final List<PhotoItem> _photos = [];
   String _selectedTemplate = "pendulum";
   String _selectedAspectRatio = "9:16";
-  String _selectedQuality = "360p";
+  String _selectedQuality = "1080p";
+  String _renderSpeed = "instant"; // 'instant' (serverless) or 'queued'
   String _arrangementMode = "sequential";
 
   /// Calculates max photos dynamically based on track duration and beat tempo.
@@ -155,7 +169,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   // Title Intro
   bool _enableTitle = false;
-  String _titleText = "SnapBeat";
+  String _titleText = "Summer Memories";
   late final TextEditingController _titleTextController;
   String _titleBg = "black";
   int _titleDuration = 2;
@@ -177,23 +191,32 @@ class HomeScreenState extends State<HomeScreen> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.w700,
-            fontSize: 11,
-            color: Colors.white,
-          ),
+        content: Row(
+          children: [
+            const Icon(Icons.info_outline_rounded, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ),
-        backgroundColor: const Color(0xFFFFFFFF),
+        backgroundColor: const Color(0xFF0F1218),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 95),
-        duration: const Duration(milliseconds: 1400),
+        duration: const Duration(milliseconds: 2200),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: Color(0xFFBF8A00), width: 1),
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0x35FFFFFF), width: 1),
         ),
+        elevation: 8,
       ),
     );
   }
@@ -219,7 +242,7 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         title: Row(
           children: const [
-            Icon(Icons.delete_sweep_rounded, color: AppColors.brassGold, size: 22),
+            Icon(Icons.delete_sweep_rounded, color: AppColors.primaryDarkText, size: 22),
             SizedBox(width: 8),
             Text(
               "Clear Completed?",
@@ -245,7 +268,7 @@ class HomeScreenState extends State<HomeScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B2525),
+              backgroundColor: AppColors.vuRed,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
@@ -283,6 +306,13 @@ class HomeScreenState extends State<HomeScreen> {
     _showNotice("Photo selection reset");
   }
 
+  void _openAccountPlanDialog() {
+    AccountPlanDialog.show(
+      context,
+      onReplayShowcase: _showShowcaseWelcomeModal,
+    );
+  }
+
   void _showShowcaseWelcomeModal() {
     if (!mounted) return;
     showModalBottomSheet(
@@ -294,7 +324,7 @@ class HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: AppColors.panelCream,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: AppColors.borderBrass, width: 2),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.7),
@@ -348,8 +378,9 @@ class HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.brassGold,
+                      color: AppColors.pianoBlack,
                       borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0x30FFFFFF)),
                     ),
                     child: const Text(
                       'WELCOME TO SNAPBEAT STUDIO',
@@ -357,7 +388,7 @@ class HomeScreenState extends State<HomeScreen> {
                         fontFamily: 'Montserrat',
                         fontSize: 9.5,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.hardwareGunmetal,
+                        color: Colors.white,
                         letterSpacing: 1.0,
                       ),
                     ),
@@ -448,7 +479,7 @@ class HomeScreenState extends State<HomeScreen> {
                       Icon(Icons.explore_rounded, size: 16, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
-                        'EXPLORE STUDIO â¯',
+                        'EXPLORE STUDIO',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 11,
@@ -481,11 +512,11 @@ class HomeScreenState extends State<HomeScreen> {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: AppColors.brassGold.withValues(alpha: 0.15),
+            color: AppColors.pianoBlack,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.5)),
+            border: Border.all(color: const Color(0x30FFFFFF)),
           ),
-          child: Icon(icon, size: 14, color: AppColors.brassGold),
+          child: Icon(icon, size: 14, color: Colors.white),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -591,6 +622,22 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initData() async {
     await qm.init();
+    
+    // Default Auto Mode & Mode Preference Persistence
+    final prefs = await SharedPreferences.getInstance();
+    final savedMode = prefs.getString('snapbeat_preferred_render_mode');
+    if (savedMode == 'manual') {
+      if (sm.isPro) {
+        _isManualRenderMode = true;
+      } else {
+        _isManualRenderMode = false;
+        await prefs.setString('snapbeat_preferred_render_mode', 'auto');
+      }
+    } else {
+      _isManualRenderMode = false;
+      await prefs.setString('snapbeat_preferred_render_mode', 'auto');
+    }
+
     if (widget.initialMusic == null && _selectedMusic == null) {
       await _loadDefaultSampleTrack();
     }
@@ -696,7 +743,7 @@ class HomeScreenState extends State<HomeScreen> {
         if (!mounted) return;
         setState(() {
           _selectedMusic = videoFile;
-          _selectedMusicTitle = 'ðŸŽ¬ Video Audio: $fileName';
+          _selectedMusicTitle = 'Video Audio: $fileName';
           _audioDuration = dur;
           _audioStart = 0.0;
           _audioEnd = dur;
@@ -755,8 +802,12 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   String? _getBpmFromTitle() {
-    final match = RegExp(r'(\d+\s*BPM)', caseSensitive: false).firstMatch(_selectedMusicTitle);
-    return match?.group(1);
+    final match = RegExp(r'(\d+)\s*BPM', caseSensitive: false).firstMatch(_selectedMusicTitle);
+    if (match != null) {
+      return match.group(1);
+    }
+    final digitMatch = RegExp(r'(\d+)').firstMatch(_selectedMusicTitle);
+    return digitMatch?.group(1);
   }
 
   String? _getGenreForSelected() {
@@ -806,29 +857,6 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _duplicatePhoto(String photoId) {
-    final idx = _photos.indexWhere((p) => p.id == photoId);
-    if (idx != -1) {
-      if (_photos.length >= maxPhotosForTrack) {
-        _showNotice("Maximum $maxPhotosForTrack photos reached.");
-        return;
-      }
-      final src = _photos[idx];
-      final duplicate = PhotoItem(
-        id: '${DateTime.now().microsecondsSinceEpoch}_dup',
-        path: src.path,
-        order: idx + 1,
-      );
-      setState(() {
-        _photos.insert(idx + 1, duplicate);
-        for (int i = 0; i < _photos.length; i++) {
-          _photos[i].order = i;
-        }
-      });
-      _showNotice("Photo duplicated! (${_photos.length}/$maxPhotosForTrack)");
-    }
-  }
-
   void _promptRenameReel(QueueJobItem job) {
     final controller = TextEditingController(text: job.customName ?? job.templateName);
     showDialog(
@@ -841,7 +869,7 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         title: const Row(
           children: [
-            Icon(Icons.edit_rounded, color: AppColors.brassGold, size: 22),
+            Icon(Icons.edit_rounded, color: AppColors.primaryDarkText, size: 22),
             SizedBox(width: 8),
             Text(
               "Rename Reel",
@@ -874,7 +902,7 @@ class HomeScreenState extends State<HomeScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.brassGold, width: 2),
+              borderSide: const BorderSide(color: AppColors.pianoBlack, width: 2),
             ),
           ),
         ),
@@ -885,9 +913,12 @@ class HomeScreenState extends State<HomeScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brassGold,
-              foregroundColor: const Color(0xFF1E1A10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              backgroundColor: AppColors.pianoBlack,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Color(0x30FFFFFF), width: 1),
+              ),
             ),
             onPressed: () {
               final newName = controller.text.trim();
@@ -953,7 +984,7 @@ class HomeScreenState extends State<HomeScreen> {
               qm.deleteJob(job.id);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text("âœ“ Deleted \"${job.displayName}\""),
+                  content: Text(" Deleted \"${job.displayName}\""),
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -1111,8 +1142,8 @@ class HomeScreenState extends State<HomeScreen> {
     final photosSnapshot = List<PhotoItem>.from(photosToSend);
     final musicSnapshot = _selectedMusic;
     final aspectRatioSnapshot = _selectedAspectRatio;
-    // Pro subscribers get high quality (1080p Master / 720p HD); Free users default to 360p Standard
-    final qualitySnapshot = isPro ? (_selectedQuality == "360p" ? "1080p" : _selectedQuality) : "360p";
+    
+    final qualitySnapshot = sm.isPro ? _selectedQuality : "360p";
     // Pro subscribers have watermarks removed; Free videos have watermark
     final shouldWatermark = !isPro;
     // Pro subscribers get fast priority queue; Free users use standard queue
@@ -1294,7 +1325,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
 
 
-      _showNotice('ðŸŽ‰ Reel ready! Tap Play to preview and save to Photos.');
+      _showNotice('Reel ready! Tap Play to preview and save to Photos.');
 
 
     } catch (e) {
@@ -1333,11 +1364,12 @@ class HomeScreenState extends State<HomeScreen> {
       },
       child: MetalChassisScaffold(
         body: SafeArea(
-        child: Stack(
+          bottom: false,
+          child: Stack(
           children: [
             Column(
               children: [
-                // Top Header (Clean Transparent Wordmark on Ceramic Floor, per Spec Â§5)
+                // Top Header (Clean Transparent Wordmark on Ceramic Floor, per Spec Section 5)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                   child: Row(
@@ -1352,23 +1384,25 @@ class HomeScreenState extends State<HomeScreen> {
                           if (HomeScreen.wordmarkUiImage != null)
                             RawImage(
                               image: HomeScreen.wordmarkUiImage,
-                              height: 20,
+                              height: 27,
                               fit: BoxFit.contain,
+                              filterQuality: FilterQuality.high,
                             )
                           else
                             Image.asset(
                               'assets/images/snapbeat_wordmark_black.png',
-                              height: 20,
+                              height: 27,
                               fit: BoxFit.contain,
+                              filterQuality: FilterQuality.high,
                             ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 3),
                           const Text(
-                            'BEAT-SYNCED REELS',
+                            'BEAT-SYNCED PHOTO REELS',
                             style: TextStyle(
                               fontFamily: 'Montserrat',
-                              fontSize: 7,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.7,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.8,
                               color: AppColors.textInkTertiary,
                             ),
                           ),
@@ -1379,27 +1413,26 @@ class HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const RetroProBadge(),
-                          if (AppConfig.showTesterFeedback) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF111722),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0x18FFFFFF), width: 1),
-                                boxShadow: AppColors.darkHardwareShadow,
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.rate_review_outlined, color: Colors.white, size: 16),
-                                tooltip: 'Send Tester Feedback',
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onPressed: () => TesterFeedbackDialog.show(context),
-                              ),
+                          RetroProBadge(onTap: _openAccountPlanDialog),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF111722),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0x18FFFFFF), width: 1),
+                              boxShadow: AppColors.darkHardwareShadow,
                             ),
-                          ],
+                            child: IconButton(
+                              icon: const Icon(Icons.account_circle_outlined, color: Colors.white, size: 17),
+                              tooltip: 'Account & Plan',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: _openAccountPlanDialog,
+                            ),
+                          ),
+                          
                           const SizedBox(width: 8),
                           Container(
                             width: 38,
@@ -1424,13 +1457,27 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // Main Scrollable Console Deck
+                // Main Scrollable Console Deck with Easing Page Transitions
                 Expanded(
-                  child: ListView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 140),
-                    children: [
-                      if (_currentTab == "music") ...[
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    switchInCurve: Curves.easeInOutCubic,
+                    switchOutCurve: Curves.easeInOutCubic,
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOutCubic),
+                        child: child,
+                      );
+                    },
+                    child: ListView(
+                      key: ValueKey(_currentTab),
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(bottom: 160),
+                      children: [
+                      if (_currentTab == "music" || _currentTab == "home") ...[
+                        // UNIFIED HOME STUDIO VIEW
+                        _buildUnifiedHomeView(),
+                      ] else if (_currentTab == "audio_deck") ...[
                         // STAGE 1: MUSIC FIRST - Web Audio Console Deck
                         WebAudioConsoleDeck(
                           isPlaying: _isPlayingAudio,
@@ -1507,7 +1554,6 @@ class HomeScreenState extends State<HomeScreen> {
                           maxPhotos: maxPhotosForTrack,
                           onPromptSelectMusic: _openSoundLibrary,
                           onAddPhotos: _pickPhotos,
-                          onDuplicate: _duplicatePhoto,
                           onReorder: (oldIdx, newIdx) {
                             setState(() {
                               if (newIdx > oldIdx) newIdx -= 1;
@@ -1526,7 +1572,48 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                         // Photo progression handled exclusively by persistent MasterActionDeck
                       ] else if (_currentTab == "title") ...[
-                        _buildTitleStageView(),
+                        if (_selectedMusic == null)
+                          _buildGatedCard(
+                            icon: Icons.library_music_rounded,
+                            title: "MUSIC REQUIRED FIRST",
+                            description: "Please select a music track in Step 1 before customizing intro title cards.",
+                            buttonText: "GO TO MUSIC",
+                            onButtonTap: () {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(0.0);
+                              }
+                              setState(() {
+                                const newTab = "music";
+                                if (_isPlayingAudio && newTab != 'music') {
+                                  _audioPlayer.pause();
+                                  _isPlayingAudio = false;
+                                }
+                                _currentTab = newTab;
+                              });
+                            },
+                          )
+                        else if (_photos.isEmpty || _photos.length < 2)
+                          _buildGatedCard(
+                            icon: Icons.photo_library_rounded,
+                            title: "PHOTOS REQUIRED FIRST",
+                            description: "Please select at least 2 photos in Step 2 before customizing intro title cards.",
+                            buttonText: "GO TO PHOTOS",
+                            onButtonTap: () {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(0.0);
+                              }
+                              setState(() {
+                                const newTab = "photos";
+                                if (_isPlayingAudio && newTab != 'music') {
+                                  _audioPlayer.pause();
+                                  _isPlayingAudio = false;
+                                }
+                                _currentTab = newTab;
+                              });
+                            },
+                          )
+                        else
+                          _buildTitleStageView(),
                       ] else if (_currentTab == "render") ...[
                         // STAGE 3: RENDER OPTIONS (Auto vs Pro)
                         if (_selectedMusic == null)
@@ -1578,12 +1665,13 @@ class HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+              ),
 
-                // Bottom Action Deck (With 4-Stage Navigation Switcher: MUSIC, PHOTOS, RENDER, QUEUE)
+                // Bottom Action Deck (Matching Luxury 2-Tier Reference Layout)
                 MasterActionDeck(
                   currentMode: _currentTab,
                   onSelectMode: (tab) {
-                    if (_isPlayingAudio && tab != 'music') {
+                    if (_isPlayingAudio && tab != 'music' && tab != 'audio_deck') {
                       _audioPlayer.pause();
                       _isPlayingAudio = false;
                     }
@@ -1598,7 +1686,14 @@ class HomeScreenState extends State<HomeScreen> {
                   isTitleEnabled: _selectedMusic != null && _photos.length >= 2,
                   isRenderEnabled: _selectedMusic != null && _photos.length >= 2,
                   isManualMode: _isManualRenderMode,
-                  onToggleManualMode: (manual) {
+                  onToggleManualMode: (manual) async {
+                    if (manual && !sm.isPro) {
+                      RetroSubscriptionDialog.show(context, reason: "Manual Customization Mode is a PRO Feature. Upgrade to Pro to customize individual templates, motion dynamics, advanced typography, and duration.");
+                      return;
+                    }
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('snapbeat_preferred_render_mode', manual ? 'manual' : 'auto');
+
                     setState(() {
                       _isManualRenderMode = manual;
                       if (!manual && _currentTab == 'render') {
@@ -1606,21 +1701,29 @@ class HomeScreenState extends State<HomeScreen> {
                       }
                     });
                   },
+                  renderSpeed: _renderSpeed,
+                  onToggleRenderSpeed: (speed) => setState(() => _renderSpeed = speed),
+                  creditBalanceDisplay: sm.creditBalanceDisplay,
+                  onTapCredits: _openAccountPlanDialog,
+                  stageTag: _currentTab == 'photos'
+                      ? '${_photos.length} PHOTOS'
+                      : (_currentTab == 'audio_deck'
+                          ? '${_getBpmFromTitle()} BPM'
+                          : (_currentTab == 'title'
+                              ? 'TITLE INTRO'
+                              : null)),
+                  onBackToHome: () {
+                    if (_scrollController.hasClients) {
+                      _scrollController.jumpTo(0.0);
+                    }
+                    setState(() => _currentTab = 'home');
+                  },
                   actionButtonText: _getActionButtonText(),
                   actionButtonSubtitle: _getActionButtonSubtitle(),
                   actionIcon: _getActionIcon(),
                   isActionEnabled: _isActionEnabled(),
                   onActionPressed: _handleMasterAction,
                   activeJobsCount: qm.activeJobs.length,
-                  onDisabledTabTap: (tab) {
-                    if (tab == 'photos') {
-                      _showNotice("ðŸŽµ Select a music track first to unlock photos!");
-                    } else if (tab == 'title') {
-                      _showNotice("ðŸ“¸ Add at least 2 photos first to set the title!");
-                    } else if (tab == 'render') {
-                      _showNotice("âš™ï¸ Switch to MANUAL mode to access Render Options!");
-                    }
-                  },
                 ),
               ],
             ),
@@ -1682,11 +1785,14 @@ class HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 18),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brassGold,
-              foregroundColor: AppColors.hardwareGunmetal,
+              backgroundColor: AppColors.pianoBlack,
+              foregroundColor: Colors.white,
               elevation: 2,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Color(0x30FFFFFF), width: 1),
+              ),
             ),
             icon: const Icon(Icons.arrow_back_rounded, size: 16),
             label: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
@@ -1812,7 +1918,7 @@ class HomeScreenState extends State<HomeScreen> {
         ? (_audioEnd - _audioStart).toInt()
         : _audioDuration.toInt();
     final isMix = (_renderMode == "auto") || (_renderMode == "manual" && _selectedTemplate == "mix");
-    final styleName = isMix ? "DYNAMIC MIX ðŸ”€" : _selectedTemplate.toUpperCase();
+    final styleName = isMix ? "DYNAMIC MIX" : _selectedTemplate.toUpperCase();
 
     return RetroMetalPanel(
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -1824,8 +1930,8 @@ class HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                children: const [
-                  SnapBeatPinkDot(size: 8.5, withGlow: true),
+                children: [
+                  Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.iridescentGradient)),
                   SizedBox(width: 6),
                   Text(
                     "JOB SPECIFICATIONS",
@@ -1853,7 +1959,7 @@ class HomeScreenState extends State<HomeScreen> {
                     fontSize: 7.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.5,
-                    color: AppColors.brassGold,
+                    color: AppColors.primaryDarkText,
                   ),
                 ),
               ),
@@ -1900,7 +2006,7 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               _buildSummaryPill(
                 Icons.video_settings_rounded,
-                "$_selectedAspectRatio â€¢ ${sm.isPro ? _selectedQuality : '360p (Free)'}",
+                "$_selectedAspectRatio · ${sm.isPro ? _selectedQuality : '360p (Free)'}",
                 subtitle: "OUTPUT",
               ),
               const SizedBox(width: 6),
@@ -1930,7 +2036,7 @@ class HomeScreenState extends State<HomeScreen> {
     final pillWidget = Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: highlight ? const Color(0xFF2E2614) : AppColors.panelInset,
+        color: highlight ? AppColors.pianoBlack : AppColors.panelInset,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
           color: highlight ? const Color(0x30FFFFFF) : AppColors.chassisBevelDark.withValues(alpha: 0.5),
@@ -1939,7 +2045,7 @@ class HomeScreenState extends State<HomeScreen> {
         boxShadow: highlight
             ? [
                 BoxShadow(
-                  color: const Color(0x30FFFFFF).withValues(alpha: 0.25),
+                  color: Colors.black.withValues(alpha: 0.25),
                   blurRadius: 4,
                   spreadRadius: 0.5,
                 ),
@@ -1948,7 +2054,7 @@ class HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 12, color: highlight ? const Color(0xFFFFFFFF) : AppColors.brassGold),
+          Icon(icon, size: 12, color: highlight ? const Color(0xFFFFFFFF) : AppColors.primaryDarkText),
           const SizedBox(width: 5),
           Expanded(
             child: Column(
@@ -1985,10 +2091,11 @@ class HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
               decoration: BoxDecoration(
-                color: AppColors.brassGold,
+                color: AppColors.pianoBlack,
                 borderRadius: BorderRadius.circular(3),
+                border: Border.all(color: const Color(0x30FFFFFF)),
                 boxShadow: const [
-                  BoxShadow(color: const Color(0x30FFFFFF), blurRadius: 2),
+                  BoxShadow(color: Color(0x30FFFFFF), blurRadius: 2),
                 ],
               ),
               child: Row(
@@ -1997,15 +2104,11 @@ class HomeScreenState extends State<HomeScreen> {
                   Text(
                     trailingAffordance,
                     style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 6.5,
+                      fontSize: 8,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
-                      color: AppColors.hardwareGunmetal,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 1.5),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 5.5, color: AppColors.hardwareGunmetal),
                 ],
               ),
             ),
@@ -2061,9 +2164,13 @@ class HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brassGold,
-                foregroundColor: AppColors.hardwareGunmetal,
+                backgroundColor: AppColors.pianoBlack,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(color: Color(0x30FFFFFF), width: 1),
+                ),
               ),
               icon: const Icon(Icons.auto_awesome, size: 16),
               label: const Text("CREATE REEL", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
@@ -2116,9 +2223,9 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: Row(
-                  children: const [
-                    SnapBeatPinkDot(size: 11, withGlow: true),
-                    SizedBox(width: 6),
+                  children: [
+                    Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.iridescentGradient)),
+                    const SizedBox(width: 6),
                     Flexible(
                       child: Text(
                         "QUEUE",
@@ -2128,7 +2235,7 @@ class HomeScreenState extends State<HomeScreen> {
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.8,
-                          color: AppColors.textEngraved,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -2189,8 +2296,9 @@ class HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.brassGold,
+                        color: AppColors.pianoBlack,
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0x30FFFFFF)),
                         boxShadow: const [
                           BoxShadow(color: Colors.black26, offset: Offset(0, 1), blurRadius: 2),
                         ],
@@ -2198,14 +2306,14 @@ class HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.add_rounded, size: 14, color: AppColors.hardwareGunmetal),
+                          Icon(Icons.add_rounded, size: 14, color: Colors.white),
                           SizedBox(width: 3),
                           Text(
                             "NEW REEL",
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.hardwareGunmetal,
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -2226,14 +2334,14 @@ class HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF1E1A16).withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.brassGold.withValues(alpha: 0.4), width: 1),
+              border: Border.all(color: const Color(0x30FFFFFF), width: 1),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
                   padding: EdgeInsets.only(top: 1.5),
-                  child: Icon(Icons.info_outline_rounded, size: 13, color: AppColors.primaryDarkText),
+                  child: Icon(Icons.info_outline_rounded, size: 13, color: Colors.white),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -2242,13 +2350,13 @@ class HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 9.5,
-                        color: AppColors.textSecondary,
+                        color: Colors.white70,
                         height: 1.35,
                       ),
                       children: [
                         TextSpan(
                           text: "Queue Notice: ",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDarkText),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         TextSpan(
                           text: "Free renders process sequentially (1-at-a-time) in a shared queue. Upgrade to Pro for instant priority renders.",
@@ -2300,56 +2408,7 @@ class HomeScreenState extends State<HomeScreen> {
           ...failedJobs.map((job) => _buildFailedJobCard(job)),
         ],
 
-        // Closed Beta Tester Feedback & Bug Report Action Bar - Hidden on iOS
-        if (AppConfig.showBetaFeatures)
-          Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              gradient: AppColors.luxDarkCardGradient,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.chassisBevelLight.withValues(alpha: 0.6)),
-              boxShadow: AppColors.luxCardShadow,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.rate_review_rounded, size: 14, color: AppColors.primaryDarkText),
-                    SizedBox(width: 8),
-                    Text(
-                      "TESTER FEEDBACK & BUG REPORT",
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                        color: AppColors.textEngraved,
-                      ),
-                    ),
-                  ],
-                ),
-                TextButton(
-                  onPressed: () => TesterFeedbackDialog.show(context),
-                  style: TextButton.styleFrom(
-                    backgroundColor: AppColors.brassGold,
-                    foregroundColor: AppColors.textEngraved,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  ),
-                  child: const Text(
-                    "FEEDBACK",
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        
       ],
     );
   }
@@ -2365,14 +2424,12 @@ class HomeScreenState extends State<HomeScreen> {
         color: AppColors.panelCream,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isFocused ? const Color(0xFFFFFFFF) : AppColors.brassGold,
-          width: isFocused ? 2.2 : 1.8,
+          color: isFocused ? AppColors.pianoBlack : const Color(0xFFCBD5E1),
+          width: isFocused ? 2.0 : 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: isFocused
-                ? const Color(0xFFFFFFFF).withValues(alpha: 0.35)
-                : const Color(0x30FFFFFF).withValues(alpha: 0.4),
+            color: Colors.black.withValues(alpha: 0.08),
             offset: const Offset(0, 3),
             blurRadius: isFocused ? 12 : 8,
           ),
@@ -2390,21 +2447,21 @@ class HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E1A16),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.brassGold, width: 1),
+                    border: Border.all(color: const Color(0x30FFFFFF), width: 1),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.hourglass_top_rounded, size: 10, color: AppColors.primaryDarkText),
+                      const Icon(Icons.hourglass_top_rounded, size: 10, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
-                        "IN QUEUE â€¢ POSITION #${job.queuePosition > 0 ? job.queuePosition : 1}",
+                        "IN QUEUE · POSITION #${job.queuePosition > 0 ? job.queuePosition : 1}",
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 8.5,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.8,
-                          color: AppColors.primaryDarkText,
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -2427,9 +2484,9 @@ class HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
           ] else if (isFocused || job.status.toUpperCase() == "RENDERING" || job.status.toUpperCase() == "PROCESSING") ...[
             Row(
-              children: const [
-                SnapBeatPinkDot(size: 11, withGlow: true),
-                SizedBox(width: 6),
+              children: [
+                    Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.iridescentGradient)),
+                    const SizedBox(width: 6),
                 Text(
                   "CURRENT RENDER IN PROGRESS",
                   style: TextStyle(
@@ -2453,7 +2510,7 @@ class HomeScreenState extends State<HomeScreen> {
                     const SizedBox(
                       width: 14,
                       height: 14,
-                      child: CircularProgressIndicator(color: AppColors.brassGold, strokeWidth: 2),
+                      child: CircularProgressIndicator(color: AppColors.primaryDarkText, strokeWidth: 2),
                     ),
                     const SizedBox(width: 8),
                     Flexible(
@@ -2478,19 +2535,19 @@ class HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isFocused ? const Color(0xFFFFFFFF).withValues(alpha: 0.2) : const Color(0xFFFFFFFF).withValues(alpha: 0.2),
+                      color: const Color(0xFF090B0F),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: isFocused ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF), width: 1),
+                      border: Border.all(color: const Color(0x30FFFFFF), width: 1),
                     ),
                     child: Text(
                       job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED"
                           ? "QUEUE #${job.queuePosition > 0 ? job.queuePosition : 1}"
                           : "$percent%",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: isFocused ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF),
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -2544,10 +2601,10 @@ class HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Text(
                   job.queuePosition > 0 || job.status.toUpperCase() == "QUEUED"
-                      ? "Queue Position #${job.queuePosition > 0 ? job.queuePosition : 1} â€¢ Waiting for active render..."
+                      ? "Queue Position #${job.queuePosition > 0 ? job.queuePosition : 1} · Waiting for active render..."
                       : (job.stage != null && job.stage!.isNotEmpty
-                          ? "Quality: ${job.quality} â€¢ ${job.stage}"
-                          : "Quality: ${job.quality} â€¢ Syncing frames & beats..."),
+                          ? "Quality: ${job.quality} · ${job.stage}"
+                          : "Quality: ${job.quality} · Syncing frames & beats..."),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
@@ -2625,7 +2682,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Resolution: ${job.quality.toUpperCase()}  â€¢  ${DateFormat('MMM d, yyyy  â€¢  hh:mm a').format(job.createdAt)}",
+                      "Resolution: ${job.quality.toUpperCase()}  · ${DateFormat('MMM d, yyyy  · hh:mm a').format(job.createdAt)}",
                       style: const TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 11.5,
@@ -2774,10 +2831,1284 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  
+  Widget _buildAdvancedTitleSuite() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 14),
+        const Text('FONT FAMILY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+        const SizedBox(height: 5),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090B0F),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0x25FFFFFF)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _titleFont,
+              isExpanded: true,
+              dropdownColor: const Color(0xFF1B1C22),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.white54),
+              items: [
+                'great_vibes', 'allura', 'alex_brush', 'bodoni_moda', 'cormorant_garamond',
+                'cinzel', 'serif', 'clean', 'typewriter', 'playful', 'impact'
+              ].map((String value) {
+                
+                TextStyle style = const TextStyle(color: Colors.white, fontSize: 12);
+                try {
+                  switch (value) {
+                    case 'great_vibes': style = GoogleFonts.greatVibes(color: Colors.white, fontSize: 14); break;
+                    case 'allura': style = GoogleFonts.allura(color: Colors.white, fontSize: 14); break;
+                    case 'alex_brush': style = GoogleFonts.alexBrush(color: Colors.white, fontSize: 14); break;
+                    case 'bodoni_moda': style = GoogleFonts.bodoniModa(color: Colors.white, fontSize: 12); break;
+                    case 'cormorant_garamond': style = GoogleFonts.cormorantGaramond(color: Colors.white, fontSize: 12); break;
+                    case 'cinzel': style = GoogleFonts.cinzel(color: Colors.white, fontSize: 12); break;
+                    case 'serif': style = GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 12); break;
+                    case 'clean': style = GoogleFonts.inter(color: Colors.white, fontSize: 12); break;
+                    case 'typewriter': style = GoogleFonts.courierPrime(color: Colors.white, fontSize: 12); break;
+                    case 'playful': style = GoogleFonts.fredoka(color: Colors.white, fontSize: 12); break;
+                    case 'impact': style = GoogleFonts.oswald(color: Colors.white, fontSize: 12); break;
+                  }
+                } catch (_) {}
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value, style: style),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) setState(() => _titleFont = val);
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        const Text('FONT SIZE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+        const SizedBox(height: 5),
+        Row(
+          children: ['small', 'medium', 'large', 'xlarge'].map((size) {
+            final isSelected = _titleFontSize == size;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _titleFontSize = size),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF07080A) : const Color(0xFF030405),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: isSelected ? const Color(0x60FFFFFF) : AppColors.chassisBevelLight, width: isSelected ? 1.5 : 1.0),
+                  ),
+                  child: Text(size.toUpperCase(), style: TextStyle(fontSize: 8.5, fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700, color: isSelected ? Colors.white : const Color(0xFF64748B))),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 14),
+        const Text('TITLE STYLE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+        const SizedBox(height: 5),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: ['classic', 'neon', 'cinematic', '3d_retro', 'badge'].map((style) {
+            final isSelected = _titleStyle == style;
+            return GestureDetector(
+              onTap: () => setState(() => _titleStyle = style),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF07080A) : const Color(0xFF030405),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: isSelected ? const Color(0x60FFFFFF) : AppColors.chassisBevelLight, width: isSelected ? 1.5 : 1.0),
+                ),
+                child: Text(style.toUpperCase(), style: TextStyle(fontSize: 8.5, fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700, color: isSelected ? Colors.white : const Color(0xFF64748B))),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 14),
+        const Text('FRAME BORDER', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+        const SizedBox(height: 5),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: ['none', 'box', 'double_line', 'bracket', 'viewfinder'].map((frame) {
+            final isSelected = _titleFrame == frame;
+            return GestureDetector(
+              onTap: () => setState(() => _titleFrame = frame),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF07080A) : const Color(0xFF030405),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: isSelected ? const Color(0x60FFFFFF) : AppColors.chassisBevelLight, width: isSelected ? 1.5 : 1.0),
+                ),
+                child: Text(frame.toUpperCase(), style: TextStyle(fontSize: 8.5, fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700, color: isSelected ? Colors.white : const Color(0xFF64748B))),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 14),
+        const Text('BACKGROUND COLOR', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+        const SizedBox(height: 5),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: ['black', '#FF0000', '#0000FF', 'video'].map((bg) {
+              final isSelected = _titleBg == bg;
+              return GestureDetector(
+                onTap: () => setState(() => _titleBg = bg),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF141720) : AppColors.panelInset,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: isSelected ? const Color(0x60FFFFFF) : AppColors.chassisBevelLight, width: isSelected ? 1.5 : 1.0),
+                  ),
+                  child: Text(bg == 'video' ? 'VIDEO OVERLAY' : bg.toUpperCase(), style: TextStyle(fontSize: 8.5, fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700, color: isSelected ? Colors.white : const Color(0xFF64748B))),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+        const Text('DURATION (1-6s)', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+        Slider(
+          value: _titleDuration.toDouble(),
+          min: 1.0,
+          max: 6.0,
+          divisions: 5,
+          label: 's',
+          onChanged: (val) => setState(() => _titleDuration = val.toInt()),
+        ),
+        const SizedBox(height: 14),
+        const Text('AUDIO TIMING', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+        const SizedBox(height: 5),
+        Row(
+          children: ['before_audio', 'with_audio'].map((audio) {
+            final isSelected = _titleAudio == audio;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _titleAudio = audio),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF07080A) : const Color(0xFF030405),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: isSelected ? const Color(0x60FFFFFF) : AppColors.chassisBevelLight, width: isSelected ? 1.5 : 1.0),
+                  ),
+                  child: Text(audio.toUpperCase(), style: TextStyle(fontSize: 8.5, fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700, color: isSelected ? Colors.white : const Color(0xFF64748B))),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+
+  // =========================================================================
+  // UNIFIED HOME STUDIO (Option 3: Adaptive Hero + Core Trio + Pro Modals)
+  // =========================================================================
+
+  Widget _buildUnifiedHomeView() {
+    final bool hasAssets = _photos.isNotEmpty && _selectedMusic != null;
+    final int photoCount = _photos.length;
+    final String trackSubtitle = _selectedMusic != null
+        ? "${_getBpmFromTitle()} BPM · ${_getGenreForSelected()}"
+        : "Tap to audition and select music";
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. OPTION 3: ADAPTIVE HERO STAGE (Top Section)
+        _buildAdaptiveHeroStage(hasAssets),
+
+        const SizedBox(height: 16),
+
+        // 2. THE CORE INGREDIENTS TRIO
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.chipBorder, width: 1),
+              boxShadow: AppColors.softRaisedShadow,
+            ),
+            child: Column(
+              children: [
+                // Photos Row
+                _buildIngredientRow(
+                  icon: Icons.photo_library_outlined,
+                  title: "Photos",
+                  subtitle: photoCount > 0 ? "$photoCount Photos Selected" : "Tap to select photos",
+                  valueTag: photoCount > 0 ? "$photoCount loaded" : "Required",
+                  isConfigured: photoCount > 0,
+                  onTap: () {
+                    setState(() => _currentTab = 'photos');
+                  },
+                ),
+                Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+
+                // Music Row
+                _buildIngredientRow(
+                  icon: Icons.music_note_rounded,
+                  title: "Soundtrack",
+                  subtitle: trackSubtitle,
+                  valueTag: _selectedMusic != null ? "${_getBpmFromTitle()} BPM" : "Required",
+                  isConfigured: _selectedMusic != null,
+                  onTap: () {
+                    setState(() => _currentTab = 'audio_deck');
+                  },
+                ),
+                Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+
+                // Title Intro Card Row
+                _buildIngredientRow(
+                  icon: Icons.title_rounded,
+                  title: "Title Intro Card",
+                  subtitle: _isTitleCardEnabled ? (_titleTextController.text.isNotEmpty ? _titleTextController.text : "Enabled") : "Disabled",
+                  valueTag: _isTitleCardEnabled ? "ON" : "OFF",
+                  isConfigured: _isTitleCardEnabled,
+                  onTap: () {
+                    setState(() => _currentTab = 'title');
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 3. MOTION MODE TOGGLE (Auto Free vs Manual Pro)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "MOTION ENGINE",
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                  color: AppColors.textInkTertiary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  // Auto Card
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isManualRenderMode = false;
+                        });
+                        SharedPreferences.getInstance().then((p) => p.setString('snapbeat_preferred_render_mode', 'auto'));
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: !_isManualRenderMode ? const Color(0xFF090B0F) : AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: !_isManualRenderMode ? AppColors.pureWhite : AppColors.chipBorder,
+                            width: !_isManualRenderMode ? 1.5 : 1,
+                          ),
+                          boxShadow: !_isManualRenderMode ? AppColors.darkHardwareShadow : AppColors.softRaisedShadow,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.bolt_rounded, size: 16, color: !_isManualRenderMode ? Colors.white : AppColors.textInkBlack),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "AUTO",
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: !_isManualRenderMode ? Colors.white : AppColors.textInkBlack,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: !_isManualRenderMode ? const Color(0x30FFFFFF) : const Color(0x15000000),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    "FREE",
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: !_isManualRenderMode ? Colors.white : AppColors.textInkTertiary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "SnapBeat chooses the best style for you.",
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: !_isManualRenderMode ? const Color(0xB3FFFFFF) : AppColors.textInkSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Manual Card (Pro)
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!sm.isPro) {
+                          RetroSubscriptionDialog.show(context);
+                          return;
+                        }
+                        setState(() {
+                          _isManualRenderMode = true;
+                        });
+                        SharedPreferences.getInstance().then((p) => p.setString('snapbeat_preferred_render_mode', 'manual'));
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _isManualRenderMode ? const Color(0xFF090B0F) : AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _isManualRenderMode ? AppColors.pureWhite : AppColors.chipBorder,
+                            width: _isManualRenderMode ? 1.5 : 1,
+                          ),
+                          boxShadow: _isManualRenderMode ? AppColors.darkHardwareShadow : AppColors.softRaisedShadow,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.tune_rounded, size: 16, color: _isManualRenderMode ? Colors.white : AppColors.textInkBlack),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "MANUAL",
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: _isManualRenderMode ? Colors.white : AppColors.textInkBlack,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.iridescentGradient,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    "PRO",
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Full control over motion, style & more.",
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: _isManualRenderMode ? const Color(0xB3FFFFFF) : AppColors.textInkSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 4. CONFIGURATION ROWS (Auto vs Manual Pro)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.chipBorder, width: 1),
+              boxShadow: AppColors.softRaisedShadow,
+            ),
+            child: Column(
+              children: [
+                if (!_isManualRenderMode) ...[
+                  // Auto Mode Rows (AI Controlled for Free Tier)
+                  _buildConfigSettingRow(
+                    label: "Beat Sync",
+                    value: "Auto Beat-Sync",
+                    icon: Icons.graphic_eq_rounded,
+                    isLocked: true,
+                    onTap: () => _showNotice("SnapBeat detects musical tempo and synchronizes photos to the beat. Switch to MANUAL (PRO) to customize individual beat styles."),
+                  ),
+                  Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+                  _buildConfigSettingRow(
+                    label: "Motion Dynamics",
+                    value: "Dynamic Motion Flow",
+                    icon: Icons.auto_awesome_rounded,
+                    isLocked: true,
+                    onTap: () => _showNotice("SnapBeat motion engine alternates dynamic pan, zoom, and cinematic flow. Switch to MANUAL (PRO) to customize dynamics."),
+                  ),
+                  Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+                  _buildConfigSettingRow(
+                    label: "Render Quality",
+                    value: sm.isPro
+                        ? (_selectedQuality == '1080p' ? '1080p Master' : '720p HD')
+                        : '360p Standard (Free)',
+                    icon: Icons.high_quality_rounded,
+                    isLocked: !sm.isPro,
+                    onTap: () {
+                      if (!sm.isPro) {
+                        RetroSubscriptionDialog.show(context);
+                      } else {
+                        _openQualityModal();
+                      }
+                    },
+                  ),
+                  Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+                  _buildConfigSettingRow(
+                    label: "Aspect Format",
+                    value: sm.isPro
+                        ? (_selectedAspectRatio == '9:16' ? '9:16 Stories/Reels' : (_selectedAspectRatio == '1:1' ? '1:1 Square' : '16:9 Landscape'))
+                        : '9:16 Reels (Free)',
+                    icon: Icons.aspect_ratio_rounded,
+                    isLocked: !sm.isPro,
+                    onTap: () {
+                      if (!sm.isPro) {
+                        RetroSubscriptionDialog.show(
+                          context,
+                          reason: "Custom Aspect Formats (1:1 Square & 16:9 Landscape) are a PRO Feature. Upgrade to unlock all formats.",
+                        );
+                      } else {
+                        _openAspectRatioModal();
+                      }
+                    },
+                  ),
+                ] else ...[
+                  // Manual Pro Rows
+                  _buildConfigSettingRow(
+                    label: "Motion Style",
+                    value: _selectedTemplate.replaceAll('_', ' ').toUpperCase(),
+                    icon: Icons.animation_rounded,
+                    onTap: () => _openMotionStyleModal(),
+                  ),
+                  Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+                  _buildConfigSettingRow(
+                    label: "Render Quality",
+                    value: sm.isPro
+                        ? (_selectedQuality == '1080p' ? '1080p Master' : '720p HD')
+                        : '360p Standard (Free)',
+                    icon: Icons.high_quality_rounded,
+                    isLocked: !sm.isPro,
+                    onTap: () {
+                      if (!sm.isPro) {
+                        RetroSubscriptionDialog.show(context);
+                      } else {
+                        _openQualityModal();
+                      }
+                    },
+                  ),
+                  Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+                  _buildConfigSettingRow(
+                    label: "Aspect Format",
+                    value: sm.isPro
+                        ? (_selectedAspectRatio == '9:16' ? '9:16 Stories/Reels' : (_selectedAspectRatio == '1:1' ? '1:1 Square' : '16:9 Landscape'))
+                        : '9:16 Reels (Free)',
+                    icon: Icons.aspect_ratio_rounded,
+                    isLocked: !sm.isPro,
+                    onTap: () {
+                      if (!sm.isPro) {
+                        RetroSubscriptionDialog.show(
+                          context,
+                          reason: "Custom Aspect Formats (1:1 Square & 16:9 Landscape) are a PRO Feature. Upgrade to unlock all formats.",
+                        );
+                      } else {
+                        _openAspectRatioModal();
+                      }
+                    },
+                  ),
+                  Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
+                  _buildConfigSettingRow(
+                    label: "Render Engine",
+                    value: _renderSpeed == 'instant' ? '⚡ Instant (Serverless)' : '🎞️ Master Studio (Queued)',
+                    icon: Icons.speed_rounded,
+                    onTap: () => _openRenderSpeedModal(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  // OPTION 3: DYNAMIC ADAPTIVE HERO STAGE
+  Widget _buildAdaptiveHeroStage(bool hasAssets) {
+    if (!hasAssets) {
+      // Compact Empty State
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090B0F),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x25FFFFFF), width: 1),
+            boxShadow: AppColors.darkHardwareShadow,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: AppColors.iridescentGradient,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.auto_fix_high_rounded, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      "CREATE BEAT-SYNCED PHOTO REEL",
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      "Select photos and a soundtrack below to generate your beat-synced photo reel.",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0x99FFFFFF),
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Hydrated Live Reel Player Card
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Container(
+        height: 220,
+        decoration: BoxDecoration(
+          color: const Color(0xFF07080A),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0x30FFFFFF), width: 1),
+          boxShadow: AppColors.darkHardwareShadow,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Thumbnail / Background
+            if (_photos.isNotEmpty && File(_photos.first.path).existsSync())
+              Image.file(
+                File(_photos.first.path),
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                color: const Color(0xFF11141A),
+                child: const Center(
+                  child: Icon(Icons.movie_creation_outlined, color: Colors.white24, size: 48),
+                ),
+              ),
+
+            // Subtle vignette gradient
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x60000000), Color(0x00000000), Color(0x90000000)],
+                ),
+              ),
+            ),
+
+            // Top Badges (Aspect & Expand)
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.white24, width: 0.8),
+                ),
+                child: Text(
+                  _selectedAspectRatio,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+              ),
+            ),
+
+            // Center Play / Audition Button
+            Center(
+              child: GestureDetector(
+                onTap: _togglePlayAudio,
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: Icon(
+                    _isPlayingAudio ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              ),
+            ),
+
+            // Bottom Duration Pill
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  "${(_audioDuration / 60).floor().toString().padLeft(2, '0')}:${(_audioDuration % 60).floor().toString().padLeft(2, '0')}",
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Row Item for Photos / Music / Title
+  Widget _buildIngredientRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String valueTag,
+    required bool isConfigured,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: isConfigured ? const Color(0xFF090B0F) : AppColors.chipSurface,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 18, color: isConfigured ? Colors.white : AppColors.textInkTertiary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textInkBlack,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textInkSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: isConfigured ? const Color(0x1510B981) : const Color(0x10000000),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                valueTag,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: isConfigured ? const Color(0xFF059669) : AppColors.textInkTertiary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textInkTertiary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Row Item for Settings (Motion, Quality, Format, Speed)
+  Widget _buildConfigSettingRow({
+    required String label,
+    required String value,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isLocked = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: isLocked ? AppColors.textInkTertiary : AppColors.textInkSecondary),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isLocked ? AppColors.textInkSecondary : AppColors.textInkBlack,
+              ),
+            ),
+            const Spacer(),
+            if (isLocked) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0x12000000),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.lock_outline_rounded, size: 10, color: AppColors.textInkTertiary),
+                    SizedBox(width: 3),
+                    Text(
+                      'AUTO LOCKED',
+                      style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: AppColors.textInkTertiary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isLocked ? AppColors.textInkTertiary : AppColors.textInkSecondary,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              isLocked ? Icons.lock_outline_rounded : Icons.chevron_right_rounded,
+              size: 16,
+              color: AppColors.textInkTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  // =========================================================================
+  // SUB-MODAL BOTTOM SHEETS (Screen 3, 4, 5 Reference Implementation)
+  // =========================================================================
+
+  void _openMotionStyleModal() {
+    final templates = [
+      {"id": "pendulum", "name": "Pendulum", "desc": "Smooth, rhythmic kinetic motion"},
+      {"id": "beat_cut", "name": "Beat Cut", "desc": "Sharp micro-beat transitions"},
+      {"id": "bounce", "name": "Bounce", "desc": "Dynamic and energetic spring leaps"},
+      {"id": "cinematic_zoom", "name": "Cinematic Zoom", "desc": "Slow dramatic depth push"},
+      {"id": "fade", "name": "Fade", "desc": "Smooth crossfade transitions"},
+      {"id": "glide", "name": "Glide", "desc": "Elegant horizontal slide motion"},
+      {"id": "pulse", "name": "Pulse", "desc": "Beat-driven bass pulse effect"},
+      {"id": "punch", "name": "Punch", "desc": "Bold and powerful impact snap"},
+      {"id": "reveal_boxes", "name": "Reveal Boxes", "desc": "Creative procedural box reveals"},
+      {"id": "slide", "name": "Slide", "desc": "Crisp directional slide wipes"},
+      {"id": "slow_drift", "name": "Slow Drift", "desc": "Calm and ambient cinematic glide"},
+      {"id": "sway", "name": "Sway", "desc": "Gentle pendulum side-to-side motion"},
+      {"id": "whip", "name": "Whip", "desc": "Fast, dramatic speed blur snap"},
+      {"id": "zoom_out", "name": "Zoom Out", "desc": "Pull back for maximum visual impact"},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF090B0F),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        String tempSelected = _selectedTemplate;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text("Motion Style", style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                          SizedBox(height: 2),
+                          Text("Choose how your photos move to the beat.", style: TextStyle(fontSize: 11, color: Colors.white60)),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: templates.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 8),
+                      itemBuilder: (context, idx) {
+                        final item = templates[idx];
+                        final bool isSel = tempSelected == item['id'];
+                        return GestureDetector(
+                          onTap: () => setModalState(() => tempSelected = item['id']!),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF141922) : const Color(0xFF0F1218),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: isSel ? AppColors.pureWhite : const Color(0x20FFFFFF), width: isSel ? 1.5 : 1),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item['name']!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+                                      const SizedBox(height: 2),
+                                      Text(item['desc']!, style: const TextStyle(fontSize: 10, color: Colors.white60)),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  isSel ? Icons.radio_button_checked : Icons.radio_button_off,
+                                  color: isSel ? Colors.white : Colors.white30,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => _selectedTemplate = tempSelected);
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text("APPLY", style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openQualityModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF090B0F),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        String tempQ = _selectedQuality;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text("Video Quality", style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                          SizedBox(height: 2),
+                          Text("Choose export resolution for your reel.", style: TextStyle(fontSize: 11, color: Colors.white60)),
+                        ],
+                      ),
+                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildQualityOptionTile(
+                    id: "360p",
+                    title: "360p Fast Preview",
+                    subtitle: "Fastest rendering, light file size",
+                    isSelected: tempQ == "360p",
+                    onTap: () => setModalState(() => tempQ = "360p"),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildQualityOptionTile(
+                    id: "720p",
+                    title: "720p HD Standard",
+                    subtitle: "High definition, balanced render speed",
+                    isSelected: tempQ == "720p",
+                    onTap: () => setModalState(() => tempQ = "720p"),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildQualityOptionTile(
+                    id: "1080p",
+                    title: "1080p Master 1080p",
+                    subtitle: "Maximum clarity, studio production quality",
+                    isSelected: tempQ == "1080p",
+                    onTap: () => setModalState(() => tempQ = "1080p"),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => _selectedQuality = tempQ);
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text("APPLY", style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildQualityOptionTile({required String id, required String title, required String subtitle, required bool isSelected, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF141922) : const Color(0xFF0F1218),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.pureWhite : const Color(0x20FFFFFF), width: isSelected ? 1.5 : 1),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontSize: 10, color: Colors.white60)),
+                ],
+              ),
+            ),
+            Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, color: isSelected ? Colors.white : Colors.white30, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openAspectRatioModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF090B0F),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        String tempA = _selectedAspectRatio;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text("Aspect Ratio", style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                          SizedBox(height: 2),
+                          Text("Choose the perfect format for your platform.", style: TextStyle(fontSize: 11, color: Colors.white60)),
+                        ],
+                      ),
+                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildAspectCard(
+                          ratio: "9:16",
+                          label: "Stories • Reels • Shorts",
+                          isSelected: tempA == "9:16",
+                          onTap: () => setModalState(() => tempA = "9:16"),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildAspectCard(
+                          ratio: "1:1",
+                          label: "Instagram • Square",
+                          isSelected: tempA == "1:1",
+                          onTap: () => setModalState(() => tempA = "1:1"),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildAspectCard(
+                          ratio: "16:9",
+                          label: "YouTube • Landscape",
+                          isSelected: tempA == "16:9",
+                          onTap: () => setModalState(() => tempA = "16:9"),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => _selectedAspectRatio = tempA);
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text("APPLY", style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAspectCard({required String ratio, required String label, required bool isSelected, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 110,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF141922) : const Color(0xFF0F1218),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.pureWhite : const Color(0x20FFFFFF), width: isSelected ? 1.5 : 1),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(ratio, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+            const SizedBox(height: 6),
+            Text(label, textAlign: TextAlign.center, maxLines: 2, style: const TextStyle(fontSize: 9, color: Colors.white60)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openRenderSpeedModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF090B0F),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        String tempS = _renderSpeed;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text("Render Engine & Speed", style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                          SizedBox(height: 2),
+                          Text("Select instantaneous cloud render or queued studio master.", style: TextStyle(fontSize: 11, color: Colors.white60)),
+                        ],
+                      ),
+                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildQualityOptionTile(
+                    id: "instant",
+                    title: "⚡ Instant Render (Serverless Cloud)",
+                    subtitle: "Sub-15s GPU render with instant local playback",
+                    isSelected: tempS == "instant",
+                    onTap: () => setModalState(() => tempS = "instant"),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildQualityOptionTile(
+                    id: "queued",
+                    title: "🎞️ Queued Studio Master",
+                    subtitle: "Dedicated background queue with max bitrate export",
+                    isSelected: tempS == "queued",
+                    onTap: () => setModalState(() => tempS = "queued"),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => _renderSpeed = tempS);
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text("APPLY", style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildTitleStageView() {
+    final hasPhoto = _photos.isNotEmpty;
+    final photoPath = hasPhoto ? _photos.first.path : null;
+
     return SingleChildScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(14, 4, 14, 140),
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 160),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -2795,14 +4126,14 @@ class HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0x18FFFFFF)),
                       ),
-                      child: const Icon(Icons.title_rounded, size: 18, color: AppColors.indicatorAccent),
+                      child: const Icon(Icons.title_rounded, size: 18, color: Color(0xFF00E5FF)),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          '3. INTRO TITLE CARD',
+                          '3. INTRO TITLE CARD STUDIO',
                           style: TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 12,
@@ -2813,7 +4144,7 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          _isTitleCardEnabled ? 'Enabled â€¢ Animated intro sequence' : 'Bypassed â€¢ Starts on first photo',
+                          _isTitleCardEnabled ? 'Enabled · Custom timing & typography' : 'Bypassed · Starts on first photo',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w500,
@@ -2841,7 +4172,6 @@ class HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 12),
 
           if (!_isTitleCardEnabled) ...[
-            // Explanatory card when title is disabled
             RetroMetalPanel(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -2869,7 +4199,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Your video will dive immediately into the first photo with beat-synced motion physics. Tap RENDER below to create your reel!',
+                      'Your video will dive immediately into the first photo with beat-synced motion physics. Tap CONTINUE below to proceed!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 11,
@@ -2882,7 +4212,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ] else ...[
-            // Live Aesthetic Typography Preview Box
+            // LIVE 9:16 INTERACTIVE PREVIEW
             RetroMetalPanel(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2891,7 +4221,7 @@ class HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'LIVE TYPOGRAPHY PREVIEW',
+                        'LIVE 9:16 STUDIO PREVIEW',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 9.5,
@@ -2900,29 +4230,52 @@ class HomeScreenState extends State<HomeScreen> {
                           color: AppColors.textMuted,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.pianoLacquer,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0x18FFFFFF)),
-                        ),
-                        child: const Text(
-                          '9:16 REEL',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.indicatorAccent,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.pianoLacquer,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0x18FFFFFF)),
+                            ),
+                            child: Text(
+                              _titleAudioTiming == 'with_music' ? '🎵 AUDIO OVERLAY' : '⏳ INTRO BUMPER',
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 8,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF00E5FF),
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.pianoLacquer,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0x18FFFFFF)),
+                            ),
+                            child: const Text(
+                              '9:16 REEL',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 8,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   // The 9:16 Simulated Card
                   Container(
-                    height: 360,
+                    height: 340,
+                    clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         begin: Alignment.topCenter,
@@ -2935,53 +4288,266 @@ class HomeScreenState extends State<HomeScreen> {
                         BoxShadow(color: Color(0x60000000), offset: Offset(0, 4), blurRadius: 14),
                       ],
                     ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _titleTextController.text.trim().isEmpty ? 'SNAPBEAT' : _titleTextController.text.trim().toUpperCase(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2.2,
-                              color: Color(0xFFF2F4F7),
-                              shadows: [
-                                Shadow(color: Color(0x80000000), offset: Offset(0, 2), blurRadius: 6),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 6),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Optional Photo Backdrop Scrim
+                        if (_titleBgSurface == 'video_overlay' && photoPath != null && File(photoPath).existsSync()) ...[
+                          Image.file(File(photoPath), fit: BoxFit.cover),
                           Container(
-                            width: 32,
-                            height: 2,
-                            decoration: BoxDecoration(
-                              color: AppColors.indicatorAccent,
-                              borderRadius: BorderRadius.circular(1),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xCC000000), Color(0x99000000), Color(0xEE000000)],
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _subtitleTextController.text.trim().isEmpty ? 'STUDIO' : _subtitleTextController.text.trim(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.5,
-                              color: Color(0xFFA6ABB8),
+                        ] else ...[
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: _titleBgSurface == 'video_overlay'
+                                    ? [const Color(0xFF1E2430), const Color(0xFF12141A), const Color(0xFF090A0D)]
+                                    : [const Color(0xFF14161D), const Color(0xFF0A0B0E), const Color(0xFF040507)],
+                              ),
                             ),
                           ),
                         ],
-                      ),
+
+                        // Centered Typography Content
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _titleTextController.text.trim().isEmpty ? 'SUMMER MEMORIES' : _titleTextController.text.trim().toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: _titleFontSize == 'small' ? 16 : (_titleFontSize == 'medium' ? 20 : (_titleFontSize == 'xlarge' ? 26 : 22)),
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2.0,
+                                    color: const Color(0xFFF2F4F7),
+                                    shadows: const [
+                                      Shadow(color: Color(0x80000000), offset: Offset(0, 2), blurRadius: 6),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  width: 36,
+                                  height: 2,
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.iridescentGradient,
+                                    borderRadius: BorderRadius.circular(1),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  _subtitleTextController.text.trim().isEmpty ? 'MOMENTS IN MOTION' : _subtitleTextController.text.trim(),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1.5,
+                                    color: Color(0xFFA6ABB8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Bottom duration badge
+                        Positioned(
+                          left: 12,
+                          bottom: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0x80000000),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0x20FFFFFF), width: 0.8),
+                            ),
+                            child: Text(
+                              '${_titleDurationSec.toStringAsFixed(1)}s DURATION · ${_titleAnimationStyle.toUpperCase()}',
+                              style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w700, color: Colors.white70),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
                   const SizedBox(height: 14),
 
-                  // Text Inputs
+                  // 1. AUDIO SYNCHRONIZATION TIMING ROCKER
+                  const Text(
+                    'AUDIO SYNCHRONIZATION TIMING',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _titleAudioTiming = 'with_music'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: _titleAudioTiming == 'with_music' ? const Color(0xFF1E232E) : const Color(0xFF090B0F),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _titleAudioTiming == 'with_music' ? const Color(0xFF00E5FF) : const Color(0x25FFFFFF),
+                                width: _titleAudioTiming == 'with_music' ? 1.4 : 1.0,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.music_note_rounded, size: 12, color: _titleAudioTiming == 'with_music' ? const Color(0xFF00E5FF) : Colors.white70),
+                                    const SizedBox(width: 4),
+                                    const Text('WITH MUSIC', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                const Text('Overlay on audio intro', style: TextStyle(fontSize: 8, color: Colors.white60)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _titleAudioTiming = 'outside_track'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: _titleAudioTiming == 'outside_track' ? const Color(0xFF1E232E) : const Color(0xFF090B0F),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _titleAudioTiming == 'outside_track' ? const Color(0xFF00E5FF) : const Color(0x25FFFFFF),
+                                width: _titleAudioTiming == 'outside_track' ? 1.4 : 1.0,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.timer_outlined, size: 12, color: _titleAudioTiming == 'outside_track' ? const Color(0xFF00E5FF) : Colors.white70),
+                                    const SizedBox(width: 4),
+                                    const Text('OUTSIDE TRACK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                const Text('Audio starts after intro', style: TextStyle(fontSize: 8, color: Colors.white60)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 2. TITLE BACKDROP SURFACE ROCKER
+                  const Text(
+                    'TITLE BACKDROP SURFACE',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _titleBgSurface = 'video_overlay'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: _titleBgSurface == 'video_overlay' ? const Color(0xFF1E232E) : const Color(0xFF090B0F),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _titleBgSurface == 'video_overlay' ? const Color(0xFF00E5FF) : const Color(0x25FFFFFF),
+                                width: _titleBgSurface == 'video_overlay' ? 1.4 : 1.0,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.photo_library_outlined, size: 12, color: _titleBgSurface == 'video_overlay' ? const Color(0xFF00E5FF) : Colors.white70),
+                                    const SizedBox(width: 4),
+                                    const Text('ON PHOTO / VIDEO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                const Text('Dynamic photo backdrop', style: TextStyle(fontSize: 8, color: Colors.white60)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _titleBgSurface = 'studio_bg'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: _titleBgSurface == 'studio_bg' ? const Color(0xFF1E232E) : const Color(0xFF090B0F),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _titleBgSurface == 'studio_bg' ? const Color(0xFF00E5FF) : const Color(0x25FFFFFF),
+                                width: _titleBgSurface == 'studio_bg' ? 1.4 : 1.0,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.crop_square_rounded, size: 12, color: _titleBgSurface == 'studio_bg' ? const Color(0xFF00E5FF) : Colors.white70),
+                                    const SizedBox(width: 4),
+                                    const Text('SOLID STUDIO BG', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                const Text('Piano black studio card', style: TextStyle(fontSize: 8, color: Colors.white60)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // 3. TEXT INPUTS
                   const Text(
                     'MAIN TITLE',
                     style: TextStyle(
@@ -2999,7 +4565,7 @@ class HomeScreenState extends State<HomeScreen> {
                       fontFamily: 'Montserrat',
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: AppColors.textPureWhite,
                     ),
                     onChanged: (val) => setState(() => _titleText = val),
                     decoration: InputDecoration(
@@ -3018,7 +4584,7 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: AppColors.indicatorAccent, width: 1.2),
+                        borderSide: const BorderSide(color: Color(0xFF00E5FF), width: 1.2),
                       ),
                     ),
                   ),
@@ -3042,13 +4608,13 @@ class HomeScreenState extends State<HomeScreen> {
                       fontFamily: 'Montserrat',
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: AppColors.textPureWhite,
                     ),
                     onChanged: (val) => setState(() {}),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFF090B0F),
-                      hintText: "e.g. Shot on iPhone â€¢ 2026",
+                      hintText: "e.g. Moments in Motion · 2026",
                       hintStyle: const TextStyle(color: Color(0x80FFFFFF), fontSize: 11),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       border: OutlineInputBorder(
@@ -3061,10 +4627,95 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: AppColors.indicatorAccent, width: 1.2),
+                        borderSide: const BorderSide(color: Color(0xFF00E5FF), width: 1.2),
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 14),
+
+                  // 4. ANIMATION STYLE ROCKER
+                  const Text(
+                    'INTRO ANIMATION MOTION',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: ['fade', 'kinetic_zoom', 'glitch', 'typewriter', 'slide'].map((anim) {
+                        final isSel = _titleAnimationStyle == anim;
+                        return GestureDetector(
+                          onTap: () => setState(() => _titleAnimationStyle = anim),
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF1E232E) : const Color(0xFF090B0F),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isSel ? const Color(0xFF00E5FF) : const Color(0x20FFFFFF),
+                                width: isSel ? 1.2 : 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              anim.replaceAll('_', ' ').toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: isSel ? FontWeight.w900 : FontWeight.w600,
+                                color: isSel ? Colors.white : Colors.white60,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // 5. DURATION SLIDER
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'INTRO DURATION',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                      Text(
+                        '${_titleDurationSec.toStringAsFixed(1)} SECONDS',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF00E5FF),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: _titleDurationSec,
+                    min: 1.0,
+                    max: 5.0,
+                    divisions: 8,
+                    activeColor: const Color(0xFF00E5FF),
+                    inactiveColor: const Color(0xFF1B1F2A),
+                    onChanged: (val) => setState(() => _titleDurationSec = val),
+                  ),
+
+                  if (_isManualRenderMode) _buildAdvancedTitleSuite(),
                 ],
               ),
             ),
@@ -3076,33 +4727,51 @@ class HomeScreenState extends State<HomeScreen> {
 
   String _getActionButtonText() {
     switch (_currentTab) {
+      case 'home':
       case 'music':
-        return _selectedMusic != null ? 'NEXT: CURATE PHOTOS â†’' : 'SELECT A MUSIC TRACK';
+        if (_selectedMusic == null) {
+          return 'SELECT SOUNDTRACK';
+        } else if (_photos.length < 2) {
+          return 'SELECT PHOTOS (${_photos.length}/2)';
+        } else {
+          return 'CREATE THE REEL';
+        }
+      case 'audio_deck':
+        return _selectedMusic != null ? 'APPLY SOUNDTRACK' : 'SELECT A TRACK';
       case 'photos':
-        return _photos.length >= 2 ? 'NEXT: SET TITLE CARD â†’' : 'SELECT 2+ PHOTOS (${_photos.length}/2)';
+        return _photos.length >= 2 ? 'DONE: SAVE PHOTOS' : 'SELECT 2+ PHOTOS (${_photos.length}/2)';
       case 'title':
-        return _isManualRenderMode ? 'NEXT: RENDER OPTIONS â†’' : 'RENDER REEL âš¡';
+        return 'SAVE TITLE & RETURN';
       case 'render':
-        return 'START RENDER âš¡';
+        return 'START RENDER';
       case 'queue':
-        return '+ CREATE NEW REEL';
+        return '+ CREATE NEW PHOTO REEL';
       default:
-        return 'CONTINUE â†’';
+        return 'CONTINUE';
     }
   }
 
   String _getActionButtonSubtitle() {
     switch (_currentTab) {
+      case 'home':
       case 'music':
-        return _selectedMusic != null ? '${_selectedMusicTitle.isNotEmpty ? _selectedMusicTitle : "Track ready"} â€¢ Trim audio' : 'Pick track from library';
+        if (_selectedMusic == null) {
+          return 'Step 1 · Pick beat-synced soundtrack';
+        } else if (_photos.length < 2) {
+          return 'Step 2 · Curate 2+ photos for beat matching';
+        } else {
+          return 'Generate beat-synced 1080p photo reel';
+        }
+      case 'audio_deck':
+        return 'Set selected audio as reel soundtrack';
       case 'photos':
-        return _photos.length >= 2 ? '${_photos.length} photos ready â€¢ Drag to arrange' : 'Tap Add Photos or Sample Photos';
+        return '${_photos.length} photos ready for reel';
       case 'title':
-        return _isManualRenderMode ? 'Configure template & quality' : 'Direct beat-synced export â€¢ 1080p Master';
+        return 'Intro title card customized';
       case 'render':
-        return 'Render with custom parameters';
+        return 'Render with configured settings';
       case 'queue':
-        return 'Start another reel';
+        return 'Start a fresh reel project';
       default:
         return '';
     }
@@ -3110,12 +4779,21 @@ class HomeScreenState extends State<HomeScreen> {
 
   IconData _getActionIcon() {
     switch (_currentTab) {
+      case 'home':
       case 'music':
-        return Icons.photo_library_rounded;
+        if (_selectedMusic == null) {
+          return Icons.music_note_rounded;
+        } else if (_photos.length < 2) {
+          return Icons.photo_library_outlined;
+        } else {
+          return Icons.bolt_rounded;
+        }
+      case 'audio_deck':
+        return Icons.music_note_rounded;
       case 'photos':
-        return Icons.title_rounded;
+        return Icons.check_circle_outline_rounded;
       case 'title':
-        return _isManualRenderMode ? Icons.tune_rounded : Icons.bolt_rounded;
+        return Icons.title_rounded;
       case 'render':
         return Icons.movie_creation_rounded;
       case 'queue':
@@ -3127,7 +4805,10 @@ class HomeScreenState extends State<HomeScreen> {
 
   bool _isActionEnabled() {
     switch (_currentTab) {
+      case 'home':
       case 'music':
+        return true; // Always actionable: guides user to soundtrack, photos, or renders reel
+      case 'audio_deck':
         return _selectedMusic != null;
       case 'photos':
         return _photos.length >= 2;
@@ -3147,28 +4828,37 @@ class HomeScreenState extends State<HomeScreen> {
       _scrollController.jumpTo(0.0);
     }
     switch (_currentTab) {
+      case 'home':
       case 'music':
-        if (_selectedMusic != null) {
+        if (_selectedMusic != null && _photos.length >= 2) {
+          if (_isManualRenderMode) {
+            _executeRender(isInstant: _renderSpeed == 'instant');
+          } else {
+            _startDirectAutoRender();
+          }
+          setState(() => _currentTab = 'queue');
+        } else if (_selectedMusic == null) {
+          setState(() => _currentTab = 'audio_deck');
+        } else if (_photos.length < 2) {
           setState(() => _currentTab = 'photos');
         }
         break;
+      case 'audio_deck':
+        setState(() => _currentTab = 'home');
+        break;
       case 'photos':
         if (_photos.length >= 2) {
-          setState(() => _currentTab = 'title');
+          setState(() => _currentTab = 'home');
         }
         break;
       case 'title':
-        if (_isManualRenderMode) {
-          setState(() => _currentTab = 'render');
-        } else {
-          _startDirectAutoRender();
-        }
+        setState(() => _currentTab = 'home');
         break;
       case 'render':
         _triggerMasterReel();
         break;
       case 'queue':
-        setState(() => _currentTab = 'music');
+        setState(() => _currentTab = 'home');
         break;
     }
   }

@@ -79,7 +79,7 @@ class _RetroMechanicalButtonState extends State<RetroMechanicalButton> {
                   ? BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFF8A00).withValues(alpha: _isPressed ? 0.2 : 0.4),
+                          color: const Color(0xFFB026FF).withValues(alpha: _isPressed ? 0.25 : 0.45),
                           blurRadius: _isPressed ? 10 : 20,
                           spreadRadius: _isPressed ? 1 : 3,
                           offset: const Offset(0, 4),

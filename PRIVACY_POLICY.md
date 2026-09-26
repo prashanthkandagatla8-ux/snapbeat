@@ -90,7 +90,7 @@ SnapBeat requests minimal, scoped system permissions only when necessary:
 
 ## 8. Children's Privacy (COPPA & GDPR Compliance)
 
-SnapBeat does not knowingly collect, solicit, or store personal information from children under the age of 13 (or under 16 in the European Union). Because SnapBeat does not collect personally identifiable information, require user registration, or retain user photos, our service complies with the provisions of COPPA and GDPR. If you believe that personal data has inadvertently been provided to us, please contact us immediately at `support@snapbeat.app` and we will take prompt corrective action.
+SnapBeat does not knowingly collect, solicit, or store personal information from children under the age of 13 (or under 16 in the European Union). Because SnapBeat does not collect personally identifiable information, require user registration, or retain user photos, our service complies with the provisions of COPPA and GDPR. If you believe that personal data has inadvertently been provided to us, please contact us immediately at `privacy@snapbeat.app` (or `support@snapbeat.app`) and we will take prompt corrective action.
 
 ---
 
@@ -125,5 +125,7 @@ We may update this Privacy Policy from time to time to reflect changes in legal 
 If you have any questions, concerns, or requests regarding this Privacy Policy or SnapBeat's data practices, please reach out to us:
 
 - **Application Name:** SnapBeat
-- **Email:** [support@snapbeat.app](mailto:support@snapbeat.app)
+- **Privacy & Data Protection:** [privacy@snapbeat.app](mailto:privacy@snapbeat.app)
+- **General Support:** [support@snapbeat.app](mailto:support@snapbeat.app)
+- **Legal & Compliance:** [legal@snapbeat.app](mailto:legal@snapbeat.app)
 - **Developer / Support:** SnapBeat Development Team

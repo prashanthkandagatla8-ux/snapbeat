@@ -161,15 +161,26 @@ class _SampleReelShowcaseScreenState extends State<SampleReelShowcaseScreen> {
                     ),
                     TextButton(
                       onPressed: () => _navigateToHome(fromShowcase: true),
-                      child: const Text(
-                        'SKIP ❯',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          letterSpacing: 0.5,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'SKIP',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 16,
+                            color: AppColors.textPrimary,
+                          ),
+                        ],
                       ),
                     ),
                   ],

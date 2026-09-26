@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_config.dart';
 import '../../services/subscription_manager.dart';
@@ -95,6 +96,8 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     ),
   ];
 
+  bool _isConnectingStore = false;
+
   @override
   void initState() {
     super.initState();
@@ -118,31 +121,152 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     return _sm.formattedPrice(card.tier);
   }
 
+  void _showInDialogNotice(String title, String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF13151D),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0x33FFFFFF)),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            color: Colors.white70,
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleSubscribe() async {
     HapticFeedback.heavyImpact();
-    final product = _sm.products[_selectedTier.productId];
-    if (product == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Connecting to ${Platform.isIOS ? "App Store" : "Google Play"}... Please verify network.',
-            style: const TextStyle(fontFamily: 'Montserrat', color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFF1E1E24),
-        ),
-      );
-      await _sm.loadProducts();
-      return;
-    }
+    if (_isConnectingStore) return;
 
-    final initiated = await _sm.buySubscription(product);
-    if (!initiated && mounted && _sm.statusMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_sm.statusMessage!),
-          backgroundColor: const Color(0xFFE11D48),
-        ),
-      );
+    setState(() {
+      _isConnectingStore = true;
+    });
+
+    try {
+      // 1. Resolve product (checks modern ID, then legacy ID)
+      ProductDetails? product = _sm.productForTier(_selectedTier);
+
+      // 2. If null, attempt to refresh/load products from store
+      if (product == null) {
+        await _sm.loadProducts();
+        product = _sm.productForTier(_selectedTier);
+      }
+
+      // 3. Fallback: match by tier name if IDs differ
+      if (product == null && _sm.products.isNotEmpty) {
+        final tierKey = _selectedTier.name.toLowerCase();
+        for (final p in _sm.products.values) {
+          if (p.id.toLowerCase().contains(tierKey)) {
+            product = p;
+            break;
+          }
+        }
+        product ??= _sm.products.values.first;
+      }
+
+      // 4. If product found, trigger StoreKit / Play Billing
+      if (product != null) {
+        final initiated = await _sm.buySubscription(product);
+        if (!initiated && mounted && _sm.statusMessage != null) {
+          _showInDialogNotice('Store Notice', _sm.statusMessage!);
+        }
+      } else {
+        if (mounted) {
+          _showInDialogNotice(
+            'Store Unavailable',
+            'Unable to reach ${Platform.isIOS ? "App Store" : "Google Play"}. Please ensure your Apple ID is signed in and network is active.',
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showInDialogNotice('Purchase Error', 'Could not initiate purchase: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isConnectingStore = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleTopUpPurchase(CreditTopUp topUp) async {
+    HapticFeedback.heavyImpact();
+    if (_isConnectingStore) return;
+
+    setState(() {
+      _isConnectingStore = true;
+    });
+
+    try {
+      ProductDetails? product = _sm.productForTopUp(topUp);
+      if (product == null) {
+        await _sm.loadProducts();
+        product = _sm.productForTopUp(topUp);
+      }
+
+      if (product != null) {
+        final initiated = await _sm.buyTopUp(product);
+        if (!initiated && mounted && _sm.statusMessage != null) {
+          _showInDialogNotice('Top-Up Notice', _sm.statusMessage!);
+        }
+      } else {
+        if (mounted) {
+          _showInDialogNotice(
+            'Store Unavailable',
+            'Top-up pack is currently unavailable from ${Platform.isIOS ? "App Store" : "Google Play"}. Please try again shortly.',
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showInDialogNotice('Top-Up Error', 'Could not initiate top-up: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isConnectingStore = false;
+        });
+      }
     }
   }
 
@@ -150,14 +274,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     final success = await _sm.restorePurchases();
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success ? 'Checking previous purchases...' : 'Failed to restore purchases.',
-          style: const TextStyle(fontFamily: 'Montserrat', color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF1E1E24),
-      ),
+    _showInDialogNotice(
+      'Restore Purchases',
+      success ? 'Checking previous purchases with App Store...' : 'Failed to restore purchases. Please verify network.',
     );
   }
 
@@ -282,7 +401,7 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                           fontFamily: 'Montserrat',
                           fontSize: 10.5,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.primaryDarkText,
+                          color: Colors.white,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -422,6 +541,10 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
 
             // Primary Shiny Piano Black CTA Subscribe Button
             _buildSubscribeButton(isPurchasing),
+            const SizedBox(height: 14),
+
+            // Credit Top-Up Section
+            _buildTopUpSection(isPurchasing),
             const SizedBox(height: 16),
 
             // App Store Footer Links
@@ -513,20 +636,19 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFFFFFFFF)
-                          : const Color(0x25FFB300),
+                      gradient: isSelected ? AppColors.iridescentGradient : null,
+                      color: isSelected ? null : const Color(0x20FFFFFF),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFFFFFFFF) : const Color(0x60FFB300),
+                        color: isSelected ? Colors.transparent : const Color(0x40FFFFFF),
                         width: 1.0,
                       ),
                     ),
                     child: Text(
                       card.badgeText!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Montserrat',
-                        color: isSelected ? const Color(0xFF0A0D11) : const Color(0xFFFFFFFF),
+                        color: Colors.white,
                         fontSize: 10.5,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.3,
@@ -612,8 +734,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   }
 
   Widget _buildSubscribeButton(bool isPurchasing) {
+    final bool showSpinner = isPurchasing || _isConnectingStore;
     return GestureDetector(
-      onTap: isPurchasing ? null : _handleSubscribe,
+      onTap: showSpinner ? null : _handleSubscribe,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         width: double.infinity,
@@ -640,13 +763,13 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           ],
         ),
         child: Center(
-          child: isPurchasing
+          child: showSpinner
               ? const SizedBox(
                   width: 22,
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFFFFFF)),
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFFFFF)),
                   ),
                 )
               : Row(
@@ -657,9 +780,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                       height: 8,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primaryDarkText,
+                        gradient: AppColors.iridescentGradient,
                         boxShadow: [
-                          BoxShadow(color: Color(0x80FFB300), blurRadius: 6, spreadRadius: 1),
+                          BoxShadow(color: Color(0x6000E5FF), blurRadius: 6, spreadRadius: 1),
                         ],
                       ),
                     ),
@@ -676,6 +799,175 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
                     ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopUpSection(bool isPurchasing) {
+    final isProUser = _sm.isPro;
+    final pack10Price = _sm.formattedTopUpPrice(CreditTopUp.pack10);
+    final pack50Price = _sm.formattedTopUpPrice(CreditTopUp.pack50);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF13151D),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0x26FFFFFF), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
+              const SizedBox(width: 6),
+              const Text(
+                'CREDIT TOP-UP PACKS',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: Colors.white,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isProUser ? const Color(0x2610B981) : const Color(0x20FFFFFF),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  isProUser ? 'PRO UNLOCKED' : 'PRO EXCLUSIVE',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: isProUser ? const Color(0xFF10B981) : Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Extra 1080p Master & Priority Queue export credits',
+            style: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 10,
+              color: Color(0xFF94A3B8),
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (!isProUser)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0x15FFFFFF),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0x20FFFFFF)),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.lock_outline_rounded, color: Colors.white70, size: 14),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Upgrade to any Pro plan above to buy additional render credits.',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 10.5,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTopUpButton(
+                    title: '10 CREDITS',
+                    price: pack10Price,
+                    badge: '+10',
+                    onTap: (isPurchasing || _isConnectingStore)
+                        ? null
+                        : () => _handleTopUpPurchase(CreditTopUp.pack10),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildTopUpButton(
+                    title: '50 CREDITS',
+                    price: pack50Price,
+                    badge: '+50 · SAVE',
+                    isBestValue: true,
+                    onTap: (isPurchasing || _isConnectingStore)
+                        ? null
+                        : () => _handleTopUpPurchase(CreditTopUp.pack50),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopUpButton({
+    required String title,
+    required String price,
+    required String badge,
+    bool isBestValue = false,
+    required VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E212B),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isBestValue ? Colors.white : const Color(0xFF2E3547),
+            width: isBestValue ? 1.2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              price,
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );
