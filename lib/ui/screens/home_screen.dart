@@ -3083,7 +3083,7 @@ class HomeScreenState extends State<HomeScreen> {
               color: AppColors.primarySurface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.chipBorder, width: 1),
-              boxShadow: AppColors.softRaisedShadow,
+              boxShadow: AppColors.tactile3DBevel,
             ),
             child: Column(
               children: [
@@ -3169,7 +3169,7 @@ class HomeScreenState extends State<HomeScreen> {
                             color: !_isManualRenderMode ? AppColors.pureWhite : AppColors.chipBorder,
                             width: !_isManualRenderMode ? 1.5 : 1,
                           ),
-                          boxShadow: !_isManualRenderMode ? AppColors.darkHardwareShadow : AppColors.softRaisedShadow,
+                          boxShadow: !_isManualRenderMode ? AppColors.darkTactile3DBevel : AppColors.tactile3DBevel,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3248,7 +3248,7 @@ class HomeScreenState extends State<HomeScreen> {
                             color: _isManualRenderMode ? AppColors.pureWhite : AppColors.chipBorder,
                             width: _isManualRenderMode ? 1.5 : 1,
                           ),
-                          boxShadow: _isManualRenderMode ? AppColors.darkHardwareShadow : AppColors.softRaisedShadow,
+                          boxShadow: _isManualRenderMode ? AppColors.darkTactile3DBevel : AppColors.tactile3DBevel,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3318,7 +3318,7 @@ class HomeScreenState extends State<HomeScreen> {
               color: AppColors.primarySurface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.chipBorder, width: 1),
-              boxShadow: AppColors.softRaisedShadow,
+              boxShadow: AppColors.tactile3DBevel,
             ),
             child: Column(
               children: [
@@ -3437,6 +3437,204 @@ class HomeScreenState extends State<HomeScreen> {
 
   // OPTION 3: DYNAMIC ADAPTIVE HERO STAGE
   Widget _buildAdaptiveHeroStage(bool hasAssets) {
+    // Check if there is a completed rendered reel available from queue
+    final completedJobs = qm.jobs.where((j) {
+      final s = j.status.toUpperCase();
+      return (s == "READY" || s == "DONE" || s == "COMPLETED") &&
+          j.videoPath != null &&
+          File(j.videoPath!).existsSync();
+    }).toList();
+    final latestJob = completedJobs.isNotEmpty ? completedJobs.first : null;
+
+    if (latestJob != null) {
+      // Finished Reel Hero Player Card
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Container(
+          height: 220,
+          decoration: BoxDecoration(
+            color: const Color(0xFF07080A),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0x30FFFFFF), width: 1),
+            boxShadow: AppColors.darkTactile3DBevel,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Background / Thumbnail
+              if (_photos.isNotEmpty && File(_photos.first.path).existsSync())
+                Image.file(File(_photos.first.path), fit: BoxFit.cover)
+              else
+                Container(
+                  color: const Color(0xFF11141A),
+                  child: const Center(
+                    child: Icon(Icons.movie_creation_outlined, color: Colors.white24, size: 48),
+                  ),
+                ),
+
+              // Cinematic Dark Gradient Overlay
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x80000000), Color(0x20000000), Color(0xB0000000)],
+                  ),
+                ),
+              ),
+
+              // Top Status Badge: LATEST REEL READY
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.vuGreen.withValues(alpha: 0.5), width: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: AppColors.vuGreen,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: AppColors.vuGreen.withValues(alpha: 0.8), blurRadius: 4),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'REEL READY · ${latestJob.quality.toUpperCase()}',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Center Video Play Button (Pauses audio and launches VideoPreviewDialog)
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    if (_isPlayingAudio) {
+                      await _audioPlayer.pause();
+                      if (mounted) setState(() => _isPlayingAudio = false);
+                    }
+                    if (!mounted) return;
+                    VideoPreviewDialog.show(
+                      context,
+                      videoPath: latestJob.videoPath!,
+                      templateName: latestJob.templateName,
+                      customName: latestJob.displayName,
+                      quality: latestJob.quality,
+                    );
+                  },
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.iridescentGradient,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
+                          blurRadius: 14,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 36,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Bottom Bar: Reel Title & Direct Play Action
+              Positioned(
+                bottom: 10,
+                left: 12,
+                right: 12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        latestJob.displayName.toUpperCase(),
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () async {
+                        if (_isPlayingAudio) {
+                          await _audioPlayer.pause();
+                          if (mounted) setState(() => _isPlayingAudio = false);
+                        }
+                        if (!mounted) return;
+                        VideoPreviewDialog.show(
+                          context,
+                          videoPath: latestJob.videoPath!,
+                          templateName: latestJob.templateName,
+                          customName: latestJob.displayName,
+                          quality: latestJob.quality,
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.play_arrow_rounded, size: 12, color: Colors.black),
+                            SizedBox(width: 3),
+                            Text(
+                              'PLAY REEL',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (!hasAssets) {
       // Compact Empty State
       return Padding(
@@ -3447,7 +3645,7 @@ class HomeScreenState extends State<HomeScreen> {
             color: const Color(0xFF090B0F),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0x25FFFFFF), width: 1),
-            boxShadow: AppColors.darkHardwareShadow,
+            boxShadow: AppColors.darkTactile3DBevel,
           ),
           child: Row(
             children: [
@@ -3493,7 +3691,7 @@ class HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Hydrated Live Reel Player Card
+    // Hydrated Soundtrack Audition Card (before first render is ready)
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Container(
@@ -3502,7 +3700,7 @@ class HomeScreenState extends State<HomeScreen> {
           color: const Color(0xFF07080A),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0x30FFFFFF), width: 1),
-          boxShadow: AppColors.darkHardwareShadow,
+          boxShadow: AppColors.darkTactile3DBevel,
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -3533,7 +3731,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Top Badges (Aspect & Expand)
+            // Top Badge (Audition Soundtrack)
             Positioned(
               top: 10,
               left: 10,
@@ -3544,9 +3742,22 @@ class HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: Colors.white24, width: 0.8),
                 ),
-                child: Text(
-                  _selectedAspectRatio,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.headphones_rounded, size: 10, color: Colors.white70),
+                    const SizedBox(width: 4),
+                    Text(
+                      'AUDITION SOUNDTRACK · ${_getBpmFromTitle()} BPM',
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

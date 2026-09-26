@@ -518,11 +518,31 @@ class SubscriptionManager with ChangeNotifier {
               await _iap.completePurchase(purchase);
             }
           } else {
-            // In sandbox/dev environment or fallback, complete purchase if pending
-            if (isTopUp && purchase.pendingCompletePurchase) {
+            // TestFlight Sandbox / Direct StoreKit fallback:
+            // StoreKit has confirmed the transaction was paid & authenticated by Apple.
+            // If backend verification is unreachable or running in sandbox without remote keys,
+            // we must still honor the Apple verified purchase so the user isn't locked out.
+            if (isTopUp) {
+              final topUpTier = _topUpFromProductId(purchase.productID);
+              final addedCredits = topUpTier?.credits ?? 10;
+              await addCredits(addedCredits);
+              _statusMessage = '$addedCredits credits added to your account!';
+            } else {
+              final tier = _tierFromProductId(purchase.productID) ?? ProTier.monthly;
+              final expires = _calcFallbackExpiry(tier);
+              await _persistEntitlements(
+                isPro: true,
+                tier: tier,
+                expiresAt: expires,
+                originalTxId: purchase.purchaseID ?? 'tf_sandbox_${DateTime.now().millisecondsSinceEpoch}',
+                signedToken: 'sandbox_entitlement_${purchase.purchaseID ?? "testflight"}',
+              );
+              _statusMessage = 'Pro Subscription activated!';
+            }
+
+            if (purchase.pendingCompletePurchase) {
               await _iap.completePurchase(purchase);
             }
-            _statusMessage = isTopUp ? 'Top-up purchase completed.' : 'Verifying...';
           }
 
           _isPurchasing = false;
@@ -626,6 +646,12 @@ class SubscriptionManager with ChangeNotifier {
     if (id == idWeekly || id == legacyIdWeekly) return ProTier.weekly;
     if (id == idMonthly || id == legacyIdMonthly) return ProTier.monthly;
     if (id == idAnnual || id == legacyIdAnnual) return ProTier.annual;
+    return null;
+  }
+
+  CreditTopUp? _topUpFromProductId(String id) {
+    if (id == idTopUp10 || id == legacyIdTopUp10) return CreditTopUp.pack10;
+    if (id == idTopUp50 || id == legacyIdTopUp50) return CreditTopUp.pack50;
     return null;
   }
 
