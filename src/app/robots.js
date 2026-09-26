@@ -8,6 +8,10 @@ export default function robots() {
         allow: "/",
         disallow: ["/api/", "/scratch/"],
       },
+      {
+        userAgent: "Mediapartners-Google",
+        allow: "/",
+      },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,

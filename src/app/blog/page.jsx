@@ -46,6 +46,51 @@ export default function BlogHubPage() {
       readTime: "7 min read",
       category: "Inspiration",
     },
+    {
+      slug: "ultimate-guide-to-instagram-reels-aspect-ratios",
+      title: "Ultimate Guide to Instagram Reels Aspect Ratios & Video Dimensions (2026 Edition)",
+      excerpt:
+        "Deep analysis of 9:16 vertical vs 1:1 square vs 16:9 landscape. Learn UI safe zones, optimal bitrates, and how to avoid blurriness.",
+      date: "September 2026",
+      readTime: "6 min read",
+      category: "Technical Guide",
+    },
+    {
+      slug: "how-ai-beat-detection-works",
+      title: "How Audio Beat Detection & Rhythm Sync Algorithms Work in Video Editing",
+      excerpt:
+        "Explore the digital signal processing behind beat syncing, including FFT, onset detection functions, and dynamic time warping.",
+      date: "September 2026",
+      readTime: "8 min read",
+      category: "Technical Guide",
+    },
+    {
+      slug: "cinematic-photo-sequencing-techniques",
+      title: "10 Cinematic Photo Sequencing Techniques for High-Impact Slideshows",
+      excerpt:
+        "Arrange photos to tell a compelling story using narrative arcs, match cutting, visual rhymes, and focal point anchoring.",
+      date: "September 2026",
+      readTime: "7 min read",
+      category: "Creative Workflows",
+    },
+    {
+      slug: "copyright-free-music-for-reels",
+      title: "The Creator's Guide to Royalty-Free Music & Audio Licensing for Social Video",
+      excerpt:
+        "Navigate legal music usage on social media. Understand Creative Commons, Content ID systems, and commercial monetization rules.",
+      date: "September 2026",
+      readTime: "6 min read",
+      category: "Social Media Strategies",
+    },
+    {
+      slug: "how-to-create-viral-tiktok-slideshows",
+      title: "How to Create Viral Photo Slideshows on TikTok & Reels in 2026",
+      excerpt:
+        "Master retention metrics, hook rates, music drop timing, typography, and proven formulas for viral success on TikTok and Instagram Reels.",
+      date: "September 2026",
+      readTime: "8 min read",
+      category: "Social Media Strategies",
+    },
   ];
 
   const breadcrumbs = [

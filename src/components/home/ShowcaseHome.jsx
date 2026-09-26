@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { PRICING_PLANS, TEMPLATES } from "@/lib/constants";
 import RetroAdBanner from "@/components/ads/RetroAdBanner";
@@ -145,6 +146,27 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing, onSelectPla
             <span>Create</span>
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
           </button>
+          <Link
+            href="/about"
+            className="hidden sm:inline-block px-2 py-1 text-white/80 hover:text-amber-300 transition cursor-pointer rounded-lg hover:bg-white/10 text-xs"
+            title="About SnapBeat"
+          >
+            About
+          </Link>
+          <Link
+            href="/blog"
+            className="hidden sm:inline-block px-2 py-1 text-white/80 hover:text-amber-300 transition cursor-pointer rounded-lg hover:bg-white/10 text-xs"
+            title="Guides"
+          >
+            Guides
+          </Link>
+          <Link
+            href="/contact"
+            className="hidden sm:inline-block px-2 py-1 text-white/80 hover:text-amber-300 transition cursor-pointer rounded-lg hover:bg-white/10 text-xs"
+            title="Contact Support"
+          >
+            Contact
+          </Link>
           <a
             href="#templates-showcase"
             className="hidden sm:inline-block px-2 py-1 text-white/80 hover:text-amber-300 transition cursor-pointer rounded-lg hover:bg-white/10 text-xs"
@@ -159,14 +181,6 @@ export default function ShowcaseHome({ onEnterStudio, onOpenPricing, onSelectPla
           >
             Pricing
           </a>
-          <button
-            type="button"
-            onClick={() => setIsAboutModalOpen(true)}
-            className="hidden sm:inline-block px-2 py-1 text-white/80 hover:text-amber-300 transition cursor-pointer rounded-lg hover:bg-white/10 text-xs"
-            title="About SnapBeat"
-          >
-            About
-          </button>
         </nav>
 
         {/* Right: Guest Access / Account Pill */}

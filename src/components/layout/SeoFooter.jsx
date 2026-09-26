@@ -118,18 +118,28 @@ export default function SeoFooter({ className = "" }) {
               </Link>
             </li>
             <li>
+              <Link href="/about" className="hover:text-amber-300 transition">
+                About SnapBeat
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-amber-300 transition">
+                Contact Support
+              </Link>
+            </li>
+            <li>
               <Link href="/blog" className="hover:text-amber-300 transition">
-                Reel Creation Guides
+                Reel Creation Guides & Blog
               </Link>
             </li>
             <li>
-              <Link href="/blog/how-to-make-video-from-photos" className="hover:text-amber-300 transition">
-                How to Make Video from Photos
+              <Link href="/cookies" className="hover:text-amber-300 transition">
+                Cookie Policy
               </Link>
             </li>
             <li>
-              <Link href="/blog/how-to-sync-photos-to-music" className="hover:text-amber-300 transition">
-                How to Sync Photos to Music
+              <Link href="/disclaimer" className="hover:text-amber-300 transition">
+                Disclaimer
               </Link>
             </li>
             <li>

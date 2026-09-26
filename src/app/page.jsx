@@ -280,17 +280,9 @@ export default function StudioPage() {
     }
   };
 
-  // Enforce account sign-in for Pro upgrades (Industry standard: Canva, CapCut, Figma)
+  // Pro upgrades disabled on web while awaiting AdSense & Razorpay compliance
   const handleOpenPricing = () => {
-    if (!user || user.isGuest) {
-      openAuthModal({
-        intent: "pro_upgrade",
-        title: "ACCOUNT REQUIRED FOR PRO",
-        subtitle: "Please sign in with your email or Google account so your Pro pass is safely attached and never lost.",
-      });
-      return;
-    }
-    setIsStoreOpen(true);
+    return;
   };
 
   const canRender = Boolean(studio.audioFile && studio.photos.length >= 2);
@@ -489,20 +481,12 @@ export default function StudioPage() {
       {/* Crawlable Semantic SEO Footer */}
       <SeoFooter className="w-full max-w-[1040px] mx-auto z-10" />
 
-      {/* PRO STORE MODAL */}
-      <RetroStoreModal
-        isOpen={isStoreOpen}
-        onClose={() => setIsStoreOpen(false)}
-        onSelectPlan={handleSelectPlan}
-        isPro={isPro}
-      />
+      {/* PRO STORE MODAL DISABLED FOR WEB COMPLIANCE */}
+      {/* <RetroStoreModal isOpen={false} onClose={() => {}} onSelectPlan={() => {}} isPro={false} /> */}
 
       {/* AUTH MODAL (1-Click Guest or Account Sign In) */}
       <RetroAuthModal
         onSuccess={(signedUser) => {
-          if (signedUser && !signedUser.isGuest && authModalConfig?.intent === "pro_upgrade") {
-            setIsStoreOpen(true);
-          }
           setViewMode("studio");
           setCurrentTab("music");
         }}
