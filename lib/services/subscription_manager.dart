@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -7,6 +8,13 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
+
+/// Result of backend receipt verification.
+enum BackendVerificationResult {
+  valid,
+  invalid,
+  transportError,
+}
 
 /// Supported Pro subscription tier identifiers.
 enum ProTier {
@@ -214,12 +222,17 @@ class SubscriptionManager with ChangeNotifier {
   };
 
   /// Product IDs enabled for store queries on current platform.
-  /// Unified across iOS and Android: Weekly, Monthly, Annual, and Top-Up packs.
+  ///
+  /// Only the three auto-renewable subscriptions exist in App Store Connect /
+  /// Play Console. The consumable credit top-up packs were never created, so
+  /// querying them returned them in `notFoundIDs` and the top-up UI rendered
+  /// buttons that could not transact. Per the settled monetization model there
+  /// are no top-ups at launch, so they are excluded here.
+  /// Legacy IDs are retained in the query only as a read-only migration path for
+  /// installs that transacted against the pre-rename identifiers.
   static Set<String> get activeProductIds => {
         idWeekly, idMonthly, idAnnual,
         legacyIdWeekly, legacyIdMonthly, legacyIdAnnual,
-        idTopUp10, idTopUp50,
-        legacyIdTopUp10, legacyIdTopUp50,
       };
 
   /// Available subscription tiers for current platform.
@@ -238,6 +251,8 @@ class SubscriptionManager with ChangeNotifier {
   static const String _keyToken = 'snapbeat_iap_signed_token';
   static const String _keyChecksum = 'snapbeat_iap_integrity_hash';
   static const String _keyCreditBalance = 'snapbeat_user_credit_balance';
+  static const String _keyIsGrace = 'snapbeat_iap_is_grace_entitlement';
+  static const String _keyGraceGrantedAt = 'snapbeat_iap_grace_granted_at_ms';
   int _creditBalance = 10;
   static const String _salt = 'SnapBeat_v105_SecuritySalt_#99824';
 
@@ -245,10 +260,24 @@ class SubscriptionManager with ChangeNotifier {
   SubscriptionManager._internal();
 
   final InAppPurchase _iap = InAppPurchase.instance;
+  @visibleForTesting
+  Dio? dioOverride;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
+
+  /// Upper bound on how long the paywall CTA may stay in its spinner state.
+  /// StoreKit's own sheet can legitimately sit open for a while, so this is
+  /// generous; it exists only to guarantee the button is never permanently dead.
+  static const Duration purchaseWatchdogTimeout = Duration(seconds: 90);
+
+  @visibleForTesting
+  Future<void> handlePurchaseUpdateForTesting(PurchaseDetails purchase) async {
+    await _onPurchaseUpdates([purchase]);
+  }
+  Timer? _purchaseWatchdog;
 
   // Local Entitlement State
   bool _isPro = false;
+  bool _isGraceEntitlement = false;
   ProTier? _activeTier;
   DateTime? _expiresAt;
   String? _originalTransactionId;
@@ -270,7 +299,19 @@ class SubscriptionManager with ChangeNotifier {
 
   // Credit Balance Management
   int get creditBalance => _creditBalance;
-  String get creditBalanceDisplay => _isPro ? "PRO UNLIMITED" : "$_creditBalance CREDITS";
+  /// Label for the entitlement chip.
+  ///
+  /// Deliberately does NOT show a credit count for free users. Credits are
+  /// granted with a subscription and are held on the server ledger; the local
+  /// `_creditBalance` is never spent (`deductCredit` has no caller), so showing
+  /// "10 CREDITS" to a free user promised a currency that does not exist for
+  /// them. The free tier's real constraint is the daily render allowance, which
+  /// `home_screen` supplies via [freeTierDisplay].
+  String get creditBalanceDisplay => _isPro ? "PRO UNLIMITED" : "FREE 360p";
+
+  /// Free-tier chip label showing the remaining daily allowance.
+  static String freeTierDisplay(int rendersRemaining) =>
+      rendersRemaining <= 0 ? "DAILY LIMIT REACHED" : "$rendersRemaining OF 3 FREE TODAY";
 
   Future<void> deductCredit([int amount = 1]) async {
     if (_isPro) return;
@@ -336,12 +377,22 @@ class SubscriptionManager with ChangeNotifier {
   ProTier? get activeTier => isPro ? _activeTier : null;
   DateTime? get expiresAt => _expiresAt;
   String? get originalTransactionId => _originalTransactionId;
-  String? get signedEntitlementToken => isPro ? _signedEntitlementToken : null;
+
+  /// Whether the user is currently in a temporary offline grace window.
+  bool get isGraceEntitlement => _isGraceEntitlement;
+
+  /// Whether the user has cryptographic server-verified Pro render entitlements.
+  /// Offline grace window unlocks UI paywall dismissal only, NOT unwatermarked/1080p renders.
+  bool get hasRenderEntitlement =>
+      isPro && !_isGraceEntitlement && (_signedEntitlementToken != null && _signedEntitlementToken!.isNotEmpty);
+
+  String? get signedEntitlementToken => hasRenderEntitlement ? _signedEntitlementToken : null;
 
   // Pro Feature Gate Entitlements
-  bool get shouldWatermark => !isPro;
-  String get defaultQuality => isPro ? '1080p' : '540p';
-  String get renderType => isPro ? 'priority_queue' : 'free_queue';
+  bool get shouldWatermark => !hasRenderEntitlement;
+  // 360p is the free standard for everyone; credits only buy upscales.
+  String get defaultQuality => hasRenderEntitlement ? '1080p' : '360p';
+  String get renderType => hasRenderEntitlement ? 'priority_queue' : 'free_queue';
   bool get canBuyTopUps => isPro;
 
   /// Whether a product ID belongs to a consumable credit top-up.
@@ -349,31 +400,101 @@ class SubscriptionManager with ChangeNotifier {
     return id == idTopUp10 || id == legacyIdTopUp10 || id == idTopUp50 || id == legacyIdTopUp50;
   }
 
+  /// Registers the StoreKit / Play Billing transaction listener.
+  ///
+  /// MUST be callable independently of store availability. Apple review 1.0 (34)
+  /// failed (Guideline 2.1(a), "subscribe button was unresponsive") because this
+  /// was nested inside `if (_isStoreAvailable)`: on a fresh install where
+  /// `isAvailable()` returned false, the listener was never registered and never
+  /// recovered, so `_isPurchasing` latched true and the CTA stayed disabled.
+  void _ensurePurchaseListener() {
+    if (_subscription != null) return;
+    try {
+      _subscription = _iap.purchaseStream.listen(
+        _onPurchaseUpdates,
+        onDone: () {
+          _subscription?.cancel();
+          _subscription = null;
+        },
+        onError: (error) {
+          debugPrint('[SubscriptionManager] Purchase stream error: $error');
+          _cancelPurchaseWatchdog();
+          _isPurchasing = false;
+          _statusMessage = 'Store connection interrupted. Please try again.';
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      debugPrint('[SubscriptionManager] Failed to attach purchase stream: $e');
+    }
+  }
+
+  /// Arms a watchdog so the CTA can never stay spinning forever if StoreKit
+  /// delivers no terminal event for an initiated purchase.
+  void _armPurchaseWatchdog() {
+    _cancelPurchaseWatchdog();
+    _purchaseWatchdog = Timer(purchaseWatchdogTimeout, () {
+      if (!_isPurchasing) return;
+      debugPrint('[SubscriptionManager] Purchase watchdog fired; releasing UI lock.');
+      _isPurchasing = false;
+      _statusMessage =
+          'The store did not respond. No charge was made. Please try again.';
+      notifyListeners();
+    });
+  }
+
+  void _cancelPurchaseWatchdog() {
+    _purchaseWatchdog?.cancel();
+    _purchaseWatchdog = null;
+  }
+
   /// Initializes IAP listeners, restores securely cached entitlement, and queries store products.
   Future<void> init() async {
+    // First statement, before any await: the listener is the only path by which
+    // a purchase result can arrive, and StoreKit may replay queued transactions
+    // immediately. Never gate it on isAvailable(), never defer it behind an await.
+    _ensurePurchaseListener();
+
     try {
       await _loadCachedEntitlements();
-
-      final available = await _iap.isAvailable();
-      _isStoreAvailable = available;
-
-      if (_isStoreAvailable) {
-        // Listen to transaction updates from StoreKit / Google Play Billing
-        _subscription ??= _iap.purchaseStream.listen(
-          _onPurchaseUpdates,
-          onDone: () => _subscription?.cancel(),
-          onError: (error) {
-            debugPrint('[SubscriptionManager] Purchase stream error: $error');
-          },
-        );
-
-        await loadProducts();
-      } else {
-        debugPrint('[SubscriptionManager] In-App Purchase service unavailable on this device.');
-      }
     } catch (e) {
-      debugPrint('[SubscriptionManager] Initialization error: $e');
+      debugPrint('[SubscriptionManager] Cached entitlement load failed: $e');
     }
+
+    try {
+      _isStoreAvailable = await _iap.isAvailable();
+    } catch (e) {
+      debugPrint('[SubscriptionManager] isAvailable() threw: $e');
+      _isStoreAvailable = false;
+    }
+
+    if (_isStoreAvailable) {
+      await loadProducts();
+    } else {
+      debugPrint('[SubscriptionManager] In-App Purchase service unavailable at launch; will retry on demand.');
+    }
+    notifyListeners();
+  }
+
+  /// Clears the purchase *UI* lock only. Never touches entitlement state.
+  ///
+  /// Called when the paywall is (re)opened: if the paywall is being presented,
+  /// no StoreKit sheet is on screen, so a lingering `_isPurchasing` is stale and
+  /// would render the subscribe button permanently untappable. Any real
+  /// transaction still resolves through [_onPurchaseUpdates] regardless.
+  void resetPurchaseUiLock() {
+    _cancelPurchaseWatchdog();
+    if (!_isPurchasing) return;
+    debugPrint('[SubscriptionManager] Clearing stale purchase UI lock.');
+    _isPurchasing = false;
+    notifyListeners();
+  }
+
+  /// Clears the transient status line so a stale error does not persist.
+  void clearStatusMessage() {
+    if (_statusMessage == null) return;
+    _statusMessage = null;
+    notifyListeners();
   }
 
   /// Queries App Store / Google Play for the Pro subscriptions and top-up products.
@@ -409,8 +530,16 @@ class SubscriptionManager with ChangeNotifier {
 
   /// Initiates purchase of the chosen subscription tier.
   Future<bool> buySubscription(ProductDetails product) async {
+    // The listener must exist before buyNonConsumable is called, otherwise the
+    // result of the purchase has nowhere to land.
+    _ensurePurchaseListener();
+
     if (!_isStoreAvailable) {
-      _isStoreAvailable = await _iap.isAvailable();
+      try {
+        _isStoreAvailable = await _iap.isAvailable();
+      } catch (_) {
+        _isStoreAvailable = false;
+      }
       if (!_isStoreAvailable) {
         _statusMessage = 'Store is currently unavailable. Please verify network and App Store connection.';
         notifyListeners();
@@ -420,14 +549,25 @@ class SubscriptionManager with ChangeNotifier {
 
     _isPurchasing = true;
     _statusMessage = 'Contacting ${Platform.isIOS ? "App Store" : "Google Play"}...';
+    _armPurchaseWatchdog();
     notifyListeners();
 
     try {
       final purchaseParam = PurchaseParam(productDetails: product);
       // Auto-renewable subscriptions use non-consumable flow
-      return await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      if (!started) {
+        // StoreKit refused to even present the sheet: release the UI now rather
+        // than waiting for the watchdog.
+        _cancelPurchaseWatchdog();
+        _isPurchasing = false;
+        _statusMessage = 'The store declined to start the purchase. Please try again.';
+        notifyListeners();
+      }
+      return started;
     } catch (e) {
       debugPrint('[SubscriptionManager] buySubscription error: $e');
+      _cancelPurchaseWatchdog();
       _isPurchasing = false;
       _statusMessage = 'Purchase failed: $e';
       notifyListeners();
@@ -437,8 +577,14 @@ class SubscriptionManager with ChangeNotifier {
 
   /// Initiates purchase of a consumable credit top-up pack.
   Future<bool> buyTopUp(ProductDetails product) async {
+    _ensurePurchaseListener();
+
     if (!_isStoreAvailable) {
-      _isStoreAvailable = await _iap.isAvailable();
+      try {
+        _isStoreAvailable = await _iap.isAvailable();
+      } catch (_) {
+        _isStoreAvailable = false;
+      }
       if (!_isStoreAvailable) {
         _statusMessage = 'Store is currently unavailable. Please verify network and App Store connection.';
         notifyListeners();
@@ -448,13 +594,22 @@ class SubscriptionManager with ChangeNotifier {
 
     _isPurchasing = true;
     _statusMessage = 'Contacting ${Platform.isIOS ? "App Store" : "Google Play"}...';
+    _armPurchaseWatchdog();
     notifyListeners();
 
     try {
       final purchaseParam = PurchaseParam(productDetails: product);
-      return await _iap.buyConsumable(purchaseParam: purchaseParam);
+      final started = await _iap.buyConsumable(purchaseParam: purchaseParam);
+      if (!started) {
+        _cancelPurchaseWatchdog();
+        _isPurchasing = false;
+        _statusMessage = 'The store declined to start the purchase. Please try again.';
+        notifyListeners();
+      }
+      return started;
     } catch (e) {
       debugPrint('[SubscriptionManager] buyTopUp error: $e');
+      _cancelPurchaseWatchdog();
       _isPurchasing = false;
       _statusMessage = 'Top-up purchase failed: $e';
       notifyListeners();
@@ -464,22 +619,37 @@ class SubscriptionManager with ChangeNotifier {
 
   /// Restores previous purchases across devices or after reinstallation.
   Future<bool> restorePurchases() async {
+    // Restored transactions arrive on the same stream; without the listener the
+    // restore silently does nothing.
+    _ensurePurchaseListener();
+
     if (!_isStoreAvailable) {
-      _isStoreAvailable = await _iap.isAvailable();
-      if (!_isStoreAvailable) return false;
+      try {
+        _isStoreAvailable = await _iap.isAvailable();
+      } catch (_) {
+        _isStoreAvailable = false;
+      }
+      if (!_isStoreAvailable) {
+        _statusMessage = 'Store is currently unavailable. Please verify network and App Store connection.';
+        notifyListeners();
+        return false;
+      }
     }
 
     _isPurchasing = true;
     _statusMessage = 'Restoring previous purchases...';
+    _armPurchaseWatchdog();
     notifyListeners();
 
     try {
       await _iap.restorePurchases();
+      _cancelPurchaseWatchdog();
       _isPurchasing = false;
       notifyListeners();
       return true;
     } catch (e) {
       debugPrint('[SubscriptionManager] restorePurchases error: $e');
+      _cancelPurchaseWatchdog();
       _isPurchasing = false;
       _statusMessage = 'Failed to restore purchases: $e';
       notifyListeners();
@@ -494,6 +664,9 @@ class SubscriptionManager with ChangeNotifier {
         case PurchaseStatus.pending:
           _isPurchasing = true;
           _statusMessage = 'Transaction pending approval...';
+          // A pending transaction can outlive the watchdog window (Ask to Buy,
+          // SCA), so re-arm rather than leave a stale timer running.
+          _armPurchaseWatchdog();
           notifyListeners();
           break;
 
@@ -503,48 +676,81 @@ class SubscriptionManager with ChangeNotifier {
           _statusMessage = 'Verifying receipt with server...';
           notifyListeners();
 
-          final valid = await _verifyWithBackend(purchase);
+          final verificationResult = await _verifyWithBackend(purchase);
           final bool isTopUp = isTopUpProductId(purchase.productID);
-          if (valid) {
+
+          if (verificationResult == BackendVerificationResult.valid) {
+            _isGraceEntitlement = false;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove(_keyIsGrace);
+            await prefs.remove(_keyGraceGrantedAt);
             _statusMessage = isTopUp
                 ? 'Credits added to your account!'
                 : 'Pro Subscription activated!';
             if (purchase.pendingCompletePurchase) {
               await _iap.completePurchase(purchase);
             }
-          } else {
-            // TestFlight Sandbox / Direct StoreKit fallback:
-            // StoreKit has confirmed the transaction was paid & authenticated by Apple.
-            // If backend verification is unreachable or running in sandbox without remote keys,
-            // we must still honor the Apple verified purchase so the user isn't locked out.
+          } else if (verificationResult == BackendVerificationResult.transportError) {
+            // Network transport error or timeout: allow short 48h grace window
             if (isTopUp) {
-              final topUpTier = _topUpFromProductId(purchase.productID);
-              final addedCredits = topUpTier?.credits ?? 10;
-              await addCredits(addedCredits);
-              _statusMessage = '$addedCredits credits added to your account!';
+              _statusMessage = 'Network error during verification. Will retry when connection is restored.';
             } else {
-              final tier = _tierFromProductId(purchase.productID) ?? ProTier.monthly;
-              final expires = _calcFallbackExpiry(tier);
-              await _persistEntitlements(
-                isPro: true,
-                tier: tier,
-                expiresAt: expires,
-                originalTxId: purchase.purchaseID ?? 'tf_sandbox_${DateTime.now().millisecondsSinceEpoch}',
-                signedToken: 'sandbox_entitlement_${purchase.purchaseID ?? "testflight"}',
-              );
-              _statusMessage = 'Pro Subscription activated!';
+              final prefs = await SharedPreferences.getInstance();
+              final lastGraceMs = prefs.getInt(_keyGraceGrantedAt) ?? 0;
+              final nowMs = DateTime.now().millisecondsSinceEpoch;
+              final bool isInsideExistingGrace = (lastGraceMs > 0) &&
+                  (nowMs - lastGraceMs < const Duration(hours: 48).inMilliseconds);
+
+              if (isInsideExistingGrace) {
+                _statusMessage =
+                    'Network error during verification. Grace window already active; reconnect to complete verification.';
+              } else {
+                final tier = _tierFromProductId(purchase.productID) ?? ProTier.monthly;
+                final expires = DateTime.now().add(const Duration(hours: 48));
+                await prefs.setInt(_keyGraceGrantedAt, nowMs);
+                _isGraceEntitlement = true;
+                await prefs.setBool(_keyIsGrace, true);
+                await _persistEntitlements(
+                  isPro: true,
+                  tier: tier,
+                  expiresAt: expires,
+                  originalTxId: purchase.purchaseID ?? 'offline_${DateTime.now().millisecondsSinceEpoch}',
+                  signedToken: null,
+                );
+                _statusMessage = 'Pro Subscription active (verifying with server in background).';
+              }
             }
 
             if (purchase.pendingCompletePurchase) {
               await _iap.completePurchase(purchase);
             }
+          } else {
+            // Backend explicitly rejected the receipt (is_valid == false)
+            _isGraceEntitlement = false;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove(_keyIsGrace);
+            await prefs.remove(_keyGraceGrantedAt);
+            await _persistEntitlements(
+              isPro: false,
+              tier: null,
+              expiresAt: null,
+              originalTxId: null,
+              signedToken: null,
+            );
+            _isPro = false;
+            _statusMessage = 'Subscription verification failed: receipt was rejected by the server.';
+            if (purchase.pendingCompletePurchase) {
+              await _iap.completePurchase(purchase);
+            }
           }
 
+          _cancelPurchaseWatchdog();
           _isPurchasing = false;
           notifyListeners();
           break;
 
         case PurchaseStatus.error:
+          _cancelPurchaseWatchdog();
           _isPurchasing = false;
           _statusMessage = purchase.error?.message ?? 'Transaction encountered an error.';
           if (purchase.pendingCompletePurchase) {
@@ -554,6 +760,7 @@ class SubscriptionManager with ChangeNotifier {
           break;
 
         case PurchaseStatus.canceled:
+          _cancelPurchaseWatchdog();
           _isPurchasing = false;
           _statusMessage = 'Purchase cancelled.';
           if (purchase.pendingCompletePurchase) {
@@ -565,10 +772,16 @@ class SubscriptionManager with ChangeNotifier {
     }
   }
 
+  @visibleForTesting
+  Future<BackendVerificationResult> Function(PurchaseDetails purchase)? verifyWithBackendOverride;
+
   /// Sends receipt data to backend API to validate cryptographic signature and anti-fraud ledger.
-  Future<bool> _verifyWithBackend(PurchaseDetails purchase) async {
+  Future<BackendVerificationResult> _verifyWithBackend(PurchaseDetails purchase) async {
+    if (verifyWithBackendOverride != null) {
+      return await verifyWithBackendOverride!(purchase);
+    }
     try {
-      final dio = Dio(
+      final dio = dioOverride ?? Dio(
         BaseOptions(
           baseUrl: AppConfig.apiBaseUrl,
           connectTimeout: const Duration(seconds: 15),
@@ -609,13 +822,27 @@ class SubscriptionManager with ChangeNotifier {
             originalTxId: purchase.purchaseID,
             signedToken: token,
           );
-          return true;
+          return BackendVerificationResult.valid;
+        } else {
+          return BackendVerificationResult.invalid;
         }
       }
-      return false;
+      return BackendVerificationResult.invalid;
+    } on DioException catch (e) {
+      debugPrint('[SubscriptionManager] Backend verification DioException: $e');
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        return BackendVerificationResult.transportError;
+      }
+      if (e.response != null) {
+        return BackendVerificationResult.invalid;
+      }
+      return BackendVerificationResult.transportError;
     } catch (e) {
       debugPrint('[SubscriptionManager] Backend verification call failed: $e');
-      return false;
+      return BackendVerificationResult.transportError;
     }
   }
 
@@ -641,12 +868,6 @@ class SubscriptionManager with ChangeNotifier {
     if (id == idWeekly || id == legacyIdWeekly) return ProTier.weekly;
     if (id == idMonthly || id == legacyIdMonthly) return ProTier.monthly;
     if (id == idAnnual || id == legacyIdAnnual) return ProTier.annual;
-    return null;
-  }
-
-  CreditTopUp? _topUpFromProductId(String id) {
-    if (id == idTopUp10 || id == legacyIdTopUp10) return CreditTopUp.pack10;
-    if (id == idTopUp50 || id == legacyIdTopUp50) return CreditTopUp.pack50;
     return null;
   }
 
@@ -744,12 +965,44 @@ class SubscriptionManager with ChangeNotifier {
       _isPro = false;
       _activeTier = null;
     }
+
+    final savedIsGrace = prefs.getBool(_keyIsGrace) ?? false;
+    final savedGraceMs = prefs.getInt(_keyGraceGrantedAt) ?? 0;
+    if (savedIsGrace) {
+      if (DateTime.now().millisecondsSinceEpoch - savedGraceMs > const Duration(hours: 48).inMilliseconds) {
+        _isGraceEntitlement = false;
+        _isPro = false;
+        await prefs.remove(_keyIsGrace);
+        await prefs.remove(_keyGraceGrantedAt);
+      } else {
+        _isGraceEntitlement = true;
+      }
+    } else {
+      _isGraceEntitlement = false;
+    }
+
     notifyListeners();
   }
 
   String _computeChecksum(bool isPro, String tier, int expMs, String txId) {
     final input = '$isPro:$tier:$expMs:$txId:$_salt';
     return sha256.convert(utf8.encode(input)).toString();
+  }
+
+  /// Whether the StoreKit / Play Billing transaction listener is attached.
+  ///
+  /// Exposed so a regression test can assert the listener exists even when the
+  /// store reported itself unavailable — the exact condition that made the
+  /// subscribe button unresponsive in the build Apple rejected.
+  @visibleForTesting
+  bool get hasPurchaseListener => _subscription != null;
+
+  /// Forces the UI into the stuck state the rejected build could reach, so the
+  /// recovery path can be tested.
+  @visibleForTesting
+  void simulateStuckPurchaseLock() {
+    _isPurchasing = true;
+    notifyListeners();
   }
 
   /// Manual diagnostic reset (used for testing environments).
@@ -762,16 +1015,44 @@ class SubscriptionManager with ChangeNotifier {
     await prefs.remove(_keyOriginalTxId);
     await prefs.remove(_keyToken);
     await prefs.remove(_keyChecksum);
+    await prefs.remove(_keyIsGrace);
+    await prefs.remove(_keyGraceGrantedAt);
     _isPro = false;
+    _isGraceEntitlement = false;
     _activeTier = null;
     _expiresAt = null;
     _signedEntitlementToken = null;
     notifyListeners();
   }
 
+  /// Exposes cached entitlement loading to test simulated app relaunch.
+  @visibleForTesting
+  Future<void> loadCachedEntitlementsForTesting() async {
+    await _loadCachedEntitlements();
+  }
+
+  /// Sets active Pro status with valid checksum for unit testing.
+  @visibleForTesting
+  Future<void> setProForTesting({
+    ProTier tier = ProTier.monthly,
+    Duration duration = const Duration(days: 30),
+    String token = 'valid_test_token',
+  }) async {
+    final expires = DateTime.now().add(duration);
+    await _persistEntitlements(
+      isPro: true,
+      tier: tier,
+      expiresAt: expires,
+      originalTxId: 'tx_valid_test',
+      signedToken: token,
+    );
+  }
+
   @override
   void dispose() {
+    _cancelPurchaseWatchdog();
     _subscription?.cancel();
+    _subscription = null;
     super.dispose();
   }
 }

@@ -5,14 +5,9 @@ import 'ui/screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ),
-  );
+  // The app opens on the dark splash, so start with the dark-background style.
+  // SplashScreen swaps to AppTheme.ceramicOverlay when it hands off to Home.
+  SystemChrome.setSystemUIOverlayStyle(AppTheme.splashOverlay);
   runApp(const SnapBeatApp());
 }
 

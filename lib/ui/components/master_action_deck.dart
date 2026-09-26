@@ -45,7 +45,7 @@ class MasterActionDeck extends StatelessWidget {
     this.onDisabledTabTap,
     this.renderSpeed = 'instant',
     this.onToggleRenderSpeed,
-    this.creditBalanceDisplay = '10 CREDITS',
+    this.creditBalanceDisplay = 'FREE 360p',
     this.onTapCredits,
     this.stageTag,
     this.onBackToHome,
@@ -200,7 +200,7 @@ class MasterActionDeck extends StatelessWidget {
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  isManualMode ? creditBalanceDisplay : '0 CREDITS (FREE AUTO)',
+                  isManualMode ? creditBalanceDisplay : 'AUTO 360p FREE',
                   style: TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 9.5,
@@ -426,7 +426,7 @@ class MasterActionDeck extends StatelessWidget {
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  isManualMode ? creditBalanceDisplay : '0 CREDITS (FREE AUTO)',
+                  isManualMode ? creditBalanceDisplay : 'AUTO 360p FREE',
                   style: TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 9.5,

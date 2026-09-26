@@ -134,6 +134,10 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
   final List<PhotoItem> _photos = [];
+  /// Free renders left today. Kept in state so the entitlement chip can show a
+  /// real number instead of a credit balance that is never spent.
+  int _freeRendersRemaining = 3;
+
   String _selectedTemplate = "pendulum";
   String _selectedAspectRatio = "9:16";
   String _selectedQuality = "1080p";
@@ -570,6 +574,7 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     sm.init();
+    _refreshFreeRenderQuota();
     AdManager.instance.init();
     _currentTab = widget.initialTab;
     _renderMode = widget.initialRenderMode;
@@ -1102,6 +1107,27 @@ class HomeScreenState extends State<HomeScreen> {
   // Reserved for instant render & credits pack workflow (temporarily held):
   // void _showRenderChoiceDialog() { ... }
 
+  /// Reads today's free-render tally and mirrors it into state.
+  ///
+  /// Shares the same keys and the same day-rollover rule as the gate in
+  /// [_executeRender] and as AccountPlanDialog, so the number on the chip is the
+  /// number the gate will enforce.
+  Future<void> _refreshFreeRenderQuota() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      final lastDate = prefs.getString('free_render_date') ?? '';
+      final count = lastDate == todayStr ? (prefs.getInt('free_render_count') ?? 0) : 0;
+      final remaining = (3 - count).clamp(0, 3);
+      if (!mounted) return;
+      if (remaining != _freeRendersRemaining) {
+        setState(() => _freeRendersRemaining = remaining);
+      }
+    } catch (e) {
+      debugPrint('Free quota refresh failed: $e');
+    }
+  }
+
   Future<void> _executeRender({required bool isInstant}) async {
     if (_selectedMusic == null) {
       _showNotice("Step 1: Please select a music track first.");
@@ -1162,12 +1188,15 @@ class HomeScreenState extends State<HomeScreen> {
     final musicSnapshot = _selectedMusic;
     final aspectRatioSnapshot = _selectedAspectRatio;
     
-    final qualitySnapshot = sm.isPro ? _selectedQuality : "360p";
-    // Pro subscribers have watermarks removed; Free videos have watermark
-    final shouldWatermark = !isPro;
-    // Pro subscribers get fast priority queue; Free users use standard queue
-    final renderTypeSnapshot = isPro ? "priority_queue" : "free_queue";
-    final entitlementTokenSnapshot = isPro ? sm.signedEntitlementToken : null;
+    final qualitySnapshot = sm.hasRenderEntitlement ? _selectedQuality : "360p";
+    // Pro subscribers have watermarks removed; Free / Grace videos have watermark
+    final shouldWatermark = !sm.hasRenderEntitlement;
+    // Pro subscribers get fast priority queue; Free / Grace users use standard queue
+    final renderTypeSnapshot = sm.hasRenderEntitlement ? "priority_queue" : "free_queue";
+    final entitlementTokenSnapshot = sm.signedEntitlementToken;
+    if (sm.isGraceEntitlement) {
+      _showNotice('Verifying subscription with server in background. Rendering in standard mode.');
+    }
     final audioStartSnapshot = _audioStart.toInt();
     final audioEndSnapshot = _audioEnd.toInt();
     final enteredTitle = _titleTextController.text.trim();
@@ -1337,10 +1366,13 @@ class HomeScreenState extends State<HomeScreen> {
         progress: 1.0,
       );
       
+      // Counted only here, after the job reaches READY: a failed or cancelled
+      // render must not consume the user's daily allowance.
       if (!sm.isPro) {
         final prefs = await SharedPreferences.getInstance();
-        int count = prefs.getInt('free_render_count') ?? 0;
+        final int count = prefs.getInt('free_render_count') ?? 0;
         await prefs.setInt('free_render_count', count + 1);
+        await _refreshFreeRenderQuota();
       }
 
 
@@ -1842,7 +1874,9 @@ class HomeScreenState extends State<HomeScreen> {
                     }
                     setState(() => _renderSpeed = speed);
                   },
-                  creditBalanceDisplay: sm.creditBalanceDisplay,
+                  creditBalanceDisplay: sm.isPro
+                      ? sm.creditBalanceDisplay
+                      : SubscriptionManager.freeTierDisplay(_freeRendersRemaining),
                   onTapCredits: _openAccountPlanDialog,
                   stageTag: _currentTab == 'photos'
                       ? '${_photos.length} PHOTOS'
@@ -3013,26 +3047,13 @@ class HomeScreenState extends State<HomeScreen> {
                 'great_vibes', 'allura', 'alex_brush', 'bodoni_moda', 'cormorant_garamond',
                 'cinzel', 'serif', 'clean', 'typewriter', 'playful', 'impact'
               ].map((String value) {
-                
-                TextStyle style = const TextStyle(color: Colors.white, fontSize: 12);
-                try {
-                  switch (value) {
-                    case 'great_vibes': style = GoogleFonts.greatVibes(color: Colors.white, fontSize: 14); break;
-                    case 'allura': style = GoogleFonts.allura(color: Colors.white, fontSize: 14); break;
-                    case 'alex_brush': style = GoogleFonts.alexBrush(color: Colors.white, fontSize: 14); break;
-                    case 'bodoni_moda': style = GoogleFonts.bodoniModa(color: Colors.white, fontSize: 12); break;
-                    case 'cormorant_garamond': style = GoogleFonts.cormorantGaramond(color: Colors.white, fontSize: 12); break;
-                    case 'cinzel': style = GoogleFonts.cinzel(color: Colors.white, fontSize: 12); break;
-                    case 'serif': style = GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 12); break;
-                    case 'clean': style = GoogleFonts.inter(color: Colors.white, fontSize: 12); break;
-                    case 'typewriter': style = GoogleFonts.courierPrime(color: Colors.white, fontSize: 12); break;
-                    case 'playful': style = GoogleFonts.fredoka(color: Colors.white, fontSize: 12); break;
-                    case 'impact': style = GoogleFonts.oswald(color: Colors.white, fontSize: 12); break;
-                  }
-                } catch (_) {}
+                final style = titleFontStyle(
+                  value,
+                  const TextStyle(color: Colors.white, fontSize: 14),
+                );
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: style),
+                  child: Text(titleFontLabels[value] ?? value, style: style),
                 );
               }).toList(),
               onChanged: (val) {
@@ -3536,7 +3557,7 @@ class HomeScreenState extends State<HomeScreen> {
                   Divider(height: 1, color: AppColors.dividerColor.withValues(alpha: 0.5)),
                   _buildConfigSettingRow(
                     label: "Render Engine",
-                    value: _renderSpeed == 'instant' ? '⚡ Instant (Serverless)' : '🎞️ Master Studio (Queued)',
+                    value: _renderSpeed == 'instant' ? 'Instant (Serverless)' : 'Master Studio (Queued)',
                     icon: Icons.speed_rounded,
                     onTap: () => _openRenderSpeedModal(),
                   ),
@@ -4454,7 +4475,9 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQualityOptionTile({required String id, required String title, required String subtitle, required bool isSelected, required VoidCallback onTap}) {
+  /// [leadingIcon] replaces what used to be an emoji baked into [title].
+  /// SnapBeat bundles no font with emoji coverage, so those rendered as tofu.
+  Widget _buildQualityOptionTile({required String id, required String title, required String subtitle, required bool isSelected, required VoidCallback onTap, IconData? leadingIcon}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -4466,6 +4489,10 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           children: [
+            if (leadingIcon != null) ...[
+              Icon(leadingIcon, size: 18, color: isSelected ? Colors.white : Colors.white54),
+              const SizedBox(width: 10),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -4623,7 +4650,8 @@ class HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   _buildQualityOptionTile(
                     id: "instant",
-                    title: "⚡ Instant Render (Serverless Cloud)",
+                    title: "Instant Render (Serverless Cloud)",
+                    leadingIcon: Icons.bolt_rounded,
                     subtitle: "Sub-15s GPU render with instant local playback",
                     isSelected: tempS == "instant",
                     onTap: () {
@@ -4640,7 +4668,8 @@ class HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   _buildQualityOptionTile(
                     id: "queued",
-                    title: "🎞️ Queued Studio Master",
+                    title: "Queued Studio Master",
+                    leadingIcon: Icons.movie_filter_rounded,
                     subtitle: "Dedicated background queue with max bitrate export",
                     isSelected: tempS == "queued",
                     onTap: () => setModalState(() => tempS = "queued"),
@@ -4670,9 +4699,78 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Display names for the server-side title font ids.
+  ///
+  /// The dropdown used to show the raw id ("great_vibes"), which is not a label.
+  static const Map<String, String> titleFontLabels = {
+    'great_vibes': 'Great Vibes',
+    'allura': 'Allura',
+    'alex_brush': 'Alex Brush',
+    'bodoni_moda': 'Bodoni Moda',
+    'cormorant_garamond': 'Cormorant Garamond',
+    'cinzel': 'Cinzel',
+    'serif': 'Playfair Display',
+    'clean': 'Inter',
+    'typewriter': 'Courier Prime',
+    'playful': 'Fredoka',
+    'impact': 'Oswald',
+  };
+
+  /// Applies the typeface for [id] on top of [base].
+  ///
+  /// Shared by the font picker and the live preview. The preview previously
+  /// hardcoded 'Montserrat', so choosing Great Vibes changed the render but not
+  /// the preview the user was judging it by.
+  ///
+  /// google_fonts resolves these over the network at runtime. Two failure modes
+  /// are handled: a synchronous throw (no network / fetching disabled) falls back
+  /// to [base], and an async load failure leaves an unresolvable family, which is
+  /// why an explicit [fontFamilyFallback] is attached. Without it the glyphs fall
+  /// through to whatever the host default is — which in a test host is Ahem, and
+  /// Ahem draws every character as a solid box.
+  static TextStyle titleFontStyle(String id, TextStyle base) {
+    const fallback = <String>['Roboto', 'sans-serif'];
+    base = base.copyWith(fontFamilyFallback: fallback);
+    // When fetching is off (screenshot capture, and any host without network)
+    // google_fonts can still register the family without glyph data, which draws
+    // every character as an empty box. Never name a family we cannot guarantee.
+    if (!GoogleFonts.config.allowRuntimeFetching) return base;
+    try {
+      switch (id) {
+        case 'great_vibes':
+          return GoogleFonts.greatVibes(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'allura':
+          return GoogleFonts.allura(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'alex_brush':
+          return GoogleFonts.alexBrush(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'bodoni_moda':
+          return GoogleFonts.bodoniModa(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'cormorant_garamond':
+          return GoogleFonts.cormorantGaramond(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'cinzel':
+          return GoogleFonts.cinzel(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'serif':
+          return GoogleFonts.playfairDisplay(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'clean':
+          return GoogleFonts.inter(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'typewriter':
+          return GoogleFonts.courierPrime(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'playful':
+          return GoogleFonts.fredoka(textStyle: base).copyWith(fontFamilyFallback: fallback);
+        case 'impact':
+          return GoogleFonts.oswald(textStyle: base).copyWith(fontFamilyFallback: fallback);
+      }
+    } catch (_) {
+      // google_fonts fetches at runtime; offline it throws and we keep [base].
+    }
+    return base;
+  }
+
   Widget _buildTitleStageView() {
     final hasPhoto = _photos.isNotEmpty;
     final photoPath = hasPhoto ? _photos.first.path : null;
+    final backdropImage =
+        photoPath == null ? null : SnapsReorderStrip.photoImageCache[photoPath];
 
     return SingleChildScrollView(
       controller: _scrollController,
@@ -4811,7 +4909,7 @@ class HomeScreenState extends State<HomeScreen> {
                               border: Border.all(color: const Color(0x18FFFFFF)),
                             ),
                             child: Text(
-                              _titleAudioTiming == 'with_music' ? '🎵 AUDIO OVERLAY' : '⏳ INTRO BUMPER',
+                              _titleAudioTiming == 'with_music' ? 'AUDIO OVERLAY' : 'INTRO BUMPER',
                               style: const TextStyle(
                                 fontFamily: 'Montserrat',
                                 fontSize: 8,
@@ -4862,9 +4960,12 @@ class HomeScreenState extends State<HomeScreen> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        // Optional Photo Backdrop Scrim
-                        if (_titleBgSurface == 'video_overlay' && photoPath != null && File(photoPath).existsSync()) ...[
-                          Image.file(File(photoPath), fit: BoxFit.cover),
+                        // Optional Photo Backdrop Scrim.
+                        // Uses the already-decoded image the photo strip holds,
+                        // so the preview shows the real backdrop instead of a
+                        // black card, and build() does no synchronous disk IO.
+                        if (_titleBgSurface == 'video_overlay' && backdropImage != null) ...[
+                          RawImage(image: backdropImage, fit: BoxFit.cover),
                           Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
@@ -4898,15 +4999,17 @@ class HomeScreenState extends State<HomeScreen> {
                                 Text(
                                   _titleTextController.text.trim().isEmpty ? 'SUMMER MEMORIES' : _titleTextController.text.trim().toUpperCase(),
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: _titleFontSize == 'small' ? 16 : (_titleFontSize == 'medium' ? 20 : (_titleFontSize == 'xlarge' ? 26 : 22)),
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 2.0,
-                                    color: const Color(0xFFF2F4F7),
-                                    shadows: const [
-                                      Shadow(color: Color(0x80000000), offset: Offset(0, 2), blurRadius: 6),
-                                    ],
+                                  style: titleFontStyle(
+                                    _titleFont,
+                                    TextStyle(
+                                      fontSize: _titleFontSize == 'small' ? 16 : (_titleFontSize == 'medium' ? 20 : (_titleFontSize == 'xlarge' ? 26 : 22)),
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 2.0,
+                                      color: const Color(0xFFF2F4F7),
+                                      shadows: const [
+                                        Shadow(color: Color(0x80000000), offset: Offset(0, 2), blurRadius: 6),
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 8),

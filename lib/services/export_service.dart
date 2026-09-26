@@ -23,7 +23,8 @@ class ExportService {
     final file = File(videoPath);
     if (!file.existsSync()) {
       if (!context.mounted) return false;
-      _showToast(context, '⚠️ Video file not found on device.');
+      _showToast(context, 'Video file not found on device.',
+          icon: Icons.warning_amber_rounded);
       return false;
     }
 
@@ -33,7 +34,8 @@ class ExportService {
         final granted = await Gal.requestAccess(toAlbum: true);
         if (!granted) {
           if (!context.mounted) return false;
-          _showToast(context, '⚠️ Storage permission needed to save to gallery.');
+          _showToast(context, 'Storage permission needed to save to gallery.',
+              icon: Icons.warning_amber_rounded);
           return false;
         }
       }
@@ -41,15 +43,14 @@ class ExportService {
       await Gal.putVideo(videoPath, album: 'SnapBeat Studio');
 
       if (!context.mounted) return false;
-      final toastText = autoTriggered
-          ? '✓ Saved to Photos (SnapBeat Studio album)'
-          : '✓ Saved to Photos (SnapBeat Studio album)';
-      _showToast(context, toastText);
+      _showToast(context, 'Saved to Photos (SnapBeat Studio album)',
+          icon: Icons.check_circle_outline_rounded);
       return true;
     } catch (e) {
       debugPrint('Gal save error: $e');
       if (!context.mounted) return false;
-      _showToast(context, 'Unable to save to gallery. Please check storage permissions.');
+      _showToast(context, 'Unable to save to gallery. Please check storage permissions.',
+          icon: Icons.error_outline_rounded);
       return false;
     }
   }
@@ -64,7 +65,8 @@ class ExportService {
     final file = File(videoPath);
     if (!file.existsSync()) {
       if (!context.mounted) return false;
-      _showToast(context, '⚠️ Video file not found.');
+      _showToast(context, 'Video file not found.',
+          icon: Icons.warning_amber_rounded);
       return false;
     }
 
@@ -75,7 +77,7 @@ class ExportService {
       await SharePlus.instance.share(
         ShareParams(
           files: [xfile],
-          text: 'Created with SnapBeat ⚡ #SnapBeat #BeatSync',
+          text: 'Created with SnapBeat #SnapBeat #BeatSync',
           sharePositionOrigin: origin,
         ),
       );
@@ -83,24 +85,34 @@ class ExportService {
     } catch (e) {
       debugPrint('Share error: $e');
       if (!context.mounted) return false;
-      _showToast(context, 'Unable to share. Please try again.');
+      _showToast(context, 'Unable to share. Please try again.',
+          icon: Icons.error_outline_rounded);
       return false;
     }
   }
 
-  static void _showToast(BuildContext context, String message) {
+  /// Shows a toast. [icon] is drawn as a vector glyph rather than baked into
+  /// [message] as an emoji: no font SnapBeat ships carries emoji, so inline
+  /// emoji rendered as tofu boxes.
+  static void _showToast(BuildContext context, String message, {IconData? icon}) {
     if (!context.mounted) return;
+    const textStyle = TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 11.5,
+      color: Color(0xFF2B2B2D),
+    );
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.w700,
-            fontSize: 11.5,
-            color: Color(0xFF2B2B2D),
-          ),
+        content: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16, color: const Color(0xFF2B2B2D)),
+              const SizedBox(width: 8),
+            ],
+            Expanded(child: Text(message, style: textStyle)),
+          ],
         ),
         backgroundColor: const Color(0xFFFAF6EE),
         behavior: SnackBarBehavior.floating,

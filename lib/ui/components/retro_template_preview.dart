@@ -1026,9 +1026,18 @@ class _FullscreenTemplatePreviewDialogState
                       onPressed: () {
                         widget.onSelect();
                       },
-                      child: Text(
-                        widget.isSelected ? 'CURRENTLY SELECTED ✓' : 'USE THIS TEMPLATE',
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.isSelected) ...[
+                            const Icon(Icons.check_rounded, size: 14),
+                            const SizedBox(width: 6),
+                          ],
+                          Text(
+                            widget.isSelected ? 'CURRENTLY SELECTED' : 'USE THIS TEMPLATE',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                          ),
+                        ],
                       ),
                     ),
                   ),

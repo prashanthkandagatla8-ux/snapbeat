@@ -137,7 +137,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
             _isSaving = false;
             if (success) {
               _isSaved = true;
-              _saveStatus = "✓ Saved to Photos (SnapBeat Studio album)";
+              _saveStatus = "Saved to Photos (SnapBeat Studio album)";
             }
           });
         }
@@ -440,12 +440,12 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _saveStatus.startsWith('✓')
+                          color: _isSaved
                               ? AppColors.vuGreen.withValues(alpha: 0.15)
                               : const Color(0xFFFFFFFF).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: _saveStatus.startsWith('✓')
+                            color: _isSaved
                                 ? AppColors.vuGreen
                                 : const Color(0xFFFFFFFF),
                             width: 1,
@@ -461,7 +461,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                                   fontFamily: 'Montserrat',
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: _saveStatus.startsWith('✓')
+                                  color: _isSaved
                                       ? AppColors.vuGreen
                                       : AppColors.textEngraved,
                                 ),
@@ -485,7 +485,7 @@ class _VideoPreviewDialogState extends State<VideoPreviewDialog> {
                                 ? Icons.check_circle_rounded
                                 : (_isSaving ? Icons.hourglass_top_rounded : Icons.download_rounded),
                             label: _isSaved
-                                ? "SAVED ✓"
+                                ? "SAVED"
                                 : (_isSaving ? "SAVING..." : "SAVE TO PHOTOS"),
                             onTap: _handleSaveToPhotos,
                           ),

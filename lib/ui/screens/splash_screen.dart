@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../theme/app_theme.dart';
 import 'sample_reel_showcase_screen.dart';
 import 'home_screen.dart';
 
@@ -86,14 +87,9 @@ class _SplashScreenState extends State<SplashScreen> {
     } catch (_) {}
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-    );
+    // Handing off from the black splash to the Ceramic White app surface, so the
+    // status bar has to flip to dark icons or it disappears into the background.
+    SystemChrome.setSystemUIOverlayStyle(AppTheme.ceramicOverlay);
 
     final prefs = await SharedPreferences.getInstance();
     final skipDemo = prefs.getBool('snapbeat_skip_showcase_demo') ?? false;

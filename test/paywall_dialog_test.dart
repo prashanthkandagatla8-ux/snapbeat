@@ -16,17 +16,25 @@ Future<void> loadFont(String family, String path) async {
   await fontLoader.load();
 }
 
-Future<void> capturePng(GlobalKey key, String filename) async {
-  final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-  final image = await boundary.toImage(pixelRatio: 2.0);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  if (byteData != null) {
-    final file = File(filename);
-    file.parent.createSync(recursive: true);
-    file.writeAsBytesSync(byteData.buffer.asUint8List());
-    // ignore: avoid_print
-    print('SAVED_PAYWALL_SCREENSHOT: $filename');
-  }
+/// Rasterises [key] to a PNG.
+///
+/// Must run inside [WidgetTester.runAsync]: `toImage` needs a real event loop,
+/// and calling it in the fake-async zone leaves the test framework unable to
+/// complete the test.
+Future<void> capturePng(WidgetTester tester, GlobalKey key, String filename) async {
+  await tester.runAsync(() async {
+    final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final image = await boundary.toImage(pixelRatio: 2.0);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    if (byteData != null) {
+      final file = File(filename);
+      file.parent.createSync(recursive: true);
+      file.writeAsBytesSync(byteData.buffer.asUint8List());
+      // ignore: avoid_print
+      print('SAVED_PAYWALL_SCREENSHOT: $filename');
+    }
+  });
 }
 
 void main() {
@@ -75,43 +83,61 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // Verify key titles and features
-    expect(find.text('SnapBeat Pro'), findsOneWidget);
-    expect(find.text('Unlock Your Creative Potential'), findsOneWidget);
+    // Verify key titles
+    expect(find.text('STUDIO PRO'), findsOneWidget);
+    expect(find.text('Unlock 1080p Master & Zero Watermark'), findsOneWidget);
     expect(find.text('Weekly Pass'), findsOneWidget);
     expect(find.text('Monthly VIP'), findsOneWidget);
     expect(find.text('Annual VIP'), findsOneWidget);
     expect(find.text('Best Value'), findsOneWidget);
-    expect(find.text('Save 57%'), findsOneWidget);
-    expect(find.text('Subscribe'), findsOneWidget);
+    // Annual discount, derived from INR 499*12 -> 2,499 and USD 4.99*12 -> 24.99.
+    expect(find.text('SAVE 58%'), findsOneWidget);
+    expect(find.text('UPGRADE TO PRO'), findsOneWidget);
     expect(find.text('Terms of Service'), findsOneWidget);
     expect(find.text('Privacy Policy'), findsOneWidget);
     expect(find.text('Restore Purchase'), findsOneWidget);
 
-    // Verify features
-    expect(find.text('Unlimited Exports'), findsOneWidget);
-    expect(find.text('No Watermarks'), findsOneWidget);
-    expect(find.text('100+ Pro Filters'), findsOneWidget);
-    expect(find.text('All Weekly Features'), findsOneWidget);
-    expect(find.text('Premium Transitions'), findsOneWidget);
-    expect(find.text('Gold Assets & Music'), findsOneWidget);
-    expect(find.text('Complete Creative Suite'), findsOneWidget);
-    expect(find.text('Priority Support'), findsOneWidget);
-    expect(find.text('Cloud Sync'), findsOneWidget);
+    // Every tier advertises the same four entitlements, one row per card.
+    for (final feature in const [
+      '1080p Master export',
+      'No watermark',
+      'Priority render queue',
+      'Unlimited exports',
+    ]) {
+      expect(find.text(feature), findsNWidgets(3), reason: 'missing: $feature');
+    }
 
-    // Capture screenshot for visual inspection with Monthly VIP selected
-    await capturePng(repaintKey, 'store_assets/screenshots/paywall_screenshot.png');
+    // Credit top-up packs are intentionally gone: the consumable products do
+    // not exist in App Store Connect / Play Console.
+    expect(find.text('CREDIT TOP-UP PACKS'), findsNothing);
 
-    // Tap Weekly Pass to verify selection change
+    // Selecting a tier must retarget the App Store 3.1.2 auto-renewal
+    // disclaimer, since that is the text stating what the user is charged.
+    String disclaimer() {
+      final hit = find.textContaining('at confirmation of purchase');
+      expect(hit, findsOneWidget, reason: 'auto-renewal disclaimer missing');
+      return tester.widget<Text>(hit.first).data ?? '';
+    }
+
+    expect(disclaimer(), contains('/ Month'),
+        reason: 'default selection should be Monthly');
+
     await tester.tap(find.text('Weekly Pass'), warnIfMissed: false);
     for (int i = 0; i < 3; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    expect(disclaimer(), contains('/ Week'),
+        reason: 'disclaimer did not follow the Weekly selection');
 
-    // Tap Monthly VIP back
+    // Back to Monthly for the captured screenshot.
     await tester.tap(find.text('Monthly VIP'), warnIfMissed: false);
     for (int i = 0; i < 3; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    expect(disclaimer(), contains('/ Month'));
+
+    // Capture last: rasterising perturbs the TestAsyncUtils guard stack, so any
+    // tester interaction after it deadlocks.
+    await capturePng(tester, repaintKey, 'store_assets/screenshots/paywall_screenshot.png');
   });
 }

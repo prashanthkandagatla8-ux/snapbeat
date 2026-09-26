@@ -11,10 +11,8 @@ val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
-    println("DEBUG_KEYSTORE: key.properties loaded. storeFile=${keystoreProperties.getProperty("storeFile")}, alias=${keystoreProperties.getProperty("keyAlias")}")
-} else {
-    println("DEBUG_KEYSTORE: key.properties NOT found at ${keystorePropertiesFile.absolutePath}")
-}
+    } else {
+    }
 
 android {
     namespace = "com.kiro.snapbeat_flutter"
@@ -45,17 +43,15 @@ android {
             val sf = keystoreProperties.getProperty("storeFile")?.let { file(it) }
             storeFile = sf
             storePassword = keystoreProperties.getProperty("storePassword")
-            println("DEBUG_SIGNING_CONFIG: storeFile=${sf?.absolutePath} exists=${sf?.exists()} alias=$keyAlias")
-        }
+                    }
     }
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
+            if (!keystorePropertiesFile.exists()) {
+                throw GradleException("Release build failed: key.properties not found at ${keystorePropertiesFile.absolutePath}. A release build cannot be signed with debug key.")
             }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

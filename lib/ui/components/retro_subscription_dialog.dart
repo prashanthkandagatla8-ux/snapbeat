@@ -98,13 +98,32 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
 
   bool _isConnectingStore = false;
 
+  /// True only between this dialog starting a purchase and the store reaching a
+  /// terminal state for it.
+  ///
+  /// The CTA's disabled state is derived from this rather than from
+  /// `SubscriptionManager.isPurchasing` directly. A lock left set by an earlier,
+  /// abandoned attempt therefore cannot disable the button — that coupling is
+  /// what made the subscribe button unresponsive in the build Apple rejected.
+  bool _purchaseStartedHere = false;
+
   @override
   void initState() {
     super.initState();
     _sm.addListener(_onManagerUpdate);
-    if (_sm.products.isEmpty) {
+    // Deferred to after the first frame: these all call notifyListeners(), and
+    // doing that during build triggers setState()-during-build in every other
+    // listener of the manager.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // The paywall is on screen, so no StoreKit sheet is. Any purchase lock
+      // left over from an earlier attempt is stale.
+      _sm.resetPurchaseUiLock();
+      _sm.clearStatusMessage();
+      // Always (re)attempt a product load: init() skips it when the store was
+      // unavailable at launch, and that must not leave the paywall priceless.
       _sm.loadProducts();
-    }
+    });
   }
 
   @override
@@ -114,7 +133,12 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   }
 
   void _onManagerUpdate() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    // The store reached a terminal state, so this dialog is no longer waiting.
+    if (_purchaseStartedHere && !_sm.isPurchasing) {
+      _purchaseStartedHere = false;
+    }
+    setState(() {});
   }
 
   String _getPriceAmount(_PaywallCardConfig card) {
@@ -190,7 +214,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
         product = _sm.productForTier(_selectedTier);
       }
 
-      // 3. Fallback: match by tier name if IDs differ
+      // 3. Fallback: match by tier name if IDs differ.
+      // Deliberately NOT falling back to `products.values.first` — that could
+      // charge the user for a tier they did not select.
       if (product == null && _sm.products.isNotEmpty) {
         final tierKey = _selectedTier.name.toLowerCase();
         for (final p in _sm.products.values) {
@@ -199,14 +225,21 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
             break;
           }
         }
-        product ??= _sm.products.values.first;
       }
 
       // 4. If product found, trigger StoreKit / Play Billing
       if (product != null) {
+        _purchaseStartedHere = true;
         final initiated = await _sm.buySubscription(product);
-        if (!initiated && mounted && _sm.statusMessage != null) {
-          _showInDialogNotice('Store Notice', _sm.statusMessage!);
+        if (!initiated) {
+          _purchaseStartedHere = false;
+          if (mounted) {
+            _showInDialogNotice(
+              'Store Notice',
+              _sm.statusMessage ??
+                  'The purchase could not be started. Please try again.',
+            );
+          }
         }
       } else {
         if (mounted) {
@@ -219,47 +252,6 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     } catch (e) {
       if (mounted) {
         _showInDialogNotice('Purchase Error', 'Could not initiate purchase: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isConnectingStore = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _handleTopUpPurchase(CreditTopUp topUp) async {
-    HapticFeedback.heavyImpact();
-    if (_isConnectingStore) return;
-
-    setState(() {
-      _isConnectingStore = true;
-    });
-
-    try {
-      ProductDetails? product = _sm.productForTopUp(topUp);
-      if (product == null) {
-        await _sm.loadProducts();
-        product = _sm.productForTopUp(topUp);
-      }
-
-      if (product != null) {
-        final initiated = await _sm.buyTopUp(product);
-        if (!initiated && mounted && _sm.statusMessage != null) {
-          _showInDialogNotice('Top-Up Notice', _sm.statusMessage!);
-        }
-      } else {
-        if (mounted) {
-          _showInDialogNotice(
-            'Store Unavailable',
-            'Top-up pack is currently unavailable from ${Platform.isIOS ? "App Store" : "Google Play"}. Please try again shortly.',
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        _showInDialogNotice('Top-Up Error', 'Could not initiate top-up: $e');
       }
     } finally {
       if (mounted) {
@@ -543,9 +535,9 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
             _buildSubscribeButton(isPurchasing),
             const SizedBox(height: 14),
 
-            // Credit Top-Up Section
-            _buildTopUpSection(isPurchasing),
-            const SizedBox(height: 16),
+            // Credit top-up packs are intentionally absent: the consumable
+            // products do not exist in App Store Connect / Play Console, so the
+            // section rendered buttons that could never transact.
 
             // App Store Footer Links
             _buildFooterLinks(isPurchasing),
@@ -734,7 +726,10 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
   }
 
   Widget _buildSubscribeButton(bool isPurchasing) {
-    final bool showSpinner = isPurchasing || _isConnectingStore;
+    // Only this dialog's own in-flight work disables the CTA. A stale manager
+    // lock must never be able to make the button permanently untappable.
+    final bool showSpinner =
+        _isConnectingStore || (_purchaseStartedHere && isPurchasing);
     return GestureDetector(
       onTap: showSpinner ? null : _handleSubscribe,
       child: AnimatedContainer(
@@ -804,175 +799,6 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
     );
   }
 
-  Widget _buildTopUpSection(bool isPurchasing) {
-    final isProUser = _sm.isPro;
-    final pack10Price = _sm.formattedTopUpPrice(CreditTopUp.pack10);
-    final pack50Price = _sm.formattedTopUpPrice(CreditTopUp.pack50);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF13151D),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0x26FFFFFF), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
-              const SizedBox(width: 6),
-              const Text(
-                'CREDIT TOP-UP PACKS',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  color: Colors.white,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isProUser ? const Color(0x2610B981) : const Color(0x20FFFFFF),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  isProUser ? 'PRO UNLOCKED' : 'PRO EXCLUSIVE',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: isProUser ? const Color(0xFF10B981) : Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Extra 1080p Master & Priority Queue export credits',
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 10,
-              color: Color(0xFF94A3B8),
-            ),
-          ),
-          const SizedBox(height: 10),
-          if (!isProUser)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              decoration: BoxDecoration(
-                color: const Color(0x15FFFFFF),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0x20FFFFFF)),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.lock_outline_rounded, color: Colors.white70, size: 14),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Upgrade to any Pro plan above to buy additional render credits.',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 10.5,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTopUpButton(
-                    title: '10 CREDITS',
-                    price: pack10Price,
-                    badge: '+10',
-                    onTap: (isPurchasing || _isConnectingStore)
-                        ? null
-                        : () => _handleTopUpPurchase(CreditTopUp.pack10),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildTopUpButton(
-                    title: '50 CREDITS',
-                    price: pack50Price,
-                    badge: '+50 · SAVE',
-                    isBestValue: true,
-                    onTap: (isPurchasing || _isConnectingStore)
-                        ? null
-                        : () => _handleTopUpPurchase(CreditTopUp.pack50),
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopUpButton({
-    required String title,
-    required String price,
-    required String badge,
-    bool isBestValue = false,
-    required VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E212B),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isBestValue ? Colors.white : const Color(0xFF2E3547),
-            width: isBestValue ? 1.2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              price,
-              style: const TextStyle(
-                fontFamily: 'Montserrat',
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFooterLinks(bool isPurchasing) {
     return Wrap(
       alignment: WrapAlignment.center,
@@ -1009,7 +835,11 @@ class _RetroSubscriptionDialogState extends State<RetroSubscriptionDialog> {
           ),
         ),
         GestureDetector(
-          onTap: isPurchasing ? null : _handleRestore,
+          // Same rule as the CTA: only this dialog's own in-flight purchase may
+          // disable Restore, never a stale manager lock.
+          onTap: (_isConnectingStore || (_purchaseStartedHere && isPurchasing))
+              ? null
+              : _handleRestore,
           child: const Text(
             'Restore Purchase',
             style: TextStyle(

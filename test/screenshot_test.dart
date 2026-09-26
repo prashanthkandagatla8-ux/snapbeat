@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:snapbeat_flutter/models/models.dart';
 import 'package:snapbeat_flutter/services/queue_manager.dart';
 import 'package:snapbeat_flutter/theme/app_colors.dart';
+import 'package:snapbeat_flutter/theme/app_theme.dart';
 import 'package:snapbeat_flutter/ui/components/metal_chassis_scaffold.dart';
 import 'package:snapbeat_flutter/ui/components/retro_mechanical_button.dart';
 import 'package:snapbeat_flutter/ui/components/snaps_reorder_strip.dart';
@@ -57,23 +59,22 @@ Future<void> capturePng(WidgetTester tester, GlobalKey key, String filename) asy
   });
 }
 
-ThemeData get testTheme => ThemeData(
-  useMaterial3: true,
-  brightness: Brightness.light,
-  scaffoldBackgroundColor: AppColors.ceramicWhite,
-  primaryColor: AppColors.textInkBlack,
-  colorScheme: const ColorScheme.light(
-    primary: AppColors.textInkBlack,
-    secondary: AppColors.textInkSecondary,
-    surface: AppColors.ceramicWhite,
-    onPrimary: Colors.white,
-    onSecondary: Colors.white,
-    onSurface: AppColors.textInkBlack,
-  ),
-  cardColor: AppColors.ceramicWhite,
-  dividerColor: AppColors.chassisBevelLight,
-  fontFamily: 'Montserrat', fontFamilyFallback: const ['Montserrat', 'Segoe UI', 'Roboto'], 
-);
+/// The screenshots must be of the theme the app actually ships.
+///
+/// This used to be a hand-written copy that had drifted: it declared
+/// `Brightness.light` with a ceramic ColorScheme while `AppTheme` shipped
+/// `Brightness.dark` with a dark one. Every screenshot reviewed up to 2026-09-26
+/// was therefore of a theme no user would ever see. Referencing the real theme
+/// makes that divergence impossible.
+///
+/// The only deliberate difference is `fontFamily`: the app names no family (see
+/// AppTheme) and on this Windows host the platform default has no bold weights
+/// worth capturing, so a local face stands in. Typography in these captures is
+/// therefore indicative, not exact — on device the text renders in SF Pro (iOS)
+/// or Roboto (Android).
+ThemeData get testTheme => AppTheme.ceramicLight.copyWith(
+      textTheme: AppTheme.ceramicLight.textTheme.apply(fontFamily: 'Montserrat'),
+    );
 
 List<PhotoItem> getSamplePhotos() {
   const basePath = r'C:\MyProjects\snapbeat_flutter\assets\sample_photos';
@@ -255,6 +256,12 @@ void main() {
     await loadFont('Ahem', segoeBoldPath);
     await loadFont('packages/flutter_test/Ahem', segoeBoldPath);
     await loadFont('.AppleSystemUIFont', segoeBoldPath);
+
+    // google_fonts would otherwise try to fetch title typefaces from
+    // fonts.gstatic.com during the capture. That both fails here (no network in
+    // the test host) and makes captures non-deterministic. Disabling it makes
+    // the helper fall through to its declared fallback instead.
+    GoogleFonts.config.allowRuntimeFetching = false;
   });
 
   setUp(() async {
@@ -262,6 +269,22 @@ void main() {
   });
 
   testWidgets('generate_all_ui_screenshots', (WidgetTester tester) async {
+    // This host has no platform plugins (audioplayers, in_app_purchase) and no
+    // network for google_fonts. Those errors are properties of the harness, not
+    // of the UI being captured, so they are filtered rather than allowed to fail
+    // the run. Anything else still fails normally.
+    final previousOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final text = details.exception.toString();
+      final isHostNoise = text.contains('MissingPluginException') ||
+          text.contains('channel-error') ||
+          text.contains('Unable to establish connection on channel') ||
+          text.contains('fonts.gstatic.com');
+      if (isHostNoise) return;
+      previousOnError?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = previousOnError);
+
     tester.view.physicalSize = const Size(1440, 3120);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);

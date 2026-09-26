@@ -511,6 +511,14 @@ class ProControlsCard extends StatelessWidget {
     );
   }
 
+  /// The quality the render will actually use.
+  ///
+  /// `selectedQuality` defaults to '1080p' for everyone, but `home_screen`
+  /// overrides it to '360p' for non-subscribers when it builds the request. The
+  /// rocker used to highlight `selectedQuality` directly, so a free user saw
+  /// "1080p Master" lit up while the app rendered 360p.
+  String get _effectiveQuality => isPro == true ? selectedQuality : '360p';
+
   Widget _buildQualityRocker({
     required BuildContext context,
     required String label,
@@ -518,82 +526,114 @@ class ProControlsCard extends StatelessWidget {
     required String value,
     required bool isProRequired,
   }) {
-    final isSelected = selectedQuality == value;
+    final isSelected = _effectiveQuality == value;
+    // Upscales above the free 360p standard require a subscription. This used to
+    // be enforced in onTap but never shown, so locked tiers were indistinguishable
+    // from available ones.
+    final isLocked = isPro != true && value != '360p';
+
+    final Color labelColor = isLocked
+        ? const Color(0xFF6B7280)
+        : (isSelected ? Colors.white : const Color(0xFFCBD5E1));
+    final Color sublabelColor = isLocked
+        ? const Color(0xFF4B5563)
+        : (isSelected ? const Color(0xB3FFFFFF) : const Color(0xFF94A3B8));
 
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          if (isPro != true && value != '360p') {
-            RetroSubscriptionDialog.show(context);
-            return;
-          }
-          onSelectQuality(value);
-        },
-        child: Container(
-          padding: isSelected ? const EdgeInsets.all(1.5) : EdgeInsets.zero,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(7.5),
-            gradient: isSelected ? AppColors.iridescentGradient : null,
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFFB026FF).withValues(alpha: 0.25),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ]
-                : null,
-          ),
+      child: Semantics(
+        button: true,
+        enabled: true,
+        selected: isSelected,
+        label: isLocked
+            ? '$label, $sublabel, requires Pro subscription'
+            : '$label, $sublabel',
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (isLocked) {
+              RetroSubscriptionDialog.show(
+                context,
+                reason: '$label export is part of SnapBeat Pro. '
+                    'Free renders are 360p.',
+              );
+              return;
+            }
+            onSelectQuality(value);
+          },
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            padding: isSelected ? const EdgeInsets.all(1.5) : EdgeInsets.zero,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF07080A)
-                  : const Color(0xFF030405),
-              borderRadius: BorderRadius.circular(6),
-              border: isSelected ? null : Border.all(
-                color: const Color(0x10FFFFFF),
-                width: 1.0,
-              ),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: isSelected
-                            ? Colors.white
-                            : const Color(0xFFCBD5E1),
+              borderRadius: BorderRadius.circular(7.5),
+              gradient: isSelected ? AppColors.iridescentGradient : null,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFFB026FF).withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        spreadRadius: 1,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  sublabel,
-                  style: TextStyle(
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.4,
-                    color: isSelected
-                        ? const Color(0xB3FFFFFF)
-                        : const Color(0xFF94A3B8),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF07080A)
+                    : const Color(0xFF030405),
+                borderRadius: BorderRadius.circular(6),
+                border: isSelected
+                    ? null
+                    : Border.all(
+                        color: isLocked
+                            ? const Color(0x08FFFFFF)
+                            : const Color(0x10FFFFFF),
+                        width: 1.0,
+                      ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isLocked) ...[
+                        Icon(Icons.lock_rounded, size: 9, color: labelColor),
+                        const SizedBox(width: 3),
+                      ],
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: labelColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    isLocked ? 'PRO' : sublabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 7.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.4,
+                      color: sublabelColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -630,88 +670,94 @@ class _BeatMotionEffectsSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.chassisBevelDark, width: 1),
       ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: false,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-          title: Row(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.iridescentGradient,
-                  boxShadow: [
-                    BoxShadow(color: Color(0x4000E5FF), blurRadius: 5, spreadRadius: 1),
-                  ],
+      // ExpansionTile paints its ink splashes on the nearest Material ancestor.
+      // Without this, that ancestor sits behind the Container background above,
+      // and the framework asserts the splashes will be invisible.
+      child: Material(
+        type: MaterialType.transparency,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            initiallyExpanded: false,
+            tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            title: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: AppColors.iridescentGradient,
+                    boxShadow: [
+                      BoxShadow(color: Color(0x4000E5FF), blurRadius: 5, spreadRadius: 1),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'BEAT MOTION EFFECTS',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF141720),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0x30FFFFFF)),
+              ),
+              child: Text(
+                '$activeCount ACTIVE',
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 0.8,
                 ),
               ),
-              const SizedBox(width: 8),
-              const Text(
-                'BEAT MOTION EFFECTS',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                  color: AppColors.textSecondary,
+            ),
+            children: [
+              Container(
+                height: 1,
+                color: AppColors.chassisBevelDark,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    _buildToggleRow(
+                      icon: Icons.flash_on_rounded,
+                      label: 'Burst Effects',
+                      hint: 'Rapid slice reveals on fast beats',
+                      value: enableBurst,
+                      onChanged: onToggleBurst,
+                    ),
+                    _buildToggleRow(
+                      icon: Icons.center_focus_strong_rounded,
+                      label: 'Beat Teaser',
+                      hint: 'Face and crop punch zoom on quiet beats',
+                      value: enableTeaser,
+                      onChanged: onToggleTeaser,
+                    ),
+                    _buildToggleRow(
+                      icon: Icons.vertical_align_bottom_rounded,
+                      label: 'Drop Impact',
+                      hint: 'Atmospheric gap before bass drops',
+                      value: enableDropIt,
+                      onChanged: onToggleDropIt,
+                      isLast: true,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFF141720),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0x30FFFFFF)),
-            ),
-            child: Text(
-              '$activeCount ACTIVE',
-              style: const TextStyle(
-                fontSize: 8,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: 0.8,
-              ),
-            ),
-          ),
-          children: [
-            Container(
-              height: 1,
-              color: AppColors.chassisBevelDark,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  _buildToggleRow(
-                    icon: Icons.flash_on_rounded,
-                    label: 'Burst Effects',
-                    hint: 'Rapid slice reveals on fast beats',
-                    value: enableBurst,
-                    onChanged: onToggleBurst,
-                  ),
-                  _buildToggleRow(
-                    icon: Icons.center_focus_strong_rounded,
-                    label: 'Beat Teaser',
-                    hint: 'Face and crop punch zoom on quiet beats',
-                    value: enableTeaser,
-                    onChanged: onToggleTeaser,
-                  ),
-                  _buildToggleRow(
-                    icon: Icons.vertical_align_bottom_rounded,
-                    label: 'Drop Impact',
-                    hint: 'Atmospheric gap before bass drops',
-                    value: enableDropIt,
-                    onChanged: onToggleDropIt,
-                    isLast: true,
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

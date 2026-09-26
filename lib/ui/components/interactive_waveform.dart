@@ -181,9 +181,15 @@ class _InteractiveWaveformState extends State<InteractiveWaveform> with SingleTi
                       ),
                     ),
                     SliderTheme(
+                      // Colours are intentionally swapped relative to the END
+                      // slider. For a start handle the *kept* audio is the part
+                      // after the thumb, so painting the region after the thumb
+                      // dark makes both halves of the pair read the same way:
+                      // dark = kept. With the default mapping the two sliders
+                      // looked like unrelated controls.
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: AppColors.pianoBlackBase,
-                        inactiveTrackColor: const Color(0xFFDCE1E6),
+                        activeTrackColor: const Color(0xFFDCE1E6),
+                        inactiveTrackColor: AppColors.pianoBlackBase,
                         thumbColor: AppColors.pianoBlackBase,
                         trackHeight: 3,
                         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
