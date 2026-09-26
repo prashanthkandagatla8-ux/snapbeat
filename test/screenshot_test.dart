@@ -289,8 +289,15 @@ void main() {
     }
     await capturePng(tester, key, '01_home_screen.png');
 
-    // 2. Photos Stage
+    // 1b. Music Stage with Animated Retro Turntable Deck
     final homeState = tester.state<HomeScreenState>(find.byType(HomeScreen));
+    homeState.setScreenshotState(currentTab: "audio_deck");
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await capturePng(tester, key, '00_music_turntable_deck.png');
+
+    // 2. Photos Stage
     homeState.setScreenshotState(currentTab: "photos", photos: getSamplePhotos());
     for (int i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 100));

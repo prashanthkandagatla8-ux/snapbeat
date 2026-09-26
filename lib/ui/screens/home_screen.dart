@@ -23,7 +23,7 @@ import '../../services/api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../services/subscription_manager.dart';
 import '../components/retro_pro_badge.dart';
-import '../components/web_audio_deck.dart';
+import '../components/retro_turntable_deck.dart';
 import '../components/interactive_waveform.dart';
 import '../components/snaps_reorder_strip.dart';
 import '../components/pro_controls_card.dart';
@@ -801,6 +801,22 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _playNextTrack() {
+    final list = SoundTrack.builtInLibrary;
+    int currentIndex = list.indexWhere((t) => _selectedMusicTitle.contains(t.title));
+    if (currentIndex == -1) currentIndex = 0;
+    final nextTrack = list[(currentIndex + 1) % list.length];
+    _onSelectBuiltInTrack(nextTrack);
+  }
+
+  void _playPreviousTrack() {
+    final list = SoundTrack.builtInLibrary;
+    int currentIndex = list.indexWhere((t) => _selectedMusicTitle.contains(t.title));
+    if (currentIndex == -1) currentIndex = 0;
+    final prevTrack = list[(currentIndex - 1 + list.length) % list.length];
+    _onSelectBuiltInTrack(prevTrack);
+  }
+
   String? _getBpmFromTitle() {
     final match = RegExp(r'(\d+)\s*BPM', caseSensitive: false).firstMatch(_selectedMusicTitle);
     if (match != null) {
@@ -1510,23 +1526,98 @@ class HomeScreenState extends State<HomeScreen> {
                         // UNIFIED HOME STUDIO VIEW
                         _buildUnifiedHomeView(),
                       ] else if (_currentTab == "audio_deck") ...[
-                        // STAGE 1: MUSIC FIRST - Web Audio Console Deck
-                        WebAudioConsoleDeck(
+                        // STAGE 1: MUSIC FIRST - Retro Turntable Animated Player Deck
+                        RetroTurntableDeck(
                           isPlaying: _isPlayingAudio,
                           trackTitle: _selectedMusicTitle,
+                          artistOrGenre: _getGenreForSelected(),
+                          bpm: _getBpmFromTitle(),
                           currentSeconds: _currentPlaybackSeconds,
                           totalSeconds: _audioDuration,
-                          bpm: _getBpmFromTitle(),
-                          genre: _getGenreForSelected(),
-                          isCustom: _selectedMusic != null && !_selectedMusicTitle.contains('BPM'),
                           onTogglePlay: _togglePlayAudio,
                           onStop: _stopAudio,
-                          onPickAudio: _pickMusic,
-                          onPickVideoAudio: _pickMusicFromVideo,
+                          onPrevious: _playPreviousTrack,
+                          onNext: _playNextTrack,
                           onOpenLibrary: () => SoundLibraryDialog.show(
                             context: context,
                             currentTrackTitle: _selectedMusicTitle,
                             onSelectTrack: _onSelectBuiltInTrack,
+                          ),
+                          onSeek: (secs) async {
+                            await _audioPlayer.seek(Duration(milliseconds: (secs * 1000).toInt()));
+                            setState(() => _currentPlaybackSeconds = secs);
+                          },
+                        ),
+
+                        // Quick Custom Import Actions
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: _pickMusic,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryWhite,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppColors.ceramicWhiteRim, width: 1),
+                                      boxShadow: AppColors.tactile3DBevel,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: const [
+                                        Icon(Icons.file_upload_outlined, size: 16, color: AppColors.primaryDarkText),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'IMPORT AUDIO',
+                                          style: TextStyle(
+                                            fontFamily: 'Montserrat',
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.5,
+                                            color: AppColors.primaryDarkText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: _pickMusicFromVideo,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryWhite,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppColors.ceramicWhiteRim, width: 1),
+                                      boxShadow: AppColors.tactile3DBevel,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: const [
+                                        Icon(Icons.video_library_outlined, size: 16, color: AppColors.primaryDarkText),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'EXTRACT VIDEO',
+                                          style: TextStyle(
+                                            fontFamily: 'Montserrat',
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.5,
+                                            color: AppColors.primaryDarkText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
