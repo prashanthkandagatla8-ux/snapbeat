@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
+import '../../services/subscription_manager.dart';
 
 class MasterActionDeck extends StatelessWidget {
   final String currentMode; // 'home', 'music', 'photos', 'title', 'render', 'queue'
@@ -290,6 +291,10 @@ class MasterActionDeck extends StatelessWidget {
                           color: isInstant ? Colors.white : Colors.white54,
                         ),
                       ),
+                      if (!SubscriptionManager.instance.isPro) ...[
+                        const SizedBox(width: 3),
+                        const Icon(Icons.lock_rounded, size: 9, color: Colors.white70),
+                      ],
                     ],
                   ),
                 ),

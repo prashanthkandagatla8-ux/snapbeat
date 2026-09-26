@@ -322,6 +322,49 @@ class AppColors {
     ),
   ];
 
+  // ─── Real 3D Tactile Specular Bevels ───
+  static final List<BoxShadow> tactile3DBevel = [
+    // Ambient soft drop shadow
+    BoxShadow(
+      color: const Color(0xFF000000).withValues(alpha: 0.08),
+      blurRadius: 16,
+      offset: const Offset(0, 8),
+    ),
+    // Contact drop shadow
+    BoxShadow(
+      color: const Color(0xFF000000).withValues(alpha: 0.05),
+      blurRadius: 5,
+      offset: const Offset(0, 2),
+    ),
+    // Specular top highlight catchlight lip
+    const BoxShadow(
+      color: Color(0x35FFFFFF),
+      blurRadius: 1,
+      offset: Offset(0, -1),
+    ),
+  ];
+
+  static final List<BoxShadow> darkTactile3DBevel = [
+    // Dense piano ambient shadow
+    BoxShadow(
+      color: const Color(0xFF000000).withValues(alpha: 0.55),
+      blurRadius: 18,
+      offset: const Offset(0, 8),
+    ),
+    // Sharp direct contact shadow
+    BoxShadow(
+      color: const Color(0xFF000000).withValues(alpha: 0.80),
+      blurRadius: 6,
+      offset: const Offset(0, 2),
+    ),
+    // Specular top rim catchlight
+    const BoxShadow(
+      color: Color(0x35FFFFFF),
+      blurRadius: 1,
+      offset: Offset(0, -1),
+    ),
+  ];
+
   // ─── 06. Silky Piano Black Gradients (24-Sep Spec §3.2) ───
   static const LinearGradient pianoBlackGradient = LinearGradient(
     begin: Alignment.topCenter,

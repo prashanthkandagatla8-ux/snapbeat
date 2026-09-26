@@ -134,7 +134,7 @@ class HomeScreenState extends State<HomeScreen> {
   String _selectedTemplate = "pendulum";
   String _selectedAspectRatio = "9:16";
   String _selectedQuality = "1080p";
-  String _renderSpeed = "instant"; // 'instant' (serverless) or 'queued'
+  String _renderSpeed = "queued"; // 'instant' (serverless) or 'queued'
   String _arrangementMode = "sequential";
 
   /// Calculates max photos dynamically based on track duration and beat tempo.
@@ -1381,20 +1381,52 @@ class HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (HomeScreen.wordmarkUiImage != null)
-                            RawImage(
-                              image: HomeScreen.wordmarkUiImage,
-                              height: 27,
-                              fit: BoxFit.contain,
-                              filterQuality: FilterQuality.high,
-                            )
-                          else
-                            Image.asset(
-                              'assets/images/snapbeat_wordmark_black.png',
-                              height: 27,
-                              fit: BoxFit.contain,
-                              filterQuality: FilterQuality.high,
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if (HomeScreen.wordmarkUiImage != null)
+                                RawImage(
+                                  image: HomeScreen.wordmarkUiImage,
+                                  height: 26,
+                                  fit: BoxFit.contain,
+                                  filterQuality: FilterQuality.high,
+                                )
+                              else
+                                Image.asset(
+                                  'assets/images/snapbeat_wordmark_black.png',
+                                  height: 26,
+                                  fit: BoxFit.contain,
+                                  filterQuality: FilterQuality.high,
+                                ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F131C),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: const Color(0x30FFFFFF), width: 0.8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.15),
+                                      blurRadius: 3,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: const Text(
+                                  'STUDIO',
+                                  style: TextStyle(
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.5,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 3),
                           const Text(
                             'BEAT-SYNCED PHOTO REELS',
@@ -1413,7 +1445,7 @@ class HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          RetroProBadge(onTap: _openAccountPlanDialog),
+                          RetroProBadge(onTap: () => RetroSubscriptionDialog.show(context)),
                           const SizedBox(width: 8),
                           Container(
                             width: 38,
@@ -1702,7 +1734,16 @@ class HomeScreenState extends State<HomeScreen> {
                     });
                   },
                   renderSpeed: _renderSpeed,
-                  onToggleRenderSpeed: (speed) => setState(() => _renderSpeed = speed),
+                  onToggleRenderSpeed: (speed) {
+                    if (speed == 'instant' && !sm.isPro) {
+                      RetroSubscriptionDialog.show(
+                        context,
+                        reason: "Instant Serverless Render is a PRO feature. Upgrade to Pro to enable instant GPU rendering.",
+                      );
+                      return;
+                    }
+                    setState(() => _renderSpeed = speed);
+                  },
                   creditBalanceDisplay: sm.creditBalanceDisplay,
                   onTapCredits: _openAccountPlanDialog,
                   stageTag: _currentTab == 'photos'
@@ -3643,51 +3684,80 @@ class HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-            Icon(icon, size: 16, color: isLocked ? AppColors.textInkTertiary : AppColors.textInkSecondary),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isLocked ? AppColors.textInkSecondary : AppColors.textInkBlack,
+            // Left Column: Icon + Label (takes left half)
+            SizedBox(
+              width: 140,
+              child: Row(
+                children: [
+                  Icon(icon, size: 16, color: isLocked ? AppColors.textInkTertiary : AppColors.textInkSecondary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isLocked ? AppColors.textInkSecondary : AppColors.textInkBlack,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Spacer(),
-            if (isLocked) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0x12000000),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.lock_outline_rounded, size: 10, color: AppColors.textInkTertiary),
-                    SizedBox(width: 3),
-                    Text(
-                      'AUTO LOCKED',
-                      style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: AppColors.textInkTertiary),
+            const SizedBox(width: 8),
+
+            // Right Column: Value + Status/Lock aligned to the right
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isLocked ? AppColors.textInkTertiary : AppColors.textInkSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (isLocked) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0x14000000),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: const Color(0x10000000), width: 0.8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.lock_rounded, size: 9, color: AppColors.textInkTertiary),
+                          SizedBox(width: 2.5),
+                          Text(
+                            'AUTO',
+                            style: TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                              color: AppColors.textInkTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: AppColors.textInkTertiary,
                     ),
                   ],
-                ),
+                ],
               ),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: isLocked ? AppColors.textInkTertiary : AppColors.textInkSecondary,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              isLocked ? Icons.lock_outline_rounded : Icons.chevron_right_rounded,
-              size: 16,
-              color: AppColors.textInkTertiary,
             ),
           ],
         ),
@@ -4067,7 +4137,16 @@ class HomeScreenState extends State<HomeScreen> {
                     title: "⚡ Instant Render (Serverless Cloud)",
                     subtitle: "Sub-15s GPU render with instant local playback",
                     isSelected: tempS == "instant",
-                    onTap: () => setModalState(() => tempS = "instant"),
+                    onTap: () {
+                      if (!sm.isPro) {
+                        RetroSubscriptionDialog.show(
+                          context,
+                          reason: "Instant Serverless Render is a PRO feature. Upgrade to Pro to enable instant GPU rendering.",
+                        );
+                        return;
+                      }
+                      setModalState(() => tempS = "instant");
+                    },
                   ),
                   const SizedBox(height: 8),
                   _buildQualityOptionTile(
